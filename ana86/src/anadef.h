@@ -5,6 +5,7 @@
 #define MACR
 
 #define ERR_VAL  (0x80000000L)
+#define strend(p)	((p)+strlen(p))
 /*--------------- symbol ---------------*/
 enum {
 	MD_EXPO,MD_RSV,MD_MODULE,MD_PROC,MD_STRUCT
@@ -82,8 +83,8 @@ enum {
 
 	I_EQEQ, 	/* "==" */
 	I_NEQ,  	/* "!=" */
-	I_ADCEQ,	/* "adc" */
-	I_SBCEQ,	/* "sbc" */
+	I_ADCEQ,	/* "+=." */
+	I_SBCEQ,	/* "-=." */
 	I_ADD,  	/* "+" */
 	I_ADDEQ,	/* "+=" */
 	I_SUB,  	/* "-" */
@@ -110,15 +111,25 @@ enum {
 
 	I_SHLEQ,	/* "<<=" */
 	I_SHREQ,	/* ">>=" */
-	I_RCLEQ,	/* "rcl" */
-	I_RCREQ,	/* "rcr" */
-	I_ROLEQ,	/* "rol" */
-	I_ROREQ,	/* "ror" */
+	I_RCLEQ,	/* "<<=." */
+	I_RCREQ,	/* ">>=." */
+	I_ROLEQ,	/* "<<<=" */
+	I_ROREQ,	/* ">>>=" */
 	I_SAREQ,	/* ".>>=" */
 
-	I_SARS, 	/* "sar" */
+	I_ROL,		/* "<<<" */
+	I_ROR,		/* ">>>" */
+
 	I_SHLS, 	/* "shl" */
 	I_SHRS, 	/* "shr" */
+	I_RCLS,		/* "rcl" */
+	I_RCRS,		/* "rcr" */
+	I_ROLS,		/* "rol" */
+	I_RORS,		/* "ror" */
+	I_SARS, 	/* "sar" */
+
+	I_ADCS,		/* "adc" */
+	I_SBCS,		/* "sbc" */
 
 	I_MUL,  	/* "*" */
 	I_MULEQ,	/* "*=" */
@@ -290,6 +301,12 @@ enum {
 	I_SFCM, 	/* ".sf." */
 	I_ZFCM, 	/* ".zf." */
 	I_OVFCM,	/* ".ovf." */
+	
+	I_NCFCM, 	/* ".cf." */
+	I_NPFCM, 	/* ".pf." */
+	I_NSFCM, 	/* ".sf." */
+	I_NZFCM, 	/* ".zf." */
+	I_NOVFCM,	/* ".ovf." */
 
 	I_ORIG, 	/* "orig" */
 	I_DEFINED,  /* "defined" */
@@ -367,8 +384,15 @@ enum {
 	I_OUTP, 	/* "outp" */
 	I_CODE, 	/* "code" */
 	I_DECL, 	/* "decl"	*/
+	I_SUBMODULE,/* "submodule" */
 	/*I_EXPORT,*/	/* "export" */
 	#define I_EXPORT  I_MUL
+
+	I_EQUS,
+	I_SET,
+	I_ENDMACRO,
+	I_REPT,
+	I_ENDREPT,
 
 	M_IF,		/* "@if" */
 	M_ELSIF,	/* "@elsif" */
@@ -378,6 +402,13 @@ enum {
 	M_MSG,  	/* "@msg" */
 	M_DEFINE,	/* "@define" */
 	M_INCLUDE,  /* "@include" */
+	M_MACRO,	/* "@macro" */
+	M_ENDMACRO,	/* "@endmacro" */
+	M_REPT,		/* "@rept" */
+	M_ENDREPT,	/* "@endrept" */
+	M_FOR,		/* "@for" */
+	M_ENDFOR,	/* "@endfor" */
+	M_LOCAL,	/* "@local" */
 	T_SYMEND,	/* "(static)" */
 
 };
@@ -391,7 +422,7 @@ typedef struct {
 
 
 /*---------------- St ---------------- "tbl.c" */
-#define LBL_NAME_SIZ 25
+#define LBL_NAME_SIZ (25+16)
 struct ST_T_VAR {
 	/* union ST_T far *next; */
 	union ST_T far *lnk[2];
@@ -686,7 +717,7 @@ word	Expr_CondNeg(word);
 void	Gen_Expr(Et_t_fp ,word);
 void	Gen_CondExpr(Et_t_fp ,word,word,word,word);
 void	Gen_EquFlg(int);
-void	Gen_ChkEquFlg();
+void	Gen_ChkEquFlg(void);
 void	Gen_Equ(Et_t_fp lp, Et_t_fp rp);
 void	Gen_Equ4(Et_t_fp lp, Et_t_fp rp);
 void	Gen_Rep(word t);
@@ -717,7 +748,7 @@ void	Sym_MacInclude(void);
 #define PAR_CR_INC()	do {if (Opt_parCr) Sym_crMode++;} while(0)
 #define PAR_CR_DEC()	do {if (Opt_parCr) Sym_crMode--;} while(0)
 EXTERN  int 	Sym_crMode;
-EXTERN  byte	Sym_name[LBL_NAME_SIZ+10];
+EXTERN  byte	Sym_name[LBL_NAME_SIZ+256];
 EXTERN  word	Sym_tok;
 EXTERN  word	Sym_typ;
 EXTERN  word	Sym_reg;
@@ -820,6 +851,8 @@ EXTERN  byte	Ana_outName[NAM_SIZE];
 EXTERN  byte	Ana_partIncName[NAM_SIZE];
 EXTERN  int 	Ana_align;
 EXTERN  int 	Ana_mmodFlg;		/* import ｼﾀ file ﾃﾞ module ｶﾞ ﾌｸｽｳ ｱﾙ ｶ?*/
+EXTERN	int		Ana_moduleMode;		/* module 文が必要かどうかのフラグ */
+EXTERN	int		Ana_oldver;			/* v0.17-v0.20の文法を許す */
 #ifdef EXT
 	byte_fp Ana_ext = "ANA";
 	byte_fp Ana_hdrext = "HAN";
@@ -827,7 +860,7 @@ EXTERN  int 	Ana_mmodFlg;		/* import ｼﾀ file ﾃﾞ module ｶﾞ ﾌｸｽｳ ｱﾙ ｶ?*/
 	extern byte_fp Ana_ext;
 	extern byte_fp Ana_hdrext;
 #endif
-FILE*	fopen_e(byte *,byte *);
+FILE*	fopen_e(char *,char *);
 
 /* stat.c */
 int  Stat(void);
@@ -858,7 +891,7 @@ void	Decl_Return(void);
 void	Decl_Load(void);
 int 	Decl_Data(word cnt);
 int 	Decl_Proc(word op);
-void	Decl_Var(St_t_fp cp);
+void	Decl_Var(St_t_fp cp,int a);
 void	Decl_Type(void);
 void	Decl_Struct(void);
 void	Decl_Const(void);
@@ -908,4 +941,3 @@ typedef struct Sss_t {
 	extern Sss_t *Expr_strl;
 	extern Sss_t *Expr_strlTop;
 #endif
-

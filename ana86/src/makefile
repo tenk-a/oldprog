@@ -1,8 +1,8 @@
 # rules
-CC = TCC
+CC = BCC
 ASM = TASM
 AFLAGS = -ml -m
-CFLAGS = -ml -d -O -G
+CFLAGS = -ml -d -Ox -G -K
 .asm.obj:
 	$(ASM) $(AFLAGS) $<
 .c.obj:
@@ -14,6 +14,7 @@ OBJ = ana.obj decl.obj stat.obj expr.obj gen.obj out.obj sym.obj mem.obj
 
 ana.exe : $(OBJ)
 	$(CC) $(CFLAGS) -eANA.EXE $(OBJ)
+	copy ana.exe c:\cmds\ana.exe
 #
 #
 ana.obj  : ana.c  tenkdefs.h anadef.h

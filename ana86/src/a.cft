@@ -1,0 +1,39 @@
+-f
+-oa
+-ea.err
+
+@file
+ana.c
+decl.c
+expr.c
+gen.c
+mem.c
+out.c
+stat.c
+sym.c
+
+@group	symbol
+Sym_Get
+
+@group	®
+Expr
+
+@group	•Ï”’è‹`
+Decl_Var
+
+@group	•¶
+Stat
+
+@group	è‘±‚«
+Decl_Proc
+
+@group	ƒƒCƒ“
+main
+
+@word
+byte
+word
+dword
+St_t_fp
+Et_t_fp
+

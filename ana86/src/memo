@@ -9,4 +9,11 @@
 1994/03/16
 	手続き定義でのcdeclの直後の改行またはｾﾊﾟﾚｰﾀのﾁｪｯｸに誤りがあった^^;
 	手続き中での変数宣言部の改行またはｾﾊﾟﾚｰﾀのﾁｪｯｸに誤りがあった^^;
-
+1996/05/03
+	submodule追加.
+	module 指定なしのソースを可能にした.
+	exit next を break continue に置き換える
+	rol, ror, rcl, rcr, adc,sbc,com を <<<= >>>= <<=. >>=. +=. -=. ~~  に置き換える
+	cf zf sf ovf pf iif 等フラグ名を廃止する
+	.cf. .zf. .sf. .ovf. .pf. を _c_ _z_ _s_ _o_ _p_ に置き換える.
+	cf=0 cf=1 com(cf) を clc stc cmc に置き換える.

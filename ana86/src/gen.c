@@ -3,45 +3,40 @@
 #include "anadef.h"
 
 #if 0
-static byte Gen_condMode;	/* 0:符号変化無視  1:在り　2:在り(基本命令のみ) */
+static byte Gen_condMode;		/* 0:符号変化無視  1:在り　2:在り(基本命令のみ) */
 #endif
 static byte oGenEquFlg;
-static Et_t oETmpH,oETmpL,oETmp2H,oETmp2L,oWTmpH,oWTmpL,oWTmp2H,oWTmp2L;
-static Et_t oETmpC,oETmpR;
+static Et_t oETmpH, oETmpL, oETmp2H, oETmp2L, oWTmpH, oWTmpL, oWTmp2H, oWTmp2L;
+static Et_t oETmpC, oETmpR;
 
 /*---------------------------------------------------------------------------*/
 
-void
-Gen_EquFlg(int n)
+void	Gen_EquFlg(int n)
 {
 	oGenEquFlg = n;
 }
 
-void
-Gen_ChkEquFlg()
+void	Gen_ChkEquFlg(void)
 {
 	if (Gen_condMode || oGenEquFlg)
-			Msg_Err("両辺のサイズが違う（左辺のほうが大きい）");
+		Msg_Err("両辺のサイズが違う（左辺のほうが大きい）");
 }
 
-Et_t_fp
-Ev_Cnst(long val)
+Et_t_fp Ev_Cnst(long val)
 {
 	oETmpC.e.op = T_CNST;
 	oETmpC.c.val = val;
 	return &oETmpC;
 }
 
-Et_t_fp
-Ev_Cnst2(long val)
+Et_t_fp Ev_Cnst2(long val)
 {
 	oETmp2L.e.op = T_CNST;
 	oETmp2L.c.val = val;
 	return &oETmp2L;
 }
 
-Et_t_fp
-Ev_Reg(word reg)
+Et_t_fp Ev_Reg(word reg)
 {
 	if (Op_Reg1(reg)) {
 		oETmpR.e.op = T_R1;
@@ -54,8 +49,7 @@ Ev_Reg(word reg)
 	return &oETmpR;
 }
 
-Et_t_fp
-Ev_Reg4(word reg)
+Et_t_fp Ev_Reg4(word reg)
 {
 	if (reg <= 0xff)
 		return Ev_Reg(reg);
@@ -70,8 +64,7 @@ Ev_Reg4(word reg)
 	return &oETmpR;
 }
 
-Et_t_fp
-Ev_Reg2(word reg)
+Et_t_fp Ev_Reg2(word reg)
 {
 	if (Op_Reg1(reg)) {
 		oETmp2H.e.op = T_R1;
@@ -84,15 +77,14 @@ Ev_Reg2(word reg)
 	return &oETmp2H;
 }
 
-static void
-EtWTmp(Et_t_fp lp)
+static void EtWTmp(Et_t_fp lp)
 {
 	oWTmpH = oWTmpL = *lp;
 	oWTmpH.m.typ = oWTmpL.m.typ = I_BYTE;
 	switch (lp->e.op) {
 	case T_M2:
 		oWTmpH.e.op = oWTmpL.e.op = T_M1;
-		oWTmpH.m.ofs = lp->m.ofs+1;
+		oWTmpH.m.ofs = lp->m.ofs + 1;
 		oWTmpL.m.ofs = lp->m.ofs;
 		break;
 	case T_R2:
@@ -101,47 +93,46 @@ EtWTmp(Et_t_fp lp)
 		oWTmpL.c.reg = RegXtoL(lp->c.reg);
 	}
 }
-static void
-EtWTmp2(Et_t_fp lp)
+
+static void EtWTmp2(Et_t_fp lp)
 {
 	oWTmp2H = oWTmp2L = *lp;
 	oWTmp2H.m.typ = oWTmp2L.m.typ = I_BYTE;
 	switch (lp->e.op) {
 	case T_M2:
-		oWTmp2H.e.op = oWTmp2L.e.op = T_M1;
-		oWTmp2H.m.ofs = lp->m.ofs+1;
+		oWTmp2H.e.op  = oWTmp2L.e.op = T_M1;
+		oWTmp2H.m.ofs = lp->m.ofs + 1;
 		oWTmp2L.m.ofs = lp->m.ofs;
 		break;
 	case T_R2:
-		oWTmp2H.e.op = oWTmp2L.e.op = T_R1;
+		oWTmp2H.e.op  = oWTmp2L.e.op = T_R1;
 		oWTmp2H.c.reg = RegXtoH(lp->c.reg);
 		oWTmp2L.c.reg = RegXtoL(lp->c.reg);
 	}
 }
 
-static void
-EtDTmp(Et_t_fp lp)
+static void EtDTmp(Et_t_fp lp)
 {
 	switch (lp->e.op) {
 	case T_M4:
 		oETmpH = oETmpL = *lp;
 		oETmpH.m.typ = oETmpL.m.typ = I_WORD;
-		oETmpH.e.op = oETmpL.e.op = T_M2;
-		oETmpH.m.ofs = lp->m.ofs+2;
+		oETmpH.e.op  = oETmpL.e.op = T_M2;
+		oETmpH.m.ofs = lp->m.ofs + 2;
 		oETmpL.m.ofs = lp->m.ofs;
 		break;
 	case T_CNST:
 		oETmpH = oETmpL = *lp;
 		oETmpH.m.typ = oETmpL.m.typ = I_WORD;
-		oETmpH.e.op = oETmpL.e.op = T_CNST;
-		oETmpH.c.val = (unsigned long)lp->c.val / 0x10000L;
+		oETmpH.e.op  = oETmpL.e.op = T_CNST;
+		oETmpH.c.val = (unsigned long) lp->c.val / 0x10000L;
 		oETmpL.c.val = lp->c.val & 0xFFFF;
 		break;
 	case T_R4:
 	case T_SEG4:
 		oETmpH = oETmpL = *lp;
 		oETmpH.m.typ = oETmpL.m.typ = I_WORD;
-		oETmpH.e.op = oETmpL.e.op = T_R2;
+		oETmpH.e.op  = oETmpL.e.op = T_R2;
 		oETmpH.c.reg = lp->c.reg / 0x100;
 		oETmpL.c.reg = lp->c.reg % 0x100;
 		if (IsEp_Seg4(lp))
@@ -161,11 +152,10 @@ EtDTmp(Et_t_fp lp)
 	}
 }
 
-static void
-EtDTmp2(Et_t_fp lp)
+static void EtDTmp2(Et_t_fp lp)
 {
 	switch (lp->e.op) {
-	case T_M4:
+		case T_M4:
 		oETmp2H = oETmp2L = *lp;
 		oETmp2H.m.typ = oETmp2L.m.typ = I_WORD;
 		oETmp2H.e.op  = oETmp2L.e.op = T_M2;
@@ -176,7 +166,7 @@ EtDTmp2(Et_t_fp lp)
 		oETmp2H = oETmp2L = *lp;
 		oETmp2H.m.typ = oETmp2L.m.typ = I_WORD;
 		oETmp2H.e.op  = oETmp2L.e.op = T_CNST;
-		oETmp2H.c.val = (unsigned long)lp->c.val / 0x10000L;
+		oETmp2H.c.val = (unsigned long) lp->c.val / 0x10000L;
 		oETmp2L.c.val = lp->c.val & 0xFFFF;
 		break;
 	case T_R4:
@@ -203,11 +193,10 @@ EtDTmp2(Et_t_fp lp)
 	}
 }
 
-void
-Gen_PushPop(word t,Et_t_fp lp)
+void	Gen_PushPop(word t, Et_t_fp lp)
 {
 	switch (lp->e.op) {
-	case I_FX:
+		case I_FX:
 		Out_Nem0((t == I_PUSH) ? I_PUSHF : I_POPF);
 		break;
 	case T_CNST:
@@ -216,45 +205,44 @@ Gen_PushPop(word t,Et_t_fp lp)
 			goto ERR;
 		if (Opt_cpu == 0)
 			Msg_Err("8086ﾓｰﾄﾞでは即値をpushできません");
-		Out_Nem1(t,lp);
+		Out_Nem1(t, lp);
 		break;
 	case I_W2D:
 		if (t == I_PUSH) {
-			Gen_PushPop(t,lp->e.lep);
-			Gen_PushPop(t,lp->e.rep);
+			Gen_PushPop(t, lp->e.lep);
+			Gen_PushPop(t, lp->e.rep);
 		} else {
-			Gen_PushPop(t,lp->e.rep);
-			Gen_PushPop(t,lp->e.lep);
+			Gen_PushPop(t, lp->e.rep);
+			Gen_PushPop(t, lp->e.lep);
 		}
 		break;
 	default:
-		if (IsEp_Lft2(lp)||IsEp_Seg2(lp))
-			Out_Nem1(t,lp);
-		else if (IsEp_Lft4(lp)||IsEp_Seg4(lp)) {
+		if (IsEp_Lft2(lp) || IsEp_Seg2(lp))
+			Out_Nem1(t, lp);
+		else if (IsEp_Lft4(lp) || IsEp_Seg4(lp)) {
 			EtDTmp2(lp);
 			if (t == I_PUSH) {
-				Out_Nem1(t,&oETmp2H);
-				Out_Nem1(t,&oETmp2L);
+				Out_Nem1(t, &oETmp2H);
+				Out_Nem1(t, &oETmp2L);
 			} else {
-				Out_Nem1(t,&oETmp2L);
-				Out_Nem1(t,&oETmp2H);
+				Out_Nem1(t, &oETmp2L);
+				Out_Nem1(t, &oETmp2H);
 			}
 		} else
 			goto ERR;
 	}
 	return;
- ERR:
+  ERR:
 	Msg_Err("push,popがおかしい");
 }
 
 
-static void
-GenPush(Et_t_fp ep)
+static void GenPush(Et_t_fp ep)
 {
 	static Et_t_fp kp[24];
-	int  i;
+	int 	i;
 
-	for (i = 0;i < 20 && ep;i++,ep = ep->e.rep) {
+	for (i = 0; i < 20 && ep; i++, ep = ep->e.rep) {
 		kp[i] = ep->e.lep;
 	}
 	if (i >= 20)
@@ -263,39 +251,37 @@ GenPush(Et_t_fp ep)
 		Msg_Err("push のパラメータがない");
 	else {
 		while (--i >= 0)
-			Gen_PushPop(I_PUSH,kp[i]);
+			Gen_PushPop(I_PUSH, kp[i]);
 	}
 }
 
-static void
-GenPop(Et_t_fp ep)
+static void GenPop(Et_t_fp ep)
 {
 	while (ep) {
-		Gen_PushPop(I_POP,ep->e.lep);
+		Gen_PushPop(I_POP, ep->e.lep);
 		ep = ep->e.rep;
 	}
 }
 
-void
-Gen_Equ(Et_t_fp lp, Et_t_fp rp)
+void	Gen_Equ(Et_t_fp lp, Et_t_fp rp)
 {
-	Et_t et;
+	Et_t	et;
 
 	MSG("Gen_Equ");
-	switch(lp->e.op) {
+	switch (lp->e.op) {
 
 	case T_SEG2:
 		if (rp->e.op == T_SEG2) {
 			if (lp->c.reg == rp->c.reg)
 				break;
-			Out_Nem1(I_PUSH,rp);
-			Out_Nem1(I_POP,lp);
+			Out_Nem1(I_PUSH, rp);
+			Out_Nem1(I_POP, lp);
 			break;
 		} if (IsEp_Cnst(rp)) {
 			if (Opt_cpu == 0)
 				Msg_Err("セグメント・レジスタに定数は直接代入できない");
-			Out_Nem1(I_PUSH,rp);
-			Out_Nem1(I_POP,lp);
+			Out_Nem1(I_PUSH, rp);
+			Out_Nem1(I_POP, lp);
 			break;
 		}
 	case T_R2:
@@ -304,24 +290,24 @@ Gen_Equ(Et_t_fp lp, Et_t_fp rp)
 			et.e.op = T_R1;
 			et.c.reg = RegXtoL(lp->c.reg);
 			if (et.c.reg != rp->c.reg)
-				Out_Nem2(I_EQU,&et,rp);
+				Out_Nem2(I_EQU, &et, rp);
 			et.c.reg = RegXtoH(lp->c.reg);
-			Out_Nem2(I_EOREQ,&et,&et);
+			Out_Nem2(I_EOREQ, &et, &et);
 			break;
 		} else if (rp->e.op == I_FX) {
 			goto J_FX;
 		} else if (rp->e.op == T_ADDR) {
-			Out_Nem2(I_LEA,lp,rp->e.lep);
+			Out_Nem2(I_LEA, lp, rp->e.lep);
 			break;
 		} else if (rp->e.op == I_PORT && lp->c.reg == I_AX) {
-			Out_Nem2(I_INP,Ev_Reg(I_AX), rp->e.lep);
+			Out_Nem2(I_INP, Ev_Reg(I_AX), rp->e.lep);
 			break;
 		}
 		goto J_RR;
 	case T_R1:
 		if (lp->c.reg == I_AL) {
 			if (rp->e.op == I_PORT) {
-				Out_Nem2(I_INP,Ev_Reg(I_AL), rp->e.lep);
+				Out_Nem2(I_INP, Ev_Reg(I_AL), rp->e.lep);
 				break;
 			} else if (rp->e.op == I_BXAL) {
 				Out_Nem0(I_XLAT);
@@ -332,16 +318,16 @@ Gen_Equ(Et_t_fp lp, Et_t_fp rp)
 			break;
 		} else if (!IsEp_Rht1(rp))
 			goto ERR2;
- J_RR:
+	  J_RR:
 		if (Gen_condMode == 0) {
-			if (IsEp_CnstVal(rp,0)) {
-				Out_Nem2(I_EOREQ,lp,lp);
+			if (IsEp_CnstVal(rp, 0)) {
+				Out_Nem2(I_EOREQ, lp, lp);
 				break;
-			} else if (IsEp_Reg12(rp)	&& lp->c.reg == rp->c.reg)
+			} else if (IsEp_Reg12(rp) && lp->c.reg == rp->c.reg)
 				break;
 		}
 		IsEp_CnstTyp(lp->m.typ, rp);
-		Out_Nem2(I_EQU,lp,rp);
+		Out_Nem2(I_EQU, lp, rp);
 		break;
 
 	case T_M2:
@@ -351,49 +337,49 @@ Gen_Equ(Et_t_fp lp, Et_t_fp rp)
 			et.e.lep = lp->e.lep;
 			et.m.ofs = lp->m.ofs;
 			et.m.typ = I_BYTE;
-			Out_Nem2(I_EQU,&et,rp);
+			Out_Nem2(I_EQU, &et, rp);
 			et.m.ofs++;
-			Out_Nem2(I_EQU,&et,EV_ZERO);
+			Out_Nem2(I_EQU, &et, EV_ZERO);
 			break;
 		} else if (rp->e.op == I_FX) {
-  J_FX:
+		  J_FX:
 			Out_Nem0(I_POPF);
-			Out_Nem1(I_PUSH,lp);
+			Out_Nem1(I_PUSH, lp);
 			break;
 		}
 		goto J_MM;
 	case T_M1:
 		if (!IsEp_Rht1(rp))
 			goto ERR2;
- J_MM:
+	  J_MM:
 		if (IsEp_Mem124(rp)) {
 			Msg_Err("メモリ同士の代入はできない");
 			break;
 		}
 		IsEp_CnstTyp(lp->m.typ, rp);
-		Out_Nem2(I_EQU,lp,rp);
+		Out_Nem2(I_EQU, lp, rp);
 		break;
 
 	case I_FX:
-		if (IsEp_Cnst(rp)	&& Opt_cpu == 0) {
-				Msg_Err("ﾌﾗｸﾞ･ﾚｼﾞｽﾀに定数は代入できない");
+		if (IsEp_Cnst(rp) && Opt_cpu == 0) {
+			Msg_Err("ﾌﾗｸﾞ･ﾚｼﾞｽﾀに定数は代入できない");
 		} else {
-			Out_Nem1(I_PUSH,rp);
+			Out_Nem1(I_PUSH, rp);
 			Out_Nem0(I_POPF);
 		}
 		break;
 
 	case I_FL:
-		if (IsEp_R1op(rp,I_AH))
+		if (IsEp_R1op(rp, I_AH))
 			Out_Nem0(I_SAHF);
 		else
 			Msg_Err("fl=ahの指定がいかしい");
 		break;
 
 	case I_PORT:
-		if (IsEp_R1op(rp,I_AL)) {
+		if (IsEp_R1op(rp, I_AL)) {
 			Out_Nem2(I_OUTP, lp->e.lep, Ev_Reg(I_AL));
-		} else if (IsEp_R2op(rp,I_AX)) {
+		} else if (IsEp_R2op(rp, I_AX)) {
 			Out_Nem2(I_OUTP, lp->e.lep, Ev_Reg(I_AX));
 		} else
 			Msg_Err("port()はalかaxでないとｱｸｾｽできない");
@@ -402,37 +388,35 @@ Gen_Equ(Et_t_fp lp, Et_t_fp rp)
 	default:
 		Msg_Err("代入の左辺がおかしい");
 	}
-	//oGenEquFlg = 0;
+ /* oGenEquFlg = 0; */
 	return;
 
- ERR2:
+  ERR2:
 	Msg_Err("小さな型のものへ大きな型のものを代入できない");
-	//oGenEquFlg = 0;
+ /* oGenEquFlg = 0; */
 }
 
 
-void
-GenEquSeg(Et_t_fp lp, Et_t_fp rp)
+void	GenEquSeg(Et_t_fp lp, Et_t_fp rp)
 {
-  #if 0
-	word seg;
+#if 0
+	word	seg;
 
 	if (oGenEquFlg) {
 		if (rp->e.op == T_R2 && (rp->c.reg == I_BP || rp->c.reg == I_SP))
 			seg = I_SS;
 		else
 			seg = I_DS;
-		Gen_Equ(lp,Ev_Reg(seg));
+		Gen_Equ(lp, Ev_Reg(seg));
 	} else {
-		Gen_Equ(lp,EV_ZERO);
+		Gen_Equ(lp, EV_ZERO);
 	}
-  #else
-	Gen_Equ(lp,EV_ZERO);
-  #endif
+#else
+	Gen_Equ(lp, EV_ZERO);
+#endif
 }
 
-void
-Gen_Equ4(Et_t_fp lp, Et_t_fp rp)
+void	Gen_Equ4(Et_t_fp lp, Et_t_fp rp)
 {
 	if (rp->e.op == T_CNSTEXPR) {
 		Msg_Err("32ﾋﾞｯﾄ･ﾚｼﾞｽﾀにはﾗﾍﾞﾙの交ざった定数式をつかえない");
@@ -440,11 +424,11 @@ Gen_Equ4(Et_t_fp lp, Et_t_fp rp)
 	}
 	EtDTmp(lp);
 	EtDTmp2(rp);
-	switch(lp->e.op) {
+	switch (lp->e.op) {
 	case T_SEG4:
 		if (IsEp_Mem4(rp)) {
-			Out_Nem2((oETmpH.c.reg==I_DS) ? I_LDS : I_LES, &oETmpL,
-				/*(Opt_r86) ?*/ rp /*: &oETmp2L*/);
+			Out_Nem2((oETmpH.c.reg == I_DS) ? I_LDS : I_LES, &oETmpL,
+					  /* (Opt_r86) ? */ rp /* : &oETmp2L */ );
 			break;
 		}
 	case T_R4:
@@ -460,11 +444,11 @@ Gen_Equ4(Et_t_fp lp, Et_t_fp rp)
 		case T_M4:
 			goto J_R4;
 		case T_CNST:
-			Gen_Equ(&oETmpL,&oETmp2L);
+			Gen_Equ(&oETmpL, &oETmp2L);
 			if (oETmp2L.c.val == oETmp2H.c.val) {
-				Gen_Equ(&oETmpH,&oETmpL);
+				Gen_Equ(&oETmpH, &oETmpL);
 			} else {
-				Gen_Equ(&oETmpH,&oETmp2H);
+				Gen_Equ(&oETmpH, &oETmp2H);
 			}
 			break;
 		case I_W2D:
@@ -476,41 +460,40 @@ Gen_Equ4(Et_t_fp lp, Et_t_fp rp)
 	case T_M4:
 		switch (rp->e.op) {
 		case T_R1:
-  J_R1:
+		  J_R1:
 		case T_R2:
-  J_R2:
+		  J_R2:
 			Gen_ChkEquFlg();
-			Gen_Equ(&oETmpL,rp);
-			GenEquSeg(&oETmpH,rp);
+			Gen_Equ(&oETmpL, rp);
+			GenEquSeg(&oETmpH, rp);
 			break;
 		case T_R4:
 		case T_SEG4:
 		case T_CNST:
-  J_R4:
-			Gen_Equ(&oETmpL,&oETmp2L);
-			Gen_Equ(&oETmpH,&oETmp2H);
+		  J_R4:
+			Gen_Equ(&oETmpL, &oETmp2L);
+			Gen_Equ(&oETmpH, &oETmp2H);
 			break;
 		case I_W2D:
-  J_W2D:
-			Gen_Equ(&oETmpL,rp->e.rep);
-			Gen_Equ(&oETmpH,rp->e.lep);
+		  J_W2D:
+			Gen_Equ(&oETmpL, rp->e.rep);
+			Gen_Equ(&oETmpH, rp->e.lep);
 			break;
 		default:
 			goto ERR;
 		}
 		break;
 	default:
- ERR:
+	  ERR:
 		Msg_Err("代入の左辺がおかしい");
 	}
-	//oGenEquFlg = 0;
+ /* oGenEquFlg = 0; */
 	return;
 }
 
-static void
-GenMul(Et_t_fp xp,word op,Et_t_fp lp,Et_t_fp rp)
+static void GenMul(Et_t_fp xp, word op, Et_t_fp lp, Et_t_fp rp)
 {
-	word lr,r,typ;
+	word	lr, r, typ;
 
 	r = 0;
 	typ = I_WORD;
@@ -527,17 +510,17 @@ GenMul(Et_t_fp xp,word op,Et_t_fp lp,Et_t_fp rp)
 		goto ERR;
 	}
 	lr = lp->c.reg;
-  #if 0
+#if 0
 	{
-		word a1,a2;
+		word	a1, a2;
 		if ((a1 = Expr_RVal(lp)) > 2 || (a2 = Expr_RVal(rp)) > 2)
 			Msg_Err("右辺がおかしい");
-		lp = Expr_CnvRVal(a1,lp);
-		rp = Expr_CnvRVal(a2,rp);
+		lp = Expr_CnvRVal(a1, lp);
+		rp = Expr_CnvRVal(a2, rp);
 	}
-  #endif
+#endif
 	while ((IsEp_Lft12(lp) && typ != lp->m.typ)
-		|| (IsEp_Lft12(rp) && typ != rp->m.typ)) {
+		   || (IsEp_Lft12(rp) && typ != rp->m.typ)) {
 		if (r == I_AL) {
 			r = 0;
 			typ = I_WORD;
@@ -546,77 +529,70 @@ GenMul(Et_t_fp xp,word op,Et_t_fp lp,Et_t_fp rp)
 	}
 	if (r) {
 
-		if (IsEp_Reg12(lp) &&	lr == r)
-			;
+		if (IsEp_Reg12(lp) && lr == r) ;
 		else {
 			Et_t_fp tmp;
-			tmp = lp;	lp = rp;	rp = tmp;
+			tmp = lp;
+			lp = rp;
+			rp = tmp;
 		}
-		Gen_Equ(Ev_Reg(r),lp);
+		Gen_Equ(Ev_Reg(r), lp);
 		if (IsEp_Cnsts(rp)) {
 			lp = rp;
-			Gen_Equ(rp = Ev_Reg((r == I_AX) ?I_DX:I_AH) , lp);
+			Gen_Equ(rp = Ev_Reg((r == I_AX) ? I_DX : I_AH), lp);
 		}
-		Out_Nem1(op,rp);
+		Out_Nem1(op, rp);
 	} else {
 		if (IsEp_Lft2(lp) && IsEp_Cnsts(rp))
-			Out_Nem3(I_IMUL,xp,lp,rp);
+			Out_Nem3(I_IMUL, xp, lp, rp);
 		else if (IsEp_Cnsts(lp) && IsEp_Lft2(rp))
-			Out_Nem3(I_IMUL,xp,rp,lp);
+			Out_Nem3(I_IMUL, xp, rp, lp);
 		else
 			goto ERR;
 	}
 	return;
- ERR:
+  ERR:
 	Msg_Err("掛算の指定がおかしい");
 }
 
-static void
-GenEqus(Et_t_fp lp, Et_t_fp rp)
+static void GenEqus(Et_t_fp lp, Et_t_fp rp)
 {
 	if (rp->e.op == I_MUL || rp->e.op == I_IMUL)
-		GenMul(lp,rp->e.op,rp->e.lep,rp->e.rep);
+		GenMul(lp, rp->e.op, rp->e.lep, rp->e.rep);
 	else if (IsEp_Lft4S(lp))
-		Gen_Equ4(lp,rp);
+		Gen_Equ4(lp, rp);
 	else
-		Gen_Equ(lp,rp);
+		Gen_Equ(lp, rp);
 }
 
-static void
-GenEq(
-	Et_t_fp lp,
-	Et_t_fp rp,
-	void (*func)(Et_t_fp ,Et_t_fp)
-){
+static void GenEq(Et_t_fp lp, Et_t_fp rp, void (*func)(Et_t_fp,Et_t_fp) )
+{
 	if (lp->e.op != I_EQU) {
-
-		(*func)(lp,rp);
+		(*func) (lp, rp);
 		return;
 	}
-	(*func)(lp->e.rep,rp);
-	for (;;) {
+	(*func)(lp->e.rep, rp);
+	for (; ;) {
 		rp = lp->e.rep;
 		lp = lp->e.lep;
 		if (lp->e.op != I_EQU)
 			break;
-		GenEqus(lp->e.rep,rp);
+		GenEqus(lp->e.rep, rp);
 	}
-	GenEqus(lp,rp);
+	GenEqus(lp, rp);
 	return;
 }
 
-static void
-GenZeroTest(Et_t_fp p)
+static void GenZeroTest(Et_t_fp p)
 {
-	Out_Nem2(I_OREQ,p,p);
+	Out_Nem2(I_OREQ, p, p);
 }
 
-static int
-GenShift4(word xo,Et_t_fp lp,int  val)
+static int GenShift4(word xo, Et_t_fp lp, int val)
 {
-  #if 1
-	int  i;
-  #endif
+#if 1
+	int 	i;
+#endif
 
 	if (val >= 24) {
 		if (xo == I_SHLEQ) {
@@ -624,62 +600,63 @@ GenShift4(word xo,Et_t_fp lp,int  val)
 			EtWTmp(&oETmpH);
 			EtWTmp2(&oETmpL);
 			val -= 24;
-			Gen_Equ(&oWTmpH,&oWTmp2L);
-			Gen_Equ(&oWTmpL,EV_ZERO);
-			Gen_Equ(&oETmpL,EV_ZERO);
+			Gen_Equ(&oWTmpH, &oWTmp2L);
+			Gen_Equ(&oWTmpL, EV_ZERO);
+			Gen_Equ(&oETmpL, EV_ZERO);
 		} else if (xo == I_SHREQ) {
 			EtDTmp(lp);
 			EtWTmp(&oETmpH);
 			EtWTmp2(&oETmpL);
 			val -= 24;
-			Gen_Equ(&oWTmp2L,&oWTmpH);
-			Gen_Equ(&oWTmp2H,EV_ZERO);
-			Gen_Equ(&oETmpH,EV_ZERO);
+			Gen_Equ(&oWTmp2L, &oWTmpH);
+			Gen_Equ(&oWTmp2H, EV_ZERO);
+			Gen_Equ(&oETmpH, EV_ZERO);
 		} else if (xo == I_SAREQ) {
 			EtDTmp(lp);
 			EtWTmp(&oETmpH);
 			EtWTmp2(&oETmpL);
 			val -= 24;
-			Gen_Equ(&oWTmp2L,&oWTmpH);
-		  #if 1
+			Gen_Equ(&oWTmp2L, &oWTmpH);
+#if 1
 			i = 7;
 			while (--i >= 0)
-				Out_Nem2(xo,&oWTmpH,Ev_Cnst(1));
-		  #else
-			Out_Nem2(I_ANDEQ,&oWTmpH,Ev_Cnst(0x80));
-			Out_NmSt("je","$+4");
-			Gen_Equ(&oWTmpH,Ev_Cnst(0xFF));
-		  #endif
-			Gen_Equ(&oWTmpL,&oWTmpH);
-			Gen_Equ(&oWTmp2H,&oWTmpH);
+				Out_Nem2(xo, &oWTmpH, Ev_Cnst(1));
+#else
+			Out_Nem2(I_ANDEQ, &oWTmpH, Ev_Cnst(0x80));
+			Out_NmSt("je", "$+4");
+			Gen_Equ(&oWTmpH, Ev_Cnst(0xFF));
+#endif
+			Gen_Equ(&oWTmpL, &oWTmpH);
+			Gen_Equ(&oWTmp2H, &oWTmpH);
 		}
 	}
 	if (val >= 16) {
 		EtDTmp(lp);
 		val -= 16;
 		if (xo == I_ROLEQ || xo == I_ROREQ) {
-			Out_Nem2(I_EXG,&oETmpH,&oETmpL);
+			Out_Nem2(I_EXG, &oETmpH, &oETmpL);
 		} else if (xo == I_SHLEQ) {
-			Gen_Equ(&oETmpH,&oETmpL);
-			Gen_Equ(&oETmpL,EV_ZERO);
+			Gen_Equ(&oETmpH, &oETmpL);
+			Gen_Equ(&oETmpL, EV_ZERO);
 		} else if (xo == I_SHREQ) {
-			Gen_Equ(&oETmpL,&oETmpH);
-			Gen_Equ(&oETmpH,EV_ZERO);
+			Gen_Equ(&oETmpL, &oETmpH);
+			Gen_Equ(&oETmpH, EV_ZERO);
 		} else if (xo == I_SAREQ) {
-			Gen_Equ(&oETmpL,&oETmpH);
+			Gen_Equ(&oETmpL, &oETmpH);
 			EtWTmp(&oETmpH);
-		  #if 1
+#if 1
 			i = 7;
 			while (--i >= 0)
-				Out_Nem2(xo,&oWTmpH,Ev_Cnst(1));
-		  #else
-			Out_Nem2(I_ANDEQ,&oWTmpH,Ev_Cnst(0x80));
-			Out_NmSt("je","$+4");
-			Gen_Equ(&oWTmpH,Ev_Cnst(0xFF));
-		  #endif
-			Gen_Equ(&oWTmpL,&oWTmpH);
-		} else
+				Out_Nem2(xo, &oWTmpH, Ev_Cnst(1));
+#else
+			Out_Nem2(I_ANDEQ, &oWTmpH, Ev_Cnst(0x80));
+			Out_NmSt("je", "$+4");
+			Gen_Equ(&oWTmpH, Ev_Cnst(0xFF));
+#endif
+			Gen_Equ(&oWTmpL, &oWTmpH);
+		} else {
 			val += 16;
+		}
 	}
 	if (val >= 8) {
 		EtDTmp(lp);
@@ -687,36 +664,36 @@ GenShift4(word xo,Et_t_fp lp,int  val)
 		EtWTmp2(&oETmpL);
 		val -= 8;
 		if (xo == I_SHLEQ) {
-			Gen_Equ(&oWTmpH,&oWTmpL);
-			Gen_Equ(&oWTmpL,&oWTmp2H);
-			Gen_Equ(&oWTmp2H,&oWTmp2L);
-			Gen_Equ(&oWTmp2L,EV_ZERO);
+			Gen_Equ(&oWTmpH, &oWTmpL);
+			Gen_Equ(&oWTmpL, &oWTmp2H);
+			Gen_Equ(&oWTmp2H, &oWTmp2L);
+			Gen_Equ(&oWTmp2L, EV_ZERO);
 		} else if (xo == I_SHREQ) {
-			Gen_Equ(&oWTmp2L,&oWTmp2H);
-			Gen_Equ(&oWTmp2H,&oWTmpL);
-			Gen_Equ(&oWTmpL,&oWTmpH);
-			Gen_Equ(&oWTmpH,EV_ZERO);
+			Gen_Equ(&oWTmp2L, &oWTmp2H);
+			Gen_Equ(&oWTmp2H, &oWTmpL);
+			Gen_Equ(&oWTmpL, &oWTmpH);
+			Gen_Equ(&oWTmpH, EV_ZERO);
 		} else if (xo == I_ROLEQ) {
-			Out_Nem2(I_EXG,&oWTmpH,&oWTmpL);
-			Out_Nem2(I_EXG,&oWTmpL,&oWTmp2H);
-			Out_Nem2(I_EXG,&oWTmp2H,&oWTmp2L);
+			Out_Nem2(I_EXG, &oWTmpH, &oWTmpL);
+			Out_Nem2(I_EXG, &oWTmpL, &oWTmp2H);
+			Out_Nem2(I_EXG, &oWTmp2H, &oWTmp2L);
 		} else if (xo == I_ROREQ) {
-			Out_Nem2(I_EXG,&oWTmp2L,&oWTmp2H);
-			Out_Nem2(I_EXG,&oWTmp2H,&oWTmpL);
-			Out_Nem2(I_EXG,&oWTmpL,&oWTmpH);
+			Out_Nem2(I_EXG, &oWTmp2L, &oWTmp2H);
+			Out_Nem2(I_EXG, &oWTmp2H, &oWTmpL);
+			Out_Nem2(I_EXG, &oWTmpL, &oWTmpH);
 		} else if (xo == I_SAREQ) {
-			Gen_Equ(&oWTmp2L,&oWTmp2H);
-			Gen_Equ(&oWTmp2H,&oWTmpL);
-			Gen_Equ(&oWTmpL,&oWTmpH);
-		  #if 1
+			Gen_Equ(&oWTmp2L, &oWTmp2H);
+			Gen_Equ(&oWTmp2H, &oWTmpL);
+			Gen_Equ(&oWTmpL, &oWTmpH);
+#if 1
 			i = 7;
 			while (--i >= 0)
-				Out_Nem2(xo,&oWTmpH,Ev_Cnst(1));
-		  #else
-			Out_Nem2(I_ANDEQ,&oWTmpH,Ev_Cnst(0x80));
-			Out_NmSt("je","$+4");
-			Gen_Equ(&oWTmpH,Ev_Cnst(0xFF));
-		  #endif
+				Out_Nem2(xo, &oWTmpH, Ev_Cnst(1));
+#else
+			Out_Nem2(I_ANDEQ, &oWTmpH, Ev_Cnst(0x80));
+			Out_NmSt("je", "$+4");
+			Gen_Equ(&oWTmpH, Ev_Cnst(0xFF));
+#endif
 		} else
 			val += 8;
 	}
@@ -730,64 +707,80 @@ GenShift4(word xo,Et_t_fp lp,int  val)
 		switch (xo) {
 		case I_SHLEQ:
 		case I_RCLEQ:
-			Out_Nem2(xo,&oETmpL,&oETmpC);
-			Out_Nem2(I_RCLEQ,&oETmpH,&oETmpC);
+			Out_Nem2(xo, &oETmpL, &oETmpC);
+			Out_Nem2(I_RCLEQ, &oETmpH, &oETmpC);
 			break;
 		case I_SHREQ:
 		case I_SAREQ:
 		case I_RCREQ:
-			Out_Nem2(xo,&oETmpH,&oETmpC);
-			Out_Nem2(I_RCREQ,&oETmpL,&oETmpC);
+			Out_Nem2(xo, &oETmpH, &oETmpC);
+			Out_Nem2(I_RCREQ, &oETmpL, &oETmpC);
 			break;
 		}
 	}
 	return 0;
 }
 
-static void
-GenShift(word xo,Et_t_fp lp,Et_t_fp rp)
+static void GenShift(word xo, Et_t_fp lp, Et_t_fp rp)
 {
-	int  val,l,i;
+	int 	val, l, i;
 
-	switch(lp->m.typ) {
-	case I_BYTE: l =  8;break;
-	case I_WORD: l = 16;break;
-	case I_DWORD:l = 32;break;
+	switch (lp->m.typ) {
+	case I_BYTE:
+		l = 8;
+		break;
+	case I_WORD:
+		l = 16;
+		break;
+	case I_DWORD:
+		l = 32;
+		break;
 	default:
 		goto ERL;
 	}
-	if (IsEp_R1op(rp,I_CL)) {
+	if (IsEp_R1op(rp, I_CL)) {
 		if (!IsEp_Lft12(lp))
 			goto ERL;
-		Out_Nem2(xo,lp,Ev_Reg(I_CL));
+		Out_Nem2(xo, lp, Ev_Reg(I_CL));
 		goto ENDF;
 	} else if (!IsEp_Cnst(rp))
 		goto ERR;
 
-	IsEp_CnstTyp(I_BYTE,rp);
-	val = (int)rp->c.val;
+	IsEp_CnstTyp(I_BYTE, rp);
+	val = (int) rp->c.val;
 	if (val < 0) {
 		val = -val;
-		switch(xo) {
+		switch (xo) {
 		case I_SAREQ:
-		case I_SHREQ: xo = I_SHLEQ; break;
-		case I_SHLEQ: xo = I_SHREQ; break;
-		case I_ROLEQ: xo = I_ROREQ; break;
-		case I_ROREQ: xo = I_ROLEQ; break;
-		case I_RCLEQ: xo = I_RCREQ; break;
-		case I_RCREQ: xo = I_RCLEQ; break;
+		case I_SHREQ:
+			xo = I_SHLEQ;
+			break;
+		case I_SHLEQ:
+			xo = I_SHREQ;
+			break;
+		case I_ROLEQ:
+			xo = I_ROREQ;
+			break;
+		case I_ROREQ:
+			xo = I_ROLEQ;
+			break;
+		case I_RCLEQ:
+			xo = I_RCREQ;
+			break;
+		case I_RCREQ:
+			xo = I_RCLEQ;
+			break;
 		}
 	}
 	if (Gen_condMode) {
 		if (IsEp_Lft12(lp))
 			goto J1;
-
 		else
 			goto ERR;
 	}
 	if (xo == I_ROLEQ || xo == I_ROREQ) {
 		val %= l;
-		if ((val > 4 && val < 8) ||(val > 11 && val < 16)
+		if ((val > 4 && val < 8) || (val > 11 && val < 16)
 			|| (l == 32 && val > 16)) {
 			val = l - val;
 			xo = (xo == I_ROLEQ) ? I_ROREQ : I_ROLEQ;
@@ -803,39 +796,39 @@ GenShift(word xo,Et_t_fp lp,Et_t_fp rp)
 	}
 	if (val == l) {
 		if (xo == I_SHLEQ || xo == I_SHREQ) {
-			GenEqus(lp,EV_ZERO);
+			GenEqus(lp, EV_ZERO);
 			goto ENDF;
 		}
 	}
 	if (l == 32) {
-		if (GenShift4(xo,lp,val))
+		if (GenShift4(xo, lp, val))
 			goto ERR;
 		goto ENDF;
 	}
 	if (xo == I_SAREQ && (val == l || val == l - 1)) {
 		if (IsEp_Reg2(lp)) {
-		  #if 1
+#if 1
 			EtWTmp(lp);
 			i = 7;
 			while (--i >= 0)
-				Out_Nem2(xo,&oWTmpH,Ev_Cnst(1));
-			Out_Nem2(I_EQU,&oWTmpL,&oWTmpH);
-		  #else
-			Out_Nem2(I_ANDEQ,lp,Ev_Cnst(0x8000));
-			Out_NmSt("je","$+5");
-			Out_Nem2(I_EQU,lp,Ev_Cnst(0xFFFF));
-		  #endif
+				Out_Nem2(xo, &oWTmpH, Ev_Cnst(1));
+			Out_Nem2(I_EQU, &oWTmpL, &oWTmpH);
+#else
+			Out_Nem2(I_ANDEQ, lp, Ev_Cnst(0x8000));
+			Out_NmSt("je", "$+5");
+			Out_Nem2(I_EQU, lp, Ev_Cnst(0xFFFF));
+#endif
 			goto ENDF;
 		} else if (IsEp_Reg1(lp)) {
-		  #if 1
+#if 1
 			i = 7;
 			while (--i >= 0)
-				Out_Nem2(xo,lp,Ev_Cnst(1));
-		  #else
-			Out_Nem2(I_ANDEQ,lp,Ev_Cnst(0x80));
-			Out_NmSt("je","$+4");
-			Out_Nem2(I_EQU,lp,Ev_Cnst(0xFF));
-		  #endif
+				Out_Nem2(xo, lp, Ev_Cnst(1));
+#else
+			Out_Nem2(I_ANDEQ, lp, Ev_Cnst(0x80));
+			Out_NmSt("je", "$+4");
+			Out_Nem2(I_EQU, lp, Ev_Cnst(0xFF));
+#endif
 			goto ENDF;
 		}
 	}
@@ -843,103 +836,101 @@ GenShift(word xo,Et_t_fp lp,Et_t_fp rp)
 		EtWTmp(lp);
 		val -= 8;
 		if (xo == I_ROLEQ || xo == I_ROREQ) {
-			Out_Nem2(I_EXG,&oWTmpH,&oWTmpL);
+			Out_Nem2(I_EXG, &oWTmpH, &oWTmpL);
 		} else if (xo == I_SHLEQ) {
-			Gen_Equ(&oWTmpH,&oWTmpL);
-			Gen_Equ(&oWTmpL,EV_ZERO);
+			Gen_Equ(&oWTmpH, &oWTmpL);
+			Gen_Equ(&oWTmpL, EV_ZERO);
 		} else if (xo == I_SHREQ) {
-			Gen_Equ(&oWTmpL,&oWTmpH);
-			Gen_Equ(&oWTmpH,EV_ZERO);
-	#if 0
+			Gen_Equ(&oWTmpL, &oWTmpH);
+			Gen_Equ(&oWTmpH, EV_ZERO);
+#if 0
 		} else if (xo == I_SAREQ) {
-			Gen_Equ(&oWTmpL,&oWTmpH);
-			Out_Nem2(I_ANDEQ,&oWTmpH,Ev_Cnst(0x80));
-			Out_NmSt("je","$+4");
-			Gen_Equ(&oWTmpH,Ev_Cnst(0xFF));
-	#endif
-		} else
+			Gen_Equ(&oWTmpL, &oWTmpH);
+			Out_Nem2(I_ANDEQ, &oWTmpH, Ev_Cnst(0x80));
+			Out_NmSt("je", "$+4");
+			Gen_Equ(&oWTmpH, Ev_Cnst(0xFF));
+#endif
+		} else {
 			val += 8;
+		}
 	}
- J1:
+  J1:
 	if (Opt_cpu) {
 		if (Opt_r86 && IsEp_Reg12(lp) && val > 1)
-			Out_ShiftReg12Cnst(xo,lp->c.reg,val);
+			Out_ShiftReg12Cnst(xo, lp->c.reg, val);
 		else
-			Out_Nem2(xo,lp,Ev_Cnst(val));
+			Out_Nem2(xo, lp, Ev_Cnst(val));
 	} else {
 		while (--val >= 0)
-			Out_Nem2(xo,lp,Ev_Cnst(1));
+			Out_Nem2(xo, lp, Ev_Cnst(1));
 	}
- ENDF:
+  ENDF:
 	return;
- ERR:
+  ERR:
 	Msg_Err("ｼﾌﾄ命令の右辺の指定がおかしい");
 	return;
- ERL:
+  ERL:
 	Msg_Err("ｼﾌﾄ命令の左辺の指定がおかしい");
 	return;
 }
 
-static void
-GenAndeq(Et_t_fp lp,Et_t_fp rp)
+static void GenAndeq(Et_t_fp lp, Et_t_fp rp)
 {
 	if (Gen_condMode == 0 && IsEp_Cnst(rp)) {
 		if (rp->c.val == 0) {
-			Gen_Equ(lp,EV_ZERO);
+			Gen_Equ(lp, EV_ZERO);
 			return;
-		} else if (IsEp_Lft1(lp) && rp->c.val	== 0xff) {
+		} else if (IsEp_Lft1(lp) && rp->c.val == 0xff) {
 			return;
-		} else if (IsEp_Lft2(lp))	{
+		} else if (IsEp_Lft2(lp)) {
 			if (rp->c.val == 0xff) {
 				EtWTmp(lp);
-				Gen_Equ(&oWTmpH,EV_ZERO);
+				Gen_Equ(&oWTmpH, EV_ZERO);
 				return;
 			} else if (rp->c.val == 0xff00) {
 				EtWTmp(lp);
-				Gen_Equ(&oWTmpL,EV_ZERO);
+				Gen_Equ(&oWTmpL, EV_ZERO);
 				return;
 			} else if (rp->c.val == 0xffff) {
 				return;
 			}
 		}
 	}
-	Out_Nem2(I_ANDEQ,lp,rp);
+	Out_Nem2(I_ANDEQ, lp, rp);
 }
 
-static void
-GenOreq(Et_t_fp lp,Et_t_fp rp)
+static void GenOreq(Et_t_fp lp, Et_t_fp rp)
 {
 	if (Gen_condMode == 0 && IsEp_Cnst(rp)) {
 		if (rp->c.val == 0) {
 			return;
-		} else if (IsEp_Lft1(lp) && rp->c.val	== 0xff) {
+		} else if (IsEp_Lft1(lp) && rp->c.val == 0xff) {
 			goto J1;
-		} else if (IsEp_Lft2(lp))	{
+		} else if (IsEp_Lft2(lp)) {
 			if (rp->c.val == 0xffff) {
- J1:
-				Gen_Equ(lp,rp);
+			  J1:
+				Gen_Equ(lp, rp);
 				return;
 			} else if (rp->c.val == 0xff00 || rp->c.val == 0xff) {
 				EtWTmp(lp);
-				Gen_Equ((rp->c.val==0xff) ? &oWTmpL : &oWTmpH,Ev_Cnst(0xff));
+				Gen_Equ((rp->c.val == 0xff) ? &oWTmpL : &oWTmpH, Ev_Cnst(0xff));
 				return;
 			}
 		}
 	}
-	Out_Nem2(I_OREQ,lp,rp);
+	Out_Nem2(I_OREQ, lp, rp);
 	return;
 }
 
-void
-GenAO(word xo,Et_t_fp lp, Et_t_fp rp)
+void	GenAO(word xo, Et_t_fp lp, Et_t_fp rp)
 {
 	IsEp_CnstTyp(lp->m.typ, rp);
 	switch (xo) {
 	case I_ANDEQ:
-		GenAndeq(lp,rp);
+		GenAndeq(lp, rp);
 		break;
 	case I_OREQ:
-		GenOreq(lp,rp);
+		GenOreq(lp, rp);
 		break;
 	case I_EXG:
 		if (IsEp_Reg12(lp) && IsEp_Reg12(rp) && lp->c.reg == rp->c.reg
@@ -949,61 +940,65 @@ GenAO(word xo,Et_t_fp lp, Et_t_fp rp)
 	case I_EOREQ:
 	case I_ADCEQ:
 	case I_SBCEQ:
-		Out_Nem2(xo,lp,rp);
+		Out_Nem2(xo, lp, rp);
 	}
 	return;
 }
 
-static void
-GenInc(Et_t_fp lp)
+static void GenInc(Et_t_fp lp)
 {
-  #if 0
+#if 0
 	if (IsEp_Reg4(lp)) {
 		EtDTmp(lp);
-		Out_Nem1(I_INC,&oETmpL);
-		Out_NmSt("jnz","$+3");
-		Out_Nem1(I_INC,&oETmpH);
-	} else if (IsEp_Mem4(lp)) {
-  #else
-	if (IsEp_Lft4(lp)) {
-  #endif
+		Out_Nem1(I_INC, &oETmpL);
+		Out_NmSt("jnz", "$+3");
+		Out_Nem1(I_INC, &oETmpH);
+	} else if (IsEp_Mem4(lp))
+#else
+	if (IsEp_Lft4(lp))
+#endif
+	{
 		EtDTmp(lp);
-		Out_Nem2(I_ADDEQ,&oETmpL,Ev_Cnst(1));
-		Out_Nem2(I_ADCEQ,&oETmpH,EV_ZERO);
+		Out_Nem2(I_ADDEQ, &oETmpL, Ev_Cnst(1));
+		Out_Nem2(I_ADCEQ, &oETmpH, EV_ZERO);
 	} else if (IsEp_Lft12(lp))
-		Out_Nem1(I_INC,lp);
+		Out_Nem1(I_INC, lp);
 	else
 		Msg_Err("'++'でエラー");
 	return;
 }
 
-static void
-GenDec(Et_t_fp lp)
+static void GenDec(Et_t_fp lp)
 {
 	if (IsEp_Lft4(lp)) {
 		EtDTmp(lp);
-		Out_Nem2(I_SUBEQ,&oETmpL,Ev_Cnst(1));
-		Out_Nem2(I_SBCEQ,&oETmpH,EV_ZERO);
-	} else if (IsEp_Lft12(lp))
-		Out_Nem1(I_DEC,lp);
-	else
+		Out_Nem2(I_SUBEQ, &oETmpL, Ev_Cnst(1));
+		Out_Nem2(I_SBCEQ, &oETmpH, EV_ZERO);
+	} else if (IsEp_Lft12(lp)) {
+		Out_Nem1(I_DEC, lp);
+	} else {
 		Msg_Err("'--'でエラー");
+	}
 	return;
 }
 
-static void
-GenAddeq(Et_t_fp lp, Et_t_fp rp)
+static void GenAddeq(Et_t_fp lp, Et_t_fp rp)
 {
 	IsEp_CnstTyp(lp->m.typ, rp);
-	if (Gen_condMode == 1 && IsEp_CnstVal(rp,0) && IsEp_Reg12(lp)) {
+	if (Gen_condMode == 1 && IsEp_CnstVal(rp, 0) && IsEp_Reg12(lp)) {
 		GenZeroTest(lp);
 		return;
 	} else if (Gen_condMode == 0) {
 		if (IsEp_Cnst(rp)) {
 			switch (rp->c.val) {
-			case 0: 	return;
-			case -1:	GenDec(lp); return;
-			case 1: 	GenInc(lp); return;
+			case 0:
+				return;
+			case -1:
+				GenDec(lp);
+				return;
+			case 1:
+				GenInc(lp);
+				return;
 			case -2:
 				if (!IsEp_Reg2(lp))
 					break;
@@ -1018,50 +1013,53 @@ GenAddeq(Et_t_fp lp, Et_t_fp rp)
 				return;
 			}
 		}
-  #if 0
+#if 0
 		else if (IsEp_Reg12(lp) && IsEp_Reg12(rp) && lp->c.reg == rp->c.reg) {
-			GenShift(I_SHLEQ,lp,Ev_Cnst(1));
+			GenShift(I_SHLEQ, lp, Ev_Cnst(1));
 			return;
 		}
-  #endif
+#endif
 	}
-	Out_Nem2(I_ADDEQ,lp,rp);
+	Out_Nem2(I_ADDEQ, lp, rp);
 }
 
-static void
-GenAddeq4(Et_t_fp lp, Et_t_fp rp)
+static void GenAddeq4(Et_t_fp lp, Et_t_fp rp)
 {
-	if (IsEp_CnstVal(rp,0)) {
+	if (IsEp_CnstVal(rp, 0)) {
 		return;
 	} else if (IsEp_Reg4(rp) && lp->c.reg == rp->c.reg) {
-		GenShift(I_SHLEQ,lp,Ev_Cnst(1));
+		GenShift(I_SHLEQ, lp, Ev_Cnst(1));
 		return;
 	}
 	EtDTmp(lp);
 	EtDTmp2(rp);
-  #if 1
+#if 1
 	if (oETmp2L.e.op == T_CNST && oETmp2L.c.val == 0) {
-		GenAddeq(&oETmpH,&oETmp2H);
+		GenAddeq(&oETmpH, &oETmp2H);
 		return;
 	}
-  #endif
-	Out_Nem2(I_ADDEQ,&oETmpL,&oETmp2L);
-	GenAO(I_ADCEQ,&oETmpH,&oETmp2H);
+#endif
+	Out_Nem2(I_ADDEQ, &oETmpL, &oETmp2L);
+	GenAO(I_ADCEQ, &oETmpH, &oETmp2H);
 }
 
-void
-Gen_SubEq(Et_t_fp lp, Et_t_fp rp)
+void	Gen_SubEq(Et_t_fp lp, Et_t_fp rp)
 {
 	IsEp_CnstTyp(lp->m.typ, rp);
-	if (Gen_condMode == 1 && IsEp_CnstVal(rp,0) && IsEp_Reg12(lp)) {
+	if (Gen_condMode == 1 && IsEp_CnstVal(rp, 0) && IsEp_Reg12(lp)) {
 		GenZeroTest(lp);
 		return;
 	} else if (Gen_condMode == 0) {
 		if (IsEp_Cnst(rp)) {
 			switch (rp->c.val) {
-			case 0: 	return;
-			case -1:	GenInc(lp); return;
-			case 1: 	GenDec(lp); return;
+			case 0:
+				return;
+			case -1:
+				GenInc(lp);
+				return;
+			case 1:
+				GenDec(lp);
+				return;
 			case -2:
 				if (lp->e.op != T_R2)
 					break;
@@ -1075,56 +1073,53 @@ Gen_SubEq(Et_t_fp lp, Et_t_fp rp)
 				GenDec(lp);
 				return;
 			}
-		} else if (IsEp_Reg12(lp) && IsEp_Reg12(rp) && lp->c.reg == rp->c.reg){
-			Gen_Equ(lp,EV_ZERO);
+		} else if (IsEp_Reg12(lp) && IsEp_Reg12(rp) && lp->c.reg == rp->c.reg) {
+			Gen_Equ(lp, EV_ZERO);
 			return;
 		}
 	}
-	Out_Nem2(I_SUBEQ,lp,rp);
+	Out_Nem2(I_SUBEQ, lp, rp);
 }
 
-void
-GenSubeq4(Et_t_fp lp, Et_t_fp rp)
+void	GenSubeq4(Et_t_fp lp, Et_t_fp rp)
 {
-	if (IsEp_CnstVal(rp,0)) {
+	if (IsEp_CnstVal(rp, 0)) {
 		return;
 	} else if (IsEp_Reg4(rp) && lp->c.reg == rp->c.reg) {
-		Gen_Equ4(lp,EV_ZERO);
+		Gen_Equ4(lp, EV_ZERO);
 		return;
 	}
 	EtDTmp(lp);
 	EtDTmp2(rp);
-  #if 1
+#if 1
 	if (oETmp2L.e.op == T_CNST && oETmp2L.c.val == 0) {
 
-		Gen_SubEq(&oETmpH,&oETmp2H);
+		Gen_SubEq(&oETmpH, &oETmp2H);
 		return;
 	}
-  #endif
-	Out_Nem2(I_SUBEQ,&oETmpL,&oETmp2L);
-	GenAO(I_SBCEQ,&oETmpH,&oETmp2H);
+#endif
+	Out_Nem2(I_SUBEQ, &oETmpL, &oETmp2L);
+	GenAO(I_SBCEQ, &oETmpH, &oETmp2H);
 }
 
-static void
-GenSieq(Et_t_fp lp, Et_t_fp rp)
+static void GenSieq(Et_t_fp lp, Et_t_fp rp)
 {
 	if (lp->m.typ == I_WORD) {
-		Gen_Equ(Ev_Reg(I_AL),rp);
+		Gen_Equ(Ev_Reg(I_AL), rp);
 		Out_Nem0(I_SEXT1);
 		return;
 	} else {
 		if (IsEp_Lft1(rp)) {
-			Gen_Equ(Ev_Reg(I_AL),rp);
+			Gen_Equ(Ev_Reg(I_AL), rp);
 			Out_Nem0(I_SEXT1);
 		} else
-			Gen_Equ(Ev_Reg(I_AX),rp);
+			Gen_Equ(Ev_Reg(I_AX), rp);
 		Out_Nem0(I_SEXT2);
 		return;
 	}
 }
 
-global void
-Gen_Pusha(void)
+global void Gen_Pusha(void)
 {
 	if (Opt_cpu) {
 		Out_Nem0(I_PUSHA);
@@ -1140,8 +1135,7 @@ Gen_Pusha(void)
 	}
 }
 
-global void
-Gen_Popa(void)
+global void Gen_Popa(void)
 {
 	if (Opt_cpu) {
 		Out_Nem0(I_POPA);
@@ -1158,12 +1152,11 @@ Gen_Popa(void)
 }
 
 
-global void
-Gen_Expr(Et_t_fp xp, word mode)
+global void Gen_Expr(Et_t_fp xp, word mode)
 {
 	Et_t_fp rp;
 	Et_t_fp lp;
-	word xo;
+	word	xo;
 
 	if (xp == NULL)
 		return;
@@ -1174,11 +1167,11 @@ Gen_Expr(Et_t_fp xp, word mode)
 	xo = xp->e.op;
 	switch (xo) {
 	case I_EQU:
-		GenEq(lp,rp,GenEqus);
+		GenEq(lp, rp, GenEqus);
 		return;
 
 	case I_SIEQ:
-		GenEq(lp,rp,GenSieq);
+		GenEq(lp, rp, GenSieq);
 		return;
 
 	case I_ANDEQ:
@@ -1187,33 +1180,33 @@ Gen_Expr(Et_t_fp xp, word mode)
 	case I_ADCEQ:
 	case I_SBCEQ:
 	case I_EXG:
-		if (IsEp_Reg4(lp)&& !Gen_condMode) {
+		if (IsEp_Reg4(lp) && !Gen_condMode) {
 			EtDTmp(lp);
 			EtDTmp2(rp);
-			GenAO(xo,&oETmpL,&oETmp2L);
-			GenAO(xo,&oETmpH,&oETmp2H);
+			GenAO(xo, &oETmpL, &oETmp2L);
+			GenAO(xo, &oETmpH, &oETmp2H);
 		} else if (IsEp_Lft4S(lp))
 			goto ERR32;
 		else
-			GenAO(xo,lp,rp);
+			GenAO(xo, lp, rp);
 		return;
 
 	case I_ADDEQ:
-		if (IsEp_Reg4(lp)&& !Gen_condMode)
-			GenAddeq4(lp,rp);
+		if (IsEp_Reg4(lp) && !Gen_condMode)
+			GenAddeq4(lp, rp);
 		else if (IsEp_Lft4S(lp))
 			goto ERR32;
 		else
-			GenAddeq(lp,rp);
+			GenAddeq(lp, rp);
 		return;
 
 	case I_SUBEQ:
-		if (IsEp_Reg4(lp)&& !Gen_condMode)
-			GenSubeq4(lp,rp);
+		if (IsEp_Reg4(lp) && !Gen_condMode)
+			GenSubeq4(lp, rp);
 		else if (IsEp_Lft4S(lp))
 			goto ERR32;
 		else
-			Gen_SubEq(lp,rp);
+			Gen_SubEq(lp, rp);
 		return;
 
 	case I_SHLEQ:
@@ -1223,8 +1216,8 @@ Gen_Expr(Et_t_fp xp, word mode)
 	case I_ROLEQ:
 	case I_RCREQ:
 	case I_RCLEQ:
-		if (IsEp_Rht12(lp)||IsEp_Reg4(lp))
-			GenShift(xo,lp,rp);
+		if (IsEp_Rht12(lp) || IsEp_Reg4(lp))
+			GenShift(xo, lp, rp);
 		else
 			goto ERR32;
 		return;
@@ -1241,32 +1234,26 @@ Gen_Expr(Et_t_fp xp, word mode)
 	case I_NEGS:
 		if (IsEp_Reg4(lp)) {
 			EtDTmp(lp);
-			Out_Nem1(xo,&oETmpH);
-			Out_Nem1(xo,&oETmpL);
+			Out_Nem1(xo, &oETmpH);
+			Out_Nem1(xo, &oETmpL);
 			if (xo == I_NEGS)
-				Out_Nem2(I_SBCEQ,&oETmpH,EV_ZERO);
+				Out_Nem2(I_SBCEQ, &oETmpH, EV_ZERO);
 		} else if (IsEp_Lft4S(lp))
 			goto ERR32;
 		else
-			Out_Nem1(xo,lp);
+			Out_Nem1(xo, lp);
 		return;
- /*
-	case T_ADDR:
-		if (lp->e.op != I_SUB)
-			goto ERR;
-		rp = lp->e.rep;
-		lp = lp->e.lep;
- */
+	/* case T_ADDR: if (lp->e.op != I_SUB) goto ERR; rp = lp->e.rep; lp = lp->e.lep; */
 	case I_SUB:
 		if (IsEp_Lft4S(lp))
 			goto ERR32;
 		if (Gen_condMode == 0)
 			Msg_Err("ﾌﾗｸﾞ変化命令の使えないところで使われた");
-		if (Gen_condMode < 2 && IsEp_Reg12(lp) && IsEp_CnstVal(rp,0)){
+		if (Gen_condMode < 2 && IsEp_Reg12(lp) && IsEp_CnstVal(rp, 0)) {
 			GenZeroTest(lp);
 			return;
 		}
-		Out_Nem2(xo,lp,rp);
+		Out_Nem2(xo, lp, rp);
 		return;
 
 	case I_AND:
@@ -1276,28 +1263,28 @@ Gen_Expr(Et_t_fp xp, word mode)
 			Msg_Err("ﾌﾗｸﾞ変化命令の使えないところで使われた");
 	case I_BOUND:
 	case I_ESC:
-		Out_Nem2(xo,lp,rp);
+		Out_Nem2(xo, lp, rp);
 		return;
 
 	case I_DIVS:
 	case I_IDIVS:
-		if (IsEp_R4op(lp,I_DXAX) && IsEp_Lft2(rp)) {
-			Out_Nem1(xo,rp);
-		} else if (IsEp_R2op(lp,I_AX)	&& IsEp_Lft1(rp))	{
-			Out_Nem1(xo,rp);
+		if (IsEp_R4op(lp, I_DXAX) && IsEp_Lft2(rp)) {
+			Out_Nem1(xo, rp);
+		} else if (IsEp_R2op(lp, I_AX) && IsEp_Lft1(rp)) {
+			Out_Nem1(xo, rp);
 		} else
 			Msg_Err("div,divsの指定がおかしい");
 		return;
 	case I_INTR:
 	case I_RET:
 	case I_RETF:
-		Out_Nem1(xo,lp);
+		Out_Nem1(xo, lp);
 		return;
 	case I_LEAVE:
 		Out_Leave();
 		return;
 	case I_ENTER:
-		Out_Enter(lp->c.val,rp->c.val);
+		Out_Enter(lp->c.val, rp->c.val);
 		return;
 	case I_PUSH:
 		GenPush(xp);
@@ -1308,8 +1295,7 @@ Gen_Expr(Et_t_fp xp, word mode)
 	case I_CLRC:
 	case I_SETC:
 	case I_COMC:
-		/*if (Gen_condMode == 0)
-			Msg_Err("ﾌﾗｸﾞ変化命令が'|'なしに使われた");*/
+	/* if (Gen_condMode == 0) Msg_Err("ﾌﾗｸﾞ変化命令が'|'なしに使われた"); */
 	case I_INTO:
 	case I_CLRI:
 	case I_SETI:
@@ -1325,36 +1311,34 @@ Gen_Expr(Et_t_fp xp, word mode)
 		Gen_Popa();
 		return;
 	}
- ERR:
+  ERR:
 	Msg_Err("Gen_Expr()がおかしい");
 	return;
- ERR32:
+  ERR32:
 	Msg_Err("使えない32ﾋﾞｯﾄ演算が使われた");
 	return;
 }
 
 
-void
-Gen_Rep(word t)
+void	Gen_Rep(word t)
 {
-	enum {R_SET,R_SCAN,R_LOAD,R_CPY,R_CMP,R_INP,R_OUTP,R_INC,R_DEC};
-	typedef byte* byte_p;
-	static byte_p segv[4] = {"2Eh","3Eh","26h","36h"};
-	static byte_p reps[3] = {"rep","repe","repne"};
+	enum {R_SET, R_SCAN, R_LOAD, R_CPY, R_CMP, R_INP, R_OUTP, R_INC, R_DEC};
+	typedef byte *byte_p;
+	static byte_p segv[4] = {"2Eh", "3Eh", "26h", "36h"};
+	static byte_p reps[3] = {"rep", "repe", "repne"};
 	static byte_p reps2[7][2] = {
 		{"stosb", "stosw"},
 		{"scasb", "scasw"},
 		{"lodsb", "lodsw"},
 		{"movsb", "movsw"},
 		{"cmpsb", "cmpsw"},
-		{"insb" , "insw"},
+		{"insb", "insw"},
 		{"outsb", "outsw"},
 	};
-	static byte_p memb[]
-		= {"set","scan","load","cpy","cmp","inp","outp","inc","dec"};
+	static byte_p memb[] = {"set", "scan", "load", "cpy", "cmp", "inp", "outp", "inc", "dec"};
 	Et_t_fp p1, p2, p3, sav_p;
-	word reg1,reg2,seg2;
-	int  f,r,parflg;
+	word	reg1, reg2, seg2;
+	int 	f, r, parflg;
 
 	seg2 = f = r = 0;
 	if (!Ch_ChkPeriod()) {
@@ -1366,8 +1350,7 @@ Gen_Rep(word t)
 		if (strcmp(Sym_name, memb[f]) == 0)
 			break;
 	}
-	if (f < 7)
-		;
+	if (f < 7) ;
 	else if (f == 7) {
 		Out_Nem0(I_CLRD);
 		Sym_Get();
@@ -1383,31 +1366,31 @@ Gen_Rep(word t)
 	r = Ch_ChkBW();
 	parflg = Sym_GetChkLP();
 	sav_p = Et_Sav();
-	if ((p1 = Expr(0)) == NULL || !(IsEp_Rht12(p1)||p1->e.op == T_ADDR))
+	if ((p1 = Expr(0)) == NULL || !(IsEp_Rht12(p1) || p1->e.op == T_ADDR))
 		goto ERR;
 	if (Sym_tok != I_COMMA)
 		goto ERR;
 	Sym_Get();
 	if ((p2 = Expr(0)) == NULL)
 		goto ERR;
-	else if (!(IsEp_Rht12(p2)||p2->e.op == T_ADDR)) {
+	if (!(IsEp_Rht12(p2) || p2->e.op == T_ADDR)) {
 		if (IsEp_Seg4(p2)) {
 			seg2 = p2->c.reg / 0x100;
 			p2->e.op = T_R2;
 			p2->c.reg = p2->c.reg % 0x100;
 			p2->m.typ = I_WORD;
 		} else if (p2->e.op == I_W2D) {
-			if (!IsEp_Seg2(p2->e.lep)||!IsEp_Lft2(p2->e.rep))
+			if (!IsEp_Seg2(p2->e.lep) || !IsEp_Lft2(p2->e.rep))
 				goto ERR;
-
 			seg2 = p2->c.reg / 0x100;
 			p2 = p2->e.rep;
-		} else
+		} else {
 			goto ERR;
+		}
 	}
 	if (Sym_tok == I_COMMA) {
 		Sym_Get();
-		if ((p3 = Expr(0)) == NULL|| !IsEp_Rht12(p3))
+		if ((p3 = Expr(0)) == NULL || !IsEp_Rht12(p3))
 			goto ERR;
 	} else {
 		p3 = NULL;
@@ -1418,14 +1401,17 @@ Gen_Rep(word t)
 	}
 	reg1 = I_DI;
 	reg2 = I_SI;
-	switch(f) {
-	case R_INP: reg2 = I_DX;	break;
-	case R_OUTP:reg1 = I_DX;	break;
+	switch (f) {
+	case R_INP:
+		reg2 = I_DX;
+		break;
+	case R_OUTP:
+		reg1 = I_DX;
+		break;
 	case R_SET:
 	case R_SCAN:
 		reg2 = (r != 0) ? I_AX : I_AL;
-		/* if (reg2 == I_AL && p2->m.typ != I_BYTE)
-			goto ERR; */
+		/* if (reg2 == I_AL && p2->m.typ != I_BYTE) goto ERR; */
 		break;
 	case R_LOAD:
 		reg1 = (r != 0) ? I_AX : I_AL;
@@ -1433,164 +1419,156 @@ Gen_Rep(word t)
 			goto ERR;
 		break;
 	}
-	/*if (reg2 == I_SI && (p2->m.typ != I_WORD && p2->e.op != T_ADDR))
-		goto ERR;
-	if (reg1 == I_DI && (p1->m.typ != I_WORD && p1->e.op != T_ADDR))
-		goto ERR;*/
-	if (IsEp_Reg12(p1) &&	p1->c.reg == reg1
-		&& IsEp_Reg12(p2)	&& p2->c.reg == reg2
-		&& (p3 == NULL || IsEp_R2op(p3,I_CX))	 )
+	/*	if (reg2 == I_SI && (p2->m.typ != I_WORD && p2->e.op != T_ADDR)) goto ERR;
+		if (reg1 == I_DI && (p1->m.typ != I_WORD && p1->e.op != T_ADDR)) goto ERR; */
+	if (IsEp_Reg12(p1) && p1->c.reg == reg1
+		&& IsEp_Reg12(p2) && p2->c.reg == reg2
+		&& (p3 == NULL || IsEp_R2op(p3, I_CX))) {
 		;
-	else {
+	} else {
 		if (p3)
-			Gen_Equ(Ev_Reg(I_CX),p3);
-		Gen_Equ(Ev_Reg(reg2),p2);
-		Gen_Equ(Ev_Reg(reg1),p1);
+			Gen_Equ(Ev_Reg(I_CX), p3);
+		Gen_Equ(Ev_Reg(reg2), p2);
+		Gen_Equ(Ev_Reg(reg1), p1);
 		if (Opt_auto == 0)
 			Msg_Err("手続きまたはrep命令の引数で暗黙の代入が行われた");
 	}
 	if (seg2 && seg2 != I_DS)
-		Out_NmSt("db",segv[seg2 - I_CS]);
+		Out_NmSt("db", segv[seg2 - I_CS]);
 	if (p3)
-		Out_NmSt(reps[t - I_REP],reps2[f][r]);
+		Out_NmSt(reps[t - I_REP], reps2[f][r]);
 	else
 		Out_Nm(reps2[f][r]);
- ENDF:
+  ENDF:
 	Et_Frees(sav_p);
- ENDF2:
+  ENDF2:
 	return;
- ERR:
+  ERR:
 	Msg_Err("rep命令のﾊﾟﾗﾒｰﾀがおかしい");
 	goto ENDF;
 }
 
 /*------------------------------------------------------------------*/
 
-global word
-GoLbl_NewNo(void)
+global	word GoLbl_NewNo(void)
 {
 	return ++GoLbl_no;
 }
 
-static byte_fp
-GoLblStr(byte_fp lbl, word n)	/*$$*/
-{
+static	byte_fp GoLblStr(byte_fp lbl, word n)
+{								/* $$ */
 	if (lbl)
-		sprintf(lbl,"L$%d",n);
+		sprintf(lbl, "L$%d", n);
 	return lbl;
 }
 
-byte_fp
-GoLbl_Strs(word n)
+byte_fp GoLbl_Strs(word n)
 {
-	static byte lbl[GoLbl_SIZ+2];
+	static byte lbl[GoLbl_SIZ + 2];
 
-	return GoLblStr(lbl,n);
+	return GoLblStr(lbl, n);
 }
 
-static byte_fp
-GoLblNewStr(byte_fp lbl)
+static	byte_fp GoLblNewStr(byte_fp lbl)
 {
-	return GoLblStr(lbl,GoLbl_NewNo());
+	return GoLblStr(lbl, GoLbl_NewNo());
 }
 
 /*------------------------- 条件ジャンプ ---------------------------------*/
 
-static void
-GenCondJmp(word t, word ls, word neg_f, byte *lbl)
+static void GenCondJmp(word t, word ls, word neg_f, byte * lbl)
 {
 	static byte *jtbl[] = {
-		"je",	"jne",
-		"ja",	"jbe",
-		"jb",	"jae",
-		"jg",	"jle",
-		"jl",	"jge",
-		"jc",	"jnc",
-		"jz",	"jnz",
-		"js",	"jns",
-		"jo",	"jno",
-		"jp",	"jnp",
+		"je", "jne",
+		"ja", "jbe",
+		"jb", "jae",
+		"jg", "jle",
+		"jl", "jge",
+		"jc", "jnc",
+		"jz", "jnz",
+		"js", "jns",
+		"jo", "jno",
+		"jp", "jnp",
 		"jcxz", "jcxz",
 		"loop", "loop",
-		"loopz","loopz",
-		"loopnz","loopnz",
-		"jmp",  NULL
+		"loopz", "loopz",
+		"loopnz", "loopnz",
+		"jmp", NULL
 	};
-	byte *s;
-	byte lbl2[GoLbl_SIZ+2];
-	byte lbl3[GoLbl_SIZ+2];
+	byte	*s;
+	byte	lbl2[GoLbl_SIZ + 2];
+	byte	lbl3[GoLbl_SIZ + 2];
 
 	if (neg_f)
 		t = Expr_CondNeg(t);
 	if (ls && t < GO_CX)
 		t = Expr_CondNeg(t);
-	s = jtbl[t-2];
+	s = jtbl[t - 2];
 	if (t == GO_NJMP) {
 		;
 	} else if (t == GO_JMP) {
 		if (ls)
-			Out_NmSt("jmp",lbl);
+			Out_NmSt("jmp", lbl);
 		else
-			Out_NmSt(gJmps[Opt_r86],lbl);
+			Out_NmSt(gJmps[Opt_r86], lbl);
 	} else if (t == GO_CX && ls == 0 && Gen_condMode == 1) {
 		GenZeroTest(Ev_Reg(I_CX));
-		Out_NmSt("jne",lbl);
+		Out_NmSt("jne", lbl);
 
 	} else if (ls || t == GO_CX || t == GO_NDECX
-		|| t == GO_NDECX_Z || t == GO_NDECX_NZ) {
+			   || t == GO_NDECX_Z || t == GO_NDECX_NZ) {
 		if (GoLblNewStr(lbl2) == NULL)
 			return;
 		if (t == GO_NCX || t == GO_DECX || t == GO_DECX_Z || t == GO_DECX_NZ) {
 			if (GoLblNewStr(lbl3) == NULL)
 				return;
-			Out_NmSt(s,lbl2);
-			Out_NmSt(gJmps[Opt_r86],lbl3);
+			Out_NmSt(s, lbl2);
+			Out_NmSt(gJmps[Opt_r86], lbl3);
 			Out_LblStr(lbl2);
-			Out_NmSt("jmp",lbl);
+			Out_NmSt("jmp", lbl);
 			Out_LblStr(lbl3);
 		} else {
-			Out_NmSt(s,lbl2);
-			Out_NmSt("jmp",lbl);
+			Out_NmSt(s, lbl2);
+			Out_NmSt("jmp", lbl);
 			Out_LblStr(lbl2);
 		}
 	} else {
-		Out_NmSt(s,lbl);
+		Out_NmSt(s, lbl);
 	}
 }
 
-static int
-GenCondOp(Et_t_fp xp, word long_f, word neg_f, byte *lbl)
+static int GenCondOp(Et_t_fp xp, word long_f, word neg_f, byte * lbl)
 {
-	word t,f;
+	word	t, f;
 
 	f = 0;
 	switch (t = xp->e.op) {
 	case T_R1:
 	case T_R2:
 		if (neg_f != 0 && long_f == 0 && xp->c.reg == I_CX) {
-			GenCondJmp(GO_NCX,0,0,lbl);
+			GenCondJmp(GO_NCX, 0, 0, lbl);
 			break;
 		}
 		GenZeroTest(xp);
-		GenCondJmp(GO_NEQ,long_f,neg_f,lbl);
+		GenCondJmp(GO_NEQ, long_f, neg_f, lbl);
 		break;
 	case T_M1:
 	case T_M2:
-		Out_Nem2(I_SUB,xp,EV_ZERO);
-		GenCondJmp(GO_NEQ,long_f,neg_f,lbl);
-		/*GenCondJmp(GO_NEQ,neg_f,long_f,lbl);*/
+		Out_Nem2(I_SUB, xp, EV_ZERO);
+		GenCondJmp(GO_NEQ, long_f, neg_f, lbl);
+	/* GenCondJmp(GO_NEQ,neg_f,long_f,lbl); */
 		break;
- #if 0
+#if 0
 	case T_CNST:
 		neg_f = (negf != 0) ^ (xp->c.val == 0);
-		GenCondJmp(GO_JMP,long_f,neg_f,lbl);
+		GenCondJmp(GO_JMP, long_f, neg_f, lbl);
 		if (neg_f)
 			return -1;
 		return 1;
- #endif
+#endif
 	case I_DEC:
-		if (neg_f == 0 && long_f == 0 && IsEp_R2op(xp->e.lep,I_CX)) {
-			GenCondJmp(GO_DECX,0,0,lbl);
+		if (neg_f == 0 && long_f == 0 && IsEp_R2op(xp->e.lep, I_CX)) {
+			GenCondJmp(GO_DECX, 0, 0, lbl);
 			break;
 		}
 	case I_INC:
@@ -1604,44 +1582,99 @@ GenCondOp(Et_t_fp xp, word long_f, word neg_f, byte *lbl)
 	case I_SHREQ:
 	case I_SHLEQ:
 	case I_SAREQ:
-		Gen_Expr(xp,1);
-		GenCondJmp(GO_NEQ,long_f,neg_f,lbl);
+		Gen_Expr(xp, 1);
+		GenCondJmp(GO_NEQ, long_f, neg_f, lbl);
 		break;
 	case I_NOT:
-		GenCondOp(xp->e.lep,long_f,(neg_f == 0),lbl);
+		GenCondOp(xp->e.lep, long_f, (neg_f == 0), lbl);
 		break;
-	case I_GT:  t = GO_GT;  goto J1;
-	case I_GE:  t = GO_GE;  goto J1;
-	case I_LT:  t = GO_LT;  goto J1;
-	case I_LE:  t = GO_LE;  goto J1;
-	case I_ILT: t = GO_ILT; goto J1;
-	case I_ILE: t = GO_ILE; goto J1;
-	case I_IGT: t = GO_IGT; goto J1;
-	case I_IGE: t = GO_IGE; goto J1;
-	case I_NEQ: t = GO_NEQ; goto J1;
-	case I_EQEQ:t = GO_EQU; goto J1;
-	case I_CFCM:t = GO_NC;f = 1;goto J1;
-	case I_SFCM:t = GO_NS;f = 1;goto J1;
-	case I_ZFCM:t = GO_NZ;f = 1;goto J1;
-	case I_PFCM:t = GO_NP;f = 1;goto J1;
-	case I_OVFCM:t= GO_NO;f = 1;goto J1;
- J1:
+	case I_GT:
+		t = GO_GT;
+		goto J1;
+	case I_GE:
+		t = GO_GE;
+		goto J1;
+	case I_LT:
+		t = GO_LT;
+		goto J1;
+	case I_LE:
+		t = GO_LE;
+		goto J1;
+	case I_ILT:
+		t = GO_ILT;
+		goto J1;
+	case I_ILE:
+		t = GO_ILE;
+		goto J1;
+	case I_IGT:
+		t = GO_IGT;
+		goto J1;
+	case I_IGE:
+		t = GO_IGE;
+		goto J1;
+	case I_NEQ:
+		t = GO_NEQ;
+		goto J1;
+	case I_EQEQ:
+		t = GO_EQU;
+		goto J1;
+	case I_CFCM:
+		t = GO_NC;
+		f = 1;
+		goto J1;
+	case I_SFCM:
+		t = GO_NS;
+		f = 1;
+		goto J1;
+	case I_ZFCM:
+		t = GO_NZ;
+		f = 1;
+		goto J1;
+	case I_PFCM:
+		t = GO_NP;
+		f = 1;
+		goto J1;
+	case I_OVFCM:
+		t = GO_NO;
+		f = 1;
+		goto J1;
+	case I_NCFCM:
+		t = GO_C;
+		f = 1;
+		goto J1;
+	case I_NSFCM:
+		t = GO_S;
+		f = 1;
+		goto J1;
+	case I_NZFCM:
+		t = GO_Z;
+		f = 1;
+		goto J1;
+	case I_NPFCM:
+		t = GO_P;
+		f = 1;
+		goto J1;
+	case I_NOVFCM:
+		t = GO_O;
+		f = 1;
+		goto J1;
+	  J1:
 		if (IsEp_Lft12(xp->e.lep)) {
-			word tt;
+			word	tt;
 			if (f)
 				goto ERR;
 			tt = xp->e.op;
 			xp->e.op = I_SUB;
-			Gen_Expr(xp,1);
+			Gen_Expr(xp, 1);
 			xp->e.op = tt;
-			GenCondJmp(t,long_f,neg_f,lbl);
+			GenCondJmp(t, long_f, neg_f, lbl);
 		} else {
 			switch (xp->e.lep->e.op) {
 			case I_DEC:
-				if (IsEp_R2op(xp->e.lep,I_CX) &&	long_f == 0
+				if (IsEp_R2op(xp->e.lep, I_CX) && long_f == 0
 					&& ((neg_f == 0 && t == GO_EQU) || (neg_f && t == GO_NEQ))
-					&& IsEp_CnstVal(xp->e.rep, 0)	){
-					GenCondJmp(GO_DECX,0,0,lbl);
+					&& IsEp_CnstVal(xp->e.rep, 0)) {
+					GenCondJmp(GO_DECX, 0, 0, lbl);
 					break;
 				}
 			case I_INC:
@@ -1659,13 +1692,13 @@ GenCondOp(Et_t_fp xp, word long_f, word neg_f, byte *lbl)
 			case I_SAREQ:
 			case I_RCREQ:
 			case I_RCLEQ:
-				if (!IsEp_CnstVal(xp->e.rep,0)) {
-					if (f == 0 || !IsEp_CnstVal(xp->e.rep,1))
+				if (!IsEp_CnstVal(xp->e.rep, 0)) {
+					if (f == 0 || !IsEp_CnstVal(xp->e.rep, 1))
 						goto ERR;
 					neg_f = (neg_f) ? 0 : 1;
 				}
-				Gen_Expr(xp->e.lep,1);
-				GenCondJmp(t,long_f,neg_f,lbl);
+				Gen_Expr(xp->e.lep, 1);
+				GenCondJmp(t, long_f, neg_f, lbl);
 				break;
 			default:
 				goto ERR;
@@ -1673,69 +1706,67 @@ GenCondOp(Et_t_fp xp, word long_f, word neg_f, byte *lbl)
 		}
 		break;
 	default:
- ERR:
+	  ERR:
 		Msg_Err("条件として指定できないものが指定された");
 	}
 	return 0;
 }
 
-static void
-GenCondLAnd(Et_t_fp xp, word long_f, word neg_f, byte *lbl)
+static void GenCondLAnd(Et_t_fp xp, word long_f, word neg_f, byte * lbl)
 {
-	word t,nf;
-	byte lbl1[GoLbl_SIZ+2];
-	byte lbl2[GoLbl_SIZ+2];
+	word	t, nf;
+	byte	lbl1[GoLbl_SIZ + 2];
+	byte	lbl2[GoLbl_SIZ + 2];
 
 	t = xp->e.op;
 	if (t != I_LAND && t != I_LOR) {
-		GenCondOp(xp,long_f,neg_f,lbl);
+		GenCondOp(xp, long_f, neg_f, lbl);
 		return;
 	}
 	nf = (t == I_LAND);
 	if (long_f == 0) {
-		if (neg_f == nf) {  /* !&&, || */
-			GenCondLAnd(xp->e.lep,0,nf,lbl);
-			GenCondLAnd(xp->e.rep,0,nf,lbl);
-		} else {			/* &&, !|| */
+		if (neg_f == nf) {		/* !&&, || */
+			GenCondLAnd(xp->e.lep, 0, nf, lbl);
+			GenCondLAnd(xp->e.rep, 0, nf, lbl);
+		} else {				/* &&, !|| */
 			GoLblNewStr(lbl1);
-			GenCondLAnd(xp->e.lep,0,nf,lbl1);
-			GenCondLAnd(xp->e.rep,0,!nf,lbl);
+			GenCondLAnd(xp->e.lep, 0, nf, lbl1);
+			GenCondLAnd(xp->e.rep, 0, !nf, lbl);
 			Out_LblStr(lbl1);
 		}
 	} else {
-		if (neg_f == nf) {  /* !&&, || */
+		if (neg_f == nf) {		/* !&&, || */
 			GoLblNewStr(lbl1);
 			GoLblNewStr(lbl2);
-			GenCondLAnd(xp->e.lep,0,nf,lbl1);
-			GenCondLAnd(xp->e.rep,0,!nf,lbl2);
+			GenCondLAnd(xp->e.lep, 0, nf, lbl1);
+			GenCondLAnd(xp->e.rep, 0, !nf, lbl2);
 			Out_LblStr(lbl1);
-			Out_NmSt("jmp",lbl);
+			Out_NmSt("jmp", lbl);
 			Out_LblStr(lbl2);
-		} else {			/* &&, !|| */
+		} else {				/* &&, !|| */
 			GoLblNewStr(lbl1);
-			GenCondLAnd(xp->e.lep,0,nf,lbl1);
-			GenCondLAnd(xp->e.rep,0,nf,lbl1);
-			Out_NmSt("jmp",lbl);
+			GenCondLAnd(xp->e.lep, 0, nf, lbl1);
+			GenCondLAnd(xp->e.rep, 0, nf, lbl1);
+			Out_NmSt("jmp", lbl);
 			Out_LblStr(lbl1);
 		}
 	}
 }
 
-void
-Gen_CondExpr(Et_t_fp xp, word mode, word ls, word neg_f, word lblno)
-	/*  ls  	neg_f
+void	Gen_CondExpr(Et_t_fp xp, word mode, word ls, word neg_f, word lblno)
+	/* ls		neg_f
 		0		0		条件が成立すればショートジャンプ
 		0		1		条件が成立しなければショートジャンプ
 		1		0		条件が成立すればﾛﾝｸﾞｼﾞｬﾝﾌﾟ
 		1		1		条件が成立しなければﾛﾝｸﾞｼﾞｬﾝﾌﾟ
 	*/
 {
-	byte jt;
-	byte lbl[GoLbl_SIZ+2];
+	byte	jt;
+	byte	lbl[GoLbl_SIZ + 2];
 
-	GoLblStr(lbl,lblno);
+	GoLblStr(lbl, lblno);
 	if (xp == NULL) {
-		GenCondJmp(GO_JMP,ls,neg_f,lbl);
+		GenCondJmp(GO_JMP, ls, neg_f, lbl);
 		return;
 	}
 	if (xp->e.op != T_COND) {
@@ -1749,11 +1780,11 @@ Gen_CondExpr(Et_t_fp xp, word mode, word ls, word neg_f, word lblno)
 	neg_f ^= xp->j.nf;
 	if ((jt = xp->j.cond) == 0) {
 		if (mode < 2)
-			GenCondLAnd(xp->e.lep,ls,neg_f,lbl);
+			GenCondLAnd(xp->e.lep, ls, neg_f, lbl);
 		else
 			Msg_Err("orig('|')指定状態で使えない条件が指定された");
 	} else {
-		GenCondJmp(jt,ls,neg_f,lbl);
+		GenCondJmp(jt, ls, neg_f, lbl);
 	}
 	Gen_condMode = 0;
 	return;

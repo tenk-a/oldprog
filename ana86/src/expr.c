@@ -3,7 +3,7 @@
 #include <dos.h>
 #include "anadef.h"
 
-static byte oExprSymFlg,oAddrFlg;
+static byte oExprSymFlg, oAddrFlg;
 static byte ExprcondFlg;
 static byte oExprIndexRegFlg;
 
@@ -12,10 +12,9 @@ static Et_t_fp ExprUnary(void);
 static Et_t_fp ExprLOr(void);
 static Et_t_fp ExprEqu(void);
 
-static Et_t_fp
-ExprLVal(Et_t_fp xp)
+static	Et_t_fp ExprLVal(Et_t_fp xp)
 {
-	/* MSGF((" lval %lx (%s)\n",xp,Deb_ChkOp(xp->e.op))); */
+ /* MSGF((" lval %lx (%s)\n",xp,Deb_ChkOp(xp->e.op))); */
 	if (xp == NULL)
 		return NULL;
 	if (!IsEp_Lft124(xp))
@@ -23,11 +22,10 @@ ExprLVal(Et_t_fp xp)
 	return xp;
 }
 
-static byte
-ExprRVal2(Et_t_fp xp)
+static	byte ExprRVal2(Et_t_fp xp)
 {
-	word op;
-	byte rv,lv;
+	word	op;
+	byte	rv, lv;
 
 	switch (op = xp->e.op) {
 	case T_OFS:
@@ -36,11 +34,19 @@ ExprRVal2(Et_t_fp xp)
 		return 2;
 	case T_R2:
 		switch (xp->c.reg) {
-		case I_BX: oExprIndexRegFlg |= 1;	goto J1;
-		case I_BP: oExprIndexRegFlg |= 2;	goto J1;
-		case I_SI: oExprIndexRegFlg |= 4;	goto J1;
-		case I_DI: oExprIndexRegFlg |= 8;	goto J1;
- J1:
+		case I_BX:
+			oExprIndexRegFlg |= 1;
+			goto J1;
+		case I_BP:
+			oExprIndexRegFlg |= 2;
+			goto J1;
+		case I_SI:
+			oExprIndexRegFlg |= 4;
+			goto J1;
+		case I_DI:
+			oExprIndexRegFlg |= 8;
+			goto J1;
+		  J1:
 			return 3;
 		}
 		return 4;
@@ -58,12 +64,30 @@ ExprRVal2(Et_t_fp xp)
 				return 3;
 		}
 		return 4;
-	case I_MUL: case I_IMUL: case I_DIV: case I_IDIV: case I_MOD: case I_IMOD:
-	case I_SHL: case I_SHR: case I_SAR:
-	case I_AND: case I_XOR: case I_OR:
-	case I_GT: case I_GE: case I_LT: case I_LE:
-	case I_IGT: case I_IGE: case I_ILT: case I_ILE:
-	case I_EQEQ: case I_NEQ: case I_LAND: case I_LOR:
+	case I_MUL:
+	case I_IMUL:
+	case I_DIV:
+	case I_IDIV:
+	case I_MOD:
+	case I_IMOD:
+	case I_SHL:
+	case I_SHR:
+	case I_SAR:
+	case I_AND:
+	case I_XOR:
+	case I_OR:
+	case I_GT:
+	case I_GE:
+	case I_LT:
+	case I_LE:
+	case I_IGT:
+	case I_IGE:
+	case I_ILT:
+	case I_ILE:
+	case I_EQEQ:
+	case I_NEQ:
+	case I_LAND:
+	case I_LOR:
 		lv = ExprRVal2(xp->e.lep);
 		rv = ExprRVal2(xp->e.rep);
 		if (lv == 2 && rv == 2)
@@ -73,8 +97,7 @@ ExprRVal2(Et_t_fp xp)
 	}
 }
 
-byte
-Expr_RVal(Et_t_fp xp)
+byte Expr_RVal(Et_t_fp xp)
 {
 	oExprIndexRegFlg = 0;
 	switch (xp->e.op) {
@@ -98,9 +121,7 @@ Expr_RVal(Et_t_fp xp)
 	}
 }
 
-static byte
-
-ExprChkLea(void)
+static	byte ExprChkLea(void)
 {
 	if ((oExprIndexRegFlg & 3) == 3 || (oExprIndexRegFlg & 0x0c) == 0x0c) {
 		Msg_Err("間接ｱﾄﾞﾚｽ指定がおかしい");
@@ -109,10 +130,9 @@ ExprChkLea(void)
 	return 0;
 }
 
-Et_t_fp
-Expr_CnvRVal(byte a, Et_t_fp xp)
+Et_t_fp Expr_CnvRVal(byte a, Et_t_fp xp)
 {
-	Et_t_fp ep,yp;
+	Et_t_fp ep, yp;
 
 	if (a == 2) {
 		Et_NEWp(ep);
@@ -135,22 +155,21 @@ Expr_CnvRVal(byte a, Et_t_fp xp)
 }
 
 
-static Et_t_fp
-ExprMemb(Et_t_fp xp,word typ, Et_t_fp tp)
+static	Et_t_fp ExprMemb(Et_t_fp xp, word typ, Et_t_fp tp)
 {
 	St_t_fp sp;
-	long val;
-	word c;
+	long	val;
+	word	c;
 
 	while (tp) {
 		if (tp->e.op == T_STRUCT) {
-			/*typ = tp->m.siz;*/
+		/* typ = tp->m.siz; */
 			if (!Ch_ChkPeriod())
 				break;
 			Sym_GetRsvOff();
 			if (Sym_tok != T_IDENT)
 				goto ERR;
-			if ((sp = St_Search(Sym_name,tp->v.st)) == NULL) {
+			if ((sp = St_Search(Sym_name, tp->v.st)) == NULL) {
 				Msg_Err("構造体のﾒﾝﾊﾞ名がおかしい");
 				goto ERR0;
 			}
@@ -172,15 +191,15 @@ ExprMemb(Et_t_fp xp,word typ, Et_t_fp tp)
 				if ((val = Expr_Cnstnt()) == ERR_VAL)
 					goto ERR;
 				if (tp->m.ofs != 0
-					&& (val < 0 || val >= (word)tp->m.ofs))
+					&& (val < 0 || val >= (word) tp->m.ofs))
 					Msg_Err("配列の添字が範囲外である");
 				typ = tp->m.siz;
-				xp->m.ofs += (int)(val * typ);
+				xp->m.ofs += (int) (val * typ);
 				tp = tp->e.lep;
 			} while (Sym_tok == I_COMMA);
 			Sym_ChkRP();
 		} else {
- ARYERR:
+		  ARYERR:
 			Msg_PrgErr("配列・構造体nodeが異常");
 			goto ERR;
 		}
@@ -210,23 +229,22 @@ ExprMemb(Et_t_fp xp,word typ, Et_t_fp tp)
 	}
 	xp->m.siz = typ;
 	return xp;
- ERR:
+  ERR:
 	Msg_Err("型指定がおかしい");
- ERR0:
+  ERR0:
 	return NULL;
 }
 
-static void
-ExprMemc(Et_t_fp xp,word seg)
+static void ExprMemc(Et_t_fp xp, word seg)
 {
-	word typ;
+	word	typ;
 
 	if (xp == NULL)
 		return;
 	typ = xp->m.siz;
-	xp->e.op =  (typ == I_BYTE) ? T_M1 :
-				(typ == I_WORD) ? T_M2 :
-				(typ == I_DWORD) ? T_M4 : 0;
+	xp->e.op = (typ == I_BYTE) ? T_M1 :
+		(typ == I_WORD) ? T_M2 :
+		(typ == I_DWORD) ? T_M4 : 0;
 	if (xp->e.op == 0) {
 		if (oAddrFlg == 0)
 			Msg_Err("ｻｲｽﾞが1,2,4ﾊﾞｲﾄでない変数にｱｸｾｽしようとした");
@@ -239,10 +257,9 @@ ExprMemc(Et_t_fp xp,word seg)
 }
 
 
-static Et_t_fp
-ExprAddr(void)
+static	Et_t_fp ExprAddr(void)
 {
-	Et_t_fp xp,lp;
+	Et_t_fp xp, lp;
 
 	if (oAddrFlg)
 		goto ERR;
@@ -257,7 +274,7 @@ ExprAddr(void)
 	case T_LBL:
 		xp->e.op = T_OFS;
 		xp->v.st = Sym_sp;
-		xp->m.seg = I_CS;	/* code ｾｸﾞﾒﾝﾄ･ｸﾞﾙｰﾌﾟ */
+		xp->m.seg = I_CS;		/* code ｾｸﾞﾒﾝﾄ･ｸﾞﾙｰﾌﾟ */
 		Sym_Get();
 		break;
 	default:
@@ -273,23 +290,22 @@ ExprAddr(void)
 			xp->e.op = T_OFS;
 			xp->v.st = lp->e.lep->v.st;
 			xp->m.ofs = lp->m.ofs;
-			xp->m.seg = lp/*->e.lep*/->m.seg;
+			xp->m.seg = lp /*->e.lep*/ ->m.seg;
 		} else {
 			xp->e.op = T_ADDR;
 			xp->e.lep = lp;
 		}
 	}
 	return xp;
- ERR:
+  ERR:
 	Msg_Err("&指定がおかしい");
 	Sym_SkipCR();
 	return NULL;
 }
 
-static Et_t_fp
-ExprOfs(word t,St_t_fp sp)
+static	Et_t_fp ExprOfs(word t, St_t_fp sp)
 {
-	Et_t_fp xp,yp;
+	Et_t_fp xp, yp;
 
 	MSG("<ofset>");
 	Et_NEWp(xp);
@@ -302,7 +318,7 @@ ExprOfs(word t,St_t_fp sp)
 	case T_LBL:
 		xp->e.op = T_OFS;
 		xp->v.st = sp;
-		xp->m.seg = I_CS;	/* code ｾｸﾞﾒﾝﾄ･ｸﾞﾙｰﾌﾟ */
+		xp->m.seg = I_CS;		/* code ｾｸﾞﾒﾝﾄ･ｸﾞﾙｰﾌﾟ */
 		break;
 	case T_VAR:
 		ExprMemb(xp, sp->v.siz, sp->p.et);
@@ -315,11 +331,11 @@ ExprOfs(word t,St_t_fp sp)
 		xp->m.ofs = sp->v.ofs + Ana_saveOfs;
 		goto JJ1;
 	case T_LOCAL:
-  #ifdef MVAR
+#ifdef MVAR
 	case T_MVAR:
-  #endif
+#endif
 		xp->m.ofs = sp->v.ofs;
- JJ1:
+	  JJ1:
 		ExprMemb(xp, sp->v.siz, sp->p.et);
 		xp->c.val = xp->m.ofs;
 		xp->e.op = T_CNST;
@@ -340,10 +356,10 @@ ExprOfs(word t,St_t_fp sp)
 
 	case T_TYPE:
 		yp = sp->p.et;
- JJ3:
+	  JJ3:
 		t = 0;
- JJ2:
-		ExprMemb(xp,t,yp);
+	  JJ2:
+		ExprMemb(xp, t, yp);
 		xp->c.val = xp->m.ofs;
 		xp->e.op = T_CNST;
 		break;
@@ -363,18 +379,17 @@ ExprOfs(word t,St_t_fp sp)
 		xp->c.val = Ana_model;
 		break;
 	default:
- ERR:
+	  ERR:
 		Msg_Err("'%'ｵﾌｾｯﾄ指定がおかしい");
 		xp = NULL;
 	}
 	return xp;
 }
 
-static int
-ExprSize(void)
+static int ExprSize(void)
 {
-	word siz,t;
-	Et_t_fp xp,yp;
+	word	siz, t;
+	Et_t_fp xp, yp;
 
 	switch (Sym_Get()) {
 	case I_FL:
@@ -393,9 +408,9 @@ ExprSize(void)
 		break;
 
 	case T_VAR:
-  #ifdef MVAR
+#ifdef MVAR
 	case T_MVAR:
-  #endif
+#endif
 	case T_LOCAL:
 	case T_ARGLOCAL:
 		Et_NEWp(xp);
@@ -418,20 +433,20 @@ ExprSize(void)
 
 	case T_TYPE:
 		yp = Sym_sp->p.et;
- JJ:
-		t = yp->m.siz;/* 0; */
- JJ2:
+	  JJ:
+		t = yp->m.siz;			/* 0; */
+	  JJ2:
 		Et_NEWp(xp);
-		ExprMemb(xp,t,yp);
+		ExprMemb(xp, t, yp);
 		siz = xp->m.siz;
 		break;
-  #if 0
+#if 0
 	case T_SEG:
 		Et_NEWp(xp);
 		xp->e.op = T_SIZE;
 		xp->e.lep = Sym_sp;
 		break;
-  #endif
+#endif
 	default:
 		siz = -1;
 		Msg_Err("size()の指定がおかしい");
@@ -439,11 +454,10 @@ ExprSize(void)
 	return siz;
 }
 
-static Et_t_fp
-ExprMem(word typ, Et_t_fp tp)
+static	Et_t_fp ExprMem(word typ, Et_t_fp tp)
 {
-	Et_t_fp xp,ep;
-	word seg,t;
+	Et_t_fp xp, ep;
+	word	seg, t;
 
 	MSG("<ExprMem>");
 	seg = 0;
@@ -465,12 +479,12 @@ ExprMem(word typ, Et_t_fp tp)
 	if (Sym_ChkRB())
 		return NULL;
 	oExprIndexRegFlg = 0;
-	if (IsEp_Op(ep,I_ADD) && typ == I_BYTE && seg == 0
-		&& IsEp_R2op(ep->e.lep,I_BX) && IsEp_R1op(ep->e.rep,I_AL)) {
+	if (IsEp_Op(ep, I_ADD) && typ == I_BYTE && seg == 0
+		&& IsEp_R2op(ep->e.lep, I_BX) && IsEp_R1op(ep->e.rep, I_AL)) {
 		ep->e.op = I_BXAL;
 		return ep;
 	} else if (ExprRVal2(ep) > 3) {
- ERR:
+	  ERR:
 		Msg_Err("間接ｱﾄﾞﾚｽ指定がおかしい");
 		return NULL;
 	} else if (ExprChkLea())
@@ -482,12 +496,11 @@ ExprMem(word typ, Et_t_fp tp)
 	return xp;
 }
 
-static Et_t_fp
-ExprVar(word t)
+static	Et_t_fp ExprVar(word t)
 {
-	Et_t_fp xp,yp,lp;
+	Et_t_fp xp, yp, lp;
 	St_t_fp sp;
-	word seg,c;
+	word	seg, c;
 
 	MSG("<ExprVar>");
 	switch (Sym_sp->v.seg) {
@@ -505,18 +518,18 @@ ExprVar(word t)
 	Et_NEWp(yp);
 	xp->e.lep = yp;
 	sp = Sym_sp;
-  #ifdef MVAR
+#ifdef MVAR
 	if (sp->p.et->e.op == T_MVAR) {
 		if ((c = Ch_SkipSpc()) != '[')
 			goto ERR;
 		goto J1;
 	}
-  #endif
+#endif
 	if (sp->p.et->e.op == T_ARRAY) {
 		if ((c = Ch_SkipSpc()) == '[') {
-  #ifdef MVAR
-  J1:
-  #endif
+#ifdef MVAR
+		  J1:
+#endif
 			Sym_tok = I_LB;
 			if (Sym_ChkLB())
 				return NULL;
@@ -539,26 +552,25 @@ ExprVar(word t)
 					xp->m.ofs += Ana_saveOfs;
 				}
 				Et_NEWp(zp);
-				zp->e.op  = T_R2;
+				zp->e.op = T_R2;
 				zp->c.reg = I_BP;
 				zp->m.typ = I_WORD;
 				yp->e.rep = zp;
 			} else {
-				if ((yp->e.rep = ExprOfs(t,sp)) == NULL)
+				if ((yp->e.rep = ExprOfs(t, sp)) == NULL)
 					return NULL;
 			}
 			yp->e.op = I_ADD;
 			yp->e.lep = lp;
-			for (c = sp->v.siz,lp = sp->p.et;lp && lp->e.op == T_ARRAY;
-				c = lp->m.siz, lp = lp->e.lep)
-				;
+			for (c = sp->v.siz, lp = sp->p.et; lp && lp->e.op == T_ARRAY;
+				 c = lp->m.siz, lp = lp->e.lep) ;
 			ExprMemb(xp, c, lp);
 		} else {
 			Ch_Unget(c);
 			goto J1;
 		}
 	} else {
-  J1:
+	  J1:
 		yp->e.op = t;
 		yp->v.st = sp;
 		if (t == T_LOCAL) {
@@ -573,8 +585,7 @@ ExprVar(word t)
 	return xp;
 }
 
-static Et_t_fp
-ExprSegOvr(word seg)
+static	Et_t_fp ExprSegOvr(word seg)
 {
 	Et_t_fp xp;
 
@@ -590,16 +601,15 @@ ExprSegOvr(word seg)
 	Sym_ChkRP();
 	xp->m.seg = seg;
 	return xp;
- ERR:
+  ERR:
 	Msg_Err("ｾｸﾞﾒﾝﾄ･ｵｰﾊﾞｰﾗｲﾄﾞ指定がおかしい");
 	return NULL;
 }
 
-static Et_t_fp
-ExprPort(void)
+static	Et_t_fp ExprPort(void)
 {
-	word a;
-	Et_t_fp xp,yp;
+	word	a;
+	Et_t_fp xp, yp;
 
 	MSG("<ExprPort>");
 	Sym_Get();
@@ -616,15 +626,14 @@ ExprPort(void)
 		Msg_Err("port()の指定がおかしい");
 		return NULL;
 	}
-	xp->e.lep = Expr_CnvRVal(a,yp);
+	xp->e.lep = Expr_CnvRVal(a, yp);
 	if (Sym_ChkRP())
 		return NULL;
 	return xp;
 }
 
 #if 0
-static Et_t_fp
-ExprSeg(void)
+static	Et_t_fp ExprSeg(void)
 {
 	Et_t_fp xp;
 
@@ -634,28 +643,28 @@ ExprSeg(void)
 	Et_NEWp(xp);
 	xp->e.op = I_OFS;
 	xp->v.st = NULL;
-	if (Sym_Get() == T_VAR||Sym_tok == I_VAR)
+	if (Sym_Get() == T_VAR || Sym_tok == I_VAR)
 		xp->m.seg = 0;
-	else if (Sym_tok==T_ARGLOCAL || Sym_tok==T_LOCAL || Sym_tok==I_LOCAL)
+	else if (Sym_tok == T_ARGLOCAL || Sym_tok == T_LOCAL || Sym_tok == I_LOCAL)
 		xp->m.seg = 0;
-	else if (Sym_tok == T_PROC||Sym_tok == I_CVAR)
+	else if (Sym_tok == T_PROC || Sym_tok == I_CVAR)
 		xp->m.seg = I_CS;
 	else
 		goto SEG1;
 	if (Sym_ChkRP()) {
-  SEG1:
+	  SEG1:
 		Msg_Err("seg()の指定がおかしい");
 		return NULL;
 	}
 	return xp;
 }
+
 #endif
 
-static Et_t_fp
-ExprW2D(void)
+static	Et_t_fp ExprW2D(void)
 {
-	Et_t_fp xp,yp;
-	byte a;
+	Et_t_fp xp, yp;
+	byte	a;
 
 	Sym_Get();
 	if (Sym_ChkLP())
@@ -666,17 +675,16 @@ ExprW2D(void)
 		return NULL;
 	if ((a = Expr_RVal(yp)) > 2 && !IsEp_Seg2(yp))
 		goto DW1;
-	xp->e.lep = Expr_CnvRVal(a,yp);
+	xp->e.lep = Expr_CnvRVal(a, yp);
 	if (Sym_tok != I_COMMA)
 		goto DW1;
 	if ((yp = ExprUnary()) == NULL)
 		return NULL;
 	a = Expr_RVal(yp);
-	/*if (a > 2 && !IsEp_Seg2(yp))
-		goto DW1;*/
-	xp->e.rep = Expr_CnvRVal(a,yp);
+ /* if (a > 2 && !IsEp_Seg2(yp)) goto DW1; */
+	xp->e.rep = Expr_CnvRVal(a, yp);
 	if (Sym_ChkRP()) {
-  DW1:
+	  DW1:
 		Msg_Err("ww()の指定がおかしい");
 		return NULL;
 	}
@@ -687,11 +695,10 @@ ExprW2D(void)
 	return xp;
 }
 
-Et_t_fp
-ExprNegCom(word t,word f)
+Et_t_fp ExprNegCom(word t, word f)
 {
-	Et_t_fp xp,yp;
-	word parflg;
+	Et_t_fp xp, yp;
+	word	parflg;
 
 	MSG("<neg()>");
 
@@ -706,7 +713,7 @@ ExprNegCom(word t,word f)
 		return NULL;
 	if (t == I_COMS && yp->e.op == I_CF)
 		xp->e.op = I_COMC;
-	else if ((xp->e.lep = ExprLVal(yp)) ==  NULL)
+	else if ((xp->e.lep = ExprLVal(yp)) == NULL)
 		return NULL;
 	if (parflg) {
 		Sym_ChkRP();
@@ -715,12 +722,11 @@ ExprNegCom(word t,word f)
 	return xp;
 }
 
-Et_t_fp
-ExprShls(word t,word f)
+Et_t_fp ExprShls(word t, word f)
 {
-	Et_t_fp xp,yp;
-	int  a;
-	word parflg;
+	Et_t_fp xp, yp;
+	int 	a;
+	word	parflg;
 
 	MSG("<rol>");
 	parflg = Sym_GetChkLP();
@@ -729,7 +735,7 @@ ExprShls(word t,word f)
 	Et_NEWp(xp);
 	xp->e.op = t;
 	oExprSymFlg = 1;
-	if ((xp->e.lep  = ExprLVal(ExprUnary())) == NULL)
+	if ((xp->e.lep = ExprLVal(ExprUnary())) == NULL)
 		return NULL;
 	if (Sym_tok == I_COMMA) {
 		if ((yp = ExprLOr()) == NULL)
@@ -738,14 +744,14 @@ ExprShls(word t,word f)
 			Msg_Err("ｼﾌﾄ命令の第二引数がおかしい");
 			return NULL;
 		}
-		xp->e.rep = Expr_CnvRVal(a,yp);
+		xp->e.rep = Expr_CnvRVal(a, yp);
 	} else {
-		if (t == I_DIVS || t == I_IDIVS||t == I_ADCEQ || t == I_SBCEQ)
+		if (t == I_DIVS || t == I_IDIVS || t == I_ADCEQ || t == I_SBCEQ)
 			Msg_Err("div,idiv,adc,sbc がおかしい");
 		Et_NEWp(yp);
 		yp->e.op = T_CNST;
 		yp->c.val = 1;
-		xp->e.rep	= yp;
+		xp->e.rep = yp;
 	}
 	if (parflg) {
 		Sym_ChkRP();
@@ -754,12 +760,11 @@ ExprShls(word t,word f)
 	return xp;
 }
 
-static Et_t_fp
-ExprUnary(void)
+static	Et_t_fp ExprUnary(void)
 {
 	Et_t_fp xp;
 	Et_t_fp yp;
-	word t;
+	word	t;
 
 	if (oExprSymFlg) {
 		t = Sym_tok;
@@ -808,17 +813,17 @@ ExprUnary(void)
 		xp->e.op = T_STRUCT;
 		xp->m.siz = Sym_sp->v.siz;
 		xp->v.st = Sym_sp->v.st;
-		xp = ExprMem(xp->m.siz,xp);
+		xp = ExprMem(xp->m.siz, xp);
 		break;
 
 	case T_TYPE:
-		xp = ExprMem(Sym_sp->v.siz,Sym_sp->p.et);
+		xp = ExprMem(Sym_sp->v.siz, Sym_sp->p.et);
 		break;
 
 	case I_BYTE:
 	case I_WORD:
 	case I_DWORD:
-		xp = ExprMem(t,NULL);
+		xp = ExprMem(t, NULL);
 		break;
 
 	case T_SEG2:
@@ -833,7 +838,7 @@ ExprUnary(void)
 	case T_SEG4:
 		Et_NEWp(xp);
 		MSG("<ﾚｼﾞｽﾀ>");
-		xp->e.op  = Sym_tok;
+		xp->e.op = Sym_tok;
 		xp->c.reg = Sym_reg;
 		xp->m.typ = Sym_typ;
 		break;
@@ -848,7 +853,7 @@ ExprUnary(void)
 
 	case I_MOD:
 		Sym_Get();
-		xp = ExprOfs(Sym_tok,Sym_sp);
+		xp = ExprOfs(Sym_tok, Sym_sp);
 		break;
 
 	case I_AND:
@@ -860,24 +865,24 @@ ExprUnary(void)
 		xp->e.op = T_OFS;
 		xp->m.seg = 0x7f;
 		break;
- #if 0
+#if 0
 	case I_DOLL:
- #endif
+#endif
 	case I_TYPEOF:
 		Sym_Get();
 		if (Sym_ChkLP())
 			goto ERR;
 		t = Sym_Get();
-		xp = (void far *)Sym_sp;
+		xp = (void far *) Sym_sp;
 		Sym_Get();
 		if (Sym_ChkRP())
 			goto ERR;
-		Sym_sp = (void far *)xp;
+		Sym_sp = (void far *) xp;
 		switch (t) {
 		case T_VAR:
 		case T_LOCAL:
 		case T_ARGLOCAL:
-			xp = ExprMem(Sym_sp->v.siz,Sym_sp->p.et);
+			xp = ExprMem(Sym_sp->v.siz, Sym_sp->p.et);
 			break;
 		default:
 			goto ERR;
@@ -895,8 +900,8 @@ ExprUnary(void)
 			xp = yp;
 		else if (IsEp_Cnst(yp)) {
 			yp->c.val = (t == I_SUB) ? -yp->c.val :
-						(t == I_COM) ? ~yp->c.val :
-						(t == I_NOT) ? !yp->c.val : 0;
+				(t == I_COM) ? ~yp->c.val :
+				(t == I_NOT) ? !yp->c.val : 0;
 			xp = yp;
 		} else {
 			Et_NEWp(xp);
@@ -956,14 +961,14 @@ ExprUnary(void)
 		xp = ExprW2D();
 		break;
 /*
-	case I_SEG:
-		xp = ExprSeg();
-		break;
+		case I_SEG:
+				xp = ExprSeg();
+				break;
 */
 	case T_STRING:
 		MSG("<文字列>");
 		{
-			Sss_t *s = malloc(sizeof(Sss_t));
+			Sss_t  *s = malloc(sizeof(Sss_t));
 			if (s == NULL)
 				Msg_Err("文字列用のバッファが確保できなかった");
 			Et_NEWp(xp);
@@ -995,12 +1000,30 @@ ExprUnary(void)
 
 	case I_NEGS:
 	case I_COMS:
-		xp = ExprNegCom(t,0);
+		xp = ExprNegCom(t, 0);
 		goto ENDF;
 
-	case I_SARS:t = I_SAREQ;goto JJ;
-	case I_SHRS:t = I_SHREQ;goto JJ;
-	case I_SHLS:t = I_SHLEQ;goto JJ;
+	case I_SARS:
+		t = I_SAREQ;
+		goto JJ;
+	case I_SHRS:
+		t = I_SHREQ;
+		goto JJ;
+	case I_SHLS:
+		t = I_SHLEQ;
+		goto JJ;
+	case I_RCLS:
+		t = I_RCLEQ;
+		goto JJ;
+	case I_RCRS:
+		t = I_RCREQ;
+		goto JJ;
+	case I_ROLS:
+		t = I_ROLEQ;
+		goto JJ;
+	case I_RORS:
+		t = I_ROREQ;
+		goto JJ;
 	case I_DIVS:
 	case I_IDIVS:
 	case I_ADCEQ:
@@ -1009,8 +1032,8 @@ ExprUnary(void)
 	case I_ROREQ:
 	case I_RCLEQ:
 	case I_RCREQ:
- JJ:
-		xp = ExprShls(t,0);
+	  JJ:
+		xp = ExprShls(t, 0);
 		goto ENDF;
 
 	default:
@@ -1018,20 +1041,19 @@ ExprUnary(void)
 	}
 	if (xp != NULL)
 		Sym_Get();
- ENDF:
-	EXPMSG("unary",xp);
+  ENDF:
+	EXPMSG("unary", xp);
 	return xp;
- ERR:
+  ERR:
 	Msg_Err("読み込んだｼﾝﾎﾞﾙがおかしい");
 	return NULL;
 }
 
-static Et_t_fp
-ExprBin(word t, word mf, Et_t_fp lp, Et_t_fp rp)
+static	Et_t_fp ExprBin(word t, word mf, Et_t_fp lp, Et_t_fp rp)
 {
-	word lo,ro;
-	long lv,rv;
-	Et_t_fp xp,tmp;
+	word	lo, ro;
+	long	lv, rv;
+	Et_t_fp xp, tmp;
 
 	if (!lp || !rp)
 		return NULL;
@@ -1042,32 +1064,70 @@ ExprBin(word t, word mf, Et_t_fp lp, Et_t_fp rp)
 		lv = lp->c.val;
 		rv = rp->c.val;
 		switch (t) {
-		case I_MUL: lv *= rv;	break;
-		/*case I_IMUL:lv *= rv; break;*/
-		case I_DIV: lv /= rv;	break;
-		/*case I_IDIV:lv /= rv; break;*/
-		case I_MOD: lv %= rv;	break;
-		/*case I_IMOD:lv %= rv; break;*/
-		case I_ADD: lv += rv;	break;
-		case I_SUB: lv -= rv;	break;
-		case I_SHL: lv <<= rv;  break;
-		case I_SHR: (dword)lv >>= rv;  break;
-		case I_SAR: (long)lv >>= rv;   break;
-		case I_AND: lv &= rv;	break;
-		case I_XOR: lv ^= rv;	break;
-		case I_OR:  lv |= rv;	break;
-		case I_LE:  lv = (lv <= rv);	break;
-		case I_GT:  lv = (lv >  rv);	break;
-		case I_GE:  lv = (lv >= rv);	break;
-		case I_LT:  lv = (lv <  rv);	break;
-		/*case I_ILE:	lv = (lv <= rv);	break;*/
-		/*case I_IGT:	lv = (lv >  rv);	break;*/
-		/*case I_IGE:	lv = (lv >= rv);	break;*/
-		/*case I_ILT:	lv = (lv <  rv);	break;*/
-		case I_EQEQ:lv = (lv == rv);	break;
-		case I_NEQ: lv = (lv != rv);	break;
-		case I_LAND:lv = (lv && rv);	break;
-		case I_LOR: lv = (lv || rv);	break;
+		case I_MUL:
+			lv *= rv;
+			break;
+		/* case I_IMUL:lv *= rv; break; */
+		case I_DIV:
+			lv /= rv;
+			break;
+		/* case I_IDIV:lv /= rv; break; */
+		case I_MOD:
+			lv %= rv;
+			break;
+		/* case I_IMOD:lv %= rv; break; */
+		case I_ADD:
+			lv += rv;
+			break;
+		case I_SUB:
+			lv -= rv;
+			break;
+		case I_SHL:
+			lv <<= rv;
+			break;
+		case I_SHR:
+			(dword) lv >>= rv;
+			break;
+		case I_SAR:
+			(long) lv >>= rv;
+			break;
+		case I_AND:
+			lv &= rv;
+			break;
+		case I_XOR:
+			lv ^= rv;
+			break;
+		case I_OR:
+			lv |= rv;
+			break;
+		case I_LE:
+			lv = (lv <= rv);
+			break;
+		case I_GT:
+			lv = (lv > rv);
+			break;
+		case I_GE:
+			lv = (lv >= rv);
+			break;
+		case I_LT:
+			lv = (lv < rv);
+			break;
+		/* case I_ILE:	lv = (lv <= rv);	break; */
+		/* case I_IGT:	lv = (lv >	rv);	break; */
+		/* case I_IGE:	lv = (lv >= rv);	break; */
+		/* case I_ILT:	lv = (lv <	rv);	break; */
+		case I_EQEQ:
+			lv = (lv == rv);
+			break;
+		case I_NEQ:
+			lv = (lv != rv);
+			break;
+		case I_LAND:
+			lv = (lv && rv);
+			break;
+		case I_LOR:
+			lv = (lv || rv);
+			break;
 		default:
 			Msg_Err("定数演算できない演算子が使われた");
 		}
@@ -1076,10 +1136,10 @@ ExprBin(word t, word mf, Et_t_fp lp, Et_t_fp rp)
 		return lp;
 	} else if (mf && ro != T_CNST) {
 		if (lo == T_CNST
-			||(ro == T_R4 &&(lo==T_R2||lo==T_R1||lo==T_M2||lo==T_M1))
-			||((ro==T_R2||ro==T_M2)&&(lo==T_R1||ro==T_M1))
-			||(lo!=T_R2&&lo!=T_R1&&lo!=T_R4&&lo!=T_M2&&lo!=T_M1)
-		   ){
+			|| (ro == T_R4 && (lo == T_R2 || lo == T_R1 || lo == T_M2 || lo == T_M1))
+			|| ((ro == T_R2 || ro == T_M2) && (lo == T_R1 || ro == T_M1))
+			|| (lo != T_R2 && lo != T_R1 && lo != T_R4 && lo != T_M2 && lo != T_M1)
+			) {
 			tmp = lp;
 			lp = rp;
 			rp = tmp;
@@ -1090,19 +1150,19 @@ ExprBin(word t, word mf, Et_t_fp lp, Et_t_fp rp)
 	if (ro == T_CNST) {
 		if (t == I_MUL || t == I_IMUL || t == I_DIV || t == I_IDIV) {
 			if ((lo == I_MUL || lo == I_IMUL) && IsEp_Cnst(lp->e.rep)) {
-				lp->e.rep->c.val = (t	== I_MUL || t == I_IMUL) ?
-					lp->e.rep->c.val * rp->c.val:
+				lp->e.rep->c.val = (t == I_MUL || t == I_IMUL) ?
+					lp->e.rep->c.val * rp->c.val :
 					lp->e.rep->c.val / rp->c.val;
 				return lp;
 			} else if (lo == I_DIV || lo == I_IDIV) {
 				if (IsEp_Cnst(lp->e.lep)) {
-					lp->e.lep->c.val =  (t == I_MUL || t == I_IMUL) ?
-						lp->e.lep->c.val *  rp->c.val:
-						lp->e.lep->c.val /  rp->c.val;
+					lp->e.lep->c.val = (t == I_MUL || t == I_IMUL) ?
+						lp->e.lep->c.val * rp->c.val :
+						lp->e.lep->c.val / rp->c.val;
 					return lp;
-				} else  if (IsEp_Cnst(lp->e.rep)) {
-					lp->e.rep->c.val = (t	== I_MUL || t == I_IMUL) ?
-						rp->c.val / lp->e.rep->c.val:
+				} else if (IsEp_Cnst(lp->e.rep)) {
+					lp->e.rep->c.val = (t == I_MUL || t == I_IMUL) ?
+						rp->c.val / lp->e.rep->c.val :
 						rp->c.val * lp->e.rep->c.val;
 					lp->e.op = t;
 					return lp;
@@ -1110,13 +1170,13 @@ ExprBin(word t, word mf, Et_t_fp lp, Et_t_fp rp)
 			}
 		} else if (t == I_ADD || t == I_SUB) {
 			if (lo == I_ADD && IsEp_Cnst(lp->e.rep)) {
-				lp->e.rep->c.val = (t	== I_ADD) ?
-					lp->e.rep->c.val + rp->c.val:
+				lp->e.rep->c.val = (t == I_ADD) ?
+					lp->e.rep->c.val + rp->c.val :
 					lp->e.rep->c.val - rp->c.val;
 				return lp;
 			} else if (lo == I_SUB && IsEp_Cnst(lp->e.rep)) {
-				lp->e.rep->c.val = (t	== I_ADD) ?
-					rp->c.val - lp->e.rep->c.val:
+				lp->e.rep->c.val = (t == I_ADD) ?
+					rp->c.val - lp->e.rep->c.val :
 					rp->c.val + lp->e.rep->c.val;
 				lp->e.op = t;
 				return lp;
@@ -1126,28 +1186,30 @@ ExprBin(word t, word mf, Et_t_fp lp, Et_t_fp rp)
 	Et_NEWp(xp);
 	xp->e.op = t;
 	xp->e.lep = lp;
-	xp->e.rep	= rp;
+	xp->e.rep = rp;
 	return xp;
 }
 
-static Et_t_fp
-ExprMul(void)
+static	Et_t_fp ExprMul(void)
 {
 	Et_t_fp lp;
 	word	t;
 
 	lp = ExprUnary();
 	while (lp) {
-		/* MSGF((" mul %lx\n",lp)); */
+	/* MSGF((" mul %lx\n",lp)); */
 		switch (t = Sym_tok) {
-		case I_MUL: case I_IMUL:
+		case I_MUL:
+		case I_IMUL:
 			MSG("<*>");
-			lp = ExprBin(t,1,lp,ExprUnary());
+			lp = ExprBin(t, 1, lp, ExprUnary());
 			break;
-		case I_DIV: case I_IDIV:
-		case I_MOD: case I_IMOD:
+		case I_DIV:
+		case I_IDIV:
+		case I_MOD:
+		case I_IMOD:
 			MSG("</>");
-			lp = ExprBin(t,0,lp,ExprUnary());
+			lp = ExprBin(t, 0, lp, ExprUnary());
 			break;
 		default:
 			return lp;
@@ -1156,23 +1218,22 @@ ExprMul(void)
 	return lp;
 }
 
-static Et_t_fp
-ExprAdd(void)
+static	Et_t_fp ExprAdd(void)
 {
 	Et_t_fp lp;
 	word	t;
 
 	lp = ExprMul();
 	while (lp) {
-		/* MSGF((" add %lx\n",lp)); */
+	/* MSGF((" add %lx\n",lp)); */
 		switch (t = Sym_tok) {
 		case I_ADD:
 			MSG("<+>");
-			lp = ExprBin(t,1,lp,ExprMul());
+			lp = ExprBin(t, 1, lp, ExprMul());
 			break;
 		case I_SUB:
 			MSG("<->");
-			lp = ExprBin(t,0,lp,ExprMul());
+			lp = ExprBin(t, 0, lp, ExprMul());
 			break;
 		default:
 			return lp;
@@ -1181,21 +1242,20 @@ ExprAdd(void)
 	return lp;
 }
 
-static Et_t_fp
-ExprShl(void)
+static	Et_t_fp ExprShl(void)
 {
 	Et_t_fp lp;
 	word	t;
 
 	lp = ExprAdd();
 	while (lp) {
-		/* MSGF((" shl %lx\n",lp)); */
+	/* MSGF((" shl %lx\n",lp)); */
 		switch (t = Sym_tok) {
 		case I_SAR:
 		case I_SHR:
 		case I_SHL:
 			MSG("<shift>");
-			lp = ExprBin(t,0,lp,ExprAdd());
+			lp = ExprBin(t, 0, lp, ExprAdd());
 			break;
 		default:
 			return lp;
@@ -1204,22 +1264,35 @@ ExprShl(void)
 	return lp;
 }
 
-static Et_t_fp
-ExprGtLt(void)
+static	Et_t_fp ExprGtLt(void)
 {
 	Et_t_fp lp;
 	word	t;
 
 	lp = ExprShl();
 	while (lp) {
-		/* MSGF((" gtlt %lx\n",lp)); */
+	/* MSGF((" gtlt %lx\n",lp)); */
 		switch (t = Sym_tok) {
-		case I_GT:case I_GE:case I_LT:case I_LE:
-		case I_IGT:case I_IGE:case I_ILT:case I_ILE:
-		case I_CFCM:case I_SFCM:case I_ZFCM:
-		case I_OVFCM:case I_PFCM:/*case I_AFCM:*/
+		case I_GT:
+		case I_GE:
+		case I_LT:
+		case I_LE:
+		case I_IGT:
+		case I_IGE:
+		case I_ILT:
+		case I_ILE:
+		case I_CFCM:
+		case I_SFCM:
+		case I_ZFCM:
+		case I_OVFCM:
+		case I_PFCM:
+		case I_NCFCM:
+		case I_NSFCM:
+		case I_NZFCM:
+		case I_NOVFCM:
+		case I_NPFCM:
 			MSG("<gtlt>");
-			lp = ExprBin(t,0,lp,ExprShl());
+			lp = ExprBin(t, 0, lp, ExprShl());
 			break;
 		default:
 			return lp;
@@ -1228,20 +1301,19 @@ ExprGtLt(void)
 	return lp;
 }
 
-static Et_t_fp
-ExprEqEq(void)
+static	Et_t_fp ExprEqEq(void)
 {
 	Et_t_fp lp;
 	word	t;
 
 	lp = ExprGtLt();
 	while (lp) {
-		/* MSGF((" eqeq %lx\n",lp)); */
+	/* MSGF((" eqeq %lx\n",lp)); */
 		switch (t = Sym_tok) {
 		case I_EQEQ:
 		case I_NEQ:
 			MSG("< == >");
-			lp = ExprBin(t,1,lp,ExprGtLt());
+			lp = ExprBin(t, 1, lp, ExprGtLt());
 			break;
 		default:
 			return lp;
@@ -1250,98 +1322,92 @@ ExprEqEq(void)
 	return lp;
 }
 
-static Et_t_fp
-ExprAnd(void)
+static	Et_t_fp ExprAnd(void)
 {
 	Et_t_fp lp;
 	word	t;
 
 	lp = ExprEqEq();
-	/* MSGF((" mul %lx\n",lp)); */
+ /* MSGF((" mul %lx\n",lp)); */
 	while (lp && (t = Sym_tok) == I_AND) {
 		MSG("<&>");
-		lp = ExprBin(t,1,lp,ExprEqEq());
+		lp = ExprBin(t, 1, lp, ExprEqEq());
 	}
 	return lp;
 }
 
-static Et_t_fp
-ExprEor(void)
+static	Et_t_fp ExprEor(void)
 {
 	Et_t_fp lp;
 	word	t;
 
 	lp = ExprAnd();
-	/* MSGF((" eor %lx\n",lp)); */
+ /* MSGF((" eor %lx\n",lp)); */
 	while (lp && (t = Sym_tok) == I_XOR) {
 		MSG("<^>");
-		lp = ExprBin(t,1,lp,ExprAnd());
+		lp = ExprBin(t, 1, lp, ExprAnd());
 	}
 	return lp;
 }
 
-static Et_t_fp
-ExprOr(void)
+static	Et_t_fp ExprOr(void)
 {
 	Et_t_fp lp;
 	word	t;
 
 	lp = ExprEor();
-	/* MSGF((" or %lx\n",lp)); */
+ /* MSGF((" or %lx\n",lp)); */
 	while (lp && (t = Sym_tok) == I_OR) {
 		MSG("<|>");
-		lp = ExprBin(t,1,lp,ExprEor());
+		lp = ExprBin(t, 1, lp, ExprEor());
 	}
 	return lp;
 }
 
-static Et_t_fp
-ExprLAnd(void)
+static	Et_t_fp ExprLAnd(void)
 {
 	Et_t_fp lp;
 	word	t;
 
 	lp = ExprOr();
-	/* MSGF((" land %lx\n",lp)); */
+ /* MSGF((" land %lx\n",lp)); */
 	while (lp && (t = Sym_tok) == I_LAND) {
 		MSG("<&&>");
-		lp = ExprBin(t,0,lp,ExprOr());
+		lp = ExprBin(t, 0, lp, ExprOr());
 	}
 	return lp;
 }
 
-static Et_t_fp
-ExprLOr(void)
+static	Et_t_fp ExprLOr(void)
 {
 	Et_t_fp lp;
 	word	t;
 
 	lp = ExprLAnd();
-	/* MSGF((" lor %lx\n",lp)); */
+ /* MSGF((" lor %lx\n",lp)); */
 	while (lp && (t = Sym_tok) == I_LOR) {
 		MSG("<||>");
-		lp = ExprBin(t,0,lp,ExprLAnd());
+		lp = ExprBin(t, 0, lp, ExprLAnd());
 	}
 	return lp;
 }
 
 
-static Et_t_fp
-ExprEqu2(word a,Et_t_fp xp,Et_t_fp lp,Et_t_fp rp)
+static	Et_t_fp ExprEqu2(word a, Et_t_fp xp, Et_t_fp lp, Et_t_fp rp)
 {
-	word lo,ro;
+	word	lo, ro;
 
 	lo = lp->e.op;
 	ro = rp->e.op;
 	switch (a) {
 	case 4:
 		if (ro == I_MUL || ro == I_IMUL) {
-			word a1,a2;
+			word	a1, a2;
 			if ((a1 = Expr_RVal(rp->e.lep)) > 2
 				|| (a2 = Expr_RVal(rp->e.rep)) > 2)
 				Msg_Err("右辺がおかしい(L*R)");
-			rp->e.lep = Expr_CnvRVal(a1,rp->e.lep);
-			rp->e.rep = Expr_CnvRVal(a2,rp->e.rep);
+			rp->e.lep = Expr_CnvRVal(a1, rp->e.lep);
+			rp->e.rep = Expr_CnvRVal(a2, rp->e.rep);
 		}
 		break;
 	case 3:
@@ -1350,14 +1416,14 @@ ExprEqu2(word a,Et_t_fp xp,Et_t_fp lp,Et_t_fp rp)
 		break;
 	case 2:
 	case 1:
-		if (lo==I_CF || lo==I_IIF ||lo==I_DF) {
+		if (lo == I_CF || lo == I_IIF || lo == I_DF) {
 			if (ro == T_CNST) {
 				if (rp->c.val == 0) {
-					xp->e.op =  (lo == I_CF) ? I_CLRC :
-								(lo == I_IIF) ? I_CLRI : I_DF;
+					xp->e.op = (lo == I_CF) ? I_CLRC :
+						(lo == I_IIF) ? I_CLRI : I_DF;
 				} else if (rp->c.val == 1) {
-					xp->e.op =  (lo == I_CF) ? I_SETC :
-								(lo == I_IIF) ? I_SETI : I_DF;
+					xp->e.op = (lo == I_CF) ? I_SETC :
+						(lo == I_IIF) ? I_SETI : I_DF;
 				}
 			}
 		}
@@ -1365,53 +1431,65 @@ ExprEqu2(word a,Et_t_fp xp,Et_t_fp lp,Et_t_fp rp)
 	return xp;
 }
 
-static Et_t_fp
-ExprEqu(void)
+static	Et_t_fp ExprEqu(void)
 {
 	Et_t_fp xp;
 	Et_t_fp lp, rp;
-	word t,a;
+	word	t, a;
 
 	lp = ExprLOr();
 	while (lp) {
-		switch(t = Sym_tok) {
+		switch (t = Sym_tok) {
 		case I_SIEQ:
-			if (IsEp_R2op(lp,I_AX)||IsEp_R4op(lp,I_DXAX))
+			if (IsEp_R2op(lp, I_AX) || IsEp_R4op(lp, I_DXAX))
 				goto J2;
 			Msg_Err(".=. の左辺は ax か dx.ax でないといけない");
 			return NULL;
 		case I_EQU:
 			switch (lp->e.op) {
-			case I_FX:case I_FL:case T_SEG2:case T_SEG4:case I_PORT:
-			case I_CF:case I_DF:case I_IIF: case I_EQU:
+			case I_FX:
+			case I_FL:
+			case T_SEG2:
+			case T_SEG4:
+			case I_PORT:
+			case I_CF:
+			case I_DF:
+			case I_IIF:
+			case I_EQU:
 				goto J2;
 			}
 		case I_ADDEQ:
 		case I_SUBEQ:
+		case I_ADCEQ:
+		case I_SBCEQ:
 		case I_ANDEQ:
 		case I_OREQ:
 		case I_EOREQ:
 		case I_SHLEQ:
 		case I_SHREQ:
 		case I_SAREQ:
+		case I_RCREQ:
+		case I_RCLEQ:
+		case I_ROREQ:
+		case I_ROLEQ:
 		case I_EXG:
 			if (!IsEp_Lft124(lp))
 				return NULL;
- J2:
+		  J2:
 			MSG("< = >");
 			Et_NEWp(xp);
 			xp->e.op = t;
 			xp->e.lep = lp;
 			if ((rp = ExprLOr()) == NULL)
 				return NULL;
- J3:
+		  J3:
 			a = Expr_RVal(rp);
-			xp->e.rep = rp = Expr_CnvRVal(a,rp);
-			if (a > 2/*1*/ && t != I_EQU && !IsEp_Rht4(rp)) {
+			xp->e.rep = rp = Expr_CnvRVal(a, rp);
+			if (a > 2 /* 1 */ && t != I_EQU && !IsEp_Rht4(rp)) {
 				Msg_Err("右辺がおかしい");
 				return NULL;
 			}
-			if (IsEp_MemMem(lp,rp))
+			if (IsEp_MemMem(lp, rp))
 				return NULL;
 			switch (t) {
 			case I_EXG:
@@ -1421,20 +1499,15 @@ ExprEqu(void)
 				}
 				if (lp->m.typ != rp->m.typ) {
 					Msg_Err("両辺の型が会わない");
-					MSGF(("型 %d,%d\n",lp->m.typ,lp->m.typ));
+					MSGF(("型 %d,%d\n", lp->m.typ, lp->m.typ));
 				}
-		/*  case I_ADDEQ:
-			case I_SUBEQ:
-			case I_ANDEQ:
-			case I_OREQ:
-			case I_EOREQ:
-				break;*/
+			/* case I_ADDEQ: case I_SUBEQ: case I_ANDEQ: case I_OREQ: case I_EOREQ: break; */
 			case I_SUB:
 			case I_AND:
 				lp = xp;
 				goto LOOPOUT;
 			case I_EQU:
-				xp = ExprEqu2(a,xp,lp,rp);
+				xp = ExprEqu2(a, xp, lp, rp);
 			}
 			lp = xp;
 			break;
@@ -1448,17 +1521,16 @@ ExprEqu(void)
 				rp = xp->e.rep;
 				goto J3;
 			} else {
-				lp = Expr_CnvRVal(a,lp);
+				lp = Expr_CnvRVal(a, lp);
 			}
 			goto LOOPOUT;
 		}
 	}
- LOOPOUT:
+  LOOPOUT:
 	return lp;
 }
 
-Et_t_fp
-Expr(byte mode)
+Et_t_fp Expr(byte mode)
 {
 	Et_t_fp xp;
 
@@ -1468,23 +1540,22 @@ Expr(byte mode)
 	ExprcondFlg = mode;
 	xp = ExprEqu();
 	ExprcondFlg = 0;
-	MSGF(("<<EXP [%s  xp=%lx]>>\n",Deb_ChkOp(xp->e.op),xp));
+	MSGF(("<<EXP [%s  xp=%lx]>>\n", Deb_ChkOp(xp->e.op), xp));
 	return xp;
 }
 
-static Et_t_fp
-ExprIntr(void)
+static	Et_t_fp ExprIntr(void)
 {
 	Et_t_fp ep;
 
 	Et_NEWp(ep);
 	if (Ch_ChkPeriod()) {
 		Sym_NameGet(Ch_Get());
-		if (strcmp(Sym_name,"ovf") == 0)
+		if (strcmp(Sym_name, "ovf") == 0)
 			ep->e.op = I_INTO;
-		else if (strcmp(Sym_name,"on") == 0)
+		else if (strcmp(Sym_name, "on") == 0)
 			ep->e.op = I_SETI;
-		else if (strcmp(Sym_name,"off") == 0)
+		else if (strcmp(Sym_name, "off") == 0)
 			ep->e.op = I_CLRI;
 		else
 			Msg_Err("intr の指定がおかしい");
@@ -1493,13 +1564,12 @@ ExprIntr(void)
 		Sym_Get();
 		ep->e.op = I_INTR;
 		ep->e.lep = Expr(0);
-		IsEp_CnstTyp(I_BYTE,ep->e.lep);
+		IsEp_CnstTyp(I_BYTE, ep->e.lep);
 	}
 	return ep;
 }
 
-static Et_t_fp
-ExprBound(void)
+static	Et_t_fp ExprBound(void)
 {
 	Et_t_fp xp, ep;
 
@@ -1516,14 +1586,13 @@ ExprBound(void)
 	if (IsEp_Reg2(ep) && Op_RegD(ep->e.op) && IsEp_Mem4(xp->e.rep)) {
 		;
 	} else {
- ERR:
+	  ERR:
 		Msg_Err("bound の指定がおかしい");
 	}
 	return xp;
 }
 
-static Et_t_fp
-ExprEnter(void)
+static	Et_t_fp ExprEnter(void)
 {
 	Et_t_fp xp, ep, ep2;
 
@@ -1536,24 +1605,23 @@ ExprEnter(void)
 	Sym_Get();
 	xp->e.rep = ep2 = Expr(0);
 	if (ep && ep2 && IsEp_Cnst(ep) && IsEp_Cnst(ep2)
-		&& !IsEp_CnstTyp(I_WORD,ep) && !IsEp_CnstTyp(I_BYTE,ep2)) {
+		&& !IsEp_CnstTyp(I_WORD, ep) && !IsEp_CnstTyp(I_BYTE, ep2)) {
 		;
 	} else {
- ERR:
+	  ERR:
 		Msg_Err("enter のパラメータがおかしい");
 	}
 	return xp;
 }
 
-static Et_t_fp
-ExprRet(word t)
+static	Et_t_fp ExprRet(word t)
 {
-	Et_t_fp xp,ep;
+	Et_t_fp xp, ep;
 
 	Et_NEWp(xp);
 	if (t == I_RET && Ch_ChkPeriod()) {
 		Sym_NameGet(Ch_Get());
-		if (strcmp(Sym_name,"d") == 0) {
+		if (strcmp(Sym_name, "d") == 0) {
 			t = I_RETF;
 		} else {
 			Msg_Err("retの指定がおかしい");
@@ -1564,16 +1632,15 @@ ExprRet(word t)
 		;
 	} else {
 		xp->e.lep = ep = Expr(0);
-		if (IsEp_Cnst(ep)	> 0)
-			IsEp_CnstTyp(I_WORD,ep);
+		if (IsEp_Cnst(ep) > 0)
+			IsEp_CnstTyp(I_WORD, ep);
 		else if (!IsEp_Cnsts(ep))
 			Msg_Err("ret で定数以外が指定された");
 	}
 	return xp;
 }
 
-static Et_t_fp
-ExprEsc(void)
+static	Et_t_fp ExprEsc(void)
 {
 	Et_t_fp xp;
 
@@ -1582,7 +1649,7 @@ ExprEsc(void)
 	Sym_Get();
 	if ((xp->e.lep = Expr(0)) == NULL)
 		goto ENDF;
-	if (IsEp_CnstTyp(I_BYTE,xp->e.lep))
+	if (IsEp_CnstTyp(I_BYTE, xp->e.lep))
 		goto ERR;
 	if (Sym_tok != I_COMMA)
 		goto ERR;
@@ -1591,18 +1658,17 @@ ExprEsc(void)
 		goto ENDF;
 	if (!IsEp_Lft124(xp->e.rep))
 		goto ERR;
- ENDF:
+  ENDF:
 	return xp;
- ERR:
+  ERR:
 	Msg_Err("esc の指定がおかしい");
 	return NULL;
 
 }
 
-static Et_t_fp
-ExprPushPop(word t)
+static	Et_t_fp ExprPushPop(word t)
 {
-	Et_t_fp cdp,xp,cdp0;
+	Et_t_fp cdp, xp, cdp0;
 
 	Sym_Get();
 	if (Sym_tok == I_CR || Sym_tok == I_SMCLN) {
@@ -1612,7 +1678,7 @@ ExprPushPop(word t)
 	Et_NEWp(xp);
 	cdp0 = xp;
 	cdp = NULL;
-	for (;;) {
+	for (; ;) {
 		xp->e.op = t;
 		if ((xp->e.lep = Expr(0)) == NULL)
 			return NULL;
@@ -1628,30 +1694,55 @@ ExprPushPop(word t)
 	return cdp0;
 }
 
-Et_t_fp
-Expr_Stat(byte mode)
+Et_t_fp Expr_Stat(byte mode)
 {
-	word t;
+	word	t;
 	Et_t_fp xp;
 
 	switch (t = Sym_tok) {
-	case I_SARS:Sym_tok = I_SAREQ;goto JJ;
-	case I_SHRS:Sym_tok = I_SHREQ;goto JJ;
-	case I_SHLS:Sym_tok = I_SHLEQ;goto JJ;
+	case I_SARS:
+		Sym_tok = I_SAREQ;
+		goto JJ;
+	case I_SHRS:
+		Sym_tok = I_SHREQ;
+		goto JJ;
+	case I_SHLS:
+		Sym_tok = I_SHLEQ;
+		goto JJ;
+	case I_RORS:
+		Sym_tok = I_ROREQ;
+		goto JJ;
+	case I_ROLS:
+		Sym_tok = I_ROLEQ;
+		goto JJ;
+	case I_RCRS:
+		Sym_tok = I_RCREQ;
+		goto JJ;
+	case I_RCLS:
+		Sym_tok = I_RCLEQ;
+		goto JJ;
+	case I_ADCS:
+		Sym_tok = I_ADCEQ;
+		goto JJ;
+	case I_SBCS:
+		Sym_tok = I_SBCEQ;
+		goto JJ;
 	case I_DIVS:
 	case I_IDIVS:
+  #if 0
 	case I_ADCEQ:
 	case I_SBCEQ:
 	case I_ROLEQ:
 	case I_ROREQ:
 	case I_RCLEQ:
 	case I_RCREQ:
- JJ:
-		xp = ExprShls(Sym_tok,1);
+  #endif
+	  JJ:
+		xp = ExprShls(Sym_tok, 1);
 		break;
 	case I_NEGS:
 	case I_COMS:
-		xp = ExprNegCom(Sym_tok,1);
+		xp = ExprNegCom(Sym_tok, 1);
 		break;
 	case I_INTR:
 		xp = ExprIntr();
@@ -1707,17 +1798,16 @@ Expr_Stat(byte mode)
 		}
 	}
 	return xp;
- ERR2:
+  ERR2:
 	Msg_Err("'|'指定で使えない合成命令が指定された");
 	return NULL;
 }
 
-long
-Expr_Cnstnt(void)
+long	Expr_Cnstnt(void)
 {
 	Et_t_fp xp;
 	Et_t_fp sav_ep;
-	long val;
+	long	val;
 
 	sav_ep = Et_Sav();
 	xp = Expr(0);
@@ -1730,29 +1820,38 @@ Expr_Cnstnt(void)
 	return val;
 }
 
-static int
-ExprOpGo(Et_t_fp ep)
+static int ExprOpGo(Et_t_fp ep)
 {
-	word t;
+	word	t;
 
 	switch (ep->e.op) {
-	case I_CF:  t = GO_C;	break;
-	case I_ZF:  t = GO_Z;	break;
-	case I_SF:  t = GO_S;	break;
-	case I_OVF: t = GO_O;	break;
-	case I_PF:  t = GO_P;	break;
+	case I_CF:
+		t = GO_C;
+		break;
+	case I_ZF:
+		t = GO_Z;
+		break;
+	case I_SF:
+		t = GO_S;
+		break;
+	case I_OVF:
+		t = GO_O;
+		break;
+	case I_PF:
+		t = GO_P;
+		break;
 	case T_R2:
 		if (ep->c.reg == I_CX) {
 			t = GO_CX;
 			break;
 		}
-	default:	t = 0;
+	default:
+		t = 0;
 	}
 	return t;
 }
 
-word
-Expr_CondNeg(word jt)
+word Expr_CondNeg(word jt)
 {
 	if (jt & 0x0001)
 		jt &= ~(0x0001);
@@ -1761,14 +1860,13 @@ Expr_CondNeg(word jt)
 	return jt;
 }
 
-Et_t_fp
-Expr_Cond(void)
+Et_t_fp Expr_Cond(void)
 {
 	Et_t_fp yp;
 	Et_t_fp lp;
 	Et_t_fp rp;
-	word t = 0;
-	word nf = 0;
+	word	t = 0;
+	word	nf = 0;
 
 	if (Sym_tok == I_NOT) {
 		nf = (nf == 0);
@@ -1778,17 +1876,66 @@ Expr_Cond(void)
 		return NULL;
 	yp = NULL;
 	switch (Sym_Get()) {
-	case I_GT:  t = GO_GT;  goto J1;
-	case I_LE:  t = GO_LE;  goto J1;
-	case I_LT:  t = GO_LT;  goto J1;
-	case I_GE:  t = GO_GE;  goto J1;
-	case I_IGT: t = GO_IGT; goto J1;
-	case I_ILE: t = GO_ILE; goto J1;
-	case I_ILT: t = GO_ILT; goto J1;
-	case I_IGE: t = GO_IGE; goto J1;
-	case I_NEQ: t = GO_NEQ; goto J1;
-	case I_EQEQ:t = GO_EQU;
- J1:
+	case I_CFCM:
+		t = GO_C;
+		goto J1;
+	case I_ZFCM:
+		t = GO_Z;
+		goto J1;
+	case I_SFCM:
+		t = GO_S;
+		goto J1;
+	case I_OVFCM:
+		t = GO_O;
+		goto J1;
+	case I_PFCM:
+		t = GO_P;
+		goto J1;
+	case I_NCFCM:
+		t = GO_NC;
+		goto J1;
+	case I_NZFCM:
+		t = GO_NZ;
+		goto J1;
+	case I_NSFCM:
+		t = GO_NS;
+		goto J1;
+	case I_NOVFCM:
+		t = GO_NO;
+		goto J1;
+	case I_NPFCM:
+		t = GO_NP;
+		goto J1;
+	case I_GT:
+		t = GO_GT;
+		goto J1;
+	case I_LE:
+		t = GO_LE;
+		goto J1;
+	case I_LT:
+		t = GO_LT;
+		goto J1;
+	case I_GE:
+		t = GO_GE;
+		goto J1;
+	case I_IGT:
+		t = GO_IGT;
+		goto J1;
+	case I_ILE:
+		t = GO_ILE;
+		goto J1;
+	case I_ILT:
+		t = GO_ILT;
+		goto J1;
+	case I_IGE:
+		t = GO_IGE;
+		goto J1;
+	case I_NEQ:
+		t = GO_NEQ;
+		goto J1;
+	case I_EQEQ:
+		t = GO_EQU;
+	  J1:
 		Sym_Get();
 		break;
 	default:
@@ -1815,11 +1962,11 @@ Expr_Cond(void)
 				t = Expr_CondNeg(t);
 			break;
 		case I_DEC:
-			if (IsEp_R2op(lp,I_CX))
+			if (IsEp_R2op(lp, I_CX))
 				t = GO_DECX;
 			break;
 		case I_LAND:
-			if (lp->e.op == I_DEC && IsEp_R2op(lp->e.lep,I_CX)) {
+			if (lp->e.op == I_DEC && IsEp_R2op(lp->e.lep, I_CX)) {
 				lp = rp->e.lep;
 				switch (rp->e.op) {
 				case I_ZF:
@@ -1835,7 +1982,6 @@ Expr_Cond(void)
 						if (rp->c.val == 0)
 							t = GO_DECX_NZ;
 						else if (rp->c.val == 1)
-
 							t = GO_DECX_Z;
 					}
 					break;
@@ -1864,4 +2010,3 @@ Expr_Cond(void)
 	}
 	return lp;
 }
-
