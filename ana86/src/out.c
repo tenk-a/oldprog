@@ -259,6 +259,8 @@ Str_StName(St_t_fp sp)
 
 	if ((sp->v.tok == T_VAR) && sp->v.ofs > 0) {
 		str = GoLbl_Strs(sp->v.ofs);
+	} else if (sp->v.tok == T_LBL && sp->v.ofs > 0) {
+		str = GoLbl_Strs(sp->v.ofs);
 	} else if (sp->v.grp && sp->v.tok != T_MODULE) {
 		sprintf(buf,"%s%s%s%s%s",
 			(sp->v.grp->g.ccflg == 1) ? "_" : "",
