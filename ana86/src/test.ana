@@ -1,0 +1,35 @@
+
+extern var testAs:w
+extern proc Xy();endproc
+
+proc test(ax,t1:w,t2:w,t3:w)
+enter
+	testAs <<= 1
+	ax >>= 1
+	ax .>>= 1
+	ax <<=. 1
+	ax >>=. 1
+	ax <<<= 1
+	ax >>>= 1
+	ax +=. 1
+	ax -=. 4
+	if ((cx >>= 1) _o_ 0)
+		dx.ax = cx * 40
+	fi
+	go (_c_) L1
+	go (_s_) L1
+	go (_z_) L1
+	go (_p_) L1
+	go (_o_) L1
+	go (cf) L1
+	go (sf) L1
+	go (zf) L1
+	go (pf) L1
+	go (ovf) L1
+	clc
+	stc
+	cmc
+	Xy
+ L1:
+	return
+endproc
