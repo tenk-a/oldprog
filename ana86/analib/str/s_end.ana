@@ -1,0 +1,16 @@
+module str
+	c_name "str","_",1
+
+*proc end(s0:d);cdecl;FC
+enter
+	save es,di,cx
+	es.di = s0
+	repn.scan di,0,0xffff
+	ax = di
+	--ax
+	dx = es
+	return
+endproc
+
+endmodule
+

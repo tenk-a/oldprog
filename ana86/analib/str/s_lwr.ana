@@ -1,0 +1,27 @@
+module S
+	c_name "str","_",1
+
+	import Std
+	import str
+
+*proc lwr(s0:d);cdecl;FC
+//	•¶Žš—ñ s0 ‚Ì”¼Šp‰pŽš‚ð¬•¶Žš‰»
+//	•¶Žš—ñ‚Í’¼Ú‘‚«Š·‚¦‚é
+enter
+	save si,ds
+
+	ds.si = s0
+	loop
+		rep.load al,si
+		exit (al == 0)
+		if (al >= 'A' && al <= 'Z')
+			al += 0x20
+			b[si-1] = al
+		fi
+	endloop
+	dx.ax = s0
+	return
+endproc
+
+endmodule
+

@@ -1,0 +1,43 @@
+module H
+	c_name "fil","_",1
+	import fil
+
+*proc getcdir(dno:w,dir:d);cdecl
+enter
+	save ds,si
+
+	al = dno.l
+	if (al == 0)
+		ah = 0x19
+		intr 0x21
+		++al
+	fi
+	al += 'A'-1
+	ds.si = dir
+	ah = ':'
+	w[si] = ax
+	w[si+2] = '\\'+ 0x00 * 0x100
+	si+=3
+	dl = dno.l
+	ah = 0x47
+	intr 0x21
+	if (cf == 0)
+		ax = 0
+	fi
+	return
+endproc
+
+*proc getcwd(dir:d);cdecl
+enter
+	save dx
+	dx.ax = dir
+	push dx.ax
+	ax = 0
+	push ax
+	call getcdir
+	sp += 6
+	return
+endproc
+
+endmodule
+

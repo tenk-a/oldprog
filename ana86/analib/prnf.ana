@@ -1,0 +1,550 @@
+module prnf
+	c_name "","",1
+
+	import Dos
+
+
+cvar buf:d,bufsiz:w,endbuf:w
+cvar fmt:d
+cvar putbuf:d
+cvar putbufFlg:w
+cvar siz:w
+cvar sav_bp:w,nearSeg:w
+cvar argv:d
+
+cvar defultFarFlag:w = 0, defultLongFlag:w = 0
+
+
+
+@define put_al()	rep.set di,al;if (di == bx);call put_al_sub;fi
+
+proc put_al_sub()
+begin
+	pusha
+	push es,ds
+
+	cx = di
+	cx -= buf.l
+	siz += cx
+	rep.set di,0
+
+	push cx
+	push buf
+	call putbuf
+	sp += 4
+
+	pop  es,ds
+	popa
+	di = buf.l
+	return
+endproc
+
+*proc _prnf()
+enter
+	save bx,cx,dx,si,di,es,ds
+	cvar dbuf:b(14)
+	cvar hexL:b() = "0123456789ABCDEF"
+	cvar hexS:b() = "0123456789abcdef"
+	const SW_CNT = 31-4
+	cvar swchr:b(SW_CNT+1) = "sdxXuiclF0123456789*-.~%+hN"//"npbj"
+	cvar patChr:w, leftFlg:w, signFlg:w, signChr:w, farFlg:w, longFlg:w
+	cvar  width:w, wids:w, widi:w, widFlg:w, alf:w
+  @if 1
+	cvar swfun:w(SW_CNT) = data
+		  w	%O_s,%O_d,%O_x,%O_X,%O_u,%O_i,%O_c,%O_l,%O_F
+		  w	%O_0,%O_1,%O_1,%O_1,%O_1,%O_1,%O_1,%O_1,%O_1,%O_1
+		  w	%O_ast,%O_min,%O_peri,%O_uprb,%O_par,%O_plus
+		  w	%O_h,%O_N/*,%O_n,%O_p,%O_b,%O_j*/
+		enddata
+  @fi
+
+	rep.inc
+	es.di = buf
+	
+	sav_bp = bp
+	bx = di
+	--bx
+	bx += bufsiz
+	endbuf = bx
+	
+ 	ds.si = fmt
+	siz = 0
+	loop
+	  RET_ODR:
+		rep.load al,si
+		go (al == '%') FMT
+		exit (al == 0)
+	  RET_PAR:
+	  BAD_SW:
+	  	put_al
+	endloop
+	if (di > buf.l)
+		put_al_sub
+	fi
+	ax = siz
+	return
+
+ FMT:
+	ax = 0
+	patChr = ' '
+	signChr = 0
+	leftFlg = ax
+	signFlg = ax
+	width = ax
+	widFlg = ax
+	--ax
+	wids = ax
+	widi = ax
+	farFlg = ax = defultFarFlag
+	longFlg = ax = defultLongFlag
+ 	loop;
+      RET_SW:
+ 		rep.load al,si
+ 		exit(al == 0)
+ 		push es.di
+ 			es.di = ww(cs,%swchr)
+ 			rep.scan di,al,SW_CNT
+ 			go (!=) BAD_SW
+ 			di = SW_CNT -1
+ 			di -= cx
+ 			di += di
+ 			di += %swfun
+ 			ax = w[es:di]
+ 		pop es.di
+ 		jmp ax
+ 	endloop
+   	go.w RET_ODR
+
+  O_par:;	al = '%'; go RET_PAR;
+  O_min:;	leftFlg = 1;	go RET_SW
+  O_peri:;	widFlg = -1;	go RET_SW
+  O_plus:;	signChr = '+';	go RET_SW
+  O_uprb:;	widFlg = 1;wids = ax = width;	go RET_SW
+  O_F:;		farFlg = 1;		go RET_SW
+  O_N:;		farFlg = 0;		go RET_SW
+  O_l:;		longFlg = 1;	go RET_SW
+  O_h:;		longFlg = 0;	go RET_SW
+  O_0:;		patChr = '0';	go RET_SW
+
+  O_ast:;
+  		push ds.si
+  			ds.si = argv
+  			rep.load.w ax,si
+  			dx = ax
+  			argv.l = si
+  		pop  ds.si
+  		go  WID
+
+  O_1:
+		dx = 0
+		ah = dh
+		loop
+			al -= '0'
+			dx += dx
+			cx = dx
+			dx += dx
+			dx += dx
+			dx += cx
+			rep.load al,si
+		endloop (al >= '0' && al <= '9')
+		--si
+	  WID:
+		|widFlg - 0
+		if (==)
+			width = dx
+		else
+			|wids = dx
+			|widi = 0
+			if (.<.)
+				widi = dx
+			fi
+		fi
+		go.w RET_SW
+		
+  O_s:
+		push ds.si
+		push bx
+			ds.bx = argv
+			if (farFlg)
+				ds.si = d[bx]
+				bx += 4
+			else
+				ds = nearSeg
+				si = w[bx]
+				bx += 2
+			fi
+			argv.l = bx
+		pop bx
+		//strlen
+		push es
+		  dx = di
+			di = si
+			repn.scan di,0, 0xffff
+			cx = di
+			--cx
+			cx -= si
+		  di = dx
+		pop  es
+		//
+		dx = 0
+		if (cx > wids)
+			cx = wids
+		elsif (cx < width)
+			dx = width
+			dx -= cx
+			if (leftFlg == 0)
+				al = ' '
+				loop
+					put_al
+				endloop(--dx)
+			fi
+		fi
+		if (cx)
+			loop
+				rep.load al,si
+				put_al
+			endloop(--cx)
+		fi
+		if (dx&&leftFlg)
+			al = ' '
+			loop
+				put_al
+			endloop(dx)
+		fi
+		pop ds,si
+		go.w RET_ODR
+
+  O_x:
+  		alf = 1
+  		go O_xX
+  O_X:
+  		alf = 0
+  O_xX:
+		push ds,si
+			ds.si = argv
+			rep.load.w ax,si
+			dx = 0
+			if (longFlg)
+				dx = w[si];si += 2
+			fi
+			argv.l = si
+			push es.di,bx
+				si = cs
+				es.di = ww(si, %dbuf)
+				ds = si
+				bx = %hexS
+				if (alf == 0)
+					bx = %hexL
+				fi
+				push ax
+				al = dh; al >>= 4; al = b[bx + al]; rep.set di,al
+				al = dh; al &=0xf; al = b[bx + al]; rep.set di,al
+				al = dl; al >>= 4; al = b[bx + al]; rep.set di,al
+				al = dl; al &=0xf; al = b[bx + al]; rep.set di,al
+				pop  ax
+				dl = al
+				al = ah; al >>= 4; al = b[bx + al]; rep.set di,al
+				al = ah; al &=0xf; al = b[bx + al]; rep.set di,al
+				al = dl; al >>= 4; al = b[bx + al]; rep.set di,al
+				al = dl; al &=0xf; al = b[bx + al]; rep.set di,al
+				di = %dbuf
+				repe.scan di,'0',8
+				--di;si = di
+				cx += 1
+			pop  es.di,bx
+
+	UDIX:
+			dx = 0
+			if (cx > widi)
+				cx = widi
+			elsif (cx < width)
+				dx = width
+				dx -= cx
+				if (leftFlg == 0)
+					al = patChr.l
+					loop
+						put_al
+					endloop(--dx)
+				fi
+			fi
+			loop
+				rep.load al,si
+				put_al
+			endloop (--cx)
+			if (dx && leftFlg)
+				al = ' '
+				loop
+					put_al
+				endloop (--dx)
+			fi
+		pop  ds.si
+		go.w RET_ODR
+
+  O_u:
+  		signFlg = 0
+  		go O_ud
+  O_d:
+  O_i:
+  		signFlg = 1
+  	O_ud:
+		push ds.si
+			ds.si = argv
+			rep.load.w ax,si
+			dx = 0
+			if (signFlg)
+				dx.ax .=. ax
+			fi
+			if (longFlg)
+				dx = w[si]; si += 2
+			fi
+			argv.l = si
+			
+			signFlg = 0
+			if (signChr && dx .<. 0)
+				signChr = '-'
+				neg dx.ax
+			elsif (signChr)
+				signChr = '+'
+				if (ax == 0 && dx == 0)
+					signChr = ' '
+				fi
+			fi
+			
+			push es.di
+				si = cs
+				es = si
+				ds = si
+				di = %dbuf
+				//ltoa  dx.ax, di
+				di += 12
+				si = 50000
+				|dx >>= 1
+				|rcr ax,1
+				push fx
+					div dx.ax, si
+				pop  fx
+				|push ax
+					|ax = dx
+					|dx = 0
+					rcl dx.ax,1
+					si = 10
+					gosub STDIGIT
+				pop  ax
+				gosub STDIGIT
+				repe.scan di,'0',10
+				--di;si = di
+				cx += 1
+				al = signChr.l
+				if (al)
+					cx += 1
+					if (patChr == ' ')
+						rep.set di,al
+						patChr = 0
+					fi
+				fi
+			pop es.di
+		rep.inc
+		if (al && patChr)
+			put_al
+		fi
+		dx = 0
+		pop ds.si
+		go UDIX
+
+	STDIGIT:
+		cx = 5
+			loop
+				div dx.ax,si
+				dl += '0'
+				--di
+				b[di] = dl
+				dx = 0
+			endloop (--cx)
+		ret
+
+ O_c:
+		push ds,si
+			ds.si = argv
+			rep.load.w ax,si
+			if (longFlg)
+				si += 2
+			fi
+			argv.l = si
+		pop  ds.si
+		cx = width
+		if (cx == 0)
+			++cx
+		fi
+		loop
+			put_al
+		endloop(--cx)
+		ret
+
+ @if 0
+ swfun:;data
+		  w	%O_s,%O_d,%O_x,%O_X,%O_u,%O_i,%O_c,%O_l,%O_F
+		  w	%O_0,%O_1,%O_1,%O_1,%O_1,%O_1,%O_1,%O_1,%O_1,%O_1
+		  w	%O_ast,%O_min,%O_peri,%O_uprb,%O_par,%O_plus
+		  w	%O_h,%O_N/*,%O_n,%O_p,%O_b,%O_j*/
+		enddata
+ @fi
+
+endproc
+
+
+
+
+/*---------------------------------------------------------------------------*/
+
+*proc str_putbuf(buf0:d,bufsiz0:w);cdecl
+enter
+	ax = siz
+	sp = sav_bp
+	pop bp
+	//bx,cx,dx,si,di,es,ds
+	pop es
+	pop ds
+	pop di
+	pop si
+	pop bx
+	pop dx
+	pop cx
+	ret
+endproc
+
+*proc str_printfN(buf0:d,fmt0:w, ...dat:w());cdecl
+enter
+	defultFarFlag = 0
+	defultLongFlag = 0
+	bufsiz = 0xffff
+	buf.h = ax = buf0.h
+	buf.l = ax = buf0.l
+	fmt.h = ax = %var
+	fmt.l = ax = fmt0
+	
+	ax = &dat
+	argv = ss.ax
+	nearSeg = ax = ds
+	ax = &str_putbuf
+	putbuf = cs.ax
+	_prnf
+	return
+endproc
+
+*proc str_printfF(buf0:d,fmt0:d, ...dat:w());cdecl
+enter
+	defultFarFlag = 1
+	defultLongFlag = 0
+	bufsiz = 0xffff
+	buf.h = ax = buf0.h
+	buf.l = ax = buf0.l
+	fmt.h = ax = fmt0.h
+	fmt.l = ax = fmt0.l
+	
+	ax = &dat
+	argv = ss.ax
+	nearSeg = ax = ds
+	ax = &str_putbuf
+	putbuf = cs.ax
+	_prnf
+	return
+endproc
+
+*proc str_nprintfN(buf0:d,sz:w,fmt0:w, ...dat:w());cdecl
+enter
+	defultFarFlag = 0
+	defultLongFlag = 0
+	bufsiz = ax = sz
+	buf.h = ax = buf0.h
+	buf.l = ax = buf0.l
+	fmt.h = ax = %var
+	fmt.l = ax = fmt0
+	
+	ax = &dat
+	argv = ss.ax
+	nearSeg = ax = ds
+	ax = &str_putbuf
+	putbuf = cs.ax
+	_prnf
+	return
+endproc
+
+*proc str_nprintfF(buf0:d,sz:w,fmt0:d, ...dat:w());cdecl
+enter
+	defultFarFlag = 1
+	defultLongFlag = 0
+	bufsiz = ax = sz
+	buf.h = ax = buf0.h
+	buf.l = ax = buf0.l
+	fmt.h = ax = fmt0.h
+	fmt.l = ax = fmt0.l
+	
+	ax = &dat
+	argv = ss.ax
+	nearSeg = ax = ds
+	ax = &str_putbuf
+	putbuf = cs.ax
+	_prnf
+	return
+endproc
+
+/*---------------------------------------------------------------------------*/
+
+var  hbuf:b(1026)
+cvar hdl:w
+
+*proc hdl_putbuf(buf0:d,bufsiz0:w);cdecl
+enter
+	ds.dx = buf0
+	bx = hdl
+	cx = bufsiz0
+	Dos.Write bx, dx, cx
+	return
+endproc
+
+*proc file_printfN(hdl0:w,fmt0:w, ...dat:w());cdecl
+enter
+	local buf0:b(1026)
+
+	defultFarFlag = 0
+	defultLongFlag = 0
+	bufsiz = 1025
+	hdl = ax = hdl0
+	buf.h = ax = %var
+	fmt.h = ax //= %var
+	buf.l = ax = %hbuf
+	fmt.l = ax = fmt0
+
+	ax = &dat
+	argv = ss.ax
+	nearSeg = ax = ds
+	ax = &hdl_putbuf
+	putbuf = cs.ax
+	_prnf
+	return
+endproc
+
+*proc file_printfF(hdl0:w,fmt0:d, ...dat:w());cdecl
+enter
+
+	defultFarFlag = 1
+	defultLongFlag = 0
+	bufsiz = 1024+1
+	hdl = ax = hdl0
+	buf.h = ax = %var
+	buf.l = ax = %hbuf
+	fmt.h = ax = fmt0.h
+	fmt.l = ax = fmt0.l
+
+	ax = &dat
+	argv = ss.ax
+	nearSeg = ax = ds
+	ax = &str_putbuf
+	putbuf = cs.ax
+	_prnf
+	return
+endproc
+
+
+endmodule
+

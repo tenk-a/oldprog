@@ -1,0 +1,21 @@
+module H
+	c_name "fil","_",1
+	import fil
+
+*proc getattr(fname:d);cdecl
+	//ret ax : ƒtƒ@ƒCƒ‹‘®«
+enter
+	save dx,ds
+	ax = 0x4300
+	ds.dx = fname
+	intr 0x21
+	if (cf == 0)
+		ax = cx
+	else
+		neg ax
+	fi
+	return
+endproc
+
+endmodule
+

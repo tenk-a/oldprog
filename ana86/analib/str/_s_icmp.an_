@@ -1,0 +1,43 @@
+module S
+	c_name "str","_",1
+
+*proc icmp(s1:d, s2:d);cdecl
+enter
+	save cx,si,di,es,ds
+	es.di = s2
+	al = 0
+	cx = 0xFFFF
+	|repn.scan di,al,cx
+	//|cx = 0xFFFF
+	//if (==)
+		cx = di
+		//--cx
+		cx -= s2.l
+	//fi
+	es.di = s1
+	ds.si = s2
+	loop
+		rep.load al,si
+		if (al >= 'a' && al <= 'z')
+			al -= 0x20
+		fi
+		ah = b[es:di];++di
+		if (ah >= 'a' && ah <= 'z')
+			ah -= 0x20
+		fi
+		|ah - al
+		if (>)
+			ax = 1
+			go RET
+		elsif (<)
+			ax = -1
+			go RET
+		fi
+	endloop (--cx)
+	ax = 0
+  RET:
+	return
+endproc
+
+endmodule
+

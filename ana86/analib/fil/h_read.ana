@@ -1,0 +1,22 @@
+module H
+	c_name "fil","_",1
+	import fil
+
+*proc read(hdl:w,buf:d,siz:w);cdecl
+	//ret ax : ì«Ç›çûÇÒÇæÉTÉCÉY
+enter
+	save bx,cx,dx,ds
+	
+	bx = hdl
+	ds.dx = buf
+	cx = siz
+	ah = 0x3f
+	intr 0x21
+	if (cf)
+		neg ax
+	fi
+	return
+endproc
+
+endmodule
+

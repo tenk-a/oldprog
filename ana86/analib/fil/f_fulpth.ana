@@ -1,0 +1,150 @@
+module F
+	c_name "fil","_",1
+
+	import str:"d:\a\myl\str\str.ana"
+	import fil
+	import Std
+
+*proc fullpath(src:d, dst:d);cdecl
+	// ret dx.ax = dst
+enter
+	save bx,cx,si,di,es,ds
+	local buf:b(520)	//はたして520バイトでいいのか^^;...
+
+	rep.inc
+	ds.si = src
+	es.di = dst
+
+	/*
+	 * 絶対パスを得るためまずカレント・ドライブ＆ディレクトリ名を得る
+	 */
+	ax = w[si]
+	if (al && ah == ':')	//ドライブ名があるときはそれを用いる
+		if (al >= 'a' && al <= 'z')
+			al -= 0x20
+		fi
+		si += 2
+	else					//ドライブ名がなければDOSにカレントを聞く
+		ah = 0x19
+		intr 0x21
+		al += 'A'
+	fi
+	dl = al		
+	dl -= 'A'	//dl=ドライブ番号
+	ah = ':'
+	rep.set.w di,ax
+	//ルートが指定されているか
+	cx = &buf
+	al = b[si]
+	if (al == '\\' || al == '/')  //ルートなら名前をそのままbufにコピー
+		str.cpy ss.cx, ds.si
+	else					//ﾙｰﾄでないならｶﾚﾝﾄﾃﾞｨﾚｸﾄﾘをDOSに聞いて残りをｺﾋﾟｰ
+		dh = 0
+		//++dx
+		//fil.getcdir dx, ss.cx
+		push ds.si
+			ds.si = ss.cx
+			ah = 0x47
+			intr 0x21
+			if (cf == 0)
+				ax = 0
+			fi
+		pop  ds.si
+		str.end ss.cx
+		push es.di
+			es.di = dx.ax
+			al = b[es:di-1]
+			if (al != '\\' && al != '/')
+				rep.set di,'\\'
+			fi
+			str.cpy es.di, ds.si
+		pop  es.di 
+	fi
+
+	/*
+	 * ｾﾊﾟﾚｰﾀ'\\' '/' を'/'にし、".." "."で不要ﾃﾞｨﾚｸﾄﾘ名文字列を削除
+	 * （なぜ'/'にするかといえば全角の２バイト目にならないから）
+	 */
+	ds = ss
+	si = &buf
+	//si += 2
+	dx = di		//dx:ルート位置(戻るときに戻り過ぎないように)
+	bx = di		//bx:前回のセパレータ'\\''/'の位置を保存
+	loop.w
+	  LOOP:
+		rep.load al,si
+		exit.w (al == 0)
+		if (al == '\\' || al == '/')
+			bx = di
+			rep.set di,'/'
+			go LOOP
+		fi
+		if (al == '.')
+			rep.load.w ax,si
+			if (al == '.' && (ah == '\\'||ah == '/'||ah == '\0'))
+				// '..'なら一つﾃﾞｨﾚｸﾄﾘ名を削る
+				di = bx
+				loop
+					exit (di <= dx)
+					--di
+					al = b[es:di]
+				endloop (al != '/' && al != '\\')
+				bx = di
+				++di
+				go LOOP
+			elsif (al == '\\' || al == '/' || al == '\0')
+				// '.'だけなら'.'を省く
+				--si
+				di = bx
+				++di
+				go LOOP
+			fi
+			//'.'で始まるファイル名だ^^;
+			si -= 2
+		fi
+		--si
+		loop
+			rep.load al,si
+			--si
+			exit (al == '\0' || al == '\\' || al == '/')
+			str.getflagj
+			if (ax)
+				if (b[si] && Std.IsKanji(al))
+					rep.cpy di,si
+				fi
+			fi
+			rep.cpy di,si
+		endloop
+	endloop
+	rep.set di,0
+
+	/*
+	 * '/' を '\\' に置き換え、英小文字を大文字化
+	 */
+	es.di = dst
+	loop
+	  L2:
+		al = b[es:di]
+		exit (al == 0)
+		if (al == '/')
+			rep.set di,'\\'
+			go L2
+		elsif (al >= 'a' && al <= 'z')
+			al -= 'a' - 'A'
+			rep.set di,al
+			go L2
+		else
+			++di
+			str.getflagj	//全角有効モードなら全角チェック
+			go (ax == 0) L2
+			if (b[es:di] && Std.IsKanji(al))
+				++di
+			fi
+		fi
+	endloop
+
+	dx.ax = dst
+	return
+endproc
+
+endmodule

@@ -1,0 +1,19 @@
+module H
+	c_name "fil","_",1
+	import fil
+
+*proc open(fname:d, attr:w);cdecl
+enter
+	save dx,ds
+	ax = attr
+	ah = 0x3d
+	ds.dx = fname
+	intr 0x21
+	if (cf)
+		neg ax
+	fi
+	return
+endproc
+
+endmodule
+

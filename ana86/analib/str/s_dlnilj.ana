@@ -1,0 +1,49 @@
+module S
+	c_name "str","_",1
+
+	import Std
+	import str
+
+*proc delnilj(s0:d,sz:w);cdecl;FC
+//　サイズ sz の文字列 s0 中の不要なコントロールコードと不正全角を削除
+//サイズはEOSである'\0'を含んだサイズであること
+//	arg   s0	文字列へのﾎﾟｲﾝﾀ
+//	arg   sz	文字列のサイズ
+//	out   ax	変換後のサイズ
+enter
+	save bx,cx,dx,si,di,es,ds
+
+	ds.si = s0
+	cx = sz
+	dx = 0
+	//if (si == 0);go (cx == 0) RTS;fi
+	di = si
+	es = ds
+	loop
+		rep.load al,si
+		if (str.FLAGJ && Std.IsKanji(al))
+			rep.set di,al
+			rep.load al,si
+			exit (--cx == 0)
+			if (Std.IsKanji2(al))
+				rep.set di,al
+			else
+				//err_k2()
+				--di
+			fi
+			dx += 2
+		elsif (al)
+  J1:
+			rep.set di,al
+			++dx
+		fi
+	endloop (--cx)
+	b[di] = '\0'
+	++dx
+  RTS:
+	ax = dx
+	return
+endproc
+
+endmodule
+

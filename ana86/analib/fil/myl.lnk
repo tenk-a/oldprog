@@ -1,0 +1,20 @@
+-+ 	F_DELETE.obj	& 
+-+ 	F_FULPTH.obj	& 
+-+ 	F_GETATR.obj	& 
+-+ 	F_GETCWD.obj	& 
+-+ 	F_GETDRV.obj	& 
+-+ 	F_MKDIR.obj	& 
+-+ 	F_RMDIR.obj	& 
+-+ 	F_SETATR.obj	& 
+-+ 	F_SETCWD.obj	& 
+-+ 	F_SETDRV.obj	& 
+-+ 	F_WCCMP.obj	& 
+-+ 	H_CLOSE.obj	& 
+-+ 	H_CREAT.obj	& 
+-+ 	H_CREATN.obj	& 
+-+ 	H_DUP.obj	& 
+-+ 	H_DUP2.obj	& 
+-+ 	H_OPEN.obj	& 
+-+ 	H_READ.obj	& 
+-+ 	H_SEEK.obj	& 
+-+ 	H_WRITE.obj	

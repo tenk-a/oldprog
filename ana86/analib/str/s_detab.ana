@@ -1,0 +1,54 @@
+module S
+	c_name "str","_",1
+	
+*proc detab(dst:d,src:d,tbsz:w);cdecl;FC
+//	TAB を間隔 tbsz で空白に変換しながら文字列を複写
+//	arg   dst	転送先アドレス
+//	arg   src	変換元文字列のアドレス
+//	arg   tbsz	タブ間隔 1～16
+//X	arg   siz	転送先のサイズ(byte). (cx > 2)
+//	out   dx.ax	dst=ok  0=error
+enter
+	save bx,cx,si,di,es,ds
+	local cnt:w
+
+	es.di = dst
+	ds.si = src
+	cnt = cx = 0xffff
+	
+	go.w (ax == 0 || cx < 2 || ax > 16) ERR2
+	bx = ax
+	cx = 0
+	loop (b[si])
+		if (b[si] != '\t')
+			rep.cpy(di,si)
+			++cx
+			go (--cnt == 0) ERR
+		else
+			++si
+			dx.ax = ww(0,cx)
+			div dx.ax, bx
+			ax = bx
+			ax -= dx
+			cx += ax
+			loop (ax)
+				--ax
+				b[es:di] = ' '
+				++di
+				go (--cnt == 0) ERR
+			endloop
+		fi
+	endloop
+	b[es:di] = '\0'
+	dx.ax = dst
+ RTS:
+	return
+ ERR:
+	b[es:di - 1] = '\0'
+ ERR2:
+	dx.ax = 0
+	go RTS
+endproc
+
+endmodule
+

@@ -1,0 +1,66 @@
+module key
+	model MODEL
+	c_name "Key","_",1
+
+*proc init()
+begin
+	push ax
+	ah = 0x03
+	intr 0x18
+	pop ax
+	return
+endproc
+
+*proc wait()
+//	out ax　キーコード・データ
+//	out ax
+begin
+	ah = 0
+	intr 0x18
+	return
+endproc
+
+@if 0
+*proc scan()
+//	out ax　キーコード・データ
+begin
+	save bx
+	ah = 1
+	intr 0x18
+	if (bh == 0)
+		ax = -1
+	fi
+	return
+endproc
+@fi
+
+*proc shift()
+//	out al	b0:ｼﾌﾄ	b1:CAPS  b2:ｶﾅ	b3:GRPH  b4:CTRL
+begin
+	ah = 0x02
+	intr 0x18
+	ah = 0
+	return
+endproc
+
+*proc bufclr()
+//	dos コールによるキー入力バッファ・クリア
+begin
+	save ax
+	ax = 0x0cff
+	intr	0x21
+	return
+endproc
+
+*proc sence(keyGrp:w);cdecl
+enter
+	ax = keyGrp
+	ah = 0x04
+	intr 0x18
+	al = ah
+	ah = 0
+	return
+endproc
+
+endmodule
+

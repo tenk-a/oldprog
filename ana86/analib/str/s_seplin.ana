@@ -1,0 +1,56 @@
+module S
+	c_name "str","_",1
+
+*proc sepline(tbl:d,src:d,cnt:w);cdecl;FC
+//	文字列を空白(タブ)で区切りトークンのアドレスをテーブルに登録。
+//	" か ' で囲まれた文字列中の空白は置き換えない。" や ' は取り除かない。
+//	arg tbl		トークン表の先頭(BYTE far * far *)
+//	arg src		文字列
+//	arg cx		トークン表に格納できるポインタの数
+//	out ax		実際のポインタの数
+enter
+	save bx,cx,dx,si,di,es,ds
+
+	es.di = tbl
+	ds.si = src
+	dx = cnt
+	cx = 0
+	rep.inc
+	loop LLL
+		loop
+			rep.load al,si
+			exit (al > ' ')
+			exit (al == 0x00) LLL
+			b[si-1] = 0
+		endloop
+		--si
+		if (cx >= dx)
+			cx = dx
+			go ERR
+		fi
+		ax = si
+		rep.set.w di,ax
+		ax = ds
+		rep.set.w di,ax
+		++cx
+		ah = 0
+		loop
+			rep.load al,si
+			if (al == '"'||al == '\'')
+				if (ah == 0)
+					ah = al
+				elsif (ah == al)
+					ah = 0
+				fi
+			fi
+			exit (al == '\0') LLL
+		endloop ((ah || al > ' '))
+		--si
+	endloop
+  ERR:
+	ax = cx
+	return
+endproc
+
+endmodule
+

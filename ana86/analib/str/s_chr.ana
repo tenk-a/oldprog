@@ -1,0 +1,27 @@
+module S
+	c_name "str","_",1
+
+*proc chr(dst:d,c0:w);cdecl;FC
+enter
+	save cx,di,es
+	
+	es.di = dst
+	repn.scan di,0,0xffff
+	cx = di
+	--cx
+	cx -= dst.l
+	
+	es.di = dst
+	al = c0.l
+	|repn.scan di,al,cx
+	|ax = 0
+	|dx = ax
+	if (==)
+		dx.ax = es.di
+		--ax
+	fi
+	return
+endproc
+
+endmodule
+

@@ -1,0 +1,372 @@
+module hfile
+	c_name "fil","_",1
+	import fil
+
+*proc open(fname:d, attr:w);cdecl
+enter
+	save dx,ds
+	ds = ax = %var
+	fil.errno = 0
+	ax = attr
+	ah = 0x3d
+	ds.dx = fname
+	intr 0x21
+	if (cf)
+		ds = dx = %var
+		fil.errno = ax
+		ax = -1
+	fi
+	return
+endproc
+
+*proc close(hdl:w);cdecl
+enter
+	save bx,ds
+
+	ds = dx = %var
+	fil.errno = 0
+	bx = hdl
+	ah = 0x3e
+	intr 0x21
+	if (cf)
+		fil.errno = ax
+		ax = -1
+	else
+		|ax = 0
+	fi
+	return
+endproc
+
+*proc creat(fname:d,attr:w);cdecl
+	//ret ax : hdl
+enter
+	save cx,dx,ds
+	
+	ds = ax = %var
+	fil.errno = 0
+	cx = attr
+	ah = 0x3C
+	push ds
+		ds.dx = fname
+		intr 0x21
+	|pop ds
+	if (cf)
+		fil.errno = ax
+		ax = -1
+	fi
+	return
+endproc
+
+*proc creatnew(fname:d,attr:w);cdecl
+	//ret ax : hdl
+enter
+	save cx,dx,ds
+	
+	ds = ax = %var
+	fil.errno = 0
+	cx = attr
+	ah = 0x5B
+	push ds
+		ds.dx = fname
+		intr 0x21
+	|pop ds
+	if (cf)
+		fil.errno = ax
+		ax = -1
+	fi
+	return
+endproc
+
+*proc read(hdl:w,buf:d,siz:w);cdecl
+	//ret ax : 読み込んだサイズ
+enter
+	save bx,cx,dx,ds
+	
+	ds = ax = %var
+	fil.errno = 0
+	push ds
+		bx = hdl
+		ds.dx = buf
+		cx = siz
+		ah = 0x3f
+		intr 0x21
+	|pop ds
+	if (cf)
+		fil.errno = ax
+		ax = 0
+	else
+		if (ax != cx)
+			fil.errno = 1
+		fi
+	fi
+	return
+endproc
+
+*proc write(hdl:w,buf:d,siz:w);cdecl
+	//ret ax : 書き込んだサイズ
+enter
+	save bx,cx,dx,ds
+	
+	ds = ax = %var
+	fil.errno = 0
+	push ds
+		bx = hdl
+		ds.dx = buf
+		cx = siz
+		ah = 0x40
+		intr 0x21
+	|pop ds
+	if (cf)
+		fil.errno = ax
+		ax = 0
+	elsif (ax != cx)
+		fil.errno = 1
+	fi
+	return
+endproc
+
+*proc seek(hdl:w, ofs:d, mode:w);cdecl
+enter
+	save bx,cx,ds
+	
+	ds = dx = %var
+	fil.errno = 0
+	bx = hdl
+	cx.dx = ofs
+	ax = mode
+	ah = 0x42
+	intr 0x21
+	if (cf)
+		fil.errno = ax
+		ax = 0xffff
+		dx = ax
+	fi
+	return
+endproc
+
+*proc dup(hdl:w);cdecl
+enter
+	save bx,ds
+	ds = ax = %var
+	fil.errno = 0
+	bx = hdl
+	ah = 0x45
+	intr 0x21
+	if (cf)
+		fil.errno = ax
+		ax = -1
+	fi
+	return
+endproc
+
+*proc dup2(hdl1:w, hdl2:w);cdecl
+enter
+	save bx,dx,ds
+	ds = ax = %var
+	fil.errno = 0
+	bx = hdl1
+	cx = hdl2
+	ah = 0x46
+	intr 0x21
+	if (cf)
+		fil.errno = ax
+		ax = -1
+	fi
+	return
+endproc
+
+/*----------------------------------------------------------------------*/
+*proc delete(fnam:d);cdecl
+enter
+	save dx,ds
+	ds.dx = fnam
+	ah = 0x41
+	intr 0x21
+	if (cf == 0)
+		ax = 0
+	fi
+	ds = dx = %var
+	fil.errno = ax
+	return
+endproc
+
+*proc getattr(fname:d);cdecl
+	//ret ax : ファイル属性
+enter
+	save dx,ds
+	ds = ax = %var
+	fil.errno = 0
+	push ds
+		ax = 0x4300
+		ds.dx = fname
+		intr 0x21
+	|pop ds
+	if (cf)
+		fil.errno = ax
+		ax = -1
+	fi
+	return
+endproc
+
+*proc setattr(fname:d, attr:w);cdecl
+	//ret ax = fil.errno
+enter
+	save dx,ds
+	ds = ax = %var
+	fil.errno = 0
+	push ds
+		ax = 0x4301
+		ds.dx = fname
+		cx = attr
+		intr 0x21
+	|pop ds
+	if (cf == 0)
+		ax = 0
+	fi
+	fil.errno = ax
+	return
+endproc
+
+/*----------------------------------------------------------------------*/
+
+*proc getdrive();cdecl
+enter
+	ah = 0x19
+	intr 0x21
+	ah = 0
+	ax += 1
+	return
+endproc
+
+*proc setdrive(drv:w);cdecl
+	//ret  ax  ドライブ番号
+enter
+	save dx,ds
+
+	ds = ax = %var
+	fil.errno = 0
+	ah = 0x0e
+	dl = drv.l
+	if (dl)
+		--dl
+	fi
+	intr 0x21
+	ah = 0x19
+	intr 0x21
+	if (al != dl)
+		fil.errno = 1
+		al = 0
+	fi
+	ah = 0
+	return
+endproc
+
+*proc mkdir(dir:d);cdecl
+enter
+	save dx,ds
+	ds.dx = dir
+	ah = 0x39
+	intr 0x21
+	if (cf == 0)
+		ax = 0
+	fi
+	ds = dx = %var
+	fil.errno = ax
+	return
+endproc
+
+*proc rmdir(dir:d);cdecl
+enter
+	save dx,ds
+	ds.dx = dir
+	ah = 0x3a
+	intr 0x21
+	if (cf == 0)
+		ax = 0
+	fi
+	ds = dx = %var
+	fil.errno = ax
+	return
+endproc
+
+*proc setcdir(dir:d);cdecl
+enter
+	save dx,ds
+	ds.dx = dir
+	ah = 0x3b
+	intr 0x21
+	if (cf == 0)
+		ax = 0
+	fi
+	ds = dx = %var
+	fil.errno = ax
+	return
+endproc
+
+
+*proc setcwd(dir:d);cdecl
+enter
+	save si,ds
+	
+	ds.si = dir
+	bx = 0
+	if (b[si + 1] == ':')
+		al = b[si]
+		al -= 'A' + 1
+		bl = al
+	fi
+	setcdir ds.si
+	if (ax == 0 && bx)
+		setdrive bx
+	fi
+	return
+endproc
+
+*proc getcdir(dno:w,dir:d);cdecl
+enter
+	save ds,si
+	al = dno.l
+	if (al == 0)
+		ah = 0x19
+		intr 0x21
+		++al
+	fi
+	al += 'A'-1
+	ds.si = dir
+	b[si] = al
+	w[si+1] = ':' + '\\'*0x100
+	ah = 0x47
+	dl = dno.l
+	intr 0x21
+	|dx = %var
+	|ds = dx
+	if (cf)
+		fil.errno = ax
+		dx = ax = 0
+	else
+		fil.errno = 0
+		dx.ax = dir
+	fi
+	return
+endproc
+
+*proc getcwd(dir:d);cdecl
+enter
+	dx.ax = dir
+	push dx.ax
+	ax = 0
+	push ax
+	call getcdir
+	sp += 6
+	return
+endproc
+
+endmodule
+/*----------------------------------------------------------------------*/
+
+module H
+	c_name "fil","_",1
+	import fil
+
+endmodule
+

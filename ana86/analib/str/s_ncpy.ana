@@ -1,0 +1,26 @@
+module S
+	c_name "str","_",1
+
+*proc ncpy(dst:d, src:d, sz:w);cdecl;FC
+enter
+	save cx,si,di,es,ds
+	
+	es.di = src
+	al = 0
+	cx = sz
+	|repn.scan di,al,cx
+	|cx = sz
+	if (==)
+		cx = di
+		//--cx
+		cx -= src.l
+	fi
+	dx.ax = es.di = dst
+	ds.si = src
+
+	rep.cpy di,si,cx
+	return
+endproc
+
+endmodule
+

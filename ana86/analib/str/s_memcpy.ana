@@ -1,0 +1,19 @@
+module S
+	c_name "str","_",1
+
+*proc memcpy(dst:d, src:d, sz:w);cdecl;FC
+enter
+	save cx,si,di,es,ds
+	
+	dx.ax = es.di = dst
+	ds.si = src
+	cx = sz
+	if ((cx >>= 1) .cf. 1)
+		rep.cpy di,si
+	fi
+	rep.cpy.w di,si,cx
+	return
+endproc
+
+endmodule
+

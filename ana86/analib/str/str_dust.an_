@@ -1,0 +1,3 @@
+//X B F *str_nscpy(B F *s, B F *ct, W sz, I chr);
+//X    /* ct‚ðs‚É•¡ŽÊ.ct‚ªsz–¢–ž‚È‚çchr‚ÅŽc‚è‚ð–„‚ß‚é*/
+

@@ -1,0 +1,44 @@
+module S
+	c_name "str","_",1
+
+	import Std
+	import str
+
+*proc linencutj(s0:d,sz:w);cdecl;FC
+//	文字列の行頭 cx バイトを削除。文字列自体を書き換える
+//	'\n'を考慮
+//	arg si	文字列
+//	arg cx	削除するバイト数
+//	in	ds
+enter
+	save cx,di,si,es,ds
+
+	ds.si = s0
+	cx = sz
+	if (cx)
+		es = ds
+		di = si
+		loop
+			rep.load al,si
+			if (str.FLAGJ && Std.IsKanji(al))
+				rep.load al,si
+				if (cx > 1)
+					--cx
+				fi
+			fi
+			if(al == 0 || al == '\n')
+				--si
+				exit
+			fi
+		endloop (--cx)
+		loop
+			rep.load al,si
+			rep.set  di,al
+		endloop (al)
+	fi
+	dx.ax = s0
+	return
+endproc
+
+endmodule
+

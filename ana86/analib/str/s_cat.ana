@@ -1,0 +1,30 @@
+module S
+	c_name "str","_",1
+
+*proc ncat(s1:d, s2:d, sz:w);cdecl;FC
+	//s2‚ÌÅ‘åszÊÞ²Ä‚ðs1‚É•t‰Á
+enter
+	save cx,si,di,es,ds
+	
+	es.di = s2
+	repn.scan di,0,0xFFFF
+	cx = di
+	--cx
+	cx -= s2.l
+	if (cx > sz)
+		cx = sz
+	fi
+	push cx
+		es.di = s1
+		repn.scan di,0,0xFFFF
+		--di
+	pop  cx
+	ds.si = s2
+	rep.cpy di,si,cx
+	rep.set di,0
+	dx.ax = s1
+	return
+endproc
+
+endmodule
+

@@ -1,0 +1,36 @@
+module S
+	c_name "str","_",1
+
+	import Std
+	import str
+
+*proc uprj(s0:d);cdecl;FC
+//	•¶Žš—ñ s0 ‚Ì”¼Šp‰pŽš‚ð‘å•¶Žš‰»
+//	•¶Žš—ñ‚Í’¼Ú‘‚«Š·‚¦‚é
+//	arg s0	•¶Žš—ñ(asciiz)
+enter
+	save cx,si,ds
+
+	ds.si = s0
+	loop
+		al = b[si]
+		exit (al == 0)
+		if (str.FLAGJ == 0 && Std.IsKanji(al))
+			++si
+			al = b[si]
+			++si
+			exit (al == 0)
+			next
+		fi
+		if (al >= 'a' && al <= 'z')
+			al -= 0x20
+			b[si] = al
+		fi
+		++si
+	endloop
+	dx.ax = s0
+	return
+endproc
+
+endmodule
+

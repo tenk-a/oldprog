@@ -1,0 +1,70 @@
+module str
+	c_name "str","_",1
+
+*proc memcpy(dst:d, src:d, sz:w);cdecl; FC; endproc
+*proc memcpyl(dst:d, src:d, sz:d);cdecl; FC; endproc
+*proc memmove(dst:d,src:d,sz:w);cdecl; FC; endproc
+*proc memset(dst:d, c0:w, sz:w);cdecl; FC; endproc
+*proc memchr(dst:d,c0:w,sz:w);cdecl; FC; endproc
+*proc memcmp(s1:d, s2:d, sz:w);cdecl; FC; endproc
+*proc end(s0:d);cdecl; FC; endproc
+*proc len(s0:d);cdecl; FC; endproc
+*proc cpy(dst:d, src:d);cdecl; FC; endproc
+*proc pcpy(dst:d, src:d);cdecl; FC; endproc
+*proc ncpy(dst:d, src:d, sz:w);cdecl; FC; endproc
+*proc cat(dst:d, src:d);cdecl; FC; endproc
+*proc ncat(s1:d, s2:d, sz:w);cdecl; FC; endproc
+*proc cmp(s1:d, s2:d);cdecl; FC; endproc
+*proc ncmp(s1:d, s2:d, sz:w);cdecl; FC; endproc
+*proc icmp(s1:d, s2:d);cdecl; FC; endproc
+*proc incmp(s1:d, s2:d, sz:w);cdecl; FC; endproc
+*proc chr(dst:d,c0:w);cdecl; FC; endproc
+*proc rchr(dst:d,c0:w);cdecl; FC; endproc
+*proc upr(s0:d);cdecl; FC; endproc
+*proc lwr(s0:d);cdecl; FC; endproc
+
+*proc atol(s0:d);cdecl; FC; endproc
+*proc htol(s0:d);cdecl; FC; endproc
+
+*proc tab(s0:d,tabsz:w,mn:w,flg:w);cdecl; FC; endproc
+*proc detab(dst:d,src:d,tbsz:w);cdecl; FC; endproc
+*proc sepline(tbl:d,src:d,cnt:w);cdecl; FC; endproc
+
+
+//‘SŠpŠÖŒW
+*cvar flagj:w = 1
+*@define FLAGJ()	b[cs:%str.flagj]
+
+*proc setflagj(flg:w);cdecl; FC; endproc
+*proc getflagj();cdecl; FC; endproc
+*proc cmpj(s1:d, s2:d);cdecl; FC; endproc
+*proc ncmpj(s1:d, s2:d,sz2:w);cdecl; FC; endproc
+*proc icmpj(s1:d, s2:d);cdecl; FC; endproc
+*proc incmpj(s1:d, s2:d,sz2:w);cdecl; FC; endproc
+*proc chrj(s0:d,c0:w);cdecl; FC; endproc
+*proc rchrj(s0:d,c0:w);cdecl; FC; endproc
+*proc lwrj(s0:d);cdecl; FC; endproc
+*proc uprj(s0:d);cdecl; FC; endproc
+*proc uplowj(s0:d,flg:w);cdecl; FC; endproc
+*proc linetrimj(s0:d);cdecl; FC; endproc
+*proc linencutj(s0:d,sz:w);cdecl; FC; endproc
+*proc chknilj(s0:d,sz:w);cdecl; FC; endproc
+*proc delnilj(s0:d,sz:w);cdecl; FC; endproc
+*proc dectrlj(s0:d,sz:w);cdecl; FC; endproc
+
+endmodule
+
+
+@if 0
+
+module S
+	c_name "str","_",1
+
+*proc ();cdecl; FC; endproc
+enter
+	save
+	return
+endproc
+
+endmodule
+@endif
