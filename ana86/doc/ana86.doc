@@ -831,7 +831,7 @@
 	rep.cpy.w di,si 	movsw
 	rep.cpy.w di,si,cx	rep movsw
 
-	repe.scan   di,al	scasb		¦  ‚à‚¿‚ë‚ñrepe‚Ì‘ã‚í‚è‚É
+	repe.scan   di,al	scasb		¦  ‚à‚¿‚ë‚ñrepe‚¾‚¯‚Å‚È‚­
 	repe.scan.w di,ax	scasw		    repn ‚àg‚¦‚Ü‚·.
 	repe.scan   di,al,cx	repe scasb
 	repe.scan.w di,ax,cx	repe scasw
