@@ -295,7 +295,7 @@ ExprOfs(word t,St_t_fp sp)
 	Et_NEWp(xp);
 	switch (t) {
 	case T_IDENT:
-		if ((Sym_sp = GoLbl_New(Sym_name)) == NULL)
+		if ((sp = Sym_sp = GoLbl_New(Sym_name)) == NULL)
 			goto ERR;
 	case T_PROC:
 	case T_JMPLBL:
@@ -1864,3 +1864,4 @@ Expr_Cond(void)
 	}
 	return lp;
 }
+

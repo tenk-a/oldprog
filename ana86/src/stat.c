@@ -321,7 +321,7 @@ StatJmp(word t,word mode)
 		else {
 			if (farflg == 0)
 				Out_NmSt(gJmps[Opt_r86], Str_StName(Sym_sp));
-			else if (farflg == 2 || (farflg == 1 && (Sym_sp->v.flg2 & 0x02)))
+			else if (farflg == 2 || (farflg == 1 && (Sym_sp->v.flg2 & 0x02/*FL_FAR*/)))
 				Out_NmSt(gJmpf[Opt_r86], Str_StName(Sym_sp));
 			else
 				Out_NmSt("jmp", Str_StName(Sym_sp));
@@ -556,9 +556,9 @@ StatProc(word t)
 	}
 	if (t != T_MACPROC)
 		StatCallSt(sp,1);
-	if (ofs && ((sp->p.flg2 & 0x04) || ofs2)) {
+	if (ofs && ((sp->p.flg2 & 0x04/*FL_CPROC*/) || ofs2)) {
 		Out_Nem2(I_ADDEQ,Ev_Reg(I_SP),Ev_Cnst(
-			(sp->p.flg2 & 0x04) ? ofs : ofs2) );
+			(sp->p.flg2 & 0x04/*FL_CPROC*/) ? ofs : ofs2) );
 	}
  ENDF:
 	Et_Frees(sav_ep);
@@ -760,3 +760,4 @@ Stat(void)
  ERR:
 	return Ana_err;
 }
+

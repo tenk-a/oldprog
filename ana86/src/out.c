@@ -255,14 +255,25 @@ byte_fp
 Str_StName(St_t_fp sp)
 {
 	byte far *str;
-	static byte buf[LBL_NAME_SIZ*2+4];
+	static byte buf[LBL_NAME_SIZ*4/*2*/+4];
 
 	if ((sp->v.tok == T_VAR) && sp->v.ofs > 0) {
 		str = GoLbl_Strs(sp->v.ofs);
 	} else if (sp->v.tok == T_LBL && sp->v.ofs > 0) {
 		str = GoLbl_Strs(sp->v.ofs);
 	} else if (sp->v.grp && sp->v.tok != T_MODULE) {
-		sprintf(buf,"%s%s%s%s%s",
+		byte *s;
+		s = "";
+	  #if 0
+		if (sp->v.tok == T_VAR) {
+			if (sp->v.seg == I_CS)
+				s = "cs : ";
+			else if (sp->v.seg == I_ES)
+				s = "es : ";
+		}
+	  #endif
+		sprintf(buf,"%s%s%s%s%s%s",
+			s,
 			(sp->v.grp->g.ccflg == 1) ? "_" : "",
 			sp->v.grp->g.modname,
 			sp->v.grp->g.sep,
@@ -810,3 +821,4 @@ Out_ShiftReg12Cnst(word t,word reg, int n)
 	fprintf(Out_file,"\tdb\t0%02xh,0%02xh,%d\t;%s %s,%d\n",
 		o0,o1+regs[reg-I_AH],n,p,StrReg(reg),n);
 }
+

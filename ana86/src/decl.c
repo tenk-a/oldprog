@@ -1230,6 +1230,8 @@ ProcBody(St_t_fp sp,int alain)
 		} else if (Sym_tok == I_EVEN) {
 			Sym_GetChkEol();
 			Ana_align = 2;
+		} else if (Sym_tok == I_SMCLN || Sym_tok == I_CR) {
+			;
 		} else
 			break;
 	}
@@ -1349,7 +1351,9 @@ Decl_Proc(word op)
 		sp->v.flg2 |= FL_CPROC;
 	sp->v.grp = Mod_sp;
 	while (Ana_err == 0) {
-		Sym_crMode = 1; Sym_Get(); Sym_crMode = 0;
+		/*Sym_crMode = 1;*/
+		Sym_Get();
+		Sym_crMode = 0;
 		if (Sym_tok == I_MACRO) {
 			if (declFlg)
 				goto E1;
@@ -1398,6 +1402,7 @@ Decl_Proc(word op)
 		} else if (Sym_tok == I_CDECL) {
 			oCProcFlg = 1;
 			sp->v.flg2 |= FL_CPROC;
+			Sym_GetChkEol();
 		} else if (Sym_tok == I_FORWORD||Sym_tok == I_EXTERN) {
 			if (Sym_tok == I_EXTERN)
 				sp->v.flg2 |= FL_EXTERN;
@@ -1408,6 +1413,13 @@ Decl_Proc(word op)
 			Ana_saveOfs = 4;
 			sp->v.flg2 |= FL_FAR;
 			Sym_GetChkEol();
+		} else if (Sym_tok == I_NEAR) {
+			oFarProcFlg = 0;
+			Ana_saveOfs = 2;
+			sp->v.flg2 &= ~FL_FAR;
+			Sym_GetChkEol();
+		} else if (Sym_tok == I_CR || Sym_tok == I_SMCLN) {
+			;
 		} else {
  E1:
 			Msg_Err("è‘±‚«‚ÌéŒ¾•”‚ª‚¨‚©‚µ‚¢");
@@ -1451,3 +1463,4 @@ Decl_Proc(word op)
 	return 0;
 }
 
+
