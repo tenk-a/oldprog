@@ -1,0 +1,226 @@
+#1.0
+　　ANAは独自表記のアセンブラ・ソースをMASMのソースに変換するプリプロセッサ
+  です。
+　　  
+
+#1.1
+    ANAの表記は以下のような方針で考えました。
+
+　　１. フラグ変化をきにする必要のないときは式の形で、フラグ変化を使うばあい
+　　　　はそれとわかるようにニーモニックによる表現を用いる。
+　　　　
+　　　　アセンブラではフラグ変化を有効につかったコーディングができますが、
+　　　　いつもいつもフラグ変化を利用するわけではありません。たいていは、レジ
+　　　　スタやメモリでの演算で、条件分岐も演算命令の次に１つで、よくばって
+　　　　複数ならべることは少ないです。そこで、見た目に動作がわかりやすい式に
+　　　　よる表現をおもにつかうことにし、フラグ変化を意識しなければならないと
+　　　　きは、ニーモニックによる表現を使うことにします（式の形をするとなんと
+　　　　なくフラグ変化を意識しずらいようにおもえるので...）。
+　　　　なお、式の形はなれたＣ言語を元にしました。数値表現もそれにあわせ、
+　　　　16進数は0xではじめ、２進数はＣにはないけど0bではじめることにしました。
+　　　　ただし、８進数はサポートせず、0ではじまり10進数がつづく数字は、エラー
+　　　　とします。
+　　　　ニーモニックによる表現ですべての命令をサポートします。式に形では無理
+　　　　矢理すべてをサポートするようなことはしません。
+
+
+　　２. 式による表現では同じ動作をする命令があるなら、なるべくサイズが小さい
+　　　　かスピードがはやいものを生成するようにする。
+
+　　　　式の形ではフラグ変化は不安定ということにしますので、フラグ変化以外同
+　　　　じ動作になるなら少しでも得な命令を特別な表記にせずに使えたほうが楽、
+　　　　てことでこうしました。
+
+　　３. ファイルの分割やセグメントの管理ですこしは楽できるようにし、一つのファ
+　　　　イルでいろいろなメモリ・モデルに対応しやすくする。
+
+	CS,DS,SSはそうそうプログラマが変更することがないので、ふだんは変更
+　　　　されないものとしてあつかい、Ｃのコンパイル・モデルのような変更なら
+　　　　らくできるようにします。
+
+　　４. 手続き、変数管理を他のアセンブラよりもらくにする。
+
+　　　　手続きはかならず宣言してからしか呼び出せないようにする。
+　　　　宣言にはレジスタやフラグの保存、破壊、復帰を指定できるようにし、
+　　　　できればチェックするようにする。
+
+#1.2  
+　　アセンブラのつもりですが、表記がＣににてたり、自身では.OBJを生成できず
+　条件コンパイルやマクロのために CPP を呼び出したりするので, 気分的にはア
+　センブラでなくコンパイラみたいなものなので、アセンブルする、とは言わず、
+　コンパイルする、ということにします。
+
+
+#1.3  ニーモニック
+    大文字の A,B,C を該当するオペランドとします。
+
+	mov A,B		ld   A,B	A = B
+	lds B		ld   ds,B	ds = B
+	les B		ld   es,B	es = B
+	xlat		ld   ah,[bx+ah]	ah = [bx+ah]
+	lahf		ld   ah,fl	ah = fl
+        sahf		ld   fl,ah	fl = ah
+	lea A,B		lea  A,B	A = B
+	xchg A,B	xchg A,B
+	cbw		sex  ah,al
+	cwd		sex  dx,ax
+
+	add  A,B	add  A,B	A += B
+	adc  A,B	adc  A,B
+	sub  A,B	sub  A,B	A -= B
+	sbb  A,B	sbb  A,B
+	cmp  A,B	cmp  A,B	(A == B)
+	and  A,B	and  A,B	A &= B
+	or   A,B	or   A,B	A |= B
+	xor  A,B	xor  A,B	A ^= B
+	test A,B	btst A,B	(A & B)
+	mul  C		mul  B,C	A = B * C
+	imul C		imul B,C	A = B.*.C
+	div  C		div  B,C	A = B / C
+	idiv C		idiv B,C	A = B./.C
+
+	not  A		not  A		not(A)
+	neg  A		neg  A		neg(A)
+	inc  A		inc  A		++ A
+	dec  A		dec  A		-- A
+	shl  A,B	shl  A,B	A <<= B
+	shr  A,B	shr  A,B	A >>= B
+	sar  A,B	sar  A,B	A.>>=.B
+	rol  A,B	rol  A,B	rol(A,B)
+	ror  A,B	ror  A,B	ror(A,B)
+	rcl  A,B	rcl  A,B	rcl(A,B)
+	rcr  A,B	rcr  A,B	rcr(A,B)
+
+	cmc		notf c
+	stc		setf c
+	sti		setf i
+	std		setf d		rep down
+	clc		clrf c
+	cli		clrf i
+	cld		clrf d		rep up
+
+	aaa		aaadd
+	aas		aasub
+	aam		aamul
+	aad		aadiv
+	daa		daadd
+	das		dasub
+
+	in   A,B	in   A,B
+	out  A,B	out  A,B
+        int  A		int  A
+        into		into
+        iret		iret
+        wait		wait
+        lock		lock
+        esc		esc
+        hlt		hlt
+
+	push A		push A
+	pushf		push fl
+	pop  A		pop  B
+	popf		pop  fl
+	ret  A		ret  A
+	call A		call A
+
+	jmp  A		goto A
+        ja/jnbe  A	go (>)   A
+        jae/jnb/	go (>=)
+        jnc		go (c==0)
+        jb/jnae/	go (<)
+        jc		go (c==1)
+        jbe/jna		go (<=)
+        je/		go (==)
+        jz		go (z==1)
+        jg/jnle		go (.>.)
+        jge/jnl		go (.>=.)
+        jl/jnge		go (.<.)
+        jle/jng		go (.<=.)
+        jne/		go (!=)
+        jnz		go (z==0)
+        jno		go (o==0)
+        jnp/jpo		go (p==0)
+        jns		go (s==0)
+        jo		go (o==1)
+        jp/jpe		go (p==1)
+        js		go (s==1)
+        jcxz		go (cx==0)
+	loop		go (--cx)
+	loope/loopz	go (--cx||==)
+	loopne/loopnz	go (--cx||!=)
+
+	lds  		rep cpy  A,si,1  (A:al,ax)
+	rep lds 	rep cpy  A,si,cx
+	stos 		rep cpy  es:di,A,1
+	rep stos	rep cpy  es:di,A,cx
+	movsb		rep cpyb es:di,si,1
+	rep movs	rep cpyw es:di,si,cx
+	scas		rep cmp  es:di,A,1
+	cmpsb		rep cmpb es:di,si,1
+	cmpsw		rep cmpw es:di,si,1
+	repe scas	rep equ  es:di,A,cx
+	repne scas	rep neq  es:di,A,cx
+	repe cmpsb	rep equb es:di,si,cx
+	repne cmpsw	rep neqw es:di,si,cx
+
+
+
+#2　定義
+#2.1 文
+	文の終わりはcとおなじで';'が必要です。改行(\n)は空白扱いです。
+#2.2 複文
+	これもCと同様、{}でくくることにより複数の文を、一つの文としてあつか
+	えます。ただし、{}内での変数宣言のルールはありません。
+
+
+#2.3 コメント
+  	C とおなじように複数行にわたって空白のおけるところならどこにもおける
+	/*...*/ と、文の後におけ行末までを範囲とする//が使えます。
+
+
+#2.4 数値
+　	Cの同じような表現をします。
+　	10進数 :  0 か 0以外の数字を先頭にする数値。
+		  0の後に数字が続くとエラーです。
+	16進数 :  0x ではじまり 数字と'a'-'f'で構成されます。
+		  'A'-'F'は大文字、小文字を区別しませんが、0xの'x'は小文字でな
+		  いといけません。
+	2進数 :	  0b ではじまり '0','1'で構成されます。
+		  0bの'b'は小文字でないといけません。
+	8進数 :   使えません. (自分が使うことないので)
+	文字定数: ' でかこまれた文字(列)のコードを値とします。
+	　　	  全角もかけるように、また32bitﾚｼﾞｽﾀで楽するために 1-4バイト
+		  まで指定できます（Ｋ＆Ｒ２にはＣでは L'漢'のような指定ができ
+		  ると書いてあったのですが、めんどくさそなのでやめました）。
+	    	  たとえば、'ABC'なら 'A'*0x10000+'B'*0x100+'C'と同じです。
+                  あと、Cとどうようのｴｽｹｰﾌﾟ文字をｻﾎﾟｰﾄします。
+
+
+#2.5 名前
+	名前はに使える文字は, 'A'-'Z','a'-'z','_','0'-'9'です。
+	もちろん、名前の始めには数字はつかえません。
+	大文字、小文字を区別します。32文字まで認識します。
+
+	スコープがかさなる部分での名前の衝突は許されません。
+
+
+#2.6 文字列定数
+	"で囲まれた文字列でＣのようにおわりに'\0'が付きます。
+	文字列定数はBYTE配列としてあつかわれます。
+	隣接する文字列定数は一つにまとめられますが、行をまたいでの結合はできま
+	せん。
+	どうしても複数行にしたいばあいは'\'+改行で行を連結してやってください。
+
+
+#2.7 仮変数
+	へんないいかたにしましたが、変更可能な定数のことです（やっぱりへん）。
+	ふつうのアセンブラでは、
+		LEVEL set 1
+	とかやって定義される再設定可能な定数ラベルと同じです。
+
+	set 仮変数名 = 定数式
+	で、宣言＆設定します。
+	スコープは変数とおなじで、モジュール外で定義されればプログラム全体で、
+	モジュール内で定義されればモジュール内で、手続き内で定義されれば手続き
+	内でのみ使用できます。
+
