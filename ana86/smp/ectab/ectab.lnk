@@ -1,0 +1,22 @@
+ectab.obj +
+cmdlineb.obj +
+readln.obj +
+writln.obj +
+putstr.obj +
+direntry.obj +
+wildcmp.obj +
+chgext.obj +
+moveopt.obj +
+str.obj +
+tab2spc.obj +
+spc2tab.obj +
+ltoa.obj +
+atol.obj +
+strncut.obj +
+strtrim.obj +
+strlen.obj +
+struplow.obj +
+dectrl.obj +
+nilchk.obj +
+sepline.obj
+

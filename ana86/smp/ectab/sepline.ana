@@ -1,0 +1,54 @@
+module SEPLINE
+	//	1992	writen by M.Kitamura
+	c_name "Str"
+
+*proc SepLine(es.di,si,cx)
+//	文字列を空白(タブ)で区切りトークンのアドレスをテーブルに登録。
+//	" か ' で囲まれた文字列中の空白は置き換えない。" や ' は取り除かない。
+//	arg es.di	トークン表の先頭
+//	arg si		文字列
+//	arg cx		トークン表に格納できるポインタの数
+//	in	ds		siのセブメント
+//	out cx		実際のポインタの数
+//	out ax		0:Ok   以外:error
+enter
+	save bx,dx,si,di,fx
+
+	dx = cx
+	cx = 0
+	rep.inc
+	loop LLL
+		loop
+			rep.load al,si
+			exit (al > ' ')
+			exit (al == 0x00) LLL
+			b[si-1] = 0
+		endloop
+		--si
+		go (cx >= dx) ERR
+		ax = si
+		rep.set.w di,ax
+		++cx
+		ah = 0
+		loop
+			rep.load al,si
+			if (al == '"'||al == '\'')
+				if (ah == 0)
+					ah = al
+				elsif (ah == al)
+					ah = 0
+				fi
+			fi
+			exit (al == '\0') LLL
+		endloop ((ah || al > ' '))
+		--si
+	endloop
+	ax = 0
+  RET:
+	return
+  ERR:
+	ax = -1
+	go RET
+endproc
+
+endmodule

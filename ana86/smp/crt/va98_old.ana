@@ -1,0 +1,815 @@
+module	VA98
+	// コンソール関係の関数
+	// 手続きは呼ばれるとき、tf = 0,df = 0,iif = 0 を前提。
+	// 手続きの復帰時, cf,sf,nf,pf,ovf は破壊。
+	c_name "Cn","_",1
+	model MODEL
+
+	import BiosCrt:BIOS98CRT:"bios_crt"
+	import Mdl:MODELCHK
+	import Is:IS
+	import Va:VA
+	import Key:KEY98
+
+*var	textSeg:w = 0xa000,
+		attrSeg:w = 0xa200,
+		offs:w = 0,
+		ySize:w = 25,
+		y20flg:b = 0,	//CRTの縦最大 0:25行  1:20行
+		chrAttr:b = 0xe1,
+		mode:b = 0,
+		x:w, y:w
+
+*var	attr:b = 0xe1,
+		attr0:b = 0xe1,
+		curFlg:b = 0,
+		mseMode:w
+
+
+@part SETCRTMD
+*proc SetCrtMode(flg:w);c_decl
+enter
+	save ax
+
+	al = flg.l
+	BiosCrt.CrtModeSet al
+	return
+endproc
+
+@part GETCRTMD
+*proc GetCrtMode();c_decl
+//	out ax
+begin
+	BiosCrt.CrtModeGet
+	ah = 0
+	return
+endproc
+
+@part TEXTON
+*proc TextOn()
+begin
+	save ax
+
+	BiosCrt.TextOn
+	return
+endproc
+
+@part TEXTOFF
+*proc TextOff()
+begin
+	save ax
+
+	BiosCrt.TextOff
+	return
+endproc
+
+@part CURON
+*proc CurOn()
+begin
+	save ax
+
+	Mdl.DS_DGROUP_BGN(ax)
+	BiosCrt.CurOn
+	curFlg = 1
+	Mdl.DS_DGROUP_END
+	return
+endproc
+
+@part CUROFF
+*proc CurOff()
+begin
+	save ax
+
+	Mdl.DS_DGROUP_BGN(ax)
+	BiosCrt.CurOff
+	curFlg = 0
+	Mdl.DS_DGROUP_END
+	return
+endproc
+
+@part CURBLKON
+*proc CurBlnkOn()
+begin
+	save ax
+
+	BiosCrt.CurBlnkOn
+	return
+endproc
+
+@part CURBLKOF
+*proc CurBlnkOff()
+begin
+	save ax
+
+	BiosCrt.CurBlnkOff
+	return
+endproc
+
+@part CONPUT
+*proc _ConPutStr(bx)
+//	in	ds
+begin
+	save ax, bx, dx
+
+	ah = 0x06
+	loop
+		dl = b[bx]; ++bx
+		exit (dl == 0xff || dl == 0)
+		intr 0x21
+	endloop
+	return
+endproc
+
+@if 0
+*proc CurPosRep()
+begin
+	save bx,ds
+	cvar str:b() = "\[[6n"
+
+	ds = bx = %cvar
+	bx = &str
+	_ConPutStr bx
+	return
+endproc
+@fi
+
+*proc FuncKeyOn()
+begin
+	save bx,ds
+	cvar str:b() = "\[[>1l"
+
+	ds = bx = %cvar
+	bx = &str
+	_ConPutStr bx
+	return
+endproc
+
+*proc FuncKeyOff()
+begin
+	save bx,ds
+	cvar str:b() = "\[[>1h"
+
+	ds = bx = %cvar
+	bx = &str
+	_ConPutStr bx
+	return
+endproc
+
+@part SETCOLOR
+*proc Color(col:w);c_decl
+//	in ds
+enter
+	save ax
+
+	Mdl.DS_DGROUP_BGN(ax)
+	ax = col
+	ah = chrAttr
+	ah &= 0x1f
+	al <<= 5
+	al |= ah
+	chrAttr = al
+	if (mode == 2)
+		ax = col
+		ah = attr
+		ah &= 0x0f
+		al <<= 4
+		al |= ah
+	fi
+	attr = al
+	Mdl.DS_DGROUP_END
+	return
+endproc
+
+@part SETATTR
+*proc SetAttr(atr:w);c_decl
+//	in ds
+enter
+	save ax
+
+	Mdl.DS_DGROUP_BGN(ax)
+	ax = atr
+	chrAttr = al
+	if (mode == 2)
+		if (al & 0x01)
+			al &= 0xfe
+		else
+			al |= 0x01
+		fi
+		ah = al
+		ah >>= 1
+		ax &= 0xf00f
+		al |= ah
+	fi
+	attr = al
+	Mdl.DS_DGROUP_END
+	return
+endproc
+
+@part CURADDR
+*proc _CurAddr(ax)
+begin
+	save ds,dx
+	ds = textSeg
+	dx = ax
+ //@ChkBgn
+	BiosCrt.CurAddr dx
+ //@ChkEnd
+	return
+endproc
+
+@part POSXY
+*proc PosXY(con_x:w,con_y:w);c_decl
+enter
+	save ax
+
+	Mdl.DS_DGROUP_BGN(ax)
+	ax = con_y
+	ax = al * 80
+	ax += con_x
+	ax <<= 1
+	offs = ax
+	if (curFlg)
+		_CurAddr ax
+	fi
+	Mdl.DS_DGROUP_END
+	return
+endproc
+
+@part TEXT30
+*proc Text20()
+begin
+	save ax
+
+	BiosCrt.CrtModeGet
+	al |= 0x01
+	BiosCrt.CrtModeSet al
+	Mdl.DS_DGROUP_BGN(ax)
+	y20flg = 1
+	ySize = 20
+	ax = 0;PosXY ax,ax
+	Mdl.DS_DGROUP_END
+	return
+endproc
+
+@part TEXT25
+*proc Text25()
+begin
+	save ax
+
+	BiosCrt.CrtModeGet
+	al &= 0xFE
+	BiosCrt.CrtModeSet al
+
+	Mdl.DS_DGROUP_BGN(ax)
+	y20flg = 0
+	ySize = 25
+	ax = 0;PosXY ax,ax
+	Mdl.DS_DGROUP_END
+	return
+endproc
+
+@part CONINIT
+*proc ConInit(flg:w);c_decl
+//	in ds
+enter
+	save ax,bx,cx
+
+	Mdl.DS_DGROUP_BGN(ax)
+ //@ChkBgn
+	mode = cl = flg.l
+ //@ChkEnd
+	if (cl == 1)
+		ax = 0xe000
+		bx = 0xe200
+	else
+		ax = 0xa000
+		bx = 0xa200
+		if (cl)
+			bx = 0xa800
+		fi
+	fi
+	textSeg = ax
+	attrSeg = bx
+	attr0 = 0xe1
+	if (cl == 2)	//VAのとき
+		ax = Va.STD
+		Va.SetMseMode ax
+		//Va.TextRamMode
+		attr0 = 0x70
+	fi
+	TextOn
+	BiosCrt.CrtModeGet
+	if ((al & 0x01) == 0)
+		y20flg = 0
+		ySize = 25
+	else
+		y20flg = 1
+		ySize = 20
+	fi
+	ax = 0xE1;push ax;call SetAttr;pop ax		//ax = 0xE1;SetAttr ax
+	CurOff
+	ax = 0;	PosXY  ax,ax
+	Mdl.DS_DGROUP_END
+	return
+endproc
+
+@part GETPOS
+*proc GetPos();c_decl
+//	out  al: y = 0～24
+//	out  ah: x = 0～79
+//	out  大域変数 x,y
+begin
+	save ax,dx,cx
+	Mdl.DS_DGROUP_BGN(ax)
+	ax = offs
+	ax >>= 1
+	dx = 0
+	cx = 80
+	div dx.ax, cx
+	x = dx
+	y = ax
+	ah = dl
+	Mdl.DS_DGROUP_END
+	return
+endproc
+
+@part PUTC2
+*proc _ZenToJis(ax)
+//	out  ax
+begin
+	if (ah >= 0xa0)
+		ah -= 0x40
+	fi
+	ah -= 0x70
+	|al |= al
+	if (sf == 1)	// al >= 0x80
+		--al
+	fi
+	ah <<= 1
+	if (al < 0x9e)
+		--ah
+	else
+		al -= 0x5e
+	fi
+	al -= 0x1f
+	//if ((al >= 0x20 && al <= 0x7e) && (ah >= 0x20 && ah <= 0x7e))
+	//	cf = 0
+	//else
+	//	cf = 1
+	//fi
+	return
+endproc
+
+*proc _PutC2(ax)
+	//arg   ax   シフトJISコード
+	//out   bx   新しいカーソルのアドレス
+	//break ax
+begin
+	save es
+
+	_ZenToJis ax
+	ah <=> al
+	al -= 0x20
+	push ax
+	es = textSeg
+	bx = offs
+	w[es:bx] = ax
+	al = attr
+	es = attrSeg
+	b[es:bx] = al
+	bx += 2
+	b[es:bx] = al
+	es = textSeg
+	pop ax
+  @if 1
+	ax |= 0x8080
+  @else
+	if (mode == 2);	al |= 0x80;	else; ah |= 0x80; fi
+  @fi
+	w[es:bx] = ax
+	bx += 2
+	if (bx >= 80*25)
+		bx = 0
+	fi
+	offs = bx
+	return
+endproc
+
+@part PUTC
+*proc _PutC1(ax)
+//	out   bx   新しいカーソルのアドレス
+//	break ax
+begin
+	save es
+
+	es = textSeg
+	bx = offs
+	w[es:bx] = ax
+	al = attr
+	es = attrSeg
+	b[es:bx] = al
+	bx += 2
+	offs = bx
+	return
+endproc
+
+@part PUTCHR
+*proc PutChr(chr:w);c_decl
+enter
+	save ax,bx
+
+	Mdl.DS_DGROUP_BGN(ax)
+	ax = chr
+	if (ah == 0)
+		_PutC1 ax
+	else
+		_PutC2 ax
+	fi
+	if (curFlg)
+		ax = bx
+		_CurAddr ax
+	fi
+	Mdl.DS_DGROUP_END
+	return
+endproc
+
+@part PUTSTR
+@if Mdl.NearDataModel
+*proc PutStr(bufp:w);c_decl	//CTRL文字未対応. シフトJIS対応.
+	//in  ds
+	//out ax = bufp
+enter
+	save bx,cx,dx,si,di,es
+
+	Mdl.DS_DGROUP_BGN(ax)
+	rep.inc
+	si = bufp
+	di = offs
+	loop
+		rep.load al,si
+		ah = 0
+		exit (al == 0)
+		if (Is.Kanji(al))
+			ah = al
+			rep.load al,si
+			exit (al == 0)
+			_PutC2 ax
+		else
+			_PutC1 ax
+		fi
+	endloop
+	if (curFlg)
+		ax = bx
+		_CurAddr ax
+	fi
+	ax = bufp
+	Mdl.DS_DGROUP_END
+	return
+endproc
+
+@fi
+
+@part PUTSTRFA
+@if Mdl.FarDataModel
+*proc PutStr(bufp:d);c_decl
+begin
+endproc  //下に続く
+
+@fi
+
+*proc PutStrFar(bufp:d);c_decl	//CTRL文字未対応. シフトJIS対応
+//	out dx.ax = bufp
+enter
+	save bx,cx,si,di
+
+	Mdl.DS_DGROUP_BGN(si)
+	rep.inc
+	di = offs
+	es.si = bufp
+	loop
+		al = b[es:si];++si
+		ah = 0
+		exit (al == 0)
+		if (Is.Kanji(al))
+			ah = al
+			al = b[es:si];++si
+			exit (al == 0)
+			_PutC2 ax
+		else
+			_PutC1 ax
+		fi
+	endloop
+	if (curFlg)
+		ax = bx
+		_CurAddr ax
+	fi
+	dx.ax = bufp
+	Mdl.DS_DGROUP_END
+	return
+endproc
+
+@part GETBLK
+*proc GetBlk (bufp:d, con_x:w, con_y:w, wig:w, hig:w);c_decl
+//	テキスト画面の指定範囲をバッファにコピー
+//	bufp  ﾃﾞｰﾀを格納するﾊﾞｯﾌｧ.
+//	con_x   0～79
+//	con_y   0～24/19
+//	wig   	1～80
+//	hig   	1～25/20
+enter
+	save pusha,ax,bx,cx,dx,si,di,es,ds
+
+	rep.inc
+	ds = ax = %var
+	cx.di = bufp
+	ax = di
+	ax >>= 4
+	cx += ax
+	es = cx
+	ax = con_x; dx = con_y; bx = hig
+	if ((di &= 0x0f) == 0); go (cx == 0) ERR; fi
+	cx = wig
+	go (bx == 0 || cx > 80 || bx > 25 || ax >= 80 || dx >= ySize) ERR
+	go (cx == 0) ERR
+	b[es:di] = al;++di
+	b[es:di] = dl;++di
+	b[es:di] = cl;++di
+	b[es:di] = bl;++di
+	ax += cx
+	bx += dx
+	go (ax >= 80 || bx >= ySize) ERR
+	dx.ax = dx * 80
+	ax += con_x
+	ax <<= 1
+	dx = attrSeg
+	ds = textSeg
+	cx = wig
+	bx = hig
+	push ax
+	loop
+		si = ax
+		ax += 160
+		rep.cpy.w di,si,cx
+	endloop (--bx)
+	pop  ax
+	bx = hig
+	ds = dx
+	loop
+		si = ax
+		ax += 160
+		rep.cpy.w di,si,cx
+	endloop (--bx)
+ RTS:
+ 	ax = 0
+	return
+ ERR:
+	ax = 1
+	go RTS
+endproc
+
+@part PUTBLK
+*proc PutBlk(bufp:d);c_decl
+// （GetBlockで拾得した）箱型データをテキスト画面の指定範囲にコピー
+//	arg bufp	ﾃﾞｰﾀを格納したﾊﾞｯﾌｧ.
+//		bufp+0:b  con_x
+//		bufp+1:b  con_y	左上始点座標 (con_x:0～79 , con_y:0～24|19)
+//		bufp+2:b  wig	1～80
+//	    bufp+3:b  hig	1～25/20
+enter
+	save pusha,ax,bx,cx,dx,si,di,es,ds
+	local bp:d
+
+	rep.inc
+	cx.si = bufp
+	ax = si
+	ax >>= 4
+	cx += ax
+	if ((si &= 0x0f) == 0);go.w (cx == 0) ERR;fi
+	ds = cx
+	ah = b[si]
+	al = b[si+1]
+	ch = b[si+2]
+	cl = b[si+3]
+	bx = cx
+	go (cl == 0 || ch == 0 || cl > 25 || ch >= 80 || al > 24 || ah > 79) ERR
+	cl += al
+	ch += ah
+	go (cl >= 80 || ch >= ySize.l) ERR
+	ax = al * 80
+	cx = b[si]
+	ax += cx
+	ax <<= 1
+	cx = bh
+	bh = bl
+	es = di = %var
+	dx = w[es:%attrSeg]
+	es = w[es:%textSeg]
+	push ax
+	loop
+		di = ax
+		ax += 160
+		rep.cpy.w di,si,cx
+	endloop (--bh)
+	pop  ax
+	es = dx
+	loop
+		di = ax
+		ax += 160
+		rep.cpy.w di,si,cx
+	endloop (--bl)
+ RTS:
+ 	ax = 0
+	return
+ ERR:
+	ax = 1
+	go RTS
+endproc
+
+@part SCRLUPY
+*proc ScrlUpY(con_y:w,n:w);c_decl
+// con_y行からn行をスクロール・アップ
+enter
+	save pusha,ax,bx,cx,dx,si,di,es,ds
+
+	ds = ax = %var
+	cx = n
+	ax = con_y
+	go (cx < 2 || cx > ySize || ax >= ySize) ERR
+	ax = al * 80
+	di = ax
+	si = di + 80
+	--cx
+	ax = cl * 80
+	cx = ax
+	dx = attrSeg
+	ds = ax = textSeg
+	es = ax
+	rep.inc
+	push si,di,cx
+	rep.cpy.w di,si,cx
+	ax = 0x20
+	cx = 80
+	rep.set.w di,ax,cx
+	pop  si,di,cx
+	ds = dx
+	es = dx
+	rep.cpy.w di,si,cx
+	ax = attr0
+	cx = 80
+	rep.set.w di,ax,cx
+ RTS:
+	return
+ ERR:
+	ax = 1
+	go RTS
+endproc
+
+@part SCRLDWNY
+*proc ScrlDownY(con_y:w,n:w);c_decl
+//  con_y行からn行をスクロール・ダウン
+enter
+	save pusha,ax,bx,cx,dx,si,di,es,ds
+
+	ds = ax = %var
+	ax = n
+	bx = con_y
+	go (ax < 2 || ax > ySize || bx >= ySize) ERR
+	--ax
+	ax = al * 80
+	cx = ax
+	ax = bl * 80
+	si = ax
+	si += cx
+	di = si + 80
+	dx = attrSeg
+	ds = ax = textSeg
+	es = ax
+	rep.dec
+	push si,di,cx
+	rep.cpy.w di,si,cx
+	ax = 0x20
+	cx = 80
+	rep.set.w di,ax,cx
+	pop  si,di,cx
+	ds = dx
+	es = dx
+	rep.cpy.w di,si,cx
+	ax = attr0
+	cx = 80
+	rep.set.w di,ax,cx
+	rep.inc
+ RTS:
+	return
+ ERR:
+	ax = 1
+	go RTS
+endproc
+
+//////////////////////////////////////////////////////////////////////////
+
+@part CNINIT
+*proc Init()
+//	int  ds
+enter
+	var msg:b() = "\NMSEが組み込まれていません\N"
+
+	Mdl.DS_DGROUP_BGN(ax)
+	Va.ChkVA
+	if (ax)
+		++ax
+	fi
+	mseMode = 0
+	mode = al
+	if (al == 2)
+		Va.GetMseMode
+		if (ax == Va.NOMSE)
+			ax = &msg
+			Va.PutStr ds.ax
+			ax = 0x2001
+			intr 0x21	//Dos.EXIT 1
+		fi
+		mseMode = ax
+		ax = Va.STD
+		Va.SetMseMode ax
+	fi
+	ConInit ax
+	Key.KeyInit
+	ah = 0
+	al = mode
+	Mdl.DS_DGROUP_END
+	return
+endproc
+
+@part CNTERM
+*proc Term()
+enter
+	Mdl.DS_DGROUP_BGN(ax)
+	if (mode == 2)
+		push ax
+		ax = mseMode
+		Va.SetMseMode ax
+		pop  ax
+	fi
+	Mdl.DS_DGROUP_END
+	return
+endproc
+
+//////////////////////////////////////////////////////////////////////////
+@if 0
+@part PUTBLK
+*proc PutBlock(bufp:d,con_x:w,con_y:w,wig:w,hig:w);c_decl
+// （GetBlockで拾得した）箱型データをテキスト画面の指定範囲にコピー
+//	arg bufp	ﾃﾞｰﾀを格納したﾊﾞｯﾌｧ.
+//	arg con_x,con_y	左上始点座標 (con_x:0～79 , con_y:0～24|19)
+//	arg wig		1～80
+//	arg hig		1～25/20
+enter
+	save pusha,ax,bx,cx,dx,si,di,es,ds
+	local bp:d
+
+	rep.inc
+	ds = ax = %var
+	ax = con_x; dx = con_y; cx = wig;	bx = hig
+	go (cx == 0) ERR
+	go (bx == 0 || cx > 80 || bx > 80 || ax >= 80 || dx >= ySize) ERR
+	ax += cx
+	bx += dx
+	go (ax >= 80 || bx >= ySize) ERR
+	dx.ax = dx * 80
+	ax += con_x
+	ax <<= 1
+	dx = attrSeg
+	es = textSeg
+	cx.bx = bufp
+	si = bx
+	bx >>= 4
+	cx += bx
+	ds = cx
+	if ((si &= 0x0f) == 0); go (cx == 0) ERR; fi
+	cx = wig
+	bx = hig
+	push ax
+	loop
+		di = ax
+		ax += 160
+		rep.cpy.w di,si,cx
+	endloop (--bx)
+	pop  ax
+	bx = hig
+	es = dx
+	loop
+		di = ax
+		ax += 160
+		rep.cpy.w di,si,cx
+	endloop (--bx)
+ RTS:
+ 	ax = 0
+	return
+ ERR:
+	ax = 1
+	go RTS
+endproc
+@endif
+
+endmodule
+

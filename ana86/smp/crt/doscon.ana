@@ -1,0 +1,78 @@
+module DOSCON
+	// DOS のファインクションによるコンソール入出力
+	c_name "Dos","_",1
+	model SMALL
+	import Mdl:MDL
+
+
+@part DCPUTSTR
+
+*proc CPutStr(bufp:w);c_decl
+//	in	ds
+//	out ax	= bufp
+begin
+	save bx, dx
+	bx = buf
+	ah = 0x06
+	loop
+		dl = b[bx]; ++bx
+		exit (dl == 0xff || dl == 0)
+		intr 0x21
+	endloop
+	ax = buf
+	return
+endproc
+
+
+@part DCPUTCHR
+
+*proc CPutChr(chr:w);c_decl
+//	in	ds
+begin
+	save ax, dx
+	dl = chr.l
+	ah = 0x06
+	if (dl != 0xff)
+		intr 0x21
+	fi
+	return
+endproc
+
+
+@part DCGETCHR
+
+*proc CGetChr()
+//	in	ds
+//	out ax
+begin
+	save ax, dx
+	dl = 0xff
+	ah = 0x06
+	intr 0x21
+	ah = 0
+	return
+endproc
+
+
+@part CCLRKEYB
+
+*proc CClrKeyBuf()
+begin
+	ax = 0x0cff
+	intr 0x21
+	return
+endproc
+
+@part DCCHKKEYB
+
+*proc CChkKeyBuf()
+//	out ax
+begin
+	ah = 0x0b
+	intr 0x21
+	ax .=. al
+	return
+endproc
+
+endmodule
+

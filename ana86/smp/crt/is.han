@@ -1,0 +1,9 @@
+module IS
+
+*@define Upper(c)  (c >= 'A' && c <= 'Z')
+*@define Lower(c)  (c >= 'a' && c <= 'z')
+*@define Kanji(c)  ((c >= 0x81) && (c <= 0x9f) || (c >= 0xE0 && c <= 0xFC))
+*@define Kanji2(c) (c >= 0x40 && c <= 0xFC && c != 0x7f)
+*@define Kana(c)   (c >= 0xA0 && c <= 0xDF)
+endmodule
+

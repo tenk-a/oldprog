@@ -1,0 +1,44 @@
+module CHGEXT
+	//	1992	writen by M.Kitamura
+	c_name "Fname"
+
+
+*proc ChgExt(es.di,si)
+//	es.diで示されるファイル名の拡張子をsiで示されるものに変更
+//	arg es.di	ファイル名
+//	arg si		拡張子名
+//	in	ds		データ・セグメント
+enter
+	save ax,bx,di,si,extseg:ds
+	ds = bx = es
+	bx = si
+	si = di
+	if (b[si] == '.')
+		++si
+	fi
+	if (b[si] == '.')
+		++si
+	fi
+	loop
+		rep.load al,si
+	endloop (al != '.' && al != 0)
+	--si
+	b[si] = 0
+	di = si
+	si = bx
+	if (si)
+		al = '.'
+		rep.set di,al
+		b[di] = 0
+		ds = extseg
+		if (b[si])
+			loop
+				rep.load al,si
+				rep.set  di,al
+			endloop (al != 0)
+		fi
+	fi
+	return
+endproc
+
+endmodule

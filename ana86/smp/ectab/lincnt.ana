@@ -1,0 +1,153 @@
+//	ライン・カウンタ
+module LC
+	//	1992	writen by M.Kitamura
+	model SMALL
+	stack 0x2000
+	start Main
+	import Dos
+	import CmdLineA
+	import READLN
+	import Str
+	import PUTSTR:".ana"
+
+	type   Txt:READLN
+	type   ps:PUTSTR
+
+proc Usage()
+begin
+	var msg:b() = {
+		"lincnt [-s] ファイル名...\N"\
+		"  指定されたファイルの行数を表示する\N"\
+		"  -s   指定されたファイルの合計も表示\N"
+	}
+
+	Dos.Write Dos.STDOUT, &msg, sizeof(msg)
+	Dos.EXIT 0
+endproc
+
+proc ErrOpts()
+//	in	ds
+begin
+	var msg:b() = {"指定されたオプションがおかしい(-? でｵﾌﾟｼｮﾝ表示)\N"}
+
+	Dos.Write Dos.STDOUT,&msg,sizeof(msg)
+	Dos.EXIT 1
+endproc
+
+proc ErrFNF(ax)
+//	in	ds
+enter
+	save sav_ds:ds,bx,ll:ax
+	var msgFil:b()	= {"ファイル'"}
+	var msgFNF:b()	= {"'が見つからない\N"}
+
+	Dos.Write 1,&msgFil, sizeof(msgFil)
+	di = ll
+	cx = 0
+	loop (b[di] != '\0')
+		++di
+		++cx
+	endloop
+	dx = ll
+	Dos.Write 1, dx, cx
+	ds = sav_ds
+	Dos.Write 1,&msgFNF, sizeof(msgFNF)
+	Dos.EXIT 0
+endproc
+
+proc Main()
+//	in es
+enter
+	const STDIN,STDOUT,STDERR
+	const BUFSIZ = 0x800
+	var lcnt:d,scnt:d
+	var opt_sum:w
+	var flg:b
+	var txtIn:Txt.T
+	var name:b(300)
+	var buf:b(BUFSIZ)
+
+	rep.inc
+	dx = es
+	ds = ax = %var
+	es = ax
+	ax = 0
+	scnt.h = ax
+	scnt.l = ax
+	opt_sum = ax
+	CmdLineA.Init dx 		// コマンドライン解析の初期化
+	// コマンドラインのオプションの処理
+	CmdLineA.MoveOpt
+	di = si
+	if (cx)
+		loop
+			si = w[di]
+			di+=2
+			++si
+			rep.load al,si
+			if (al == 'S' || al == 's')
+				opt_sum = 1
+			elsif (al == '?')
+				jmp Usage
+			else
+				ErrOpts
+			fi
+		endloop (--cx)
+	fi
+	// 各ファイルの処理
+	CmdLineA.Top
+	flg = 1
+	loop.w LLL
+		ax = 0x01
+		CmdLineA.GetFname ww(ds,&name), ax	// ﾜｲﾙﾄﾞｶｰﾄﾞ展開済のﾌｧｲﾙ名を得る
+		if (ax) 						// ax != 0 ならｴﾗｰかﾌｧｲﾙ名がなかった
+			if (ax == 3 && flg) 		// 一度もﾌｧｲﾙをｵｰﾌﾟﾝしてないなら
+				ax = STDIN				// 標準入力について行う
+			else
+				if (ax == 2 || ax == -1)
+					ErrFNF CmdLineA.fname
+				fi
+				exit.w
+			fi
+		else
+			//ps.PutStrCr STDOUT,ww(ds,&name)
+			Dos.Open &name,0x00
+			exit.w (cf)
+		fi
+		Txt.ReadLnInit ax,&txtIn			// 行入力のための準備
+		lcnt.l = ax = 0
+		lcnt.h = ax
+		flg = al
+		loop
+			Txt.ReadLn &txtIn, &buf, BUFSIZ // １行入力(asciiz)
+			go.w (cf) ERR
+			exit (cx == 0)
+			bx.ax = lcnt
+			++bx.ax
+			lcnt = bx.ax
+		endloop
+		bx.ax = scnt
+		bx.ax += lcnt
+		scnt = bx.ax
+		Str.LtoA ww(es,&buf),lcnt,5,0,0
+		b[di] = '\t'
+		Dos.Write STDOUT,&buf,6
+		ps.PutStrCr STDOUT,ww(ds,&name)
+		ax = txtIn.handle
+		exit (ax == STDIN)
+		Dos.Close ax
+	endloop (cf == 0)
+	if (opt_sum)
+		Str.LtoA ww(es,&buf),scnt,5,0,0
+		w[di] = '\t' + '[' * 0x100
+		w[di+2] = 'S' + 'u' * 0x100
+		w[di+4] = 'm' + ']' * 0x100
+		w[di+6] = '\r' + '\n' * 0x100
+		Dos.Write STDOUT, &buf, 13
+	fi
+	ax = 0
+ ERR:
+	Dos.Exit al
+endproc
+
+endmodule

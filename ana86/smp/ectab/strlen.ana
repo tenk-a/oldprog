@@ -1,0 +1,35 @@
+module STRLEN
+	//	1992	writen by M.Kitamura
+	c_name "Str"
+
+	import Std
+	import Str
+
+*proc Len(si)
+//	文字列 si の長さ（バイト数）cx を得る
+//	out   cx
+begin
+  @if 0
+	save si,bx
+
+	cx = 0
+	loop
+		++cx
+		++si
+	endloop (b[si])
+	return
+  @else
+	save di,ax,si,es
+
+	es = cx = ds
+	di = si
+	cx = 0xffff
+	al = 0
+	repn.scan di,al,cx
+	++cx
+	com cx
+	return
+  @fi
+endproc
+
+endmodule

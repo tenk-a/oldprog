@@ -1,0 +1,165 @@
+module Str
+	//	1992	writen by M.Kitamura
+	c_name "Str"
+
+	import Std
+
+	//	各手続きは基本的に演算関係のフラグを破壊して復帰する
+	//	入力で dフラグは 0でないといけないか、または 0にして復帰する
+	//	入力で指定された near ポインタのセグメントは dsが用いられる。
+
+
+*proc WildCmp (bx.ax,dx.cx);cdecl
+//	全角対応ワイルド・カード機能付きの文字列比較
+//	arg  bx.ax	ワイルド・カード付き文字列
+//	arg  dx.cx	文字列
+//	out  bx.ax,cx,dx	そのまま
+endproc
+
+*proc AtoL(si)
+//	si からの符号付１０進整数文字列の値を dx.ax にいれて返す.
+//	桁溢れはﾁｪｯｸしない. セグメント境界のチェック無
+//	arg si		文字列
+//	out si		下１桁の文字の次の位置
+//	out dx.ax	値
+endproc
+
+*proc HtoL(si)
+//	16進文字列の値を dx.ax に入れて返す。オーバーフローチェックなし。
+//	arg si	文字列
+//	out si	読み込んだ文字の次のアドレス
+//	out dx.ax
+endproc
+
+*const LTOA_SGN=0x01, LTOA_LEFT=0x02, LTOA_ZERO=0x04, LTOA_PLUS=0x08
+
+*proc LtoA(es.di,dx.ax,cl,ch,bl)
+//	値を１０進数文字列に変換
+//	arg es.di	バッファ
+//	arg dx.ax	値
+//	arg cl		最小幅(cl <= ch)
+//	arg ch		最大幅(バッファ・サイズ - 1)
+//	arg bl		bit0=0:符号無し 	 1:符号有り
+//				bit1=0:右寄 		 1:左寄
+//				bit2=0:空白を埋める  1:'0'を埋める
+//				bit3=0:'+'を付けない 1:正数のとき'+'を付ける
+//	out es.di	次のアドレス
+endproc
+
+*proc DWtoA(es.di,dx.ax)
+//	数値dx.ax を 10桁の10進文字列に変換(文字列は asciiz)
+//	arg es.di	格納するバッファ 11バイト
+//	arg dx.ax	値
+//	out es.di	次のアドレス(入力時の di += 11)
+endproc
+
+*const LTOH_SGN=0x01, LTOH_LEFT=0x02, LTOH_ZERO=0x04, LTOH_PLUS=0x08
+*const LTOH_SMALL=0x10
+
+*proc LtoH(es.di,dx.ax,cl,ch,bl)
+//	値を16進数文字列に変換
+//	arg es.di	バッファ
+//	arg dx.ax	値
+//	arg cl		最小幅(cl <= ch)
+//	arg ch		最大幅(バッファ・サイズ - 1)
+//	arg bl		bit0=0:符号無し 	 1:符号有り
+//				bit1=0:右寄 		 1:左寄
+//				bit2=0:空白を埋める  1:'0'を埋める
+//				bit3=0:'+'を付けない 1:正数のとき'+'を付ける
+//				bit4=0:'A'-'F'		 1:'a'-'f'
+//	out es.di	次のアドレス
+endproc
+
+*proc BtoH(es.di,al)
+//	alを4桁の16進文字列にする
+//	arg al		値
+//	arg es.di	バッファ
+//	in	cf	0:'A'-'F'  1:'a'-'f'
+endproc
+
+*proc WtoH(es.di,ax)
+//	axを4桁の16進文字列にする
+//	arg ax		値
+//	arg es.di	バッファ
+//	in	cf	0:'A'-'F'  1:'a'-'f'
+endproc
+
+*proc DWtoH(es.di,dx.ax)
+//	dx.axを8桁の16進文字列にする
+//	arg dx.ax	値
+//	arg es.di	バッファ
+//	in	cf		0:'A'-'F'  1:'a'-'f'
+endproc
+
+*proc Tab2Spc(es.di,si,ax,cx)
+//	TAB を間隔 cx で空白に変換しながら文字列を複写
+//	arg   es.di 転送先アドレス
+//	arg   si	変換元文字列のアドレス
+//	arg   ax	タブ間隔 1～16
+//	arg   cx	転送先のサイズ(byte). (cx > 2)
+//	out   ax	そのまま. ただし、エラーなら ax = 0
+endproc
+
+*proc Spc2Tab(si,ax,cx,dx)
+//　文字列中の空白(0x20)をタブ間隔 bx でタブに変換する。文字列を直接書き換える.
+//	arg   si	文字列へのﾎﾟｲﾝﾀ
+//	arg   ax	タブ間隔 1～255
+//	arg   cx	変換しようとした空白数が cx 以下のときは変換しない. cx < ax
+//	arg   dx	1: ' か " で囲まれた範囲で変換を行なわない  0:行なう
+//				 ' か " で囲まれた範囲の \' \" は範囲の終りとして扱わない
+//	out   ax	入力のおかしいときは ax = -1
+endproc
+
+*proc Len(si)
+//	文字列 si の長さ（バイト数）cx を得る
+//	out   cx
+endproc
+
+*proc SepLine(es.di,si,cx)
+//	文字列を空白(タブ)で区切りトークンのアドレスをテーブルに登録。
+//	" か ' で囲まれた文字列中の空白は置き換えない。" や ' は取り除かない。
+//	arg es.di	トークン表の先頭
+//	arg si		文字列
+//	arg cx		トークン表に格納できるポインタの数
+//	out cx		実際のポインタの数
+//	out ax		0:Ok   以外:error
+endproc
+
+/////////////////////////////////////////////////////////////////////////////
+*var sjisFlg:b = 1	// 0:全角非対応 1:全角対応 を表すフラグ
+					// 以下の手続きは sjisFlg に対応しています。
+
+*proc Trim(si)
+//	行末の余分な空白、ｺﾝﾄﾛｰﾙ･ｺｰﾄﾞを削除. ただし、行末に'\n'がある場合は
+//	空白等削除後、付加しなおす.
+//	arg   si 文字列へのポインタ
+endproc
+
+*proc UpLow(si,ax)
+//	文字列 si の半角英字を ax = 0 なら小文字化, ax != 0 なら大文字化
+//	文字列は直接書き換える
+//	arg si	文字列(asciiz)
+//	arg ax	0:lower 1:upper
+endproc
+
+*proc DeCtrl(si,cx)
+//　サイズ cx の文字列 si 中の不要なコントロールコードと不正全角を削除
+//	arg   si	文字列へのﾎﾟｲﾝﾀ
+//	arg   cx	文字列のサイズ
+//	out   cx	変換後のサイズ
+endproc
+
+*proc NilChk(si,cx)
+//	サイズcx の文字列si 中に'\0'または不正全角があるかどうか
+//	out ax	1:'\0'があった 2:不正全角があった  0:不正文字なし
+//	out cf	0:不正文字無し 1:不正文字有り
+endproc
+
+*proc NCut(si,cx)
+//	文字列の行頭 cx バイトを削除。文字列自体を書き換える
+//	arg si	文字列
+//	arg cx	削除するバイト数
+//	in	ds
+endproc
+
+endmodule

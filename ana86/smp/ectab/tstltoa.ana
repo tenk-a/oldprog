@@ -1,0 +1,60 @@
+// ltoa ‚Ìƒfƒ‚
+// tstltoa.ana ltoa.ana putstr.ana ‚ª•K—v
+// link tstltoa.obj ltoa.obj putstr.obj
+module tstltoa
+	model SMALL
+	stack 0x20
+	start Test
+	import PUTSTR
+	import Ltoa:"ltoa"
+
+@if 1
+var tstdat:d() = {
+	0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,18,19,20,
+	30,40,50,60,70,80,90,100,200,300,400,500,600,700,800,900,
+	1000,2000,3000,4000,5000,6000,7000,8000,9000,
+	10000,20000,30000,40000,50000,60000,70000,80000,90000,
+	100000,200000,300000,400000,500000,600000,700000,800000,900000,
+	1000000,2000000,3000000,4000000,5000000,6000000,7000000,8000000,9000000,
+	10000000,20000000,30000000,40000000,50000000,
+	60000000,70000000,80000000,90000000,
+	100000000,200000000,300000000,400000000,500000000,
+	600000000,700000000,800000000,900000000,
+	1000000000,2000000000,
+	1234567890,987654321
+}
+proc Test()
+begin
+	var buf:b(1024)
+
+	ds = ax = %var
+	dx.ax = 0
+	si = &tstdat
+	cx = sizeof(tstdat) / 4
+	es = ds
+	loop
+		push cx
+		dx.ax = d[si]
+		si += 4
+		di = &buf
+		cx = 0x000a
+		bl = Ltoa.LTOA_PLUS|Ltoa.LTOA_SGN//|Ltoa.LTOA_LEFT
+		Ltoa.LtoA es.di,dx.ax,cl,ch,bl
+		w[es:di] = '#'+' '*0x100
+		di+=2
+		b[es:di] = '\0'
+		neg dx.ax
+		cx = 0x0a08
+		bl = Ltoa.LTOA_PLUS|Ltoa.LTOA_SGN|Ltoa.LTOA_ZERO
+		Ltoa.LtoA es.di,dx.ax,cl,ch,bl
+		dx.ax = ww(ds,&buf)
+		//bx = 1
+		PUTSTR.PutStrCr 1,dx.ax
+
+		pop  cx
+	endloop (--cx)
+	ax = 0x4c00
+	intr 0x21
+endproc
+@fi
+endmodule

@@ -1,0 +1,79 @@
+module SPC2TAB
+	//	1992	writen by M.Kitamura
+	c_name "Str"
+
+*proc Spc2Tab(si,ax,cx,dx)
+//　文字列中の空白(0x20)をタブ間隔 bx でタブに変換する。文字列を直接書き換える.
+//	arg   si	文字列へのﾎﾟｲﾝﾀ
+//	arg   ax	タブ間隔 1～255
+//	arg   cx	変換しようとした空白数が cx 以下のときは変換しない. cx < ax
+//	arg   dx	1: ' か " で囲まれた範囲で変換を行なわない  0:行なう
+//				 ' か " で囲まれた範囲の \' \" は範囲の終りとして扱わない
+//	in	  ds
+//	out   ax	入力のおかしいときは ax = -1
+//	break fx
+enter
+	save pusha,es,mn:cx,ret_ax:ax,flg:dx
+	local fff:b
+
+	if (ax == 0 || ah != 0 || cx >= ax || dx > 1)
+		ret_ax = -1
+		go.w RET
+	fi
+	es = ds
+	di = si
+	bx = ax
+	cx = 0
+	fff = ch
+	loop.w
+		al = b[si]
+		exit.w (al == 0)
+		if (flg.l)
+			if (fff && al == '\\')
+				rep.cpy(di,si)
+				++cx
+				al = b[si]
+				exit (al == 0)
+			elsif (fff == 0 && (al == '"' || al == '\''))
+				fff = al
+			elsif (fff && al == fff)
+				fff = 0
+			fi
+		fi
+		if (al != ' ' || fff)
+			rep.cpy(di,si)
+			++cx
+		else
+			++si
+			dx.ax = ww(0,cx)
+			div dx.ax, bx	// bx は 255以下なので余りのdxも255以下
+			ax = bx
+			ax -= dx
+			dx = ax
+			loop (--ax && b[si] == ' ')
+				++si
+			endloop
+			dx -= ax
+			cx += dx
+			if (ax == 0 && dx > mn)
+				al = '\t'
+				rep.set di,al
+			else
+				al = ' '
+				push cx
+				cx = dx
+				if (cx)
+					rep.set di,al,cx
+				fi
+				pop  cx
+			fi
+		fi
+	endloop
+	ax = 0
+	rep.set di,al
+	ret_ax = ax
+  RET:
+	return
+endproc
+
+endmodule

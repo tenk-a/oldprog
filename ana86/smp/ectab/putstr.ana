@@ -1,0 +1,93 @@
+module PUTSTR
+	//	1992	writen by M.Kitamura
+	model SMALL
+	//stack 0x20
+
+*proc PutStr(bx,dx.ax)
+//	asciiz 文字列の表示
+//	  arg 　bx		MS-DOSファイル・ハンドル
+//	  arg 　dx.ax	far文字列
+//	  out 　bx		そのまま
+//	  out　 dx.ax	そのまま
+//	  out　 cf		0:エラー無　1:エラー有
+//	  out　 df		= 1
+//	  break fx
+enter
+	save pusha,ds,es,di,bx,dx,cx,ret_ax:ax //,si
+
+	rep.inc
+	go (dx == 0 && ax == 0) RTS
+	di = ax
+	ax >>= 4
+	dx += ax
+	ds = dx
+	es = dx
+	di &= 0x0f
+	dx = di
+	al = 0
+	repn.scan di,al,0xffff	// cx = 0xffff
+	cx = di
+	--cx
+	if ((cx -= dx) <= 0)
+		|cf = 0
+		go RTS
+	fi
+	ax = 0x4000
+	|intr 0x21
+	if (cf)
+		ret_ax = ax
+	fi
+  RTS:
+	return
+endproc
+
+cvar strCrLf:b() = "\N"
+
+*proc PutStrCr(bx,dx.ax)
+//	asciiz 文字列の表示（改行付）
+//	  arg 　bx		MS-DOSファイル・ハンドル
+//	  arg 　dx.ax	far文字列
+//	  out 　bx		そのまま
+//	  out　 dx.ax	そのまま
+//	  out　 cf		0:エラー無　1:エラー有
+//	  out　 df		= 1
+//	  break fx
+begin
+	PutStr bx, dx.ax
+	if (cf == 0)
+		push ax,dx
+		PutStr bx, ww(%cvar,&strCrLf)
+		pop  ax,dx
+	fi
+	return
+endproc
+
+*proc PutChr(bx,ax)
+//	１文字表示
+//	  arg  bx		MS-DOSファイル・ハンドル
+//	  arg  ax		１文字（シフトJIS 対応）
+//	  out　 cf		0:エラー無　1:エラー有(axにERR CODE)
+//	  out  ax,bx	そのまま
+begin
+	save cx,bx,dx,ds
+	push ax
+	cx = 1
+	if (ax > 0xff)
+		ah <=> al
+		++cx
+	fi
+	push ax
+	ds = ax = ss
+	dx = sp
+	ax = 0x4000
+	|intr 0x21
+	|pop cx
+	if (cf == 0)
+		pop ax
+	else
+		pop cx
+	fi
+	return
+endproc
+
+endmodule

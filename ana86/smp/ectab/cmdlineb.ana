@@ -1,0 +1,273 @@
+/*
+	コマンドライン解析
+	ファイル名を一括して取得する
+	（ファイルの作成・削除etcを行なうプログラム用）
+
+	まず、Init で初期化＆コマンドラインを取得し、
+	次に、MoveOptでオプションとファイル名をわける
+	ファイル名の取得はまず、GetAllFname ですべてのファイル名を取り込み、
+	実際のファイル名のアドレスは FirstFname と NextFname で取得する
+	1992	writen by M.Kitamura
+*/
+module CmdLineB
+	model SMALL
+	//stack 0x400
+
+	import DirEntry
+	import Fname
+	import PUTSTR
+	import Str
+
+/////////////////
+*var fname:w				// 検索に用いたファイル名(ﾜｲﾙﾄﾞｶｰﾄﾞ有).
+*var fnameOptCnt:w			// トークンの数
+*var fnameOptTbl:w			// コマンドラインより得たトークン表のアドレス
+*var optTbl:w				// オプション表のアドレス
+*var optCnt:w				// オプションの数
+*var fnameTbl:w 			// ファイル名表のアドレス
+*var fnameCnt:w 			// ファイル名の数
+*var fnameFlg:w 			// トークン（ファイル名）表にトークンがあるかどうか
+var bufSiz:w
+var bufPtr:d
+var ptrA:d
+var fnameCntA:w
+var fnameCntA2:w
+var fnameTbl2:w
+var fnameCnt2:w
+const FILCNT=63
+var fnameOptTbls:w(FILCNT)
+var cbuf:b(130)
+
+*proc Init(es.di,cx,dx)
+//	コマンドライン解析。PSPよりコマンドラインを自前のバッファにコピーし、
+//	トークンに分割する。
+//	arg es.di	ファイル名を格納するバッファ
+//	arg cx		そのバッファのサイズ
+//	arg dx		psp のセグメント
+//	out si		fnameOptTblの先頭アドレス
+//	out cx		fnameOptCnt
+enter
+	save ax,bx,dx,di,es,ds,fx
+	local flg:w = ax
+
+	ds = si = %var
+	bufSiz = cx
+	bufPtr = es.di
+	if (cx == 0)
+		bufPtr.h = cx
+		bufPtr.l = cx
+	fi
+	rep.inc
+	es = si
+	si = 0x81
+	di = &cbuf
+	ds = dx
+	loop
+		rep.load al,si
+		exit (al == 0x0d)
+		rep.set  di,al
+	endloop (si < 0x100)
+	al = 0
+	rep.set di,al
+	ds = es
+	si = &cbuf
+	di = &fnameOptTbls
+	fnameTbl = di
+	fnameOptTbl = di
+	cx = FILCNT
+	Str.SepLine es.di,si,cx
+	fnameOptCnt = cx
+	fnameCnt = cx
+	fnameCnt2 = cx
+	fnameFlg = cx
+	ax = 0
+	optCnt	= ax
+	optTbl = ax
+	fname = ax
+	fnameCntA = ax
+	fnameCntA2 = ax
+	ptrA = ww(ax,ax)
+	si = di
+	return
+endproc
+
+*proc MoveOpt()
+//	Initで取得したトークンのテーブルで、オプションを前に移動
+//	out si		optTbl	 オプション一覧の先頭
+//	out cx		optCnt	 オプションの数
+//	out di		fnameTbl その他のトークン一覧の先頭
+//	out ax		fnameCnt その数
+begin
+	save bx,dx,ds
+	ds = ax = %var
+	ax = 0
+	cx = fnameOptCnt
+	si = fnameOptTbl
+	optTbl = si
+	Fname.MoveOpt si,cx
+	di = si
+	fnameOptCnt = cx
+	optCnt	= ax
+	cx -= ax
+	fnameCnt2 = cx
+	fnameCnt = cx
+	fnameFlg = cx
+	push ax
+	  ax <<= 1
+	  di += ax
+	pop  ax
+	ax <=> cx
+	fnameTbl2 = di
+	fnameTbl = di
+	return
+endproc
+
+@if 0
+*proc Top()
+begin
+	save ax,ds
+	ds = ax = %var
+	fnameTbl2 = ax = fnameTbl
+	fnameCnt2 = ax = fnameCnt
+	return
+endproc
+@fi
+
+*proc GetFname(es.di,ax)
+//	コマンドライン・パラメータよりファイル名を一つとりだす。
+//	ファイル名は'-'以外で始まる名前で、ワイルド・カード文字対応、ディレクト
+//	リ・エントリより一致する名前を返す。ワイルド・カードのルールは WildCmp
+//	を参照. ただし、拡張子のないファイルに一致させる方法は、MS-DOS本来の指定
+//	と同じ（例 A*B.  Aで始まりBで終わる拡張子無しのファイルに一致）
+//	arg es.di	見つかった名前を格納するアドレス（領域 128byte以上）
+//	arg ax		ディレクトリ・エントリ検索で対象とするファイル属性
+//				（値は DirEntry.Get を参照）
+//	out ax		0:エラー無し  -1:設定がおかしい 1:これ以上ファイルがない
+//				2:ファイルが無い
+//	break fx
+enter
+	save cx,bx,dx,si,ds,pStr_h:es,pStr_l:di
+	var  flg:b = 0
+
+	di = ax
+	ds = ax = %var
+	cx = fnameCnt2
+	if (cx == 0 && flg == 0)
+		ax = 1
+		go.w RET
+	fi
+	loop.w
+		dx.si = 0
+ //intr 0xf0
+		if (flg == 0)
+			if (fnameCnt2 == 0)
+				ax = 1
+				exit.w
+			fi
+			--fnameCnt2
+			bx = fnameTbl2
+			si = w[bx]
+			bx += 2
+			fnameTbl2 = bx
+			dx = ds
+			fname = si
+			//pusha;PUTSTR.PutStrCr 1,dx.si;popa
+		fi
+		bx = pStr_h; ax = pStr_l
+ //intr 0xf1
+		cx = si
+		DirEntry.Get bx.ax, dx.cx, di
+ //intr 0xf2
+		flg = 0
+		//pusha;ax += '@';PUTSTR.PutChr 1,ax;popa
+	endloop (ax == 1)
+	//pusha;ax += '0';PUTSTR.PutChr 1,ax;popa
+	//pusha;dx = pStr_h;ax = pStr_l;PUTSTR.PutStrCr 1,dx.ax;popa
+	if (ax == 0)
+		flg = 1
+	fi
+  RET:
+ //intr 0xf3
+	return
+endproc
+
+*proc FirstFname()
+//	ファイル名バッファの先頭のファイル名のアドレスを得る
+//	out es.di	file name
+//	out cx		file count
+begin
+	save ds,cx
+	ds = cx = %var
+	ptrA = es.di = bufPtr
+	fnameCntA2 = cx = fnameCntA
+	return
+endproc
+
+*proc NextFname()
+//	ファイル名バッファより次のファイル名のアドレスを得る
+//	in	  df = 0	rep.inc
+//	out   es.di 	file name
+//	out   cf		0:ok  1:bad
+begin
+	save ax,cx,ds
+	ds = ax = %var
+	if (fnameCntA2 == 0)
+		cf = 1
+	else
+		ax = 0
+		es.di = ptrA
+		rep.inc
+		repn.scan di,al,0xffff
+		ptrA.l = di
+		--fnameCntA2
+		cf = 0
+	fi
+	return
+endproc
+
+*proc GetAllFname(ax)
+//	コマンドラインで指定されたファイル名をすべて拾得
+//	arg ax	ファイル属性
+//	in	df	df = 0
+//	out cx	ファイル名の数
+enter
+	save pusha,attr:ax,ret_bx:bx,cnt:cx,dx,es,di,si
+
+	// 次に取り出すコマンドラインのパラメータを先頭にする
+	ds = ax = %var
+	fnameTbl2 = ax = fnameTbl
+	fnameCnt2 = ax = fnameCnt
+	FirstFname
+	cnt = 0
+	si = bufSiz
+	go (si == 0) RET
+	b[es:di] = '\0'
+	block LLL
+		GetFname es.di, attr // ﾜｲﾙﾄﾞｶｰﾄﾞ展開済のﾌｧｲﾙ名を得る
+		exit (ax != 0)
+		++cnt
+		//pusha;PUTSTR.PutStrCr 1,es.di;popa
+		al = 0
+		loop (--si)
+			rep.scan (di,al)
+			next (==) LLL
+		endloop
+		ax = 2
+		//pusha;ax += '0';PUTSTR.PutChr 1,ax;popa
+		goto RET
+	endblock
+	//pusha;ax += '0';PUTSTR.PutChr 1,ax;popa
+	if (ax != 0 && ax != 1)
+		ax = 1
+	else
+		ax = 0
+	fi
+  RET:
+	fnameCntA = cx = cnt
+	fnameCntA2 = cx
+	attr = ax	//ret_ax = ax
+	return
+endproc
+
+
+endmodule
