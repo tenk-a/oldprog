@@ -1,0 +1,60 @@
+module CHK
+
+	const	C1 = 1, C2 = 2, C3 = 3, C4 = 4, C5,\
+		C6, C7, C8, C9
+
+	var vw1:word,vw2:word,vd:dword,\
+		vb1:byte,vb2:byte
+
+	@set	S1 = 1
+	@if S1 == 1
+		@print "s1:true"
+	@else
+		@print "s1:falue"
+		@print "\n"
+	@fi
+
+	@if  (C1 == 2)
+		@print "c1:falue"
+		@print "\n"
+	@elsif C1 == 1
+		@print "c1:true"
+	@else
+		@print "c1:falue"
+	@fi
+	@print "S1 = ",S1,"  C9 =   ",C9
+
+/*
+ *
+ */
+	const c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17, \
+		c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31,c32, \
+		c33,c34,c35,c36,c37,c38,c39,c40
+	@set	ss1 = 50
+	@set	ss2 = 60
+	@set	ss3 = 70
+	var w1:word,w2:word,w3:word = 40,w4:word = 50,	\
+		b1:byte,b2:byte,b3:byte,b4:byte,d1:dword,d2:dword
+
+ @if 1
+	@print c0," ",c1," ",c2,"   ",c3," ",c4," ",c5," ",c6," ",c7," ",c8," ",c9
+	@print c10," ",c11," ",c12," ",c13," ",c14," ",c15," ",c16," ",c17," ",c18," ",c19,"  "
+	@print c20," ",c21," ",c22," ",c23," ",c24," ",c25," ",c26," ",c27," ",c28," ",c29
+	@print c30," ",c31," ",c32," ",c33," ",c34," ",c35," ",c36," ",c37," ",c38," ",c39
+	@print c40," ",ss1," ",ss2," ",ss3
+ @fi
+proc tst()
+begin
+	ax = w1
+	w2 = bx
+	cx = w3
+	dx = w4
+	ah = b1
+	al = b2
+	al = b3
+	al = b4
+	dx.ax = d1
+	es.di = d2
+endproc
+
+endmodule

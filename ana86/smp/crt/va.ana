@@ -1,11 +1,10 @@
-module VA
+module Va
 	/* PC88VA MSE ‘€ìŠÖ”@@writen by M.Kitamura */
 	c_name "Va","_",1
 	model  MODEL
-	import Mdl:MODELCHK
-	type Va:VA
+	import MdlChk
 
-<<const PC9801=-2, NOMSE, NATIVE, STD, TEXT, TEXTK, MONO, GRPH
+*const PC9801=-2, NOMSE, NATIVE, STD, TEXT, TEXTK, MONO, GRPH
 
 
 @part VACHKVA
@@ -146,4 +145,3 @@ begin
 endproc
 
 endmodule
-

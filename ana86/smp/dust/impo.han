@@ -1,0 +1,29 @@
+module Dos
+
+*seg FarVar:es word,public,"FAR_DATA"
+
+*proc puts(dx)
+	//in    ds
+	//out   ax,dx
+	//break fx
+macro
+	ax = 0x09
+	intr  0x21
+endproc
+
+*proc Exit()
+macro
+	intr 0x20
+endproc
+
+*proc putstr(dx)
+	//in	ds
+	//out	dx
+begin
+	push ax,fx
+	puts(dx)
+	pop
+	ret
+endproc
+
+endmodule

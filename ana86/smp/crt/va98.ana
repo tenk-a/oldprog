@@ -5,11 +5,11 @@ module	VA98
 	c_name "Cn","_",1
 	model MODEL
 
-	import BiosCrt:BIOS98CRT:"bios_crt"
-	import Mdl:MODELCHK
-	import Is:IS
-	import Va:VA
-	import Key:KEY98
+	import Bios98Crt:"bios_crt"
+	import MdlChk
+	import Is
+	import Va
+	import Key98
 
 *var	textSeg:w = 0xa000,
 		attrSeg:w = 0xa200,
@@ -31,14 +31,14 @@ enter
 	save ax
 
 	al = flg.l
-	BiosCrt.CrtModeSet al
+	Bios98Crt.CrtModeSet al
 	return
 endproc
 
 *proc GetCrtMode()
 //	out ax
 begin
-	BiosCrt.CrtModeGet
+	Bios98Crt.CrtModeGet
 	ah = 0
 	return
 endproc
@@ -47,7 +47,7 @@ endproc
 begin
 	save ax
 
-	BiosCrt.TextOn
+	Bios98Crt.TextOn
 	return
 endproc
 
@@ -55,7 +55,7 @@ endproc
 begin
 	save ax
 
-	BiosCrt.TextOff
+	Bios98Crt.TextOff
 	return
 endproc
 
@@ -63,10 +63,10 @@ endproc
 begin
 	save ax
 
-	Mdl.DS_DGROUP_BGN(ax)
-	BiosCrt.CurOn
+	MdlChk.DS_DGROUP_BGN(ax)
+	Bios98Crt.CurOn
 	curFlg = 1
-	Mdl.DS_DGROUP_END
+	MdlChk.DS_DGROUP_END
 	return
 endproc
 
@@ -74,10 +74,10 @@ endproc
 begin
 	save ax
 
-	Mdl.DS_DGROUP_BGN(ax)
-	BiosCrt.CurOff
+	MdlChk.DS_DGROUP_BGN(ax)
+	Bios98Crt.CurOff
 	curFlg = 0
-	Mdl.DS_DGROUP_END
+	MdlChk.DS_DGROUP_END
 	return
 endproc
 
@@ -85,7 +85,7 @@ endproc
 begin
 	save ax
 
-	BiosCrt.CurBlnkOn
+	Bios98Crt.CurBlnkOn
 	return
 endproc
 
@@ -93,7 +93,7 @@ endproc
 begin
 	save ax
 
-	BiosCrt.CurBlnkOff
+	Bios98Crt.CurBlnkOff
 	return
 endproc
 
@@ -149,7 +149,7 @@ endproc
 enter
 	save ax
 
-	Mdl.DS_DGROUP_BGN(ax)
+	MdlChk.DS_DGROUP_BGN(ax)
 	ax = col
 	ah = chrAttr
 	ah &= 0x1f
@@ -164,7 +164,7 @@ enter
 		al |= ah
 	fi
 	attr = al
-	Mdl.DS_DGROUP_END
+	MdlChk.DS_DGROUP_END
 	return
 endproc
 
@@ -173,7 +173,7 @@ endproc
 enter
 	save ax
 
-	Mdl.DS_DGROUP_BGN(ax)
+	MdlChk.DS_DGROUP_BGN(ax)
 	ax = atr
 	chrAttr = al
 	if (mode == 2)
@@ -188,7 +188,7 @@ enter
 		al |= ah
 	fi
 	attr = al
-	Mdl.DS_DGROUP_END
+	MdlChk.DS_DGROUP_END
 	return
 endproc
 
@@ -197,7 +197,7 @@ begin
 	save ds,dx
 	ds = textSeg
 	dx = ax
-	BiosCrt.CurAddr dx
+	Bios98Crt.CurAddr dx
 	return
 endproc
 
@@ -205,7 +205,7 @@ endproc
 enter
 	save ax
 
-	Mdl.DS_DGROUP_BGN(ax)
+	MdlChk.DS_DGROUP_BGN(ax)
 	ax = con_y
 	ax = al * 80
 	ax += con_x
@@ -214,7 +214,7 @@ enter
 	if (curFlg)
 		_CurAddr ax
 	fi
-	Mdl.DS_DGROUP_END
+	MdlChk.DS_DGROUP_END
 	return
 endproc
 
@@ -222,14 +222,14 @@ endproc
 begin
 	save ax
 
-	BiosCrt.CrtModeGet
+	Bios98Crt.CrtModeGet
 	al |= 0x01
-	BiosCrt.CrtModeSet al
-	Mdl.DS_DGROUP_BGN(ax)
+	Bios98Crt.CrtModeSet al
+	MdlChk.DS_DGROUP_BGN(ax)
 	y20flg = 1
 	ySize = 20
 	ax = 0;PosXY ax,ax
-	Mdl.DS_DGROUP_END
+	MdlChk.DS_DGROUP_END
 	return
 endproc
 
@@ -237,15 +237,15 @@ endproc
 begin
 	save ax
 
-	BiosCrt.CrtModeGet
+	Bios98Crt.CrtModeGet
 	al &= 0xFE
-	BiosCrt.CrtModeSet al
+	Bios98Crt.CrtModeSet al
 
-	Mdl.DS_DGROUP_BGN(ax)
+	MdlChk.DS_DGROUP_BGN(ax)
 	y20flg = 0
 	ySize = 25
 	ax = 0;PosXY ax,ax
-	Mdl.DS_DGROUP_END
+	MdlChk.DS_DGROUP_END
 	return
 endproc
 
@@ -254,7 +254,7 @@ endproc
 enter
 	save ax,bx,cx
 
-	Mdl.DS_DGROUP_BGN(ax)
+	MdlChk.DS_DGROUP_BGN(ax)
 	mode = cl = flg.l
 	if (cl == 1)
 		ax = 0xe000
@@ -276,7 +276,7 @@ enter
 		attr0 = 0x70
 	fi
 	TextOn
-	BiosCrt.CrtModeGet
+	Bios98Crt.CrtModeGet
 	if ((al & 0x01) == 0)
 		y20flg = 0
 		ySize = 25
@@ -287,7 +287,7 @@ enter
 	ax = 0xE1;push ax;call SetAttr;pop ax		//ax = 0xE1;SetAttr ax
 	CurOff
 	ax = 0;	PosXY  ax,ax
-	Mdl.DS_DGROUP_END
+	MdlChk.DS_DGROUP_END
 	return
 endproc
 
@@ -297,7 +297,7 @@ endproc
 //	out  大域変数 x,y
 begin
 	save ax,dx,cx
-	Mdl.DS_DGROUP_BGN(ax)
+	MdlChk.DS_DGROUP_BGN(ax)
 	ax = offs
 	ax >>= 1
 	dx = 0
@@ -306,7 +306,7 @@ begin
 	x = dx
 	y = ax
 	ah = dl
-	Mdl.DS_DGROUP_END
+	MdlChk.DS_DGROUP_END
 	return
 endproc
 
@@ -392,7 +392,7 @@ endproc
 enter
 	save ax,bx
 
-	Mdl.DS_DGROUP_BGN(ax)
+	MdlChk.DS_DGROUP_BGN(ax)
 	ax = chr
 	if (ah == 0)
 		_PutC1 ax
@@ -403,18 +403,18 @@ enter
 		ax = bx
 		_CurAddr ax
 	fi
-	Mdl.DS_DGROUP_END
+	MdlChk.DS_DGROUP_END
 	return
 endproc
 
-@if Mdl.NearDataModel
+@if MdlChk.NearDataModel
 *proc PutStr(bufp:w);c_decl	//CTRL文字未対応. シフトJIS対応.
 	//in  ds
 	//out ax = bufp
 enter
 	save bx,cx,dx,si,di,es
 
-	Mdl.DS_DGROUP_BGN(ax)
+	MdlChk.DS_DGROUP_BGN(ax)
 	rep.inc
 	si = bufp
 	di = offs
@@ -436,7 +436,7 @@ enter
 		_CurAddr ax
 	fi
 	ax = bufp
-	Mdl.DS_DGROUP_END
+	MdlChk.DS_DGROUP_END
 	return
 endproc
 
@@ -453,7 +453,7 @@ endproc  //下に続く
 enter
 	save bx,cx,si,di
 
-	Mdl.DS_DGROUP_BGN(si)
+	MdlChk.DS_DGROUP_BGN(si)
 	rep.inc
 	di = offs
 	es.si = bufp
@@ -475,7 +475,7 @@ enter
 		_CurAddr ax
 	fi
 	dx.ax = bufp
-	Mdl.DS_DGROUP_END
+	MdlChk.DS_DGROUP_END
 	return
 endproc
 
@@ -679,7 +679,7 @@ endproc
 enter
 	var msg:b() = "\NMSEが組み込まれていません\N"
 
-	Mdl.DS_DGROUP_BGN(ax)
+	MdlChk.DS_DGROUP_BGN(ax)
 	Va.ChkVA
 	if (ax)
 		++ax
@@ -699,23 +699,23 @@ enter
 		Va.SetMseMode ax
 	fi
 	ConInit ax
-	Key.KeyInit
+	Key98.KeyInit
 	ah = 0
 	al = mode
-	Mdl.DS_DGROUP_END
+	MdlChk.DS_DGROUP_END
 	return
 endproc
 
 *proc Term()
 enter
-	Mdl.DS_DGROUP_BGN(ax)
+	MdlChk.DS_DGROUP_BGN(ax)
 	if (mode == 2)
 		push ax
 		ax = mseMode
 		Va.SetMseMode ax
 		pop  ax
 	fi
-	Mdl.DS_DGROUP_END
+	MdlChk.DS_DGROUP_END
 	return
 endproc
 
@@ -776,4 +776,3 @@ endproc
 @endif
 
 endmodule
-

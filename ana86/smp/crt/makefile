@@ -3,22 +3,18 @@ CC = TCC
 CPP = CPP
 ASM = TASM
 ANA = ANA
-AFLAGS = -Ml -Zi
-CFLAGS = -v
+AFLAGS = -Ml
+CFLAGS =
 ANAFLAGS =
 CPPFLAGS =
-.asm.obj:
-	$(ASM) $(AFLAGS) $<
-.ana.asm:
-	$(ANA) $(ANAFLAGS) -o $<
 .ana.obj:
 	$(ANA) $(ANAFLAGS) -o$*.asm $<
 	$(ASM) $(AFLAGS) $*.asm,,,;
 	del $*.asm
-.anp.obj:
-	$(CPP) $(CPPFLAGS) -o$*.ana $<
-	$(ANA) $(ANAFLAGS) -o $*.ana
-	$(ASM) $(AFLAGS) $*.asm,,,;
+.ana.asm:
+	$(ANA) $(ANAFLAGS) -o $<
+.asm.obj:
+	$(ASM) $(AFLAGS) $<
 .c.obj:
 	$(CC) $(CFLAGS) -c $<
 #
@@ -34,4 +30,3 @@ tst.obj   : tst.c
 va98.obj  : va98.ana
 key98.obj : key98.ana
 va.obj    : va.ana
-

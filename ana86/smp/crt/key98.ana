@@ -1,4 +1,4 @@
-module	KEY98
+module	Key98
 
 	// キー入力関係の関数
 	// 手続きは呼ばれるとき、tf = 0,df = 0,iif = 0 を前提。
@@ -6,7 +6,7 @@ module	KEY98
 	c_name "Cn","_",1
 	model MODEL  //SMALL～LARGE対応
 
-	import BiosKey:BIOS98KEY:"bios_key"
+	import Bios98Key:"Bios_key"
 
 
 @part KEYINIT
@@ -15,7 +15,7 @@ module	KEY98
 begin
 	save ax
 
-	BiosKey.Init
+	Bios98Key.Init
 	return
 endproc
 
@@ -26,8 +26,9 @@ endproc
 begin
 	save bx
 
-	BiosKey.Read
-	dx = bh
+	Bios98Key.Read
+	dl = bh
+	dh = 0
 	return
 endproc
 
@@ -36,7 +37,7 @@ endproc
 *proc GetKeyWait()
 	//out ax	キーコード・データ
 begin
-	BiosKey.ReadWait
+	Bios98Key.ReadWait
 	return
 endproc
 
@@ -46,10 +47,9 @@ endproc
 *proc GetShift()
 	//out ax	b0:ｼﾌﾄ  b1:CAPS  b2:ｶﾅ  b3:GRPH  b4:CTRL
 begin
-	BiosKey.ShiftKeyRead
+	Bios98Key.ShiftKeyRead
 	ah = 0
 	return
 endproc
 
 endmodule
-

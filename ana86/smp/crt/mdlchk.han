@@ -1,0 +1,11 @@
+module MdlChk
+
+*@define DS_DGROUP_BGN(r)	@if %model==COMPACT||%model==LARGE;\
+								push ds;ds = r = %var;@fi
+*@define DS_DGROUP_END()	@if %model==COMPACT||%model==LARGE;pop  ds;@fi
+*@define NearDataModel()	(%model <= 1 || %model == 3)
+*@define FarDataModel() 	(%model == 2 || %model == 4)
+*@define NearCallModel()	(%model <= 2)
+*@define FarCallModel() 	(%model > 2)
+
+endmodule

@@ -1,0 +1,380 @@
+module DOS
+	//	1992	writen by M.Kitamura
+	//	ヘッダの形をした、ファンクション・コール一覧表です^^;ﾔﾊﾞｲｶﾅ...
+	//	実際に使ったことはありません... 実際にはマクロ定義した dos.han
+	//	を使ってます...
+	//	名前の付け方はあましよくないように思うので、適当に変更してね
+
+*proc Call(ah)
+macro
+	intr 0x21
+endproc
+
+// Function
+*const _KbdInEcho	=	0x01 // エコー有りのキーボード１バイト入力
+							 // out al		入力された文字
+*const _ScrnOut 	=	0x02 // １バイト標準出力
+							 // in	dl		出力する文字
+*const _AuxIn		=	0x03 // １バイト補助入力
+							 // out al		入力された文字
+*const _AuxOut		=	0x04 // １バイト補助出力
+							 // in	dl		出力する文字
+*const _PrtOut		=	0x05 // １バイトプリンタ出力
+							 // in	dl		出力する文字
+*const _ConIO		=	0x06 // コンソールとの直接入出力(１バイト)
+							 // 入力 in  al =0
+							 // 	 in  dl =0x0f
+							 // 	 out al 入力した文字
+							 // 	 out zf 0:成功	1:失敗 al=0
+							 // 出力 in  a	=1
+							 // 	 in  dl 出力する文字
+*const _ConIn		=	0x07 // １バイト標準入力
+							 // out al		入力された文字
+*const _KbdIn		=	0x08 // エコー無しのキーボード１バイト入力
+							 // out al		入力された文字
+*const _WriteScrn	=	0x09 // 文字列標準出力. EOS='$'
+							 // in	ds.dx	文字列
+*const _ReadKbd 	=	0x0A // バッファード・キーボード入力（１行）
+							 // 入力バッファの1バイト目にバッファサイズを設定
+							 // in	ds.dx	入力バッファ
+*const _ChkKbd		=	0x0B // キーボード入力のバッファ状態の検査
+							 // out al		0:バッファは空	0xff:文字がある
+*const _FlushKbd	=	0x0C // バッファを空にしてキーボード入力
+							 // alの番号のファンクション・コールを行なう
+							 // in	al		1,6,7,8,0x0a 対応するファンクション
+							 // 			以外		 バッファを空にするのみ
+
+*const _DiskReset	=	0x0D // ディスクのリセット
+*const _SetDrive	=	0x0E // カレント・ドライブの設定
+							 // in	dl		ドライブ番号(0:ｶﾚﾝﾄ 1:A,2:B...)
+							 // out al		使用可能な最大ドライブ数
+*const _GetDrive	=	0x19 // カレント・ドライブの取得
+							 // out al		ドライブ番号(0:ｶﾚﾝﾄ 1:A,2:B...)
+*const _SetDTA		=	0x1A // DTAアドレスの設定
+							 // in	ds.dx	DTAアドレス
+*const _GetCurDrvInfo=	0x1B // カレント・ドライブ情報の取得
+							 // out al		1クラスタあたりのセクタ数
+							 // out cx		1セクタあたりのバイト数
+							 // out dx		1ドライブあたりのクラスタ数
+							 // ds.bx		FAT ID のアドレス
+*cosnt _GetDrvInfo	=	0x1C // ドライブ情報の取得
+							 // out al		0xFF ドライブ指定が無効
+							 // 			以外 1クラスタあたりのセクタ数
+							 // out cx,dx,ds.bx _GetCurDrvInfo に同じ
+*const _SetVect 	=	0x25 // 割り込みベクタの設定
+							 // in	al		割込ベクタ番号
+							 // in	ds.dx	エントリ・アドレス
+*const _MakPSP		=	0x26 // PSP の作成(.com)
+							 // in	dx		作成する PSP のパラグラフ
+*const _GetDate 	=	0x2A // 日付の取得
+							 // out cx		年(1980～2079)
+							 // out dh		月
+							 // out dl		日
+							 // out al		曜日(0:日～6:土)
+*const _SetDate 	=	0x2B // 日付の設定
+							 // in	cx,dh,dl _GetDateに同じ
+							 // out al		0:成功	0xff:無効な日付
+*const _GetTime 	=	0x2C // 時間の取得
+							 // out ch		時間
+							 // out cl		分
+							 // out dh		秒
+							 // out dl		1/100秒
+*const _SetTime 	=	0x2D // 時間の設定
+							 // in	ch,cl,dh,dl _GetTimeに同じ
+							 // out al		0:成功	0xff:無効な時間
+*const _SetVerifyFlag=	0x2E // ベリファイフラグの設定
+							 // in	al		bit0=1:ベリファイをする/0:しない
+*const _GetDTA		=	0x2F // DTAアドレスの取得
+							 // out es.bx	DTAアドレス
+*const _GetVersion	=	0x30 // Dosバージョンの取得
+							 // out al		バージョン整数部
+							 // out ah		バージョン小数部
+							 // break bx,cx 不定（bh:OEM番号 bl.cx:ユーザ番号）
+*const _Keep		=	0x31 // 常駐終了
+							 // in	al		親プロセスへ返すコード
+							 // in	bx		常駐するパラグラフ・サイズ
+*const _GetDPB		=	0x32
+							 // ???
+*const _CtrlC		=	0x33 // ブレイク・チェック設定の取得／設定
+							 // 読出 in  al =0
+							 // 	 out dl 0:ブレイク・チェックoff 1:on
+							 // 	 out al 0xff:失敗(alが0,1以外) 以外:成功
+							 // 設定 in  al =1
+							 // 	 in  dl 0:ブレイク・チェックoff 1:on
+							 // 	 out al 0xff:失敗(alが0,1以外) 以外:成功
+*const _GetVect 	=	0x35 // 割り込みベクタの取得
+							 // in	al		割込ベクタ番号
+							 // out es.bx	エントリ・アドレス
+*const _GetDiskFree =	0x36 // ディスクの空き領域サイズを得る
+							 // in	dl		ドライブ番号(0:ｶﾚﾝﾄ 1:A,2:B...)
+							 // out ax		１クラスタあたりのセクタ数
+							 // 			ax=0xFFFF ドライブ指定が無効
+							 // out bx		使用可能なクラスタ数
+							 // out cx		１セクタあたりのバイト数
+							 // out dx		１ドライブあたりのクラスタ数
+*const _Country 	=	0x38 // 国別情報の取得／設定
+							 // 読出 in  al    国番号(0:USA 0x51:日本 0xff以外)
+							 // 	 in  ds.dx 情報を格納するバッファ(32バイト)
+							 // 	 out cf    0:成功  1:失敗(ax=2)
+							 // 設定 in  al    設定する国番号(0xff以外)
+							 // 	 in  bx    al=0xffのとき2バイトの国番号
+							 // 	 in  dx    =0xFFFF
+							 // 	 out cf    0:成功  1:失敗(ax=2)
+*const _MakDir		=	0x39 // サブ・ディレクトリの作成
+							 // in	ds.dx	パス名
+							 // out cf		0:正常／1:失敗	ax=5:作成できない
+*const _DelDir		=	0x3A // サブ・ディレクトリの削除
+							 // in	ds.dx	パス名
+							 // out cf		0:正常／1:失敗	ax=3:存在しない
+							 // 			ax=5:削除できない ax=16:ｶﾚﾝﾄだった
+*const _SetDir		=	0x3B // カレント・ディレクトリの移動
+							 // in	ds.dx	パス名
+							 // out cf		0:正常／1:失敗	ax=3:存在しない
+*const _Create		=	0x3C // ファイルの作成。すでにパスが存在しても可。
+							 // in	ds.dx	パス名
+							 // in	cx		ファイル属性
+							 // out cf		0:成功／1:失敗 (axにエラー・コード)
+							 // out ax		成功 ファイル・ハンドル
+							 // 			失敗 3:パス名が無効か存在しない
+							 // 				 4:オープンしすぎ
+							 // 				 5:読出専用に書き込もうとした
+*const _Open		=	0x3D // ファイルのオープン
+							 // in	ds.dx	パス名
+							 // in	ax		アクセス制御コード
+							 // out cf		0:成功／1:失敗 (axにエラー・コード)
+							 // out ax		成功 ファイル・ハンドル
+							 // 			失敗 1:無効な機能ｺｰﾄﾞ
+							 // 				 2:ファイルが存在しない
+							 // 				 3:パス名が無効か存在しない
+							 // 				 4:オープンしすぎ
+							 // 				 5:読出専用に書き込もうとした
+							 // 				12:アクセス制御コードが不正
+*const _Close		=	0x3E // ファイルのクローズ
+							 // in	bx		ファイル・ハンドル
+							 // out cf		0:成功／1:失敗
+							 // out ax		失敗時 6:無効なハンドル
+*const _Read		=	0x3F // ファイルの読込
+							 // in	bx		ファイル・ハンドル
+							 // in	ds.dx	バッファ・アドレス
+							 // in	cx		サイズ
+							 // out cf		0:成功／1:失敗
+							 // out ax		成功 読み込んだサイズ
+							 // 			失敗 5:読み込めないファイル
+							 // 				 6:無効なハンドル
+*const _Write		=	0x40 // ファイルの書込
+							 // in	bx		ファイル・ハンドル
+							 // in	ds.dx	バッファ・アドレス
+							 // in	cx		サイズ
+							 // out cf		0:成功／1:失敗
+							 // out ax		成功 書込んだサイズ
+							 // 			失敗 5:書き込めないファイル
+							 // 				 6:無効なハンドル
+*const _Delete		=	0x41 // ファイルの削除
+							 // in	ds.dx	パス名
+							 // out cf		0:成功／1:失敗
+							 // out ax		失敗時	2:ファイルが存在しない
+							 // 					3:パスが無効
+							 // 					5:読出専用で削除できない
+*const _Seek		=	0x42 // ファイル・ポインタの移動
+							 // in	cx.dx	移動量(バイト数)
+							 // arg al		移動の基準とする位置 0:ファイル先頭
+							 // 			1:現在位置	2:ファイル末
+							 // out dx.ax	更新後のファイル先頭からの位置
+							 // out cf		0:正常／1:失敗 ax=1:alの指定ミス
+							 // 					ax=6:bx(ハンドル)の指定ミス
+*const _Attr		=	0x43 // ファイル属性の取得／設定
+							 //共通 in	ds.dx	パス名
+							 // 	out cf,ax	0:成功	1:失敗(ax にERRコード)
+							 //取得 in	al		=0
+							 // 	in	cx		ファイル属性
+							 //設定 in	al		=1
+							 // 	out cx		ファイル属性
+*const _IOCTL		=	0x44 // デバイスに対するI/O コントロール
+							 // in	al		機能番号
+							 // in	他のレジスタは機能ごとに設定
+							 // out 機能ごとに設定
+*const _Dup 		=	0x45 // ファイル・ハンドルのコピー
+							 // in	bx		ファイル・ハンドル
+							 // out ax		新しいファイル・ハンドル
+							 // out cf		0:正常／1:失敗	ax=1:alの指定ミス
+							 // 					ax=6:bx(ハンドル)の指定ミス
+*const _Dup2		=	0x46 // 指定したファイル・ハンドルへのコピー
+							 // in	bx		ファイル・ハンドル
+							 // out ax		新しいファイル・ハンドル
+							 // out cf		0:正常／1:失敗	ax=1:alの指定ミス
+							 // 					ax=6:bx(ハンドル)の指定ミス
+*const _GetDir		=	0x47 // カレント・ディレクトリ名の取得(ドライブ名無）
+							 // ???
+							 // in	dl		ドライブ番号(0:ｶﾚﾝﾄ 1:A,2:B...)
+							 // out si		取得したパス名を収める
+*const _AllocMem	=	0x48 // メモリの取得
+							 // in	bx		パラグラフサイズ
+							 // out ax		先頭パラグラフ
+							 // out cf		0:成功/1:失敗ax=7:MCB破壊 8:ﾒﾓﾘ不足
+							 // 					bx=空きﾒﾓﾘのﾊﾟﾗｸﾞﾗﾌ･ｻｲｽﾞ
+*const _FreeMem 	=	0x49 // (AllocMemでえた)メモリ・ブロックの解放
+							 // arg es		解放するパラグラフの先頭
+							 // out cf		0:成功/1:失敗 ax=7:MCB破壊 9:es不正
+*const _ChgMem		=	0x4A // メモリ・ブロックのサイズ変更
+							 // arg es		変更するパラグラフの先頭
+							 // arg bx		変更後のサイズ
+							 // out cf		0:成功／1:失敗	ax=7:MCB破壊
+							 // 					ax=8:メモリ不足 9:es不正
+							 // 					bx=空きﾒﾓﾘのﾊﾟﾗｸﾞﾗﾌ･ｻｲｽﾞ
+*const _Exec		=	0x4B // プログラムをロードして実行
+							 // in	al		0:ロードして実行  3:ロードのみ
+							 // in	ds.dx	ロードするパス名
+							 // in	es.bx	パラメータ・ブロック
+							 // out cf		0:成功／1:失敗	ax=2:存在しないﾌｧｲﾙ
+							 // 					ax=3:無効なﾊﾟｽ ax=8:ﾒﾓﾘ不足
+							 // 					ax=10:環境変数が32K以上ある
+							 // 					ax=11:EXEﾍｯﾀﾞが正しくない
+*const _Exit		=	0x4C // 終了(非常駐)
+							 // in	al		親プロセスへ返すコード
+*const _GetExitCode =	0x4D // コプロセスの終了コードを読み出す
+							 // out ah		0: 非常駐終了(i0x20,ﾌｧ0x00,ﾌｧ0x4c)
+							 // 			1: Ctrl-Cで終了(intr 0x23)
+							 // 			2: 致命的エラー(intr 0x24)
+							 // 			3: 常駐終了(intr 0x27,ﾌｧﾝｸｼｮﾝ0x31)
+							 // out al		ah=0,3ときコプロセスの復帰値
+*const _FindFirst	=	0x4E // ディレクトリ・エントリの検索
+							 // 結果は DTA に設定
+							 // in	ds.dx	パス名
+							 // in	cx		ファイル属性
+							 // out cf(,ax) 0:成功／1:失敗 ax=2:ﾌｧｲﾙ不在
+							 // 					ax=3:無効なﾊﾟｽ 12:検索終了
+*const _FindNext	=	0x4F // 次のディレクトリ・エントリの検索
+							 // 結果は DTA に設定
+							 // out cf(,ax) 0:成功／1:失敗 ax=12:検索終了
+*const _GetFirstMCB =	0x52 // MCBチェーンの１番目の検索
+							 // out es.bx	MCBのｱﾄﾞﾚｽ
+*const _GetVerifyFlag=	0x54 // ベリファイ・フラグの取得
+							 // out al		0:off 1:on
+*const _Rename		=	0x56 // ファイル名の変更/ディレクトリ・エントリの移動
+							 // arg ds.dx	元のパス名
+							 // arg es.di	移動先のパス名
+							 // in	ds		変更前のパス名のあるセグメント
+							 // out cf,ax	0:成功／1:失敗 ax=2:存在しないﾌｧｲﾙ
+							 // 					ax=3:無効なﾊﾟｽ 5:無効な指定
+							 // 					ax=11:移動先のﾄﾞﾗｲﾌﾞが違う
+*const _FileTime	=	0x57 // ファイルの日付・時間の読出／設定
+							 // 共通 in  bx ファイル・ハンドル
+							 // 	 out cf 0:正常／1:失敗 1:alが0,1以外
+							 // 					ax=6:無効なハンドル
+							 // 読出 in  al =0
+							 // 	 out cx 時間 b15-b11:時 b10-b5:分 b4-b0:秒
+							 // 	 out dx 日付 b15-b9:年	b8-b5:月  b4-b0:日
+							 // 設定 in  al =1	変更はファイルclose時
+							 // 	 in  cx 時間 b15-b11:時 b10-b5:分 b4-b0:秒
+							 // 	 in  dx 日付 b15-b9:年	b8-b5:月  b4-b0:日
+							 // 	年は 1980 を基準
+*const _MemStrategy =	0x58 // メモリ割り当て方法の読出／設定
+							 // 読出 in  al =0
+							 // 	 out ax ストラテジ
+							 // 設定 in  al =1
+							 // 	 in  bx ストラテジ
+							 // 共通 out cf 0:成功／1:失敗
+							 // 	 out ax 失敗時 01:alが0,1以外,ｽﾄﾗﾃｼﾞが無効
+							 // ストラテジ
+							 // 	0x00:最下位のMCBを割当
+							 // 	0x01:最小ｻｲｽﾞのMCBを割当
+							 // 	0x02:最上位のMCBを割当
+							 // 	0x40:最下位のUCBを割当
+							 // 	0x41:最小ｻｲｽﾞのUCBを割当
+							 // 	0x42:最上位のUCBを割当
+							 // 	0x80:最下位のUCBorMCBを割当
+							 // 	0x81:最小ｻｲｽﾞのUCBorMCBを割当
+							 // 	0x82:最上位のUCBorMCBを割当
+*const _GetErrCode	=	0x59 // 拡張失敗コードの取得
+							 // out ax		拡張エラーコード
+							 // out bh		エラークラス
+							 // out bl		可能な対処
+							 // out ch		エラー箇所
+							 // break cl,dx,si,di,bp,ds,es
+*const _MakTmpFile	=	0x5A // テンポラリ・ファイルの作成
+							 // in	cx		ファイル属性
+							 // in	ds.dx	ﾊﾟｽ名(ﾌｧｲﾙ名13ﾊﾞｲﾄの空きが必要)
+							 // out cf(,ax) 0:成功／1:失敗(ax=3,5)
+*const _CreateNew	=	0x5B // ファイルの作成。ファイルが存在すると失敗
+							 // in	ds.dx	パス名
+							 // in	cx		ファイル属性
+							 // out cf		0:成功／1:失敗
+							 // out ax		成功 ファイル・ハンドル
+							 // 			失敗 3:パス名が無効か存在しない
+							 // 				 4:オープンしすぎ
+							 // 				 5:読出専用に書き込もうとした
+							 // 				 0x50:ファイルがすでに存在
+*const _FileLock	=	0x5C // ファイルのロックの設定／解除
+							 // in	al		0:ロック  1:解除
+							 // in	bx	ファイル・ハンドル
+							 // in	cx.dx	領域の位置
+							 // in	si.di	領域のサイズ
+							 // out cf(,ax) 0:成功／1:失敗
+							 // out ax		失敗時 1:alが0,1以外 6:無効なﾊﾝﾄﾞﾙ
+							 // 			0x21:ﾛｯｸしていない領域は解除不可能
+*const _TransPathName=	0x60 // 論理的パス名を物理的パス名に変換
+							 // in	ds.si	元のパス名
+							 // in	es.di	変換後のパス名
+*const _GetPSP		=	0x62 // カレント・プロセスのPSPの取得
+							 // out bx		PSPのパラグラフ
+
+
+*const STDIN,STDOUT,STDERR
+
+// ファイル属性
+//	0x01	取得専用
+//	0x02	不可視属性（通常、ディレクトリ検索で除外）
+//	0x04	システム・ファイル
+//	0x08	ボリューム名
+//	0x10	ディレクトリ
+//	0x20	保存ビット
+
+// アクセス制御コード
+//	b7		0～1	インヘリッド・ビット
+//	b6-b4	シュアリング・モード
+//	b3-b0	アクセス・コード
+//			0b0000	読出
+//			0b0001	書込
+//			0b0010	読出／書込
+
+@if 0	//試してないので嘘かも
+// ﾊﾟｯｷﾝｸﾞされた日付・時間を分解  t:時間(word) dt:日付(word)
+*@define FtSec(t)		(t &= 0x1f)
+*@define FtHourMin(t)	(t >>= 3);t.l >>= 2;t &= 0x1f3f;
+		// out	t.h:時間 t.l:分
+*@define FtDay(dt)		(dt &= 0x1f)
+*@define FtYearMonth(dt)	(dt >>= 1);dt.l >>= 4;dt &= 0x7f0f;
+		// out	dt.h:年(-1980)	dt.l:月
+
+// ﾊﾟｯｷﾝｸﾞされた日付・時間を作成
+*@define MAKFTIME(h,m,s)	(((h)<<=11)|((m)<<=5)|(s))
+*@define MAKFDATE(y,m,a)	(((y)<<=9)|((m)<<=5)|(a))
+@fi
+
+*struct FIND	//_FindFirst/_FindNextで用いる
+	drv:b
+	name:b(8)
+	ext:b(3)
+	attr:b
+	count:w
+	cluster:w
+	rsv:b(4)
+	fattr:b
+	ftime:w
+	fdate:w
+	fsize:d
+	fname:b(13)
+endstruct
+
+struct MCB
+	mark:b		// 'M':継続  'Z':最終ブロック
+	owner:w 	// このﾒﾓﾘﾌﾞﾛｯｸ要求したﾌﾟﾛｾｽのPSPｾｸﾞﾒﾝﾄ
+				// 0000h=Free Memory 0008h=DOSに属する
+	psize:w 	// 使用するメモリのパラグラフサイズ
+	rsv:b(3)	// 予約領域
+	pname:b(8)	// ASCIZのﾌﾟﾛｸﾞﾗﾑ名(08h) (v4.x 5.0)
+endstruct
+	// 次のMCB=現在のMCB(パラグラフ)＋使用するメモリの(パラグラフ)サイズ＋１
+	// PSPの直前の16バイトがそのMCB
+
+endmodule

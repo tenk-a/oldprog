@@ -1,4 +1,4 @@
-module BIOS98KEY
+module Bios98Key
 	model MODEL
 
 *proc Init()
@@ -40,4 +40,3 @@ macro
 endproc
 
 endmodule
-

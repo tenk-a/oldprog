@@ -1,0 +1,38 @@
+module Chk086
+	stack 0x100
+	start main
+
+@define EXIT(er)	al = er;ah = 0x4c;intr 0x21
+
+proc puts(dx)
+// ds.dx”Ô’n‚É‚ ‚é•¶š—ñ‚ğ•\¦. EOS‚Í'$'.  ax = 0x07‚É‚È‚éB
+macro
+	ah = 0x09
+	intr  0x21
+endproc
+
+proc chk86()
+//	CPU‚ª 8086(V30)‚È‚ç ax = 0(zf = 1), 186ˆÈã‚È‚ç ax = 1(zf = 0)
+begin
+	save cx
+	ax = 1
+	cl = 32
+	|shr ax,cl
+	return
+endproc
+
+proc main()
+//	8086(V30) or 186^
+begin
+	ds = ax = %var
+	chk86
+	if (zf)
+		dx = "8086(V30)\N$"
+	else
+		dx = "186\N$"
+	fi
+	puts dx
+	EXIT(0)
+endproc
+
+endmodule

@@ -2,7 +2,7 @@ module DOSCON
 	// DOS のファインクションによるコンソール入出力
 	c_name "Dos","_",1
 	model SMALL
-	import Mdl:MDL
+	import MdlChk
 
 
 @part DCPUTSTR
@@ -75,4 +75,3 @@ begin
 endproc
 
 endmodule
-

@@ -1,0 +1,131 @@
+/* ç\ë¢ëÃÇÃÇƒÇ∑Ç∆ */
+module CHK
+	struct TST; t2:w, t4:d, n:b(4); endstruct
+	var tt:TST
+	var ta:TST(4)
+
+proc StructChk()
+begin
+	TST[bx].t2 = 0
+	TST[bx].t4 = 2
+	TST[bx].t2.l = 0
+	TST[bx].t2.h = 1
+	TST[bx].t4.l = 2
+	TST[bx].t4.h = 4
+	TST[bx].t4.l.l = 2
+	TST[bx].t4.l.h = 3
+	TST[bx].t4.h.l = 4
+	TST[bx].t4.h.h = 5
+	TST[bx].n(0) = 6
+	TST[bx].n(1) = 7
+	TST[bx].n(2) = 8
+	TST[bx].n(3) = 9
+
+	tt.t2 = 0
+	tt.t4 = 2
+	tt.t2.l = 0
+	tt.t2.h = 1
+	tt.t4.l = 2
+	tt.t4.h = 4
+	tt.t4.l.l = 2
+	tt.t4.l.h = 3
+	tt.t4.h.l = 4
+	tt.t4.h.h = 5
+	tt.n(0) = 6
+	tt.n(1) = 7
+	tt.n(2) = 8
+	tt.n(3) = 9
+
+//
+	ta(0).t2 = 0
+	ta(0).t4 = 2
+	ta(0).t2.l = 0
+	ta(0).t2.h = 1
+	ta(0).t4.l = 2
+	ta(0).t4.h = 4
+	ta(0).t4.l.l = 2
+	ta(0).t4.l.h = 3
+	ta(0).t4.h.l = 4
+	ta(0).t4.h.h = 5
+	ta(0).n(0) = 6
+	ta(0).n(1) = 7
+	ta(0).n(2) = 8
+	ta(0).n(3) = 9
+
+	ta(1).t2 = 10
+	ta(1).t4 = 12
+	ta(1).t2.l = 10
+	ta(1).t2.h = 11
+	ta(1).t4.l = 12
+	ta(1).t4.h = 14
+	ta(1).t4.l.l = 12
+	ta(1).t4.l.h = 13
+	ta(1).t4.h.l = 14
+	ta(1).t4.h.h = 15
+	ta(1).n(0) = 16
+	ta(1).n(1) = 17
+	ta(1).n(2) = 18
+	ta(1).n(3) = 19
+
+	ta(2).t2 = 20
+	ta(2).t4 = 22
+	ta(2).t2.l = 20
+	ta(2).t2.h = 21
+	ta(2).t4.l = 22
+	ta(2).t4.h = 24
+	ta(2).t4.l.l = 22
+	ta(2).t4.l.h = 23
+	ta(2).t4.h.l = 24
+	ta(2).t4.h.h = 25
+	ta(2).n(0) = 26
+	ta(2).n(1) = 27
+	ta(2).n(2) = 28
+	ta(2).n(3) = 29
+endproc
+
+//
+//
+//
+	struct ST
+		m1:b
+		m2:b
+		--
+		m3:w
+		m4:w
+		m5:w
+		++
+		m6:d
+		--
+		m7:w
+		m8:w
+	endstruct
+
+	var vst:ST
+
+proc StructChk2()
+begin
+	ST[bx].m1 = 0
+	ST[bx].m2 = 1
+	ST[bx].m3 = 0
+	ST[bx].m4 = 2
+	ST[bx].m5 = 4
+	ST[bx].m6 = 6
+	ST[bx].m7 = 6
+	ST[bx].m8 = 8
+
+	vst.m1 = 0
+	vst.m2 = 1
+	vst.m3 = 0
+	vst.m4 = 2
+	vst.m5 = 4
+	vst.m6 = 6
+	vst.m7 = 6
+	vst.m8 = 8
+
+	ax = %vst.m1
+	bx = %ST.m2
+	cx = %ST.m3
+	dx = %vst.m4
+endproc
+
+endmodule
