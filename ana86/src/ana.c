@@ -6,29 +6,40 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
+#ifdef __BORLANDC__
 #include <dir.h>
+#elif defined _MSC_VER
+#include <direct.h>
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
+#endif
 #define EXT
 #include "anadef.h"
 
-#define TITLE	"ana86 開発途上版(L1) Ver. 0.20 (" __DATE__ ")  by M.Kitamura"
+#define TITLE			"ana86 開発途上版(L1) Ver. 0.22 (" __DATE__ ")  by M.Kitamura"
 
 /*#define BUF_SIZE 1030 */
-#define IMP_FNAM_MAX 72
+#define IMP_FNAM_MAX	MAX_PATH	//72
 
 static byte_fp oSegSrc[2][4] = {
 	{"_TEXT", "_DATA", "_BSS", "_STACK"},
-	{"TEXT", "DATA", "BSS", "XSTACK"}
+	{ "TEXT",  "DATA",  "BSS", "XSTACK"}
 };
-static byte_fp oSegS[4];
-static St_t_fp oSegC_sp;
-static St_t_fp oStart_sp;
-static byte oSegC_flg;
-static byte oImpFlg;
-static byte *oAsmExt[2] = {"ASM", "A86"};
-static byte Opt_lsic;
-static byte Ana_comModel;
-static int Ana_model0;
-static byte Opt_bssClassFlg = 1;
+
+static byte_fp 	oSegS[4];
+static St_t_fp 	oSegC_sp;
+static St_t_fp 	oStart_sp;
+static byte 	oSegC_flg;
+static byte 	oImpFlg;
+static byte*	oAsmExt[2] = {"ASM", "A86"};
+static byte 	Opt_lsic;
+static byte 	Ana_comModel;
+static int 		Ana_model0;
+static byte 	Opt_bssClassFlg = 1;
+
+
 
 /*----------------------------- sub.c ---------------------------------------*/
 #if 0
@@ -291,7 +302,8 @@ static void DeclSeg(void)
 	word	seg;
 	byte	f;
 
-	f = 0;
+	f   = 0;
+	ep  = 0;
 	seg = I_FAR;
 	if (!(Ana_mode == MD_EXPO || Ana_mode == MD_MODULE))
 		goto ERR;
@@ -371,7 +383,11 @@ static void DeclSeg(void)
 	Sym_Get();
 	if (Sym_tok != T_STRING || Sym_strLen > 11)
 		goto ERR;
-	strcpy(ep->b.buf, Sym_str);
+	assert(ep != 0);
+	if (ep)
+		strcpy(ep->b.buf, Sym_str);
+	else
+		Msg_Err("PGERR:segment\n");
 	Sym_GetChkEol();
   RTS:
 	if (t == I_VAR) {
@@ -407,10 +423,10 @@ static void DeclModel(int i)
 {
 	static byte cstr[40 + LBL_NAME_SIZ];
 
-	oSegS[GS_CODE] =			/* "_TEXT"; */
-		Mod_grps[0] = oSegSrc[Opt_lsic][GS_CODE];
-	Mod_grps[1] = "DGROUP";
-	Mod_grps[2] = "";
+	oSegS[GS_CODE]  =								/* "_TEXT"; */
+	Mod_grps[0]     = oSegSrc[Opt_lsic][GS_CODE];
+	Mod_grps[1]     = "DGROUP";
+	Mod_grps[2]     = "";
 	if (i > 2) {
 		if (Mod_sp) {
 		/* sprintf(cstr,"%s%s_TEXT",Mod_sp->g.modname,Mod_sp->g.sep); */
@@ -523,8 +539,11 @@ void	DeclReOpen(void)
 
 static int ImportFile(byte * fnam)
 {
-	int 	i, dirflg, ef;
-	word	k, c;
+	int 	i;
+	int		dirflg;
+	int		ef;
+	word	k;
+	word	c;
 
 	ef = dirflg = i = 0;
 	k = Ch_SkipSpc();
@@ -552,6 +571,7 @@ static int ImportFile(byte * fnam)
 				goto ERR;
 			}
 		} while ((c = Ch_GetK()) != k && i < IMP_FNAM_MAX - 4);
+
 		fnam[i] = '\0';
 		if (ef == 0) {
 			fnam[i++] = '.';
@@ -686,7 +706,7 @@ static int DeclImport(int defFlg)
 	}
 	if ((ssp = St_Search(Sym_name, St_inpRoot)) != NULL) {
 		Sym_SkipCR();
-		sp->v.st = ssp->v.st;
+		sp->v.st  = ssp->v.st;
 		sp->v.grp = ssp->v.grp;
 	} else {
 		if (Sym_Get() != I_CLN) {
@@ -789,7 +809,7 @@ static long ModuleHdr(void)
 
 			modelFlg = 1;
 			Sym_Get();
-			am = (int) Expr_Cnstnt();
+			am = (int16) Expr_Cnstnt();
 			if (am < 0 || am > 4) {
 				Msg_Err("指定された model の値が 0 ～ 4 以外");
 			} else {
@@ -849,6 +869,10 @@ int 	Decl_Module(int mmodFlg)
 	St_expoRoot = NULL;
 	Mod_sp		= NULL;
 
+	if (Decl_defFlg) {
+		RsvLblSet2();
+	}
+
 	/* 'module'命令の処理 */
 	if (mmodFlg == 0) {
 		Sym_rsvflg = 0;
@@ -873,11 +897,11 @@ int 	Decl_Module(int mmodFlg)
 					St_expoRoot = Mod_sp->v.st;
 					goto ENDF;
 				}
-				Mod_sp			= St_Ins("_@｢db｣@_", &St_inpRoot);
-				Mod_sp->v.tok	= T_GROUP;
-				Mod_sp->v.grp	= Mod_sp;
+				Mod_sp			  = St_Ins("_@｢db｣@_", &St_inpRoot);
+				Mod_sp->v.tok	  = T_GROUP;
+				Mod_sp->v.grp	  = Mod_sp;
 				Mod_sp->g.modname = "";
-				Mod_sp->g.sep[0] = 0;
+				Mod_sp->g.sep[0]  = 0;
 				goto SSS2;
 			}
 			Msg_Err("ソースの最初は 'module' でないといけない");
@@ -894,15 +918,15 @@ int 	Decl_Module(int mmodFlg)
 		St_expoRoot = Mod_sp->v.st;
 		goto ENDF;
 	}
-	Mod_sp			= St_Ins(Sym_name, &St_inpRoot);
-	Mod_sp->v.tok	= T_GROUP;
-	Mod_sp->v.grp	= Mod_sp;
+	Mod_sp			  = St_Ins(Sym_name, &St_inpRoot);
+	Mod_sp->v.tok	  = T_GROUP;
+	Mod_sp->v.grp 	  = Mod_sp;
 	Mod_sp->g.modname = Mod_sp->v.name;
-	Mod_sp->g.sep[0] = '@';
- /* Mod_sp->g.seg[2] = '\0'; */
+	Mod_sp->g.sep[0]  = '@';
+ /* Mod_sp->g.seg[2]  = '\0'; */
 	if ((sp = Sym_NameNew(Sym_name, T_MODULE, MD_MODULE)) == NULL)
 		goto ENDF;
-	sp->v.grp		= Mod_sp;
+	sp->v.grp		  = Mod_sp;
 	Sym_GetChkEol();
 
  /* モジュール宣言部 */
@@ -911,7 +935,7 @@ int 	Decl_Module(int mmodFlg)
  SSS2:
 	stksiz = ModuleHdr();
 
- /* import 命令 */
+	/* import 命令 */
 	t = 0;
 	while (Ana_err == 0) {
 		Ana_mode = MD_MODULE;
@@ -939,7 +963,7 @@ int 	Decl_Module(int mmodFlg)
 		/* if (oStart_sp) fprintf(Out_file,"\t;dosseg\n"); */
 		if (Opt_cpu && Opt_r86 == 0)
 			fprintf(Out_file, "\t.%c86\n", '0' + Opt_cpu);
-		RsvLblSet2();
+		//RsvLblSet2();	// 先に行うように変更.
 		DeclModel(Ana_model);
 		OutGroup(Ana_model);
 		OutSegBgn(gSeg_sp[GS_CODE]);
@@ -1030,20 +1054,20 @@ int 	Decl_Module(int mmodFlg)
 		}
 		if (Ana_err == ANAERR_ENDP)
 			Ana_err = 0;
-		Sym_crMode = 1;
+		Sym_crMode  = 1;
 		Sym_Get();
-		Sym_crMode = 0;
+		Sym_crMode  = 0;
 	}
 
 	{
 		while (Ana_err == 0) {
 			Ana_mmodFlg = 1;
-			Sym_crMode = 1;
+			Sym_crMode  = 1;
 			Sym_Get();
-			Sym_crMode = 0;
+			Sym_crMode  = 0;
 			Ana_mmodFlg = 0;
 			if (Sym_tok == I_MODULE) {
-				nomret = ANAERR_MMOD;
+				nomret  = ANAERR_MMOD;
 				break;
 			}
 		}
@@ -1425,7 +1449,9 @@ void	GetCfg(byte * av0)
 		*np = *av0;
 	}
 	np = stpcpy(np, ".CFG");
-	fp = fopen_e(nm, "r");
+	fp = fopen(nm, "r");
+	if (fp == NULL)
+		return;
 	np++;
 	i = 128 * 3 - strlen(nm);
 	for (; ;) {
@@ -1453,21 +1479,30 @@ void	GetCfg(byte * av0)
 int 	main(int argc, byte * argv[])
 {
 	static byte in_name[NAM_SIZE];
-	FILE   *fp, *ofp, *efp;
-	byte   *p;
-	byte	c;
-	int 	i;
+	FILE   		*fp;
+	FILE   		*ofp;
+	FILE   		*efp;
+	byte   		*p;
+	byte		c;
+	int 		i;
+
+  #ifdef _MSC_VER
+	argv[0] = _pgmptr;
+  #endif
 
 	if (argc < 2)
 		Usage();
-	Ana_oldver = 1;
-	Ana_model0 = 1;
-	Ana_model = -1;
-	oErrFname = NULL;
-	Opt_auto = 1;
-	Opt_procAssumeFlg = 1;
-	Ana_incDir = NULL;
-	Opt_namePub = Opt_procFlg = Opt_comment = oOutFlg = 0;
+	Ana_oldver  		= 1;
+	Ana_model0  		= 1;
+	Ana_model   		= -1;
+	oErrFname   		= NULL;
+	Opt_auto    		= 1;
+	Opt_procAssumeFlg	= 1;
+	Ana_incDir  		= NULL;
+	Opt_namePub 		=
+	Opt_procFlg 		=
+	Opt_comment 		=
+	oOutFlg 			= 0;
 	init();
 	Rsv_LblSet();
 	for (i = 1, c = 0; i < argc; i++) {
@@ -1512,7 +1547,7 @@ int 	main(int argc, byte * argv[])
 			strcpy(in_name, p);
 		else
 			ChgDirExt(in_name, p, NULL, Ana_ext);
-		p = in_name;
+		p  = in_name;
 		fp = fopen_e(p, "r");
 		setvbuf(fp, NULL, _IOFBF, 0x4000);
 		Ana_partLstFile = Rsp_file = NULL;
@@ -1538,11 +1573,11 @@ int 	main(int argc, byte * argv[])
 			}
 		}
 		{
-			Ch_file = fp;
-			Out_file = ofp;
-			Err_File = efp;
+			Ch_file    = fp;
+			Out_file   = ofp;
+			Err_File   = efp;
 			Ch_srcName = p;
-			GoLbl_no = 0;
+			GoLbl_no   = 0;
 			if (Ch_Init())
 				Msg_Err("初期化エラー");
 			oStart_sp = NULL;

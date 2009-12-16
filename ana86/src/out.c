@@ -1,14 +1,16 @@
 #include <string.h>
+#include <assert.h>
 #include "anadef.h"
+
+#define EXPR_LINE_SIZE		1024
 
 /*---------------------------------------------------------------------------*/
 
-global void Msg_Err_
-(
+global void Msg_Err_(
 	byte_fp msg
   #ifdef DEBUG
 	,byte * dbgsrcfile
-	,word dbgerrline
+	,word   dbgerrline
   #endif
 )
 {
@@ -22,8 +24,7 @@ global void Msg_Err_
 }
 
 
-global void Msg_PrgErr_
-(
+global void Msg_PrgErr_(
 	byte_fp msg
 #ifdef DEBUG
 	,byte * dbgsrcfile
@@ -49,25 +50,30 @@ int 	IsEp_R1op(Et_t_fp ep, word n)
 	return (IsEp_Op(ep, T_R1) && ep->c.reg == n);
 }
 
+
 int 	IsEp_R2op(Et_t_fp ep, word n)
 {
 	return (IsEp_Op(ep, T_R2) && ep->c.reg == n);
 }
+
 
 int 	IsEp_R4op(Et_t_fp ep, word n)
 {
 	return (IsEp_Op(ep, T_R4) && ep->c.reg == n);
 }
 
+
 int 	IsEp_Reg12(Et_t_fp ep)
 {
 	return (IsEp_Op(ep, T_R2) || IsEp_Op(ep, T_R1));
 }
 
+
 int 	IsEp_CnstVal(Et_t_fp ep, long n)
 {
 	return (IsEp_Op(ep, T_CNST) && ep->c.val == n);
 }
+
 
 int 	IsEp_W2DCnst(Et_t_fp ep)
 {
@@ -87,37 +93,43 @@ int 	IsEp_W2DCnst(Et_t_fp ep)
 	return 0;
 }
 
+
 int 	IsEp_Cnsts(Et_t_fp ep)
 {
 	return (IsEp_Op(ep, T_CNST) || IsEp_Op(ep, T_CNSTEXPR) || IsEp_Op(ep, T_OFS));
 }
+
 
 int 	IsEp_Lft1(Et_t_fp ep)
 {
 	return (IsEp_Op(ep, T_R1) || IsEp_Op(ep, T_M1));
 }
 
+
 int 	IsEp_Lft2(Et_t_fp ep)
 {
 	return (IsEp_Op(ep, T_R2) || IsEp_Op(ep, T_M2));
 }
 
+
 int 	IsEp_Lft4(Et_t_fp ep)
 {
-
 	return (IsEp_Op(ep, T_R4) || IsEp_Op(ep, T_M4));
 }
+
 
 int 	IsEp_Lft4S(Et_t_fp ep)
 {
 	return (IsEp_Op(ep, T_R4) || IsEp_Op(ep, T_M4) || IsEp_Op(ep, T_SEG4));
 }
 
+
 int 	IsEp_Lft12(Et_t_fp ep)
 {
 	return (IsEp_Op(ep, T_R2) || IsEp_Op(ep, T_M2)
 			|| IsEp_Op(ep, T_R1) || IsEp_Op(ep, T_M1));
 }
+
 
 int 	IsEp_Lft124(Et_t_fp ep)
 {
@@ -128,6 +140,7 @@ int 	IsEp_Lft124(Et_t_fp ep)
 			|| IsEp_Op(ep, T_R4) || IsEp_Op(ep, T_M4));
 }
 
+
 int 	IsEp_Rht1(Et_t_fp ep)
 {
 	if (IsEp_Op(ep, T_CNST)) {
@@ -137,6 +150,7 @@ int 	IsEp_Rht1(Et_t_fp ep)
 	}
 	return (IsEp_Op(ep, T_CNSTEXPR) || IsEp_Lft1(ep));
 }
+
 
 int 	IsEp_Rht12(Et_t_fp ep)
 {
@@ -149,16 +163,19 @@ int 	IsEp_Rht12(Et_t_fp ep)
 			|| IsEp_Op(ep, T_OFS) || IsEp_Op(ep, T_ADDR));
 }
 
+
 int 	IsEp_Rht4(Et_t_fp ep)
 {
 	return (IsEp_Cnsts(ep) || IsEp_Reg4(ep) 	/* || IsEp_Seg4(ep) */
 			||IsEp_Mem4(ep) || IsEp_Op(ep, I_W2D));
 }
 
+
 int 	IsEp_Mem124(Et_t_fp ep)
 {
 	return (IsEp_Op(ep, T_M2) || IsEp_Op(ep, T_M1) || IsEp_Op(ep, T_M4));
 }
+
 
 int 	IsEp_MemMem(Et_t_fp lp, Et_t_fp rp)
 {
@@ -176,6 +193,7 @@ int 	IsEp_MemMem(Et_t_fp lp, Et_t_fp rp)
 	}
 	return 0;
 }
+
 
 #if 0
 int 	IsEp_Dual(Et_t_fp ep)
@@ -213,6 +231,7 @@ int 	IsEp_Dual(Et_t_fp ep)
 
 #endif
 
+
 int 	IsEp_CnstTyp(word t, Et_t_fp ep)
 {
 	if (IsEp_Cnst(ep)) {
@@ -245,9 +264,11 @@ int 	IsEp_CnstTyp(word t, Et_t_fp ep)
 	return 0;
 }
 
+
+
 /*------------------------------------------------------------------*/
 
-byte_fp Str_StName(St_t_fp sp)
+byte_fp Str_StName(const St_t_fp sp)
 {
 	byte far *str;
 	static byte buf[LBL_NAME_SIZ * 4 /* 2 */ + 4];
@@ -290,6 +311,7 @@ byte_fp Str_StName(St_t_fp sp)
 	return str;
 }
 
+
 static byte *StrTyp(word op)
 {
 	switch (op) {
@@ -303,7 +325,8 @@ static byte *StrTyp(word op)
 	return "BYTE";
 }
 
-void	Out_LblTyp(St_t_fp sp, int typ)
+
+void	Out_LblTyp(const St_t_fp sp, int typ)
 {
 	byte far *str;
 
@@ -341,39 +364,46 @@ void	Out_LblTyp(St_t_fp sp, int typ)
 	}
 }
 
+
 global void Out_golbl(word n)
 {								/* $$ */
 	fprintf(Out_file, "L$%d:\n", n);
 	return;
 }
 
-global void Out_LblStr(byte_fp p)
+
+global void Out_LblStr(const byte_fp p)
 {
 	fprintf(Out_file, "%s:\n", p);
 	return;
 }
 
-global void Out_Nm(byte_fp p)
+
+global void Out_Nm(const byte_fp p)
 {
 	fprintf(Out_file, "\t%s\n", p);
 }
 
-global void Out_NmSt(byte_fp p, byte_fp q)
+
+global void Out_NmSt(const byte_fp p, const byte_fp q)
 {
 	fprintf(Out_file, "\t%s\t%s\n", p, q);
 }
 
-global void Out_NmStSt(byte_fp p, byte_fp q, byte_fp r)
+
+global void Out_NmStSt(const byte_fp p, const byte_fp q, const byte_fp r)
 {
 	fprintf(Out_file, "\t%s\t%s,%s\n", p, q, r);
 }
 
-global void Out_NmStStSt(byte_fp p, byte_fp q, byte_fp r, byte_fp s)
+
+global void Out_NmStStSt(const byte_fp p, const byte_fp q, const byte_fp r, const byte_fp s)
 {
 	fprintf(Out_file, "\t%s\t%s,%s,%s\n", p, q, r, s);
 }
 
-global void Out_Line(byte_fp l)
+
+global void Out_Line(const byte_fp l)
 {
 	fprintf(Out_file, "%s\n", l);
 }
@@ -392,15 +422,19 @@ void	Out_Dup(long t, word n)
 	}
 }
 
-/*------------------------------------------------------------------------*/
-static byte oOffsetFlg;
 
-static byte oStrReg[][3] = {
+
+/*------------------------------------------------------------------------*/
+static byte 		oOffsetFlg;
+
+static const byte 	oStrReg[][3] = {
 	"ah", "ch", "dh", "bh", "al", "cl", "dl", "bl",
 	"ax", "cx", "dx", "bx", "di", "si", "bp",
 	"sp", "ip", "cs", "ds", "es", "ss"
 };
 #define StrReg(n)	oStrReg[(n) - I_AH]
+
+
 
 static byte *StrSegGrp(byte * s, word seg)
 {
@@ -411,6 +445,7 @@ static byte *StrSegGrp(byte * s, word seg)
 	}
 	return s;
 }
+
 
 static byte *StrAddVal(byte * s, int val)
 {
@@ -424,12 +459,14 @@ static byte *StrAddVal(byte * s, int val)
 	return s + l;
 }
 
+
 static byte *StrAddOfs(byte * s, int ofs)
 {
  /* if (ofs < 0) */
  /* Msg_PrgErr("µÌ¾¯Ä‚ª•‰‚É‚È‚Á‚Ä‚¢‚é"); */
 	return StrAddVal(s, ofs);
 }
+
 
 static byte *StrVal(byte * s, long val)
 {
@@ -441,6 +478,7 @@ static byte *StrVal(byte * s, long val)
 		l = sprintf(s, "0%lXh", val);
 	return s + l;
 }
+
 
 static byte *StrExpr(byte * s, Et_t_fp xp)
 {
@@ -624,9 +662,10 @@ static byte *StrExpr(byte * s, Et_t_fp xp)
 	return s;
 }
 
+
 global void Out_Nem0(word t)
 {
-	byte   *nem[] = {
+	static byte * nem[] = {
 		"aaa", "aad", "aam", "aas", "daa", "das", "db\t0C9h\t;leave", "lock",
 		"hlt", "nop", "into", "iret", "db\t61h\t;popa", "db\t60h\t;pusha",
 		"db\t26h\t;seg es", "db\t2Eh\t;seg ds",
@@ -642,7 +681,10 @@ global void Out_Nem0(word t)
 	return;
 }
 
-static byte oBuf[1000], oBuf2[1000];
+
+static byte 	oBuf[EXPR_LINE_SIZE];
+static byte		oBuf2[EXPR_LINE_SIZE];
+
 
 static void OutRetf(Et_t_fp lp)
 {
@@ -657,7 +699,7 @@ static void OutRetf(Et_t_fp lp)
 	}
 }
 
-global void Out_Nem1(word xo, Et_t_fp lp)
+global void Out_Nem1(word xo, const Et_t_fp lp)
 {
 	byte_fp s;
 
@@ -740,7 +782,7 @@ global void Out_Nem1(word xo, Et_t_fp lp)
 }
 
 
-global void Out_Nem2(word xo, Et_t_fp lp, Et_t_fp rp)
+global void Out_Nem2(word xo, const Et_t_fp lp, const Et_t_fp rp)
 {
 	byte   *s;
 
@@ -836,10 +878,10 @@ global void Out_Nem2(word xo, Et_t_fp lp, Et_t_fp rp)
 	return;
 }
 
-global void Out_Nem3(word xo, Et_t_fp p1, Et_t_fp p2, Et_t_fp p3)
+global void Out_Nem3(word xo, const Et_t_fp p1, const Et_t_fp p2, const Et_t_fp p3)
 {
 	byte   *s;
-	byte	buf3[1000];
+	byte	buf3[EXPR_LINE_SIZE];
 
 	if (xo == I_IMUL) {
 		s = "imul";
@@ -885,6 +927,7 @@ void	Out_Enter(word siz, word level)
 	}
 }
 
+
 void	Out_Leave(void)
 {
 	if (Opt_cpu)
@@ -895,42 +938,48 @@ void	Out_Leave(void)
 	}
 }
 
+
 void	Out_ShiftReg12Cnst(word t, word reg, int n)
 {
-	byte	regs[] = {4, 5, 6, 7, 0, 1, 2, 3, 0, 1, 2, 3, 7, 6, 5, 4};
-	byte   *p;
-	int 	o0, o1;
+	static const byte	regs[] = {4, 5, 6, 7, 0, 1, 2, 3, 0, 1, 2, 3, 7, 6, 5, 4};
+	char   *p;
+	int 	o0;
+	int		o1;
 
 	o0 = (Op_Reg1(reg)) ? 0xc0 : 0xc1;
+	o1 = 0;
+	p  = "";
 	switch (t) {
 	case I_ROLEQ:
 		o1 = 0xC0;
-		p = "rol";
+		p  = "rol";
 		break;
 	case I_ROREQ:
 		o1 = 0xC8;
-		p = "ror";
+		p  = "ror";
 		break;
 	case I_RCLEQ:
 		o1 = 0xD0;
-		p = "rcl";
+		p  = "rcl";
 		break;
 	case I_RCREQ:
 		o1 = 0xD8;
-		p = "rcr";
+		p  = "rcr";
 		break;
 	case I_SHLEQ:
 		o1 = 0xE0;
-		p = "shl";
+		p  = "shl";
 		break;
 	case I_SHREQ:
 		o1 = 0xE8;
-		p = "shr";
+		p  = "shr";
 		break;
 	case I_SAREQ:
 		o1 = 0xF8;
-		p = "sar";
+		p  = "sar";
 		break;
+	default:
+		assert(0);
 	}
 	fprintf(Out_file, "\tdb\t0%02xh,0%02xh,%d\t;%s %s,%d\n",
 			o0, o1 + regs[reg - I_AH], n, p, StrReg(reg), n);

@@ -4,28 +4,35 @@
 /*#define MVAR*/
 #define MACR
 
-#define ERR_VAL  (0x80000000L)
+
+#define ERR_VAL  	(0x80000000L)
 #define strend(p)	((p)+strlen(p))
+
+
 /*--------------- symbol ---------------*/
+
 enum {
 	MD_EXPO,MD_RSV,MD_MODULE,MD_PROC,MD_STRUCT
 };
+
 enum {
 	GS_CODE, GS_DATA, GS_BSS, GS_STACK
 };
+
 enum {
 	FL_EXPO = 0x01, FL_FAR = 0x02, FL_CPROC = 0x04, FL_EXTERN = 0x08,
 	FL_INPO = 0x10, FL_USE = 0x20
 };
+
 enum {
 	I_EOF=0,	/* "EOF" */
-	I_BYTE, 	/*ÿ"byte" */
-	I_WORD, 	/* "word"ÿ*/
+	I_BYTE, 	/* "byte" */
+	I_WORD, 	/* "word" */
 	I_PTR,  	/* "pointer" */
 	I_DWORD,	/* "dword" */
 	I_FPTR, 	/* "fptr" */
 	I_SEGPTR,	/* "segptr" */
-	I_NEAR, 	/*ÿ"near" */
+	I_NEAR, 	/* "near" */
 	I_QWORD,	/* "qword" */
 	I_FAR,  	/* "far" */
 	I_TBYTE,	/* "tbyte" */
@@ -301,7 +308,7 @@ enum {
 	I_SFCM, 	/* ".sf." */
 	I_ZFCM, 	/* ".zf." */
 	I_OVFCM,	/* ".ovf." */
-	
+
 	I_NCFCM, 	/* ".cf." */
 	I_NPFCM, 	/* ".pf." */
 	I_NSFCM, 	/* ".sf." */
@@ -413,129 +420,140 @@ enum {
 
 };
 
-#define I_DXAX  (I_DX*0x100+I_AX)	/* "dx.ax" */
+
+#define I_DXAX  	(I_DX*0x100+I_AX)	/* "dx.ax" */
+
 
 typedef struct {
-	word lbl[2];
-	byte flg[2];
+	word 			lbl[2];
+	byte 			flg[2];
 } BrkCont_t;
+
 
 
 /*---------------- St ---------------- "tbl.c" */
 #define LBL_NAME_SIZ (25+16)
+
 struct ST_T_VAR {
 	/* union ST_T far *next; */
 	union ST_T far *lnk[2];
-	byte	flg;
-	byte	flg2;				/* bit0: 0=module“à 1=export */
-								/* bit1: 0=near 	1=far	 */
-								/* bit2: 0=proc 	1=c_proc */
-								/* bit3: 0=module“à 1=external */
-	word	tok;				/* T_TYPE,T_VAR,T_LOCAL */
-	byte	name[LBL_NAME_SIZ]; /* –¼‘O */
-	union ST_T far *grp;		/* module,class ‚Ö‚ÌÎß²İÀ */
-	union ST_T far *st; 		/* NULL‚Ì‚Æ‚«AŠî–{Œ^(1,2,4) */
-	int 	ofs;				/* T_LOCAL,T_TYPE:µÌ¾¯Ä */
-								/* T_VAR,T_STATIC:“à•”×ÍŞÙ”Ô† */
-	word	siz;				/* »²½Ş(1:BYTE,2:WORD,4:DWORD,3:CWORD etc) */
-								/* NULLˆÈŠO, T_STRUCT,T_ARRAY */
-	word	seg;				/* segment */
+	byte			flg;
+	byte			flg2;				/* bit0: 0=module“à 1=export */
+										/* bit1: 0=near 	1=far	 */
+										/* bit2: 0=proc 	1=c_proc */
+										/* bit3: 0=module“à 1=external */
+	word			tok;				/* T_TYPE,T_VAR,T_LOCAL */
+	char			name[LBL_NAME_SIZ]; /* –¼‘O */
+	union ST_T far *grp;				/* module,class ‚Ö‚ÌÎß²İÀ */
+	union ST_T far *st; 				/* NULL‚Ì‚Æ‚«AŠî–{Œ^(1,2,4) */
+	int16 			ofs;				/* T_LOCAL,T_TYPE:µÌ¾¯Ä */
+										/* T_VAR,T_STATIC:“à•”×ÍŞÙ”Ô† */
+	word			siz;				/* »²½Ş(1:BYTE,2:WORD,4:DWORD,3:CWORD etc) */
+										/* NULLˆÈŠO, T_STRUCT,T_ARRAY */
+	word			seg;				/* segment */
 };
+
 struct ST_T_PROC {
 	/* union ST_T far *next; */
 	union ST_T far *lnk[2];
-	byte	flg;
-	byte	flg2;				/* 0:module“à•Ï” 1:export */
-	word	tok;				/* T_PROC */
-	byte	name[LBL_NAME_SIZ];
+	byte			flg;
+	byte			flg2;				/* 0:module“à•Ï” 1:export */
+	word			tok;				/* T_PROC */
+	char			name[LBL_NAME_SIZ];
 	union ST_T far *grp;
-	union ET_T far *et; 		/* ˆø‚«”Ø½Ä */
-	int 	ofs;				/* “à•”×ÍŞÙ”Ô† */
-	word	argc;				/* ˆø‚«”‚Ì” */
-	word	argsiz; 			/* ˆø”½À¯¸‚Ì‚¨‚¨‚«‚³ */
-	union ET_T far *et2;		/* regî•ñ */
+	union ET_T far *et; 				/* ˆø‚«”Ø½Ä */
+	int16 			ofs;				/* “à•”×ÍŞÙ”Ô† */
+	word			argc;				/* ˆø‚«”‚Ì” */
+	word			argsiz; 			/* ˆø”½À¯¸‚Ì‚¨‚¨‚«‚³ */
+	union ET_T far *et2;				/* regî•ñ */
 };
 
 struct ST_T_GRP {
 	/* union ST_T far *next; */
 	union ST_T far *lnk[2];
-	byte	flg;
-	byte	flg2;				/* 0:À²Æ° 1:½Ó°Ù 2:ºİÊß¸Ä 3:ĞÃŞ¨±Ñ 4:×°¼Ş */
-	word	tok;				/* T_GROUP  */
-	byte	name[LBL_NAME_SIZ];
+	byte			flg;
+	byte			flg2;				/* 0:À²Æ° 1:½Ó°Ù 2:ºİÊß¸Ä 3:ĞÃŞ¨±Ñ 4:×°¼Ş */
+	word			tok;				/* T_GROUP  */
+	char			name[LBL_NAME_SIZ];
 	union ST_T far *grp;
-	union ST_T far *st; 		/* ƒƒ“ƒo–¼‚Ì–Ø */
-	byte_fp modname;			/* ¶¬‚·‚éƒ‚ƒWƒ…[ƒ‹–¼ */
-	byte	sep[3]; 			/* ¶¬‚·‚éƒ‚ƒWƒ…[ƒ‹–¼‚ÌƒZƒpƒŒ[ƒ^ */
-	byte	ccflg;  			/* 1:'_'‚ğ‘O‚É•t‰Á 2:'_'‚ğŒã‚É•t‰Á */
-	word	mvarSize;			/* ƒNƒ‰ƒXŒ^‚Ì•Ï”•” */
+	union ST_T far *st; 				/* ƒƒ“ƒo–¼‚Ì–Ø */
+	byte_fp 		modname;			/* ¶¬‚·‚éƒ‚ƒWƒ…[ƒ‹–¼ */
+	byte			sep[3]; 			/* ¶¬‚·‚éƒ‚ƒWƒ…[ƒ‹–¼‚ÌƒZƒpƒŒ[ƒ^ */
+	byte			ccflg;  			/* 1:'_'‚ğ‘O‚É•t‰Á 2:'_'‚ğŒã‚É•t‰Á */
+	word			mvarSize;			/* ƒNƒ‰ƒXŒ^‚Ì•Ï”•” */
 };
 
 struct ST_T_MACFUNC {
 	union ST_T far *lnk[2];
-	byte	flg;
-	byte	flg2;
-	word	tok;
-	byte	name[LBL_NAME_SIZ];
+	byte			flg;
+	byte			flg2;
+	word			tok;
+	char			name[LBL_NAME_SIZ];
 	union ST_T far *grp;
-	byte_fp macbufp;
-	word	macArgCnt;
+	byte_fp 		macbufp;
+	word			macArgCnt;
 };
 
 struct ST_T_CONST {
-	union ST_T far *next, far *back;
+	union ST_T far *next;
+	union ST_T far *back;
 	/* union ST_T far *lnk[2];*/
-	byte	flg;
-	byte	flg2;
-	word	tok;				/* T_CONST , T_SEG */
-	byte	name[LBL_NAME_SIZ];
+	byte			flg;
+	byte			flg2;
+	word			tok;				/* T_CONST , T_SEG */
+	char			name[LBL_NAME_SIZ];
 	union ST_T far *grp;
 	union ET_T far *et;
-	long	val;				/* ’è”’l */
-	word	seg;
-	byte	align;
-	byte	combi;
-	byte	l_flg;  			/* set‚Å’è‹`‚³‚ê‚½’è”‚Ì‚Æ‚«0ˆÈŠO */
+	long			val;				/* ’è”’l */
+	word			seg;
+	byte			align;
+	byte			combi;
+	byte			l_flg;  			/* set‚Å’è‹`‚³‚ê‚½’è”‚Ì‚Æ‚«0ˆÈŠO */
 };
+
 struct ST_T_LBL {
 	/* union ST_T far *next; */
 	union ST_T far *lnk[2];
-	byte	flg;
-	byte	flg2;
-	word	tok;				/* T_LBL */
-	byte	name[LBL_NAME_SIZ];
+	byte			flg;
+	byte			flg2;
+	word			tok;				/* T_LBL */
+	char			name[LBL_NAME_SIZ];
 	union ST_T far *grp;
 	union ST_T far *st;
-	int 	ofs;				/* “à•”×ÍŞÙ”Ô† */
+	int16 			ofs;				/* “à•”×ÍŞÙ”Ô† */
 };
+
 struct ST_T_BLKLBL {
 	/* union ST_T far *next; */
 	union ST_T far *lnk[2];
-	byte	flg;
-	byte	flg2;
-	word	tok;				/* T_BLKLBL */
-	byte	name[LBL_NAME_SIZ];
+	byte			flg;
+	byte			flg2;
+	word			tok;				/* T_BLKLBL */
+	char			name[LBL_NAME_SIZ];
 	union ST_T far *grp;
-	BrkCont_t far *blklblp;
+	BrkCont_t far  *blklblp;
 
 };
+
 struct ST_T_NODE {
 	/* union ST_T far *next; */
 	union ST_T far *lnk[2];
-	byte	flg;
+	byte			flg;
 };
+
 typedef union ST_T {
-	struct ST_T_PROC  p;
-	struct ST_T_VAR   v;
-	struct ST_T_CONST c;
-	struct ST_T_LBL   l;
-	struct ST_T_GRP   g;
-	struct ST_T_NODE  n;
-	struct ST_T_BLKLBL b;
+	struct ST_T_PROC    p;
+	struct ST_T_VAR     v;
+	struct ST_T_CONST   c;
+	struct ST_T_LBL     l;
+	struct ST_T_GRP     g;
+	struct ST_T_NODE    n;
+	struct ST_T_BLKLBL  b;
 	struct ST_T_MACFUNC m;
 } St_t;
 
-typedef St_t far* St_t_fp;
+typedef St_t far* 	St_t_fp;
+
 
 int 	St_Init(void);
 St_t_fp St_New(void);
@@ -548,53 +566,58 @@ St_t_fp St_Sav(void);
 /*---------------- Et ---------------- "tbl.c" */
 struct ET_T_EP {
 	union ET_T far *next;
-	word op;
+	word 		    op;
 	union ET_T far *lep;
 	union ET_T far *rep;
 
 };
+
 struct ET_T_ST {
 	union ET_T far *next;
-	word op;
+	word 		    op;
 	union ST_T far *st;
 	union ST_T far *st2;
 };
+
 struct ET_T_MEM {
 	union ET_T far *next;
-	word op;
+	word 		    op;
 	union ET_T far *lep;
-	int  ofs;
-	byte typ;
-	byte seg;
-	word siz;
+	int16  			ofs;
+	byte 			typ;
+	byte 			seg;
+	word 			siz;
 };
+
 struct ET_T_CNSTNT {
 	union ET_T far *next;
-	word op;
-	long val;
+	word 			op;
+	long 			val;
 	//union ET_T far *rep;
-	word reg;
+	word 			reg;
 };
+
 struct ET_T_JMP {
 	union ET_T far *next;
-	word op;		/* T_COND */
+	word 			op;			/* T_COND */
 	union ET_T far *lep;
-	word cond;  	/* 0:et 1`  GO_CF,GO_NEQ... */
-	byte mode;  	/* 0:¬—§‚·‚ê‚ÎJMP 1:¬—§‚µ‚È‚¯‚¹‚ÎJMP */
-	byte nf;		/* 0:‚»‚Ì‚Ü‚Ü 1:ğŒ”½“] */
+	word 			cond;  		/* 0:et 1`  GO_CF,GO_NEQ... */
+	byte 			mode;  		/* 0:¬—§‚·‚ê‚ÎJMP 1:¬—§‚µ‚È‚¯‚¹‚ÎJMP */
+	byte 			nf;			/* 0:‚»‚Ì‚Ü‚Ü 1:ğŒ”½“] */
 };
+
 struct ET_T_FUNC_EX {
 	union ET_T far *next;
-	word	intr_no;	/* intr proc ‚Å‚ÌŠ„”Ô† */
-	union ET_T far *lep;/* ‚³‚ç‚ÉŠg’£ */
-	word	in; 	/* ah,al,bh,bl,ch,cl,dh,dl,si,di,es,ds,fx,cf,df,arg*/
-	word	out;
-	word	brk;
+	word			intr_no;	/* intr proc ‚Å‚ÌŠ„”Ô† */
+	union ET_T far *lep;		/* ‚³‚ç‚ÉŠg’£ */
+	word			in; 		/* ah,al,bh,bl,ch,cl,dh,dl,si,di,es,ds,fx,cf,df,arg*/
+	word			out;
+	word			brk;
 };
 
 struct ET_T_CLSTR {
 	union ET_T far *next;
-	byte  buf[12];
+	byte  			buf[12];
 };
 
 #if 0
@@ -621,30 +644,34 @@ typedef union ET_T {
 } Et_t;
 typedef Et_t far* Et_t_fp;
 
+
 Et_t_fp Et_New(void);
 void	Et_Frees(Et_t far*);
 Et_t_fp Et_Sav(void);
 int 	Et_Init(void);
 #define Et_NEWp(p)  (p = Et_New())
 
+
+
 /*---------------- Expr & Gen ----------------*/
 static enum {
-	GO_EQU=2,GO_NEQ,
-	GO_GT,  GO_LE,
-	GO_LT,  GO_GE,
-	GO_IGT, GO_ILE,
-	GO_ILT, GO_IGE,
-	GO_C,	GO_NC,
-	GO_Z,	GO_NZ,
-	GO_S,	GO_NS,
-	GO_O,	GO_NO,
-	GO_P,	GO_NP,
-	GO_CX,  GO_NCX,
-	GO_DECX,GO_NDECX,
+	GO_EQU=2,	GO_NEQ,
+	GO_GT,  	GO_LE,
+	GO_LT,  	GO_GE,
+	GO_IGT, 	GO_ILE,
+	GO_ILT, 	GO_IGE,
+	GO_C,		GO_NC,
+	GO_Z,		GO_NZ,
+	GO_S,		GO_NS,
+	GO_O,		GO_NO,
+	GO_P,		GO_NP,
+	GO_CX,  	GO_NCX,
+	GO_DECX,	GO_NDECX,
 	GO_DECX_Z,  GO_NDECX_Z,
 	GO_DECX_NZ, GO_NDECX_NZ,
-	GO_JMP, GO_NJMP
+	GO_JMP, 	GO_NJMP
 };
+
 #define Op_ShiftEq(c)	((c) >= I_SHLEQ && (c) <= I_SAREQ))
 #define Op_Bin(c)		((c) >= I_EXG	&& (c) <= I_IDIVS))
 #define Op_Bin2(c)  	((c) >= I_EQEQ  && (c) <= I_SAR))
@@ -673,6 +700,7 @@ static enum {
 #define IsEp_Seg2(p)	(p->e.op == T_SEG2)
 #define IsEp_Seg4(p)	(p->e.op == T_SEG4)
 #define IsEp_Cnst(p)	(p->e.op == T_CNST)
+
 int 	IsEp_Mem124(Et_t_fp ep);
 int 	IsEp_Reg12(Et_t_fp ep);
 int 	IsEp_Dual(Et_t_fp ep);
@@ -734,6 +762,7 @@ Et_t_fp Ev_Cnst2(long);
 EXTERN  byte	*Ch_srcName;		/* Œ»İ“ü—Í‚µ‚Ä‚¢‚éƒtƒ@ƒCƒ‹ */
 EXTERN  FILE	*Ch_file;			/* “ü—Íƒtƒ@ƒCƒ‹‚Ìƒtƒ@ƒCƒ‹Eƒ|ƒCƒ“ƒ^ */
 EXTERN  word	Ch_line;			/* “ü—Í‚µ‚Ä‚¢‚és”Ô† */
+
 word	Ch_GetLine(byte *,word);
 word	Ch_Get(void);
 word	Ch_GetK(void);
@@ -747,6 +776,7 @@ void	Sym_MacInclude(void);
 /*---------------- Sym ---------------- "sym.c" */
 #define PAR_CR_INC()	do {if (Opt_parCr) Sym_crMode++;} while(0)
 #define PAR_CR_DEC()	do {if (Opt_parCr) Sym_crMode--;} while(0)
+
 EXTERN  int 	Sym_crMode;
 EXTERN  byte	Sym_name[LBL_NAME_SIZ+256];
 EXTERN  word	Sym_tok;
@@ -758,11 +788,13 @@ EXTERN  int 	Sym_rsvflg;
 EXTERN  int 	Sym_strLen;
 EXTERN  byte_fp Sym_str;
 EXTERN  St_t_fp Sym_sp;
+
 word	Ch_Init(void);
 word	Sym_Get(void);
 word	Sym_GetRsvOff(void);
 word	Sym_GetRsvOff2(void);
 int 	Sym_NameGet(word);
+
 #ifdef DEBUG
 EXTERN  byte_fp Deba_fname;
 EXTERN  int 	Deba_line;
@@ -789,28 +821,30 @@ void	Sym_MacDef(void);
 
 /*---------------- Out ---------------- "out.c" */
 EXTERN  FILE	*Out_file;  		/* o—Íƒtƒ@ƒCƒ‹‚Ìƒtƒ@ƒCƒ‹Eƒ|ƒCƒ“ƒ^ */
-void	Out_PubLblStr(byte_fp);
-void	Out_LblStr(byte_fp);
-void	Out_Line(byte_fp);
-void	Out_Nm(byte_fp);
-void	Out_NmSt(byte_fp ,byte_fp);
-void	Out_LblNmSt(byte_fp l,byte_fp p,byte_fp q);
-void	Out_NmStSt(byte_fp p,byte_fp q,byte_fp r);
+
+void	Out_PubLblStr(const byte_fp);
+void	Out_LblStr(const byte_fp);
+void	Out_Line(const byte_fp);
+void	Out_Nm(const byte_fp);
+void	Out_NmSt(const byte_fp ,const byte_fp);
+void	Out_LblNmSt(const byte_fp l,const byte_fp p,const byte_fp q);
+void	Out_NmStSt(const byte_fp p,const byte_fp q,const byte_fp r);
 void	Out_Nem0(word);
-void	Out_Nem1(word, Et_t_fp);
-void	Out_Nem2(word,Et_t_fp ,Et_t_fp);
-void	Out_Nem3(word,Et_t_fp ,Et_t_fp, Et_t_fp);
+void	Out_Nem1(word, const Et_t_fp);
+void	Out_Nem2(word,const Et_t_fp ,const Et_t_fp);
+void	Out_Nem3(word,const Et_t_fp ,const Et_t_fp, const Et_t_fp);
 void	Out_golbl(word n);
 void	Out_Leave(void);
 void	Out_Enter(word siz,word level);
-void	Out_LblTyp(St_t_fp sp, int  typ);
+void	Out_LblTyp(const St_t_fp sp, int  typ);
 void	Out_Dup(long t,word n);
 void	Out_ShiftReg12Cnst(word t,word reg,int n);
-byte_fp Str_StName(St_t_fp);
+byte_fp Str_StName(const St_t_fp);
 
 /*--------------- Err --------------- "out.c" */
 EXTERN  FILE *Err_File;
-EXTERN  int  Err_cnt;
+EXTERN  int   Err_cnt;
+
 #ifdef DEBUG
 #define Msg_Err(s)  Msg_Err_(s,__FILE__,__LINE__)
 void	Msg_Err_(byte_fp ,byte *, word);
@@ -831,7 +865,7 @@ EXTERN  FILE*	Rsp_file;
 EXTERN  FILE*	Ana_partLstFile;
 EXTERN  St_t_fp Ana_modelsp;
 EXTERN  byte_fp Ana_incDir;
-EXTERN  inte	Ana_model;  		/* TINY,SMALL,MEDIUM */
+EXTERN  int16	Ana_model;  		/* TINY,SMALL,MEDIUM */
 EXTERN  byte	Ana_mode;			/* MD_??? */
 EXTERN  byte	Ana_err;			/* 1‚È‚çEOF 2‚È‚çÒÓØ¥ÌÙ */
 EXTERN  byte	Ana_saveOfs;		/* save‚É‚æ‚éÚ¼Ş½À•Û‘¶‚Å‚ÌµÌ¾¯Ä */
@@ -846,7 +880,7 @@ EXTERN  byte	Opt_zeroBSS;		/* var •Ï”‚Å 0 ‰Šú‰»‚·‚é‚à‚Ì‚ğ BSS‚É */
 EXTERN  byte	Opt_parCr;  		/* (..) “à‚Ì‰üs‚ğ‹ó”’ˆµ‚¢‚É‚·‚é */
 EXTERN  byte	Opt_procAssumeFlg;  /* */
 EXTERN  byte_fp Ana_dirName;		/* o—ÍæƒfƒBƒŒƒNƒgƒŠ */
-#define NAM_SIZE 85
+#define NAM_SIZE MAX_PATH		//85
 EXTERN  byte	Ana_outName[NAM_SIZE];
 EXTERN  byte	Ana_partIncName[NAM_SIZE];
 EXTERN  int 	Ana_align;
@@ -854,7 +888,7 @@ EXTERN  int 	Ana_mmodFlg;		/* import ¼À file ÃŞ module ¶Ş Ì¸½³ ±Ù ¶?*/
 EXTERN	int		Ana_moduleMode;		/* module •¶‚ª•K—v‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO */
 EXTERN	int		Ana_oldver;			/* v0.17-v0.20‚Ì•¶–@‚ğ‹–‚· */
 #ifdef EXT
-	byte_fp Ana_ext = "ANA";
+	byte_fp Ana_ext    = "ANA";
 	byte_fp Ana_hdrext = "HAN";
 #else
 	extern byte_fp Ana_ext;
@@ -863,29 +897,31 @@ EXTERN	int		Ana_oldver;			/* v0.17-v0.20‚Ì•¶–@‚ğ‹–‚· */
 FILE*	fopen_e(char *,char *);
 
 /* stat.c */
-int  Stat(void);
-word Sym_Get(void);
-void	SkipSym(word t);
+int  	Stat(void);
+word 	Sym_Get(void);
+//void	SkipSym(word t);
 St_t_fp GoLbl_New(byte_fp name);
 St_t_fp Sym_NameNew(byte far *name,word t,word flg);
+
 extern  BrkCont_t *gStatBrkCont_p;
 
 /* decl.c */
 #ifdef EXT
-	byte_fp gJmps[2] = {"jmp short","jmp"};
-	byte_fp gJmpf[2] = {"jmp far ptr","jmpf"};
+	byte_fp gJmps[2]  = {"jmp short"   ,"jmp"  };
+	byte_fp gJmpf[2]  = {"jmp far ptr" ,"jmpf" };
 	byte_fp gCallf[2] = {"call far ptr","callf"};
 #else
 	extern byte_fp gJmps[2];
 	extern byte_fp gJmpf[2];
 	extern byte_fp gCallf[2];
 #endif
-EXTERN  St_t_fp St_inpRoot; 		/* module–¼‚ÌŠÇ——pÎß²İÀ */
-EXTERN  St_t_fp St_expoRoot;		/* export ×ÍŞÙ‚ÌŠÇ——pÎß²İÀ */
-EXTERN  St_t_fp St_rsvRoot; 		/* -D‚Åİ’è‚³‚ê‚½×ÍŞÙ‚ÌŠÇ——pÎß²İÀ */
-EXTERN  St_t_fp St_root;			/* module“à¸ŞÛ°ÊŞÙ¥×ÍŞÙ‚ÌŠÇ——pÎß²İÀ */
-EXTERN  St_t_fp St_localRoot;		/* Û°¶Ù¥×ÍŞÙ‚ÌŠÇ——pÎß²İÀ */
-EXTERN  byte Decl_defFlg;
+EXTERN  St_t_fp 	St_inpRoot; 		/* module–¼‚ÌŠÇ——pÎß²İÀ */
+EXTERN  St_t_fp 	St_expoRoot;		/* export ×ÍŞÙ‚ÌŠÇ——pÎß²İÀ */
+EXTERN  St_t_fp 	St_rsvRoot; 		/* -D‚Åİ’è‚³‚ê‚½×ÍŞÙ‚ÌŠÇ——pÎß²İÀ */
+EXTERN  St_t_fp 	St_root;			/* module“à¸ŞÛ°ÊŞÙ¥×ÍŞÙ‚ÌŠÇ——pÎß²İÀ */
+EXTERN  St_t_fp 	St_localRoot;		/* Û°¶Ù¥×ÍŞÙ‚ÌŠÇ——pÎß²İÀ */
+EXTERN  byte 		Decl_defFlg;
+
 int 	Decl_Module(int);
 void	Decl_Return(void);
 void	Decl_Load(void);
@@ -906,36 +942,37 @@ void	Decl_Mvar(void);
 
 /* "gen.c" */
 #define GoLbl_SIZ 12
-EXTERN  word GoLbl_no;  		/* “à•”ƒ‰ƒxƒ‹‚Ì”Ô† */
-EXTERN  byte Gen_condMode;  	/* 0:•„†•Ï‰»–³‹ 1:İ‚è 2:İ‚è(Šî–{–½—ß‚Ì‚İ)*/
+EXTERN  word 	GoLbl_no;  		/* “à•”ƒ‰ƒxƒ‹‚Ì”Ô† */
+EXTERN  byte 	Gen_condMode;  	/* 0:•„†•Ï‰»–³‹ 1:İ‚è 2:İ‚è(Šî–{–½—ß‚Ì‚İ)*/
+
 byte_fp GoLbl_Strs(word n);
 word	GoLbl_NewNo(void);
 void	Gen_PushPop(word t,Et_t_fp lp);
 
 /* "mem.c" */
-void Mac_Init(void);
-void Mac_Putc(word);
+void 	Mac_Init(void);
+void 	Mac_Putc(unsigned);
 byte_fp Mac_Pos(void);
 
 /* "deb.c" */
 #ifdef DEBUG
- #define EXPMSG(n,p) Deb_EtMsg(n,p)
- void	Deb_EtMsg(byte *,Et_t_fp);
+ #define EXPMSG(n,p) 		Deb_EtMsg(n,p)
+ void		Deb_EtMsg(byte *,Et_t_fp);
  byte_fp	Deb_ChkOp(word);
- void Deb_SymNam(word t);
+ void 		Deb_SymNam(word t);
 #else
- #define EXPMSG(n,p)
+ #define	EXPMSG(n,p)
 #endif
 EXTERN byte Deb_macFlg;
 
 //
 typedef struct Sss_t {
-	struct Sss_t *next;
-	byte far *str;
-	int  no;
+	struct Sss_t	*next;
+	byte far 		*str;
+	int 			no;
 } Sss_t;
 #ifdef EXT
-	Sss_t *Expr_strl = NULL;
+	Sss_t *Expr_strl    = NULL;
 	Sss_t *Expr_strlTop = NULL;
 #else
 	extern Sss_t *Expr_strl;

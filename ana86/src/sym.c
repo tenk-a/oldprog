@@ -1,7 +1,10 @@
 #include <stdlib.h>
 #include <dos.h>
 #include <string.h>
+#include <assert.h>
+#ifdef __BORLANDC__
 #include <alloc.h>
+#endif
 #include "anadef.h"
 
 /*---------------------- ctbl.h ---------------------------------------------*/
@@ -98,7 +101,7 @@ byte	gSymTbl[128] = {
 
 /*-------------------------------- rsvtbl.c --------------------------------*/
 typedef struct {
-	byte   *name;
+	char   *name;
 	word	tok;
 }	Rsv_t;
 
@@ -336,7 +339,7 @@ void	Rsv_List(void)
 	}
 }
 
-static int RsvSrch0(byte * key)
+static int RsvSrch0(char* key)
  	/*	key:さがす文字列へのポインタ
  		tbl:文字列へのポインタをおさめた配列
  		nn:配列のサイズ
@@ -427,13 +430,13 @@ static	word	RsvSearch(byte * name)
 }
 
 /*----------------------------------------------------------------*/
-#define CH_LINBUF_SIZ 0x2000
-static int oChBak;
-static byte *oChLinPtr;
-static byte oChLinBuf[CH_LINBUF_SIZ + 2];
-#define SYM_STR_SIZ 0x2000
-static byte oSymStrBuf[SYM_STR_SIZ + 20];
-#define NOCHR	(-1)
+#define CH_LINBUF_SIZ	0x2000
+static int				oChBak;
+static byte*			oChLinPtr;
+static byte				oChLinBuf[CH_LINBUF_SIZ + 2];
+#define SYM_STR_SIZ		0x2000
+static byte				oSymStrBuf[SYM_STR_SIZ + 20];
+#define NOCHR			(-1)
 
 #ifdef MACR
 static word oMacN;
@@ -576,7 +579,7 @@ static	word	ChMacSet(byte_fp mp, byte far *far *argp, word k)
 	}
 	if (Deb_macFlg)
 		printf(";;;マクロ文字列展開\t%s\n", oChLinPtr);
-  ENDF:
+ // ENDF:
 	return 0;
   ERR:
 	oChLinPtr = oMacPtr[0];
@@ -751,7 +754,7 @@ static	word SymYenEsc(void)
 {
 	word	c, b;
 
-  YEN_ESC1:
+ // YEN_ESC1:
 	c = Ch_GetK();
 	switch (c) {
 	case 'e':
@@ -824,7 +827,7 @@ static void SymGetValue(word c)
 	if (c == '0') {
 		c = Ch_Get();
 		if (c == 'x') {
-		  XX:
+		 // XX:
 			for (; ;) {
 				c = Ch_Get();
 				if (isDigit(c)) {
@@ -837,15 +840,15 @@ static void SymGetValue(word c)
 					break;
 			}
 		} else if (c == 'b' || c == 'p') {
-		  BB:
+		 // BB:
 			while ((c = Ch_Get()) == '0' || c == '1')
 				val = val * 2 + c - '0';
 		} else if (c == 'q') {
-		  QQ:
+		 // QQ:
 			while ((c = Ch_Get()) >= '0' && c < '4')
 				val = val * 4 + c - '0';
 		} else if (c == 'o') {
-		  OO:
+		 // OO:
 			while ((c = Ch_Get()) >= '0' && c < '8')
 				val = val * 8 + c - '0';
 		} else if ('0' <= c && c <= '9') {
@@ -1285,6 +1288,8 @@ St_t_fp	Sym_NameNew(byte far *name, word t, word f)
 	St_t_fp sp;
 	St_t_fp *p;
 
+	sp = NULL;
+	p  = NULL;
 	switch (f) {
 	case MD_MODULE:
 		p = &St_root;
@@ -1298,7 +1303,11 @@ St_t_fp	Sym_NameNew(byte far *name, word t, word f)
 	case MD_RSV:
 		p = &St_rsvRoot;
 		break;
+	default:
+		assert(0);
+		return NULL;
 	}
+
 	sp = St_Ins(name, p);
 	if (sp)
 		sp->v.tok = t;
@@ -1314,7 +1323,7 @@ static	word	SymGet1(void)
 	t = SymGet0();
 	if (Op_Reg1(t)) {
 		Sym_reg = t;
-		t = T_R1;
+		t		= T_R1;
 		Sym_typ = I_BYTE;
 		/* goto ENDF; */
 	} else if (Op_Reg2(t) || Op_Seg2(t)) {
@@ -1363,6 +1372,7 @@ static	word	SymGet1(void)
 			t = Sym_sp->v.tok;
 			if (t == T_MODULE && Ch_ChkPeriod()) {
 				St_t_fp sp;
+				sp = NULL;
 				Sym_NameGet(0);
 				if (Sym_sp->v.grp == Mod_sp) {
 					if ((sp = St_Search(Sym_name, St_expoRoot)) == NULL)
@@ -1375,8 +1385,13 @@ static	word	SymGet1(void)
 					Msg_Err("モジュール名. に続く名前がおかしい");
 					goto ERR;
 				}
+			  #if 0
+				if (sp == NULL) {
+					Msg_Err("モジュール名. に続く名前がおかしい..");
+				}
+			  #endif
 				Sym_sp = sp;
-				t = Sym_tok = sp->v.tok;
+				t = Sym_tok = sp ? sp->v.tok : 0;
 			  #if 0
 				switch (t) {
 				case T_PROC:
@@ -1605,7 +1620,7 @@ void	Sym_MacDef(void)
 		c = Ch_GetK();
 	}
 	Mac_Putc('\0');
-  ENDF:
+ // ENDF:
 	return;
   ERR:
 	Msg_Err("defineマクロ定義がおかしい");
@@ -1718,6 +1733,10 @@ static void SymMacFunc(void)
 		k = ')';
 	}
 	n = 0;
+	if (sp == NULL) {
+		assert(sp != NULL);
+		goto ERR;
+	}
 	if (sp->m.macArgCnt != 0) {
 		while (n < sp->m.macArgCnt && n < 7) {
 			c = SymMacFuncArg(bufp[n], c);

@@ -412,6 +412,7 @@ void	GenEquSeg(Et_t_fp lp, Et_t_fp rp)
 		Gen_Equ(lp, EV_ZERO);
 	}
 #else
+	rp;
 	Gen_Equ(lp, EV_ZERO);
 #endif
 }
@@ -747,7 +748,7 @@ static void GenShift(word xo, Et_t_fp lp, Et_t_fp rp)
 		goto ERR;
 
 	IsEp_CnstTyp(I_BYTE, rp);
-	val = (int) rp->c.val;
+	val = (int16) rp->c.val;
 	if (val < 0) {
 		val = -val;
 		switch (xo) {
@@ -1311,7 +1312,7 @@ global void Gen_Expr(Et_t_fp xp, word mode)
 		Gen_Popa();
 		return;
 	}
-  ERR:
+  //ERR:
 	Msg_Err("Gen_Expr()‚ª‚¨‚©‚µ‚¢");
 	return;
   ERR32:
@@ -1350,8 +1351,11 @@ void	Gen_Rep(word t)
 		if (strcmp(Sym_name, memb[f]) == 0)
 			break;
 	}
-	if (f < 7) ;
-	else if (f == 7) {
+	if (f < 7) {
+		if (f == 4 && t == 0) {	// cmp
+			t = 1;				// rep ‚ð repe ‚É•ÏŠ·.
+		}
+	} else if (f == 7) {
 		Out_Nem0(I_CLRD);
 		Sym_Get();
 		goto ENDF2;

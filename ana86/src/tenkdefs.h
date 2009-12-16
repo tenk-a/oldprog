@@ -5,32 +5,50 @@
 /* os9/09 MW-C*/
   typedef char  	byte;
   typedef unsigned  word;
-  typedef short 	inte;
+  typedef int		int16;
   typedef long  	dword;
   #define REGI  	register
   #define DIRE  	direct
   #define __(a) 	()
   #define C_DIRSP	'/'
-#else
+  #ifndef MAX_PATH
+   #define MAX_PATH			256
+  #endif
+#elif defined DOS16
 /* MS-DOS */
   #define REGI
   #define DIRE
   #define __(a) 	a
   #define C_DIRSP	'\\'
+  #ifndef MAX_PATH
+   #define MAX_PATH			260
+  #endif
 
-  typedef unsigned char byte;
+  typedef unsigned char 	byte;
   typedef unsigned short	word;
-  typedef short 		inte;
-  typedef unsigned long dword;
-  typedef long double	ldouble;
-  typedef void far *void_fp;
-  typedef byte far *byte_fp;
-  typedef word far *word_fp;
+  typedef int				int16;
+  typedef unsigned long 	dword;
+  typedef long double		ldouble;
+//  typedef void far *		void_fp;
+  typedef byte far *		byte_fp;
+//  typedef word far *		word_fp;
+#else // 32bit-os
+  #define REGI
+  #define DIRE
+  #define __(a) 	a
+  #define C_DIRSP	'\\'
+  #ifndef MAX_PATH
+   #define MAX_PATH			1024		// “K“– win32‚¾‚Æ260‚Å‚¢‚¢‚©‚à...
+  #endif
 
-  #define MAKE_FP(s,o)  ((void far *)(((lword)(s)<<16) | ((o)&0xffff)))
-  #define PTR_OFF(p)	((word) (p))
-  #define PTR_SEG(p)	((word)((lword)(void far *)(p) >> 16))
-  #define htoi(s)		((inte)strtoul((s),(char **)0,16))
+  #define far
+  typedef unsigned char 	byte;
+  typedef unsigned short	word;
+  typedef short				int16;
+  typedef unsigned long 	dword;
+  typedef long double		ldouble;
+  typedef byte *			byte_fp;
+  __inline char* stpcpy(char* dst, const char* src) { char* p = strcpy(dst,src); return p ? p + strlen(src) : NULL; }
 #endif
 
 /*  */

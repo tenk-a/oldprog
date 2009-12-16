@@ -2,20 +2,27 @@
 #include <stdlib.h>
 #include "anadef.h"
 
-static byte oFarProcFlg, oProcEnter, oCProcFlg;
-static int oLocalOfs, oProcArgCnt, oProcArgSiz;
-static word oInR, oOutR, oBreakR, oSaveReg, oAutoReg_n;
-#define AUTOREG_MAX  20
-static St_t_fp oAutoReg[AUTOREG_MAX + 2];
+
+static byte 	oFarProcFlg	, oProcEnter , oCProcFlg;
+static int  	oLocalOfs	, oProcArgCnt, oProcArgSiz;
+static word 	oInR, oOutR	, oBreakR	 , oSaveReg	 , oAutoReg_n;
+
+#define AUTOREG_MAX  	20
+static St_t_fp 	oAutoReg[AUTOREG_MAX + 2];
+
 enum {SV_PUSHA, SV_AX, SV_CX, SV_DX, SV_BX, SV_SI, SV_DI, SV_DS, SV_ES, SV_FX, SV_MAX };
 enum {
-		SS_PUSHA = 0x01, SS_AX = 0x02, SS_CX = 0x04, SS_DX = 0x08, SS_BX = 0x10,
-		SS_SI = 0x20, SS_DI = 0x40, SS_DS = 0x80, SS_ES = 0x100, SS_FX = 0x200
+		SS_PUSHA = 0x01, SS_AX = 0x02, SS_CX = 0x04, SS_DX = 0x08 , SS_BX = 0x10,
+		SS_SI    = 0x20, SS_DI = 0x40, SS_DS = 0x80, SS_ES = 0x100, SS_FX = 0x200
 	};
-static St_t_fp oSaveRegLbl[SV_MAX];
-static word oSaveRegTbl[] = {
+
+static St_t_fp 	oSaveRegLbl[SV_MAX];
+
+
+static const word 	oSaveRegTbl[] = {
 	I_PUSHA, I_AX, I_CX, I_DX, I_BX, I_SI, I_DI, I_DS, I_ES, I_FX
 };
+
 
 /*---------------------------------------------------------------------------*/
 #define Sym_CrModeClr() 		(Sym_crMode = 0)
@@ -58,9 +65,12 @@ void	Decl_Const(void)
 	Sym_SkipCR();
 }
 
+
 static	word GetType(St_t_fp sp)
 {
-	Et_t_fp ep, sav_ep, xp;
+	Et_t_fp ep;
+	Et_t_fp sav_ep;
+	Et_t_fp	xp;
 	word	t;
 	int 	i;
 	int 	nn[10];
@@ -70,11 +80,11 @@ static	word GetType(St_t_fp sp)
   #if 1
 	if (t == T_STRUCT) {
 		Et_NEWp(xp);
-		xp->e.op = T_STRUCT;
-		xp->v.st = Sym_sp->v.st;
+		xp->e.op  = T_STRUCT;
+		xp->v.st  = Sym_sp->v.st;
 		sp->v.siz = xp->m.siz = Sym_sp->v.siz;
 		xp->m.typ = (byte) xp->m.siz;
-		sp->p.et = xp;
+		sp->p.et  = xp;
 	} else
   #endif
   #ifdef MVAR
@@ -108,14 +118,14 @@ static	word GetType(St_t_fp sp)
 			if (Sym_sp->p.et) {
 			  J1:
 				sp->v.siz = Sym_sp->v.siz;
-				sp->p.et = Sym_sp->p.et;
+				sp->p.et  = Sym_sp->p.et;
 			} else {
 				Msg_PrgErr("GetType()");
 				goto ERR;
 			}
 		} else if ((t == I_WORD || t == I_BYTE || t == I_DWORD)) {
 			sp->v.siz = t;
-			sp->v.st = NULL;
+			sp->v.st  = NULL;
 		} else {
 			goto ERR;
 		}
@@ -131,12 +141,13 @@ static	word GetType(St_t_fp sp)
 			sav_ep = Et_Sav();
 			ep = Expr(0);
 			if (i >= 10 || ep == NULL || !IsEp_Op(ep, T_CNST)
-				|| ep->c.val < 0 || ep->c.val > 0xffff) {
+				|| ep->c.val < 0 || ep->c.val > 0xffff)
+			{
 				Et_Frees(sav_ep);
 				Msg_Err("配列宣言の添字がおかしい");
 				goto ERR;
 			}
-			nn[i++] = (int) ep->c.val;
+			nn[i++] = (int16) ep->c.val;
 			Et_Frees(sav_ep);
 			if (Sym_tok != I_COMMA)
 				break;
@@ -147,17 +158,17 @@ static	word GetType(St_t_fp sp)
 		Sym_Get();
 		while (--i >= 0) {
 			Et_NEWp(xp);
-			xp->e.op = T_ARRAY;
+			xp->e.op  = T_ARRAY;
 			xp->m.ofs = nn[i];
 			xp->m.siz = sp->v.siz;
 			xp->m.typ = (byte) xp->m.siz;
 			xp->e.lep = sp->p.et;
-			sp->p.et = xp;
+			sp->p.et  = xp;
 			sp->v.siz = xp->m.siz * nn[i];
 			MSGF(("(ary %d = %d * %d)\n", sp->v.siz, xp->m.siz, xp->m.ofs));
 		}
 	}
-  ENDF:
+  //ENDF:
 	/* if (sp->v.siz == 0)  Msg_Err("PRG:型ｻｲｽﾞの処理がおかしい"); */
 	return sp->v.siz;
 
@@ -171,7 +182,8 @@ void	Decl_Struct(void)
 {
 	word	t, ofs, ofsB, ofsT;
  /* Et_t_fp xp; */
-	St_t_fp sp, mp;
+	St_t_fp sp;
+	St_t_fp mp;
 	St_t_fp root;
 	word	sav_mode;
 
@@ -184,9 +196,11 @@ void	Decl_Struct(void)
 			sp->v.grp = Mod_sp;
 	} else
 		goto ERR;
-	ofs = ofsT = ofsB = 0;
+	ofs 	 =
+	ofsT 	 =
+	ofsB 	 = 0;
 	sav_mode = Ana_mode;
-	root = NULL;
+	root 	 = NULL;
 	Ana_mode = MD_STRUCT;
 	Sym_GetChkEol();
 	for (; ;) {
@@ -195,18 +209,19 @@ void	Decl_Struct(void)
 		Sym_crMode = 0;
 		if (Sym_tok == I_DEC) {
 			if (ofs > ofsB)
-				ofsB = ofs;
-			ofs = ofsT;
+				ofsB   = ofs;
+			ofs 	   = ofsT;
 			Sym_crMode = 1;
 			Sym_GetRsvOff();
 			Sym_crMode = 0;
 		} else if (Sym_tok == I_INC) {
 			if (ofs < ofsB)
 				ofs = ofsB;
-			ofsT = ofsB = ofs;
-			Sym_crMode = 1;
+			ofsT 		=
+			ofsB 		= ofs;
+			Sym_crMode 	= 1;
 			Sym_GetRsvOff();
-			Sym_crMode = 0;
+			Sym_crMode 	= 0;
 		}
 		if (Sym_tok == T_IDENT) {
 			if (strcmp(Sym_name, "endstruct") == 0) {
@@ -236,10 +251,10 @@ void	Decl_Struct(void)
 	if (root == NULL)
 		goto ERR;
 	if (ofs > ofsB)
-		ofsB = ofs;
+		ofsB  = ofs;
 	sp->v.siz = ofsB;
-	sp->v.st = root;
-	Ana_mode = sav_mode;
+	sp->v.st  = root;
+	Ana_mode  = sav_mode;
   ENDF:
 	Sym_ChkEol();
 	return;
@@ -267,7 +282,7 @@ void	Decl_Type(void)
 		if (Sym_tok == T_MODULE) {
 			sp->v.tok = T_MODULE;
 			sp->v.grp = Sym_sp->v.grp;
-			sp->v.st = Sym_sp->v.st;
+			sp->v.st  = Sym_sp->v.st;
 			Sym_Get();
 		} else {
 			if (GetType(sp) == 0)
@@ -280,7 +295,7 @@ void	Decl_Type(void)
 				sp->v.grp = Mod_sp;
 		}
 	} while (Sym_tok == I_COMMA);
-  ENDF:
+  //ENDF:
 	Sym_ChkEol();
   ENDF2:
 	return;
@@ -292,10 +307,11 @@ void	Decl_Type(void)
 
 /*------------*/
 
-static int Out_WordStr(byte far *str, word l)
+static int Out_WordStr(byte far *str, unsigned l)
 {
-	word	cnt, c;
-	int 	i;
+	unsigned	cnt;
+	unsigned	c;
+	int 		i;
 
 	MSG("Out_WordStr");
 	cnt = i = 0;
@@ -354,7 +370,8 @@ static int InitOne(word t, long len, int f)
 	f = 0:','があれば続ける。要素数の残りを'\0'で埋める。
 	f =-1:','があれば続ける。要素数の残りを'\0'で埋めない。 */
 {
-	long	n, mx;
+	long	n = 0;
+	long    mx;
 	Et_t_fp p;
 
 	MSG("InitOne");
@@ -413,6 +430,7 @@ static int InitOne(word t, long len, int f)
 	return (int) n;
 }
 
+
 static void SkipSym(word t)
 {
 	while (Ana_err == 0 && Sym_Get() != t) ;
@@ -422,18 +440,23 @@ static void SkipSym(word t)
 int 	Decl_Data(word cnt)
 {
 	int 	f;
-	long	n, l, val;
-	word	sav_crMode, t, cnt2;
+	long	n;
+	long	l;
+	long	val;
+	word	sav_crMode;
+	word	t;
+	word	cnt2;
 	word	c;
 
 	MSG("Decl_Data");
 	MSGF(("cnt=%d\n", cnt));
-	cnt2 = (cnt) ? cnt : 0x7fff;
-	sav_crMode = Sym_crMode;
-	Sym_crMode = 0;
-	l = 0;
+	cnt2 		= (cnt) ? cnt : 0x7fff;
+	sav_crMode 	= Sym_crMode;
+	Sym_crMode 	= 0;
+	l 			= 0;
+
 	Sym_GetChkEol();
-	t = Sym_Get();
+	t 			= Sym_Get();
 	while (t != I_ATAD) {
 		if (Sym_tok == I_CR || Sym_tok == I_SMCLN) {
 			t = Sym_Get();
@@ -483,13 +506,13 @@ int 	Decl_Data(word cnt)
   ENDF:
 	Sym_crMode = sav_crMode;
 	Sym_Get();
-	return (int) l;
+	return (int16) l;
 }
 
 static void VarInitVal(Et_t_fp tp, word typ)
 {
-	long	n;
-	word	cnt;
+	long		n;
+	unsigned	cnt;
 
 	MSG("VarInitVal");
 	if (tp == NULL) {
@@ -502,9 +525,10 @@ static void VarInitVal(Et_t_fp tp, word typ)
 			&& (tp->m.ofs == 0 || Sym_strLen < tp->m.ofs)) {
 			n = InitOne(tp->m.typ, tp->m.ofs, 1);
 			if (tp->m.ofs == 0)
-				tp->m.ofs = (int) n;
-		} else
+				tp->m.ofs = (int16) n;
+		} else {
 			goto ERR;
+		}
 	} else if (Sym_tok == I_LC) {
 		if (tp->e.op != T_ARRAY)
 			goto ERR;
@@ -513,7 +537,7 @@ static void VarInitVal(Et_t_fp tp, word typ)
 		if (tp->e.lep == NULL) {
 			n = InitOne(tp->m.typ, tp->m.ofs, 0);
 			if (tp->m.ofs == 0)
-				tp->m.ofs = (int) n;
+				tp->m.ofs = (int16) n;
 		} else {
 			cnt = (word) tp->m.ofs;
 			if (cnt == 0)
@@ -522,11 +546,11 @@ static void VarInitVal(Et_t_fp tp, word typ)
 			do {
 				Sym_Get();
 				VarInitVal(tp->e.lep, 0);
-				if (++n == cnt)
+				if (++n == (long)cnt)
 					break;
 			} while (Sym_Get() == I_COMMA);
 			if (tp->m.ofs == 0)
-				tp->m.ofs = (int) n;
+				tp->m.ofs = (int16) n;
 		}
 		Sym_crMode--;			/* PAR_CR_DEC(); */
 		if (Sym_tok != I_RC)
@@ -537,12 +561,12 @@ static void VarInitVal(Et_t_fp tp, word typ)
 			n = Decl_Data(tp->m.siz);
 		else if (tp->e.op == T_ARRAY)
 			n = Decl_Data(tp->m.siz * tp->m.ofs);
-		else {
+		else
 			goto ERR2;
-		}
+
 		if (tp->m.ofs == 0) {
 			if (tp->m.siz && ((n % tp->m.siz) == 0))
-				tp->m.ofs = (int) (n / tp->m.siz);
+				tp->m.ofs = (int16) (n / tp->m.siz);
 			else
 				Msg_PrgErr("data命令\n");
 		}
@@ -597,23 +621,23 @@ void	Decl_Var(St_t_fp cp, int externFlg)
 		if (Sym_Get() != I_CLN)
 			goto ERR;
 		Sym_Get();
-#ifdef MVAR
+	  #ifdef MVAR
 		if (Sym_tok == T_MODULE) {
 			sp->v.tok = T_MODULEVAR;
 			sp->v.grp = Sym_sp->v.grp;
 			sp->v.st = Sym_sp->v.st;
 		}
-#endif
+	  #endif
 		t = GetType(sp);
 		if (Ana_mode == MD_MODULE) {
 			lblno = 0;
 			sp->v.grp = Mod_sp;
 		} else if (Ana_mode == MD_EXPO) {
 			sp->v.flg2 |= FL_EXPO;
-			sp->v.grp = Mod_sp;
-			lblno = -1;
+			sp->v.grp   = Mod_sp;
+			lblno       = -1;
 		} else {
-			lblno = GoLbl_NewNo();
+			lblno       = GoLbl_NewNo();
 		}
 		sp->v.flg2 &= ~(FL_INPO|FL_EXTERN);
 		if (Decl_defFlg == 0||externFlg)
@@ -1098,7 +1122,7 @@ static	Et_t_fp ProcArg(void)
 #else
 			ep->e.lep = bp;
 #endif
-			ep->e.op = (t == I_WORD) ? T_M2 : T_M4;
+			ep->e.op  = (t == I_WORD) ? T_M2 : T_M4;
 			ep->e.rep = sp->p.et;
 			ep->m.siz = t;
 #if 1
@@ -1135,7 +1159,7 @@ static	Et_t_fp ProcArg(void)
 				if (Sym_Get() == T_R2 || Sym_tok == T_R1) {
 					Et_NEWp(xp);
 					ep->e.rep = xp;
-					xp->e.op = Sym_tok;
+					xp->e.op  = Sym_tok;
 					xp->c.reg = Sym_reg;
 					xp->m.typ = sp->v.siz;
 				/* ProcRegChk(&oInR); */
@@ -1251,15 +1275,17 @@ static int ProcBody(St_t_fp sp, int alain)
   ENDF:
 	Out_LblTyp(sp, -2); 		/* endproc */
 	Out_Line("");
-  ENDF2:
+  //ENDF2:
 	Et_Frees(sav_ep);
 	return 0;
 }
 
+
 int 	Decl_Proc(word op)
 {
 	St_t_fp sp;
-	Et_t_fp xp, cdp;
+	Et_t_fp xp;
+	Et_t_fp cdp;
 	Et_t_fp sav_ep;
 	word	t;
 	byte	declFlg;
@@ -1267,11 +1293,13 @@ int 	Decl_Proc(word op)
 #if 0
 	long	val;
 #endif
+	op;
 
 	MSG("Decl_Proc");
 	St_localRoot = NULL;
 	gStatBrkCont_p = NULL;
 	cdp = NULL;
+	sav_ep = 0;
 	alain = Ana_align;
 	Ana_align = 0;
 	declFlg = oLocalOfs = oProcEnter =
@@ -1308,7 +1336,7 @@ int 	Decl_Proc(word op)
 		sp->p.et2 = xp;
 	}
 	sp->v.tok = T_PROC;
-	Ana_mode = MD_PROC;
+	Ana_mode  = MD_PROC;
 	if (Sym_Get() == I_CR) {
 		while (Sym_Get() == I_CR) ;
 	}
@@ -1317,8 +1345,8 @@ int 	Decl_Proc(word op)
 	Sym_ChkLP();
 	xp = ProcArg();
 	if (declFlg == 0 || ChkArg(sp->p.et, xp)) {
-		sp->p.et = xp;
-		sp->p.argc = oProcArgCnt;
+		sp->p.et 	 = xp;
+		sp->p.argc 	 = oProcArgCnt;
 		sp->p.argsiz = oProcArgSiz;
 	} else {
 		Et_Frees(sav_ep);
@@ -1364,8 +1392,8 @@ int 	Decl_Proc(word op)
 			}
 		}
 		if (Sym_tok == I_ENDP) {
-			if (sp->v.tok != T_MACPROC) {
-				sp->v.tok = T_PROC_DECL;
+			if (sp->v.tok  != T_MACPROC) {
+				sp->v.tok   = T_PROC_DECL;
 				sp->v.flg2 |= FL_EXTERN;///
 			}
 			Sym_GetChkEol();
@@ -1409,7 +1437,7 @@ int 	Decl_Proc(word op)
 		} else {
 		  E1:
 			Msg_Err("手続きの宣言部がおかしい");
-		  E2:
+		  //E2:
 			Sym_SkipCR();
 		}
 	}
@@ -1424,7 +1452,7 @@ int 	Decl_Proc(word op)
 	} else {
 		if (declFlg)
 			Msg_Err("in,out,breakが最初の宣言と矛盾している");
-		sp->p.et2->f.in = oInR;
+		sp->p.et2->f.in  = oInR;
 		sp->p.et2->f.out = oOutR;
 		sp->p.et2->f.brk = oBreakR;
 	}
@@ -1436,14 +1464,15 @@ int 	Decl_Proc(word op)
 			return Ana_err;
 		sp->v.flg2 &= ~(FL_INPO|FL_EXTERN);
 	} else {
-		sp->v.tok = T_PROC_DECL;
+		sp->v.tok   = T_PROC_DECL;
 		sp->v.flg2 |= FL_INPO|FL_EXTERN;
 		while (Sym_Get() != I_ENDP && Sym_tok != I_ENDMODULE && Ana_err == 0) ;
 		if (Sym_tok != I_ENDP)
 			Msg_Err("import中の手続きが閉じていない");
 	}
   ENDF:
-	oFarProcFlg = oProcEnter = 0;
+	oFarProcFlg =
+	oProcEnter  = 0;
 	OutStrl();
 	St_Free(St_localRoot);
 	return 0;

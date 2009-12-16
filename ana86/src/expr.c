@@ -1,16 +1,18 @@
 #include <stdlib.h>
 #include <string.h>
-#include <dos.h>
+//#include <dos.h>
+#include <assert.h>
 #include "anadef.h"
 
-static byte oExprSymFlg, oAddrFlg;
-static byte ExprcondFlg;
-static byte oExprIndexRegFlg;
+static byte 	oExprSymFlg;
+static byte 	oAddrFlg;
+static byte 	ExprcondFlg;
+static byte 	oExprIndexRegFlg;
 
 /*-----------------------------  手続き  ------------------------------------*/
-static Et_t_fp ExprUnary(void);
-static Et_t_fp ExprLOr(void);
-static Et_t_fp ExprEqu(void);
+static Et_t_fp 	ExprUnary(void);
+static Et_t_fp 	ExprLOr(void);
+static Et_t_fp 	ExprEqu(void);
 
 static	Et_t_fp ExprLVal(Et_t_fp xp)
 {
@@ -194,7 +196,7 @@ static	Et_t_fp ExprMemb(Et_t_fp xp, word typ, Et_t_fp tp)
 					&& (val < 0 || val >= (word) tp->m.ofs))
 					Msg_Err("配列の添字が範囲外である");
 				typ = tp->m.siz;
-				xp->m.ofs += (int) (val * typ);
+				xp->m.ofs += (int16) (val * typ);
 				tp = tp->e.lep;
 			} while (Sym_tok == I_COMMA);
 			Sym_ChkRP();
@@ -287,8 +289,8 @@ static	Et_t_fp ExprAddr(void)
 			goto ERR;
 
 		if (lp->e.lep->e.op == T_VAR) {
-			xp->e.op = T_OFS;
-			xp->v.st = lp->e.lep->v.st;
+			xp->e.op  = T_OFS;
+			xp->v.st  = lp->e.lep->v.st;
 			xp->m.ofs = lp->m.ofs;
 			xp->m.seg = lp /*->e.lep*/ ->m.seg;
 		} else {
@@ -388,7 +390,7 @@ static	Et_t_fp ExprOfs(word t, St_t_fp sp)
 
 static int ExprSize(void)
 {
-	word	siz, t;
+	unsigned	siz, t;
 	Et_t_fp xp, yp;
 
 	switch (Sym_Get()) {
@@ -448,7 +450,7 @@ static int ExprSize(void)
 		break;
 #endif
 	default:
-		siz = -1;
+		siz = (unsigned)-1;
 		Msg_Err("size()の指定がおかしい");
 	}
 	return siz;
@@ -518,14 +520,18 @@ static	Et_t_fp ExprVar(word t)
 	Et_NEWp(yp);
 	xp->e.lep = yp;
 	sp = Sym_sp;
+	if (sp == NULL) {
+		assert(sp != 0);
+		return NULL;
+	}
 #ifdef MVAR
-	if (sp->p.et->e.op == T_MVAR) {
+	if (sp->p.et && sp->p.et->e.op == T_MVAR) {
 		if ((c = Ch_SkipSpc()) != '[')
-			goto ERR;
+			return NULL; //goto ERR;
 		goto J1;
 	}
 #endif
-	if (sp->p.et->e.op == T_ARRAY) {
+	if (sp->p.et && sp->p.et->e.op == T_ARRAY) {
 		if ((c = Ch_SkipSpc()) == '[') {
 #ifdef MVAR
 		  J1:
@@ -968,22 +974,22 @@ static	Et_t_fp ExprUnary(void)
 	case T_STRING:
 		MSG("<文字列>");
 		{
-			Sss_t  *s = malloc(sizeof(Sss_t));
+			Sss_t  *s = calloc(1, sizeof(Sss_t));
 			if (s == NULL)
 				Msg_Err("文字列用のバッファが確保できなかった");
 			Et_NEWp(xp);
-			xp->e.op = T_OFS;
-			xp->v.st = NULL;
+			xp->e.op  = T_OFS;
+			xp->v.st  = NULL;
 			xp->m.seg = I_SI;
 			xp->m.siz = GoLbl_NewNo();
 			if (s) {
-				s->no = xp->m.siz;
-				s->str = strdup(Sym_str);
+				s->no   = xp->m.siz;
+				s->str  = strdup(Sym_str);
 				s->next = NULL;
 				if (Expr_strlTop)
 					Expr_strl->next = s;
 				else
-					Expr_strlTop = s;
+					Expr_strlTop    = s;
 				Expr_strl = s;
 			}
 		}
@@ -992,7 +998,7 @@ static	Et_t_fp ExprUnary(void)
 	case I_DEC:
 		MSG("<inc>");
 		Et_NEWp(xp);
-		xp->e.op = t;
+		xp->e.op  = t;
 		xp->e.rep = NULL;
 		if ((xp->e.lep = ExprLVal(ExprUnary())) == NULL)
 			return NULL;
@@ -1086,10 +1092,10 @@ static	Et_t_fp ExprBin(word t, word mf, Et_t_fp lp, Et_t_fp rp)
 			lv <<= rv;
 			break;
 		case I_SHR:
-			(dword) lv >>= rv;
+			lv = (dword)lv >> rv;
 			break;
 		case I_SAR:
-			(long) lv >>= rv;
+			lv = (long )lv >> rv;
 			break;
 		case I_AND:
 			lv &= rv;
@@ -1402,9 +1408,11 @@ static	Et_t_fp ExprEqu2(word a, Et_t_fp xp, Et_t_fp lp, Et_t_fp rp)
 	switch (a) {
 	case 4:
 		if (ro == I_MUL || ro == I_IMUL) {
-			word	a1, a2;
-			if ((a1 = Expr_RVal(rp->e.lep)) > 2
-				|| (a2 = Expr_RVal(rp->e.rep)) > 2)
+			word	a1;
+			word    a2;
+			a1 = Expr_RVal(rp->e.lep);
+			a2 = Expr_RVal(rp->e.rep);
+			if (a1 > 2 || a2 > 2)
 				Msg_Err("右辺がおかしい(L*R)");
 			rp->e.lep = Expr_CnvRVal(a1, rp->e.lep);
 			rp->e.rep = Expr_CnvRVal(a2, rp->e.rep);
@@ -1434,8 +1442,10 @@ static	Et_t_fp ExprEqu2(word a, Et_t_fp xp, Et_t_fp lp, Et_t_fp rp)
 static	Et_t_fp ExprEqu(void)
 {
 	Et_t_fp xp;
-	Et_t_fp lp, rp;
-	word	t, a;
+	Et_t_fp lp;
+	Et_t_fp rp;
+	word	t;
+	word	a;
 
 	lp = ExprLOr();
 	while (lp) {
@@ -1478,7 +1488,7 @@ static	Et_t_fp ExprEqu(void)
 		  J2:
 			MSG("< = >");
 			Et_NEWp(xp);
-			xp->e.op = t;
+			xp->e.op  = t;
 			xp->e.lep = lp;
 			if ((rp = ExprLOr()) == NULL)
 				return NULL;
@@ -1515,7 +1525,8 @@ static	Et_t_fp ExprEqu(void)
 			a = Expr_RVal(lp);
 			t = lp->e.op;
 			if (ExprcondFlg
-				&& ((a == 3 || a == 4) && (t == I_SUB || t == I_AND))) {
+				&& ((a == 3 || a == 4) && (t == I_SUB || t == I_AND)))
+			{
 				xp = lp;
 				lp = xp->e.lep;
 				rp = xp->e.rep;
@@ -1535,10 +1546,10 @@ Et_t_fp Expr(byte mode)
 	Et_t_fp xp;
 
 	MSG("\n<<<Expr>>>");
-	oAddrFlg = 0;
+	oAddrFlg    = 0;
 	oExprSymFlg = 1;
 	ExprcondFlg = mode;
-	xp = ExprEqu();
+	xp 			= ExprEqu();
 	ExprcondFlg = 0;
 	MSGF(("<<EXP [%s  xp=%lx]>>\n", Deb_ChkOp(xp->e.op), xp));
 	return xp;
@@ -1562,7 +1573,7 @@ static	Et_t_fp ExprIntr(void)
 		Sym_Get();
 	} else {
 		Sym_Get();
-		ep->e.op = I_INTR;
+		ep->e.op  = I_INTR;
 		ep->e.lep = Expr(0);
 		IsEp_CnstTyp(I_BYTE, ep->e.lep);
 	}
@@ -1865,7 +1876,7 @@ Et_t_fp Expr_Cond(void)
 	Et_t_fp yp;
 	Et_t_fp lp;
 	Et_t_fp rp;
-	word	t = 0;
+	word	t  = 0;
 	word	nf = 0;
 
 	if (Sym_tok == I_NOT) {
@@ -2001,12 +2012,12 @@ Et_t_fp Expr_Cond(void)
 		if (nf)
 			t = Expr_CondNeg(t);
 		lp->j.cond = t;
-		lp->j.nf = 0;
-		lp->e.lep = NULL;
+		lp->j.nf   = 0;
+		lp->e.lep  = NULL;
 	} else {
 		lp->j.cond = 0;
-		lp->j.nf = nf;
-		lp->e.lep = yp;
+		lp->j.nf   = nf;
+		lp->e.lep  = yp;
 	}
 	return lp;
 }

@@ -2,30 +2,40 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dos.h>
+#ifdef __BORLANDC__
 #include <alloc.h>
+#endif
 #include "anadef.h"
 
 #ifdef DEBUG
 #define ET_TBL_SIZ		(1024 * 1 / sizeof(Et_t))
 #define ST_TBL_SIZ		(1024 * 1 / sizeof(St_t))
 #else
+#ifdef DOS16
 #define ET_TBL_SIZ		(1024 * 32 / sizeof(Et_t))
 #define ST_TBL_SIZ		(1024 * 63 / sizeof(St_t))
+#else
+#define ET_TBL_SIZ		(1 * 1024 * 1024 / sizeof(Et_t))
+#define ST_TBL_SIZ		(2 * 1024 * 1024 / sizeof(St_t))
+#endif
 #endif
 
+
+
 /*----------------------------- function ------------------------------------*/
-static Et_t_fp Et_enpTop;
-static Et_t_fp Et_enpBtm;
-static Et_t_fp Et_top;
+static Et_t_fp 	Et_enpTop;
+static Et_t_fp 	Et_enpBtm;
+static Et_t_fp 	Et_top;
+
 
 static	Et_t_fp Et_Init0(void)
 {
-	int 	i;
+	int 	 i;
 	void far *p;
-	Et_t_fp s;
-	Et_t_fp tbl;
+	Et_t_fp  s;
+	Et_t_fp  tbl;
 
-	tbl = calloc(ET_TBL_SIZ, sizeof(Et_t));
+	tbl = calloc(ET_TBL_SIZ+1, sizeof(Et_t));
 	if (tbl == NULL) {
 		Msg_Err("メモリが足りません");
 #if 0
@@ -51,6 +61,7 @@ static	Et_t_fp Et_Init0(void)
 	return s;
 }
 
+
 Et_t_fp Et_New(void)
 {
 	Et_t_fp ns;
@@ -71,28 +82,31 @@ Et_t_fp Et_New(void)
 		exit(1);
 #endif
 	}
-	ns = Et_enpTop;
-	Et_enpTop = Et_enpTop->e.next;
+	ns 			= Et_enpTop;
+	Et_enpTop	= Et_enpTop->e.next;
 	memset(ns, 0, sizeof(Et_t));
 	Et_top->e.next = ns;
 	(Et_top = ns)->e.next = NULL;
 	return Et_top;
 }
 
+
 int 	Et_Init(void)
 {
-	Et_enpBtm = NULL;
-	Et_top = Et_Init0();
+	Et_enpBtm 		= NULL;
+	Et_top 			= Et_Init0();
  /* if (Et_top == NULL) return 1; */
-	Et_enpTop = Et_top->e.next;
-	Et_top->e.next = NULL;
+	Et_enpTop 		= Et_top->e.next;
+	Et_top->e.next	= NULL;
 	return 0;
 }
+
 
 Et_t_fp Et_Sav(void)
 {
 	return Et_top;
 }
+
 
 #if 0
 void	Et_Free(Et_t_fp p)
@@ -104,36 +118,38 @@ void	Et_Free(Et_t_fp p)
 }
 #endif
 
+
 void	Et_Frees(Et_t_fp ep)
 {
 	if (ep == NULL)
 		return;
 	Et_enpBtm->e.next = ep->e.next;
 	if (ep->e.next) {
-		Et_enpBtm = Et_top;
+		Et_enpBtm 		  = Et_top;
 		Et_enpBtm->e.next = NULL;
 	}
-	Et_top = ep;
-	Et_top->e.next = NULL;
+	Et_top 			= ep;
+	Et_top->e.next  = NULL;
 }
 
 
 /*------------------------------------------------------------------------*/
 
 /****/
-static St_t_fp St_enpTop;
-static St_t_fp St_enpBtm;
-static St_t_fp St_top;
-static St_t_fp St_ptr;
-static byte_fp St_name;
-static int St_nodeCnt;
+static St_t_fp 	St_enpTop;
+static St_t_fp 	St_enpBtm;
+static St_t_fp 	St_top;
+static St_t_fp 	St_ptr;
+static byte_fp 	St_name;
+static int 		St_nodeCnt;
+
 
 static	St_t_fp St_Init0(void)
 {
-	int 	i;
-	void far *p;
-	St_t_fp s;
-	St_t_fp tbl;
+	int 		i;
+	void far	*p;
+	St_t_fp 	s;
+	St_t_fp 	tbl;
 
 	tbl = calloc(ST_TBL_SIZ + 2, sizeof(St_t));
 	if (tbl == NULL) {
@@ -161,18 +177,20 @@ static	St_t_fp St_Init0(void)
 	return s;
 }
 
+
 int 	St_Init(void)
 {
 	St_enpBtm = NULL;
-	St_top = St_Init0();
+	St_top    = St_Init0();
 #if 0
 	if (St_top == NULL)
 		return 1;
 #endif
-	St_enpTop = St_top->c.next;
-	St_top->c.next = NULL;
+	St_enpTop 		= St_top->c.next;
+	St_top->c.next 	= NULL;
 	return 0;
 }
+
 
 St_t_fp St_New(void)
 {
@@ -194,19 +212,20 @@ St_t_fp St_New(void)
 		exit(1);
 #endif
 	}
-	ns = St_enpTop;
+	ns 		  = St_enpTop;
 	St_enpTop = St_enpTop->c.next;
 	memset(ns, 0, sizeof(St_t));
 	return ns;
 }
+
 
 #if 1
 #define MSGFF(x)
 #else
 #define MSGFF(x)	(fprintf x)
 #endif
-#if 0
 
+#if 0
 void	St_Chk1(St_t_fp sp, int lr, int n)
 {
 	int 	i;
@@ -228,16 +247,20 @@ void	St_Chk1(St_t_fp sp, int lr, int n)
 }
 
 #endif
+
+
 #if 1
 static byte   *StrPf(int f)
 {
-	static byte bb[20];
+	static char	bb[20];
 
 	if (f == 0 || f == 1 || f == 2)
 		return (f == 0) ? "E" : (f == 1) ? "L" : "R";
 	sprintf(bb, "%d", f);
 	return bb;
 }
+
+
 
 int 	St_Chk(St_t_fp sp, int lr, int n, int nn)
 {
@@ -278,6 +301,8 @@ int 	St_Chk(St_t_fp sp, int lr, int n, int nn)
 }
 
 #endif
+
+
 #if 0
 void	StrKai(St_t_fp pp, St_t_fp p, byte far *str, word n, word nl, word f, word a)
 {
@@ -324,13 +349,13 @@ static int St_Ins2(St_t_fp pp, int lr)
 		return 0;
 	}
 	if (a < 0) {
-		l = 0;
-		r = 1;
+		l  = 0;
+		r  = 1;
 		nl = 1;
 		nr = 2;
 	} else {
-		l = 1;
-		r = 0;
+		l  = 1;
+		r  = 0;
 		nl = 2;
 		nr = 1;
 	}
@@ -357,32 +382,33 @@ static int St_Ins2(St_t_fp pp, int lr)
 #endif
 		return p->n.flg;
 	}
-	lp = p->n.lnk[l];
-	lrp = lp->n.lnk[r];
+	lp 		= p->n.lnk[l];
+	lrp 	= lp->n.lnk[r];
 	if (a == nl) {
-		p->n.lnk[l] = lrp;
-		p->n.flg = 0;
-		lp->n.lnk[r] = p;
-		lp->n.flg = 0;
-		pp->n.lnk[lr] = lp;
+		p->n.lnk[l] 	= lrp;
+		p->n.flg 		= 0;
+		lp->n.lnk[r] 	= p;
+		lp->n.flg 		= 0;
+		pp->n.lnk[lr] 	= lp;
 #if 0
 		StrKai(pp, lp, "回転1", n, nl, a, a);
 		St_Chk(lp, lr, 1, 0);
 #endif
 	} else if (a == nr) {
-		lrlp = lrp->n.lnk[l];
-		lrrp = lrp->n.lnk[r];
-		pp->n.lnk[lr] = lrp;
-		p->n.lnk[l] = lrrp;
-		lp->n.lnk[r] = lrlp;
-		lrp->n.lnk[l] = lp;
-		lrp->n.lnk[r] = p;
-		lp->n.flg = p->n.flg = 0;
+		lrlp 			= lrp->n.lnk[l];
+		lrrp 			= lrp->n.lnk[r];
+		pp->n.lnk[lr] 	= lrp;
+		p->n.lnk[l] 	= lrrp;
+		lp->n.lnk[r] 	= lrlp;
+		lrp->n.lnk[l] 	= lp;
+		lrp->n.lnk[r] 	= p;
+		lp->n.flg 		=
+		p->n.flg 		= 0;
 		if (lrp->n.flg == nl)
-			p->n.flg = nr;
+			p->n.flg 	= nr;
 		else if (lrp->n.flg == nr)
-			lp->n.flg = nl;
-		lrp->n.flg = 0;
+			lp->n.flg 	= nl;
+		lrp->n.flg 		= 0;
 #if 0
 		StrKai(lrp, p, "回転2R", n, nl, a, a);
 		St_Chk(p, lr, 1, 0);
@@ -397,31 +423,33 @@ static int St_Ins2(St_t_fp pp, int lr)
 	return 0;
 }
 
+
 St_t_fp St_Ins(byte_fp name, St_t_fp far *root)
 {
-	struct ST_T_NODE dmy;
+	struct ST_T_NODE 	dmy;
 
 	St_nodeCnt = 0;
 	if (*root == NULL) {
 		MSG("St_Ins (root)");
-		St_ptr = St_New();
+		St_ptr 	= St_New();
 		strcpy(St_ptr->v.name, name);
-		*root = St_ptr;
+		*root 	= St_ptr;
 	} else {
 		MSG("St_Ins");
-		St_name = name;
-		St_ptr = NULL;
-		dmy.lnk[0] = *root;
+		St_name 	= name;
+		St_ptr 		= NULL;
+		dmy.lnk[0] 	= *root;
 		St_Ins2((St_t_fp) (&dmy), 0);
-		*root = dmy.lnk[0];
+		*root 		= dmy.lnk[0];
 	}
 	return St_ptr;
 }
 
+
 St_t_fp St_Search(byte_fp name, St_t_fp root)
 {
-	int 	a;
-	St_t_fp sp;
+	int 		a;
+	St_t_fp 	sp;
 
 	sp = root;
 	while (sp) {
@@ -431,6 +459,7 @@ St_t_fp St_Search(byte_fp name, St_t_fp root)
 	}
 	return NULL;
 }
+
 
 static void St_Free0(St_t_fp sp)
 {								/* 削除するroot */
@@ -443,9 +472,10 @@ static void St_Free0(St_t_fp sp)
 	if ((sp->v.tok == T_STRUCT /* ||sp->v.tok == T_GROUP */ ) && sp->v.st)
 		St_Free0(sp->v.st);
 	St_enpBtm->n.lnk[0] = sp;
-	St_enpBtm = sp;
+	St_enpBtm 			= sp;
 	St_enpBtm->n.lnk[0] = NULL;
 }
+
 
 #if 1
 void	St_Free(St_t_fp sp)
@@ -458,6 +488,7 @@ void	St_Free(St_t_fp sp)
 }
 
 #endif
+
 
 #if 0
 
@@ -482,9 +513,15 @@ void	St_Frees(St_t_fp sp)
 
 /*---------------------------------------------------------------------------*/
 #ifdef MACR
-#define MACBUF_SIZMAX 0x4000
-byte_fp Mac_buf, Mac_ptr;
+#ifdef DOS16
+#define MACBUF_SIZMAX 	0x4000
+#else
+#define MACBUF_SIZMAX 	0x400000
+#endif
+byte_fp Mac_buf;
+byte_fp Mac_ptr;
 word	Mac_siz;
+
 
 void	Mac_Init(void)
 {
@@ -496,14 +533,16 @@ void	Mac_Init(void)
 	Mac_ptr = Mac_buf;
 }
 
+
 byte_fp Mac_Pos(void)
 {
 	return Mac_ptr;
 }
 
-void	Mac_Putc(word c)
+
+void	Mac_Putc(unsigned c)
 {
-	if (Mac_siz > MACBUF_SIZMAX - 2) {
+	if (Mac_siz > MACBUF_SIZMAX - 4) {
 		Msg_Err("マクロ文字列バッファがあふれました");
 		exit(1);
 	}
