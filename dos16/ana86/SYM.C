@@ -493,7 +493,13 @@ ChMacSet (byte_fp mp, byte far* far* argp, word k)
 		;
 	p = oChLinPtr;
 	do {
-		*p++ = c = *mp++;
+	  J1:
+		c = *(mp++);
+		if (c == '@' && *mp == '@') {
+			mp++;
+			goto J1;
+		}
+		*p++ = c;
 		if (p >= oChLinBuf + CH_LINBUF_SIZ)
 			goto ERR;
 		if (c > 0 && c < 8) {
@@ -501,7 +507,13 @@ ChMacSet (byte_fp mp, byte far* far* argp, word k)
 			q = argp[--c];
 			p--;
 			do {
-				*p++ = c = *q++;
+			  //J2:
+				c = *(q++);
+				//if (c == '@' && *q == '@') {
+				//	q++;
+				//	goto J2;
+				//}
+				*p++ = c;
 				if (p >= oChLinBuf + CH_LINBUF_SIZ)
 					goto ERR;
 			} while (c != '\0');
@@ -611,6 +623,7 @@ ChGet2(void)
 {
 	word c,c2;
 
+  //LOOP:
 	if ((c = Ch_GetK()) == '#')
 		goto J1;
   #if 0
@@ -635,6 +648,7 @@ ChGet2(void)
 				return 0;
 		}
 		return ' ';
+		//goto LOOP;
 
 	} else if (c2 == '/') {
  J1:

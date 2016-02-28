@@ -2,12 +2,10 @@
 CC = TCC
 ASM = TASM
 AFLAGS = -ml -m
-CFLAGS = -ml -d
-# CFLAGS = -ml -d -N
+CFLAGS = -ml -d -O -G
 .asm.obj:
 	$(ASM) $(AFLAGS) $<
 .c.obj:
-	vmap
 	$(CC) $(CFLAGS) -c $<
 #
 #
