@@ -1,0 +1,37 @@
+module FIL
+	c_name "FIL","_",1
+
+*proc GetDrive();cdecl
+enter
+	ah = 0x19
+	intr 0x21
+	ah = 0
+	return
+endproc
+
+*proc GetCurDir(dno:w,dir:d);cdecl
+enter
+	save ds,si
+
+	al = dno.l
+	if (al == 0)
+		ah = 0x19
+		intr 0x21
+		++al
+	fi
+	al += 'A'-1
+	ds.si = dir
+	ah = ':'
+	w[si] = ax
+	w[si+2] = '\\'+ 0x00 * 0x100
+	si+=3
+	dl = dno.l
+	ah = 0x47
+	intr 0x21
+	if (cf == 0)
+		ax = 0
+	fi
+	return
+endproc
+
+endmodule

@@ -1,0 +1,256 @@
+module WILDCMP
+// WildCmp
+// コマンドラインで -DTURBO_C=1 を指定すればTURBO-C用に, -DLSI_C=2を指定
+// すればLSI-C用になります。指定がなければアセンブラ用
+//	1992	writen by M.Kitamura
+
+	model SMALL
+	//stack 1024
+  @if defined(TURBO_C) || defined(LSI_C)
+	c_name "","",defined(TURBO_C)+defined(LSI_C)*2
+  @else
+	c_name "Str"
+	import Str
+  @fi
+
+	import Std
+
+proc ax_get(si)
+//	in	  ds
+//	out   ax,si,cf
+//	break fx
+begin
+	ah = 0
+	al = b[si]
+	++si
+	if (Std.IsKanji(al))
+		ah = b[si]
+		++si
+		go (ah == 0) J1
+		ah <=> al
+	fi
+	ret
+  J1:
+	al = 0
+	ret
+endproc
+
+proc cx_get(di)
+//	in	  es
+//	out   cx,di
+//	break fx
+begin
+	ch = 0
+	cl = b[es:di]
+	++di
+	if (Std.IsKanji(cl))
+		ch = b[es:di]
+		++di
+		go (ch == 0) J1
+		ch <=> cl
+	fi
+	ret
+  J1:
+	cl = 0
+	ret
+endproc
+
+*proc WildCmp
+  @if defined(TURBO_C)
+	(key:dword, fstr:dword)
+	//out dx.ax
+  @else
+	(bx.ax, dx.cx)
+	//out  bx.ax,cx,dx
+  @fi
+	cdecl
+enter
+  @if defined(TURBO_C)
+	save fx,es,ds,di,si,cx,bx
+  @else
+
+
+	save fx,es,ds,di,si,dx,cx
+  @fi
+	const _N_ = -2, _E_ = -1, _Y_ = 0
+	local  str:word
+
+  @if defined(TURBO_C)
+	bx.ax = key
+	dx.cx = fstr
+  @fi
+	//ds.si = bx.ax と es.di = dx.cx 。ポインタの正規化を行う
+	si = ax
+	ax >>= 4
+	bx += ax
+	ds = bx
+	di = cx
+	cx >>= 4
+	dx += cx
+	es = dx
+	assume ds:nothing, es:nothing
+	si &= 0x0F
+	di &= 0x0F
+	str = di
+
+	loop.w
+		al = b[si]
+		++si
+		if (Std.IsKanji(al))
+			ah = b[si]
+			go.w (ah == '\0') RTS_ERR
+			ah <=> al
+			++si
+			cx_get(di)
+			go (ax != cx) RTS_N
+			next.w
+		fi
+		ah = 0
+		if (al == '*')
+			loop
+				WildCmp(ds.si,es.di)
+				go.w (ax == _Y_) RTS_YES
+				go.w (ax == _E_) RTS_ERR
+				cx_get(di)
+			endloop (cx)
+			go RTS_N
+		fi
+		if (al == '?')
+			cx_get(di)
+			go (cx == '\0') RTS_N
+  @if 0
+		elsif (al == '^')
+			ax_get(si)
+			go.w (ax == 0) RTS_ERR
+			cx_get(di)
+			go (ax == cx) RTS_N
+  @fi
+		elsif (al == '[')
+			cx_get(di)
+			go (cx == 0) RTS_N
+			ax_get(si)
+			dl = 0
+			if (ax == '^')
+				dl = 1
+				ax_get(si)
+			fi
+			bx = 0xffff
+			go J0
+  RTS_N:
+			go RTS_NO
+
+			loop
+				if (ax == '-')
+					ax_get(si)
+					go (ax == '\0') RTS_ERR
+					if (ax == ']')
+						go (bx == cx) J1
+						go J2
+					fi
+					go (cx >= bx && cx <= ax) J1
+				else
+ J0:
+					if (ax == cx)
+ J1:
+						go (dl) RTS_NO
+						loop
+							ax_get(si)
+							go (ax == 0) RTS_ERR
+						endloop (ax != ']')
+						exit
+					fi
+				fi
+				bx = ax
+				ax_get(si)
+				go (ax == '\0') RTS_ERR
+				if (ax == ']')
+ J2:
+					exit (dl)
+					go RTS_NO
+				fi
+			endloop
+
+		else
+			cx_get(di)
+
+			if (ax != cx)
+				go (ax) RTS_NO
+				go ((di -= str) == 0) RTS_NO
+			  @if defined(TURBO_C)
+				dx = ax = di
+			  @else
+				bx = ax = di
+			  @fi
+				go RTS
+			fi
+			go (cx == 0) RTS_YES
+		fi
+	endloop// (ax)
+ RTS_YES:
+	ax = _Y_
+	di -= str
+  @if defined(TURBO_C)
+	dx = di
+  @else
+	bx = di
+  @fi
+	go RTS
+
+ RTS_ERR:
+	ax = _E_
+	go RTS_NO2
+
+ RTS_NO:
+	ax = _N_
+ RTS_NO2:
+  @if defined(TURBO_C)
+	dx = 0
+  @else
+	bx = 0
+  @fi
+ RTS:
+	return
+endproc
+
+endmodule
+
+/*
+  WildCmp  -- シフトJIS 対応ワイルドカード機能付文字列比較
+	proc WildCmp(key:d, str:d)
+	入力 TC|not TC
+		key|bx.ax	ワイルドカード文字を含む文字列
+		str|dx.cx	文字列
+	出力
+		ax |ax		結果
+		dx |bx		マッチしたときの文字列の長さ
+
+	文字列 key と str を比較し、マッチすれば０をしなければ０以外を返す。
+	返される値の意味は、
+		0	  key と str はマッチした
+		-1	  key の指定がおかしい（ワイルドカード文字の指定ミスなど)
+		-2	  str は key よりも文字列長が短い
+		正数n str は 先頭 n-1 バイトで key とマッチした（str は key より長い）
+
+	str は極端に長すぎてはいけない。一応、63Kバイトくらいに対応しているはず。
+	（正確には64K - 17バイトくらいですが）
+
+	文字列の終端は'\0'. 文字は全角(2ﾊﾞｲﾄ)文字も１文字として扱われる.
+
+	ワイルド・カード文字の意味（c は 半角か全角文字の 1文字のこと）
+		*	  0文字以上の任意の文字列にマッチ.
+		?	  任意の1文字にマッチ.
+		^c	  c 以外の任意の１文字にマッチ.
+		[..]  [  ] でくくられた文字列（１文字以上）中のどれか１文字にマッチ.
+		[^..] [^ ] でくくられた文字列（１文字以上）中にない１文字にマッチ.
+
+　　括弧（[..],[^..]）のなかではワイルドカード文字の機能は抑制される。
+　　括弧のなかに']' を含めたい場合は、[]abc] や [^]ed] のように、'[' や '[^'
+	の直後に']'を置く。
+	括弧内では、A-Z のように,'-'を用いて文字コードで A から Z の範囲を指定で
+	きる。ただし、'-' の両側に文字がないといけない。[-abc] や [abc-] のよう
+	に,'[' や '[^' の直後や ']' の直前に '-' があるばあい,'-'は 1文字として
+	扱われる。[0-9-A] というようなのは不定扱い（実際にはこの版では[0-99-A]と
+	指定されたばあいと同じ動作をして、エラーにしていない）
+	あと'-' の右側の文字は左側の文字よりも大きいものを指定しなければならない。
+	Z-A ではマッチしない。
+*/

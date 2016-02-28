@@ -1,0 +1,310 @@
+module PMT
+	c_name "PMT","_",1
+
+	import Std
+	import Dos
+	import Pri
+	import Key
+
+///////////////////////////////////////////////////////////////////////////////
+*const COMMENT_SIZE = 3*1024-256-768-256-2
+*const PIXLINSIZ = 4096
+*const PIXBUF_SIZE = (64-3)*1024
+
+@define DT()	PMT.T[ds:0]
+
+
+*struct HDR
+	id:w			// 'pm':16色 'Pm':256色  'pM':15/16bit色  PM:24BIT色
+	pln:b			// 1ﾄﾞｯﾄあたりのﾋﾞｯﾄ数. 8以下:8ﾋﾞｯﾄ色画扱い 9以上:24ﾋﾞｯﾄ色
+	dat:b			// b7:ﾊﾟﾚｯﾄの有無 b6:透明色フラグ b5:拡張領域の有無
+	xsz:w			// 横幅ドット数('pm'では横幅は偶数になるようパティンク
+	ysz:w			// 縦幅ドット数
+	x0:w			// 始点 x
+	y0:w			// 始点 y
+	bcol:w			// 透明色
+	rsv:w			// 予約
+	xasp:w			// xアスペクト
+	yasp:w			// yアスペクト
+	commentOfs:d	// コメントへのオフセット
+	artist:b(18)	// 作者名
+	artistTerm:b	// '\0'
+	timeSec1:b		// 0 or 1秒
+	time:w			// MS-DOSな時間
+	date:w			// MS-DOSな日付
+	dmy:b(16)		// 予約
+endstruct
+
+*struct T
+	//dummy:b(16)		// セグメント境界調整用
+	/*-------------*/
+	pln:w				// 色のビット数(4 or 8)
+	xsize:w				// 横幅(ドット)
+	ysize:w				// 縦幅(ドット)
+	xstart:w			// 始点x
+	ystart:w			// 始点y
+	aspect1:w			// アスペクト比x
+	aspect2:w			// アスペクト比y
+	overlayColor:w		// 透明色
+	color:w				// パレットの使用個数
+	palBit:w			// パレットのビット数
+	exSize:w			// pi拡張領域サイズ
+	dfltPalFlg:w		// piデフォルトパレットフラグ
+	loopMode:w			// piループモード(pimkの実験/隠しTAG)
+	filHdl:w			// ファイル・ハンドル
+	saverName:b(4+2)	// 機種名
+	artist:b(18+2)		// 作者名
+	/*-------------*/
+	putLin:d			// 出力手続きのアドレス
+	putLinDt:d			// 出力手続きへわたすデータ
+	pixStart:w			//X ピクセルバッファ中の解凍開始位置
+	pixEnd:w			//X                         終了位置
+	pixHisSrc:w			//X バッファ更新でヒストリバッファへのコピー元
+	pixHisSiz:w			//X ヒストリ・サイズ
+	ymax:w				//X 展開する最大行数
+	/*-------------*/
+	ycnt:w				// 展開での縦カウンタ
+	pixLinCnt:w			//
+	pixLinSiz:w			//
+	pixBufSiz:w			//
+	buf1:w				// １バイト読み込みバッファ
+	hdr:HDR				//
+	/*-------------*/
+	dummy2:b( 256 /* -16*/ -(14*2+6+20) -(2*4+5*2) -(5*2+64))
+	/*-------------*/
+	palette:b(256*3)
+	fileName:b(254+2)
+	comment:b(COMMENT_SIZE+2)
+	/*------------------------- ここまでで 3Kバイト ---*/
+	pixBuf:b(PIXBUF_SIZE)
+endstruct
+
+///////////////////////////////////////////////////////////////////////////////
+
+*proc Open(datPtr:d, fileName:d); cdecl; far
+//	Djpファイルをオープンしてヘッダを読み込む
+//  out ax  0:成功  以外:エラー
+enter
+	save bx,cx,si,di,ds,es,fx
+
+	// 設定
+	rep.inc
+	bx.ax = datPtr
+	datPtr = 0
+	Std.FpToHp bx,ax,cx
+	go.w (bx == 0 && ax == 0) RTS
+	if (ax)
+		++bx
+	fi
+	ax = 0
+	datPtr = bx.ax
+	es = bx
+	rep.set.w 0, ax, %PMT.T.pixBuf //最初の4Kバイトをクリア
+
+	// ファイル名コピー
+	ds.si = fileName
+	di = %PMT.T.fileName
+	loop
+		rep.load al,si
+		rep.set di,al
+	endloop (al)
+
+	//ファイル・オープン
+	ds = bx	//es
+	Dos.Open %PMT.T.fileName, 0x00
+	go.w (cf) OPEN_ERR
+	bx = ax
+	DT.filHdl = ax
+
+	//-- ヘッダ読み込み--
+	dx = %PMT.T.hdr
+	Dos.Read bx, dx, sizeof(HDR)
+	go.w (cf) FIL_ERR
+
+	go.w (DT.hdr.id != 'P'+'m'*256) HDR_ERR
+
+	//色数
+	ch = 0
+	cl = DT.hdr.pln
+	if (cl <= 4)
+		cl = 4
+		ax = 16
+	elsif (cl <= 8)
+		cl = 8
+		ax = 256
+	else
+		cl = 24
+		ax = 0
+	fi
+	DT.pln = cx
+	DT.color = ax
+
+	//座標、サイズ、アスペクト
+	DT.xstart = ax = DT.hdr.x0
+	DT.ystart = ax = DT.hdr.y0
+	DT.xsize = ax = DT.hdr.xsz
+	DT.ysize = ax = DT.hdr.ysz
+	DT.aspect1 = ax = DT.hdr.xasp
+	DT.aspect2 = ax = DT.hdr.yasp
+
+	//作者名
+	si = %T.hdr.artist
+	di = %T.artist
+	rep.cpy.b di,si,19
+
+	//コメント
+	cx.dx = DT.hdr.commentOfs
+	if (dx || cx)
+		Dos.Lseek bx,cx.dx, 0
+		si = COMMENT_SIZE
+		di = %T.comment
+		dx = %T.buf1
+		cx = 1
+		loop
+			Dos.Read bx, dx, cx
+			exit (cf)
+			exit (ax == 0)
+			al = DT.buf1.l
+			exit (al == 0)
+			rep.set di,al
+		endloop (--si)
+		rep.set di,0
+		cx.dx = sizeof(HDR)
+		Dos.Lseek bx, cx.dx, 0
+	fi
+
+	// パレット読み込み
+	if (DT.pln != 24)
+		Dos.Read bx, %PMT.T.palette, 256*3
+	else
+		di = %PMT.T.palette
+		ax = 0
+		loop
+			rep.set di,al
+			rep.set di,al
+			rep.set di,al
+			++ax
+		endloop (ah == 0)
+	fi
+
+	dx.ax = datPtr
+  RTS:
+	return
+
+FIL_ERR:
+OPEN_ERR:	//ファイル・オープンできなかった
+	dx.ax = 1
+	go RTS
+
+HDR_ERR:	//Pri.Fmt "PMTのヘッダでない\N"
+	dx.ax = 2
+	go RTS
+
+//VAL_ERR:	//Pri.Fmt "ヘッダに矛盾がある\N"
+//	dx.ax = 3
+//	go RTS
+
+endproc
+
+
+@if 0
+*proc Close(datPtr:d);cdecl;far
+enter
+	save ax,bx,dx,ds
+
+	bx.ax = datPtr
+	Std.FpToHp bx,ax,dx
+	go.w (bx == 0 && ax == 0) RTS
+	if (ax)
+		++bx
+	fi
+	ds = bx
+	Dos.Close DT.filHdl
+  RTS:
+	return
+endproc
+@fi
+
+@if 0
+
+*proc Load(datPtr:d, putLinFunc:d, putLinDat:d, linCnt:w);cdecl;far
+	//画像の展開.
+	//putLinFuncは１行出力ﾙｰﾁﾝのｱﾄﾞﾚｽ
+	//linCnt は展開する最大行数. 0なら ysizeとなる
+	//putLinDat は １行出力ﾙｰﾁﾝに渡される。そのﾙｰﾁﾝのﾃﾞｰﾀ領域へのポインタを想定
+	//ret dx.ax:構造体へのポインタ(ｵﾌｾｯﾄ0) ｾｸﾞﾒﾝﾄが0ならｴﾗｰ(ｵﾌｾｯﾄ値がｴﾗｰNo)
+enter
+	save  bx,cx,dx,si,di,es,ds,fx
+	
+	// 設定
+	rep.inc
+	dx.ax = datPtr
+	Std.FpToHp dx,ax,cx
+	if (dx == 0 && ax == 0)
+		ax = 4
+		go.w RET
+	fi
+	if (ax)
+		++dx
+	fi
+	ds = dx
+	es = dx
+
+	// 出力手続き用意
+	DT.putLin   = dx.ax = putLinFunc
+	DT.putLinDt = dx.ax = putLinDat
+
+	// 展開できる行数をセット
+	ax = linCnt
+	if (ax == 0 || ax > DT.ysize)
+		ax = DT.ysize
+	fi
+	DT.ycnt = ax	//展開する行数
+
+	// 読み込みサイズ調整
+	cx = DT.xsize
+	if (cx > PIXLINSIZ)
+		ax = 2
+		go.w RET
+	fi
+	if (DT.pln == 24)
+		ax = cx
+		ax += ax
+		cx += ax
+	fi
+	DT.pixLinSiz = cx
+	dx.ax = PIXBUF_SIZE
+	div dx.ax,cx
+	DT.pixLinCnt = ax
+	dx.ax = ax * cx
+	DT.pixBufSiz = ax
+	//DT.pixStart = %PMT.T.pixBuf
+	//ax += %PMT.T.pixBuf
+	//DT.pixEnd = ax
+
+	//
+	loop
+		Dos.Read DT.filHdl, %PMT.T.pixBuf, DT.pixBufSiz
+		bx = %PMT.T.pixBuf
+		cx = DT.pixLinCnt
+		loop
+			pusha
+			push ds,es
+			push DT.putLinDt, ds.bx
+			call DT.putLin
+			sp += 8
+			pop  ds,es
+			popa
+			bx += DT.pixLinSiz
+			go ((--DT.ycnt) == 0) EXITLOOP
+		endloop (--cx)
+	endloop
+  EXITLOOP:
+	ax = 0
+  RET:
+	return
+endproc
+
+@endif
+
+endmodule

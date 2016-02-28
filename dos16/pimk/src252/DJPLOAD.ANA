@@ -1,0 +1,273 @@
+module DJP
+	c_name "DJP","_",1
+
+	import Std
+	import Dos
+	import Pri
+	import Key
+
+///////////////////////////////////////////////////////////////////////////////
+*const COMMENT_SIZE = 3*1024-256-768-256-2
+*const PIXLINSIZ = 4096
+*const PIXBUF_SIZE = (64-3)*1024
+
+@define DT()	DJP.T[ds:0]
+
+*struct T
+	//dummy:b(16)		// セグメント境界調整用
+	/*-------------*/
+	pln:w				// 色のビット数(4 or 8)
+	xsize:w				// 横幅(ドット)
+	ysize:w				// 縦幅(ドット)
+	xstart:w			// 始点x
+	ystart:w			// 始点y
+	aspect1:w			// アスペクト比x
+	aspect2:w			// アスペクト比y
+	overlayColor:w		// 透明色
+	color:w				// パレットの使用個数
+	palBit:w			// パレットのビット数
+	exSize:w			// pi拡張領域サイズ
+	dfltPalFlg:w		// piデフォルトパレットフラグ
+	loopMode:w			// piループモード(pimkの実験/隠しTAG)
+	filHdl:w			// ファイル・ハンドル
+	saverName:b(4+2)	// 機種名
+	artist:b(18+2)		// 作者名
+	/*-------------*/
+	putLin:d			// 出力手続きのアドレス
+	putLinDt:d			// 出力手続きへわたすデータ
+	pixStart:w			//X ピクセルバッファ中の解凍開始位置
+	pixEnd:w			//X                         終了位置
+	pixHisSrc:w			//X バッファ更新でヒストリバッファへのコピー元
+	pixHisSiz:w			//X ヒストリ・サイズ
+	ymax:w				//X 展開する最大行数
+	/*-------------*/
+	ycnt:w				// 展開での縦カウンタ
+	pixLinCnt:w			//
+	pixLinSiz:w			//
+	pixBufSiz:w			//
+	hdr:w(6)			//
+	/*-------------*/
+	dummy2:b( 256 /* -16*/ -(14*2+6+20) -(2*4+5*2) -(4*2+6*2))
+	/*-------------*/
+	palette:b(256*3)
+	fileName:b(254+2)
+	comment:b(COMMENT_SIZE+2)
+	/*------------------------- ここまでで 3Kバイト ---*/
+	pixBuf:b(PIXBUF_SIZE)
+endstruct
+
+///////////////////////////////////////////////////////////////////////////////
+cvar auto16flg:w = 0
+
+*proc AutoChk16(sw:w); cdecl; far
+enter
+	push sw
+	pop  auto16flg
+	return
+endproc
+
+*proc Open(datPtr:d, fileName:d); cdecl; far
+//	Djpファイルをオープンしてヘッダを読み込む
+//  out ax  0:成功  以外:エラー
+enter
+	save bx,cx,si,di,ds,es,fx
+	
+	// 設定
+	rep.inc
+	bx.ax = datPtr
+	datPtr = 0
+	Std.FpToHp bx,ax,cx
+	go.w (bx == 0 && ax == 0) RTS
+	if (ax)
+		++bx
+	fi
+	ax = 0
+	datPtr = bx.ax
+	es = bx
+	rep.set.w 0, ax, %DJP.T.pixBuf //最初の4Kバイトをクリア
+
+	// ファイル名コピー
+	ds.si = fileName
+	di = %DJP.T.fileName
+	loop
+		rep.load al,si
+		rep.set di,al
+	endloop (al)
+
+	//ファイル・オープン
+	ds = bx	//es
+	Dos.Open %DJP.T.fileName, 0x00
+	go.w (cf) OPEN_ERR
+	bx = ax
+	DT.filHdl = ax
+
+	//-- ヘッダ読み込み--
+	dx = %DJP.T.hdr
+	Dos.Read bx, dx, 2*6
+	go.w (cf) FIL_ERR
+
+	go.w (DT.hdr(0) != 'D'+'J'*256			\
+		||DT.hdr(1) != '5'+'0'*256			\
+		||DT.hdr(2) != '5'+'J'*256) HDR_ERR
+
+	DT.xstart = ax = 0
+	DT.ystart = ax
+	DT.xsize = ax = DT.hdr(3)
+	DT.ysize = ax = DT.hdr(4)
+
+	// ドット比
+	DT.aspect1 = ax = 0
+	DT.aspect2 = ax = 0
+
+	// 色数
+	//パレット・バッファ確保
+	DT.pln = 8
+	DT.color = 256
+	ax = DT.hdr(5)
+	if (al == 24)
+		DT.pln = 24
+		DT.color = 0
+	fi
+
+	// パレット読み込み
+	if (al == 0)
+		Dos.Read bx, %DJP.T.palette, 256*3
+		if (auto16flg)
+			si = %DJP.T.palette + 16*3
+			cx = (256-16)*3/2
+			ax = 0
+			loop
+				ax |= w[si]
+				si += 2
+			endloop (--cx)
+			if (ax == 0)
+				DT.pln = 4
+				DT.color = 16
+			fi
+		fi
+	else
+		di = %DJP.T.palette
+		ax = 0
+		loop
+			rep.set di,al
+			rep.set di,al
+			rep.set di,al
+			++ax
+		endloop (ah == 0)
+	fi
+
+	dx.ax = datPtr
+  RTS:
+	return
+
+FIL_ERR:
+OPEN_ERR:	//ファイル・オープンできなかった
+	dx.ax = 1
+	go RTS
+
+HDR_ERR:	//Pri.Fmt "DJPのヘッダでない\N"
+	dx.ax = 2
+	go RTS
+
+VAL_ERR:	//Pri.Fmt "ヘッダに矛盾がある\N"
+	dx.ax = 3
+	go RTS
+
+endproc
+
+
+*proc Close(datPtr:d);cdecl;far
+enter
+	save ax,bx,dx,ds
+
+	bx.ax = datPtr
+	Std.FpToHp bx,ax,dx
+	go.w (bx == 0 && ax == 0) RTS
+	if (ax)
+		++bx
+	fi
+	ds = bx
+	Dos.Close DT.filHdl
+  RTS:
+	return
+endproc
+
+*proc Load(datPtr:d, putLinFunc:d, putLinDat:d, linCnt:w);cdecl;far
+	//画像の展開.
+	//putLinFuncは１行出力ﾙｰﾁﾝのｱﾄﾞﾚｽ
+	//linCnt は展開する最大行数. 0なら ysizeとなる
+	//putLinDat は １行出力ﾙｰﾁﾝに渡される。そのﾙｰﾁﾝのﾃﾞｰﾀ領域へのポインタを想定
+	//ret dx.ax:構造体へのポインタ(ｵﾌｾｯﾄ0) ｾｸﾞﾒﾝﾄが0ならｴﾗｰ(ｵﾌｾｯﾄ値がｴﾗｰNo)
+enter
+	save  bx,cx,dx,si,di,es,ds,fx
+	
+	// 設定
+	rep.inc
+	dx.ax = datPtr
+	Std.FpToHp dx,ax,cx
+	if (dx == 0 && ax == 0)
+		ax = 4
+		go.w RET
+	fi
+	if (ax)
+		++dx
+	fi
+	ds = dx
+	es = dx
+
+	// 出力手続き用意
+	DT.putLin   = dx.ax = putLinFunc
+	DT.putLinDt = dx.ax = putLinDat
+
+	// 展開できる行数をセット
+	ax = linCnt
+	if (ax == 0 || ax > DT.ysize)
+		ax = DT.ysize
+	fi
+	DT.ycnt = ax	//展開する行数
+
+	// 読み込みサイズ調整
+	cx = DT.xsize
+	if (cx > PIXLINSIZ)
+		ax = 2
+		go.w RET
+	fi
+	if (DT.pln == 24)
+		ax = cx
+		ax += ax
+		cx += ax
+	fi
+	DT.pixLinSiz = cx
+	dx.ax = PIXBUF_SIZE
+	div dx.ax,cx
+	DT.pixLinCnt = ax
+	dx.ax = ax * cx
+	DT.pixBufSiz = ax
+	//DT.pixStart = %DJP.T.pixBuf
+	//ax += %DJP.T.pixBuf
+	//DT.pixEnd = ax
+
+	//
+	loop
+		Dos.Read DT.filHdl, %DJP.T.pixBuf, DT.pixBufSiz
+		bx = %DJP.T.pixBuf
+		cx = DT.pixLinCnt
+		loop
+			pusha
+			push ds,es
+			push DT.putLinDt, ds.bx
+			call DT.putLin
+			sp += 8
+			pop  ds,es
+			popa
+			bx += DT.pixLinSiz
+			go ((--DT.ycnt) == 0) EXITLOOP
+		endloop (--cx)
+	endloop
+  EXITLOOP:
+	ax = 0
+  RET:
+	return
+endproc
+
+endmodule

@@ -1,0 +1,441 @@
+module CNVG
+	c_name "","",1
+
+	import GH
+	import Subr
+	import Std
+	import Str
+	import Dos
+	import Lfn
+	import Pri
+	import Deb
+	import Pi
+	import FPal
+
+@define GHT()	GH.T[ds:0]
+
+proc ChgOpt(bx,cmt:d,user:d,aspFlg:w,asp:w,rdPalF:d,wrtPalF:d,savNam:d,onam:d,bcol:w, expln:w,wrt24flg:w)
+enter
+	save pusha,es,ds
+
+	// 色数設定
+	ch = 0
+	cl = GHT.pln
+  @if 0
+	if (expln && expln != -1)
+		cl = expln.l
+	fi
+	GHT.plnW = cl
+  @fi
+	ax = 0x01
+	ax <<= cl
+	GHT.col = ax
+  @if 0
+	if (cl == 4)
+		es.di = GHT.rgbPal
+		di += 48
+		cx = (256-16)*3/2
+		ax = 0
+		rep.set.w di,ax,cx
+	fi
+  @fi
+	GHT.wrt24flg = ax = wrt24flg
+
+
+	if (bcol)
+		if (bcol == -1)
+			GHT.bakCol = 0
+		else
+			GHT.bakCol = ax = bcol
+		fi
+	fi
+	if (aspFlg)
+		GHT.asp1 = al = asp.l
+		GHT.asp2 = al = asp.h
+		GHT.tifXdpi(0) = dx.ax = 0
+		GHT.tifXdpi(1) = dx.ax
+		GHT.tifYdpi(0) = dx.ax
+		GHT.tifYdpi(1) = dx.ax
+		GHT.bmpXdpm = dx.ax
+		GHT.bmpYdpm = dx.ax
+	fi
+	if (user.h)
+		GHT.userName = dx.ax = user
+		push ds
+			ds.si = dx.ax
+			Str.Len si
+		pop  ds
+		GHT.userNameLen = cx
+		++cx
+		GHT.userNameSiz = cx
+	fi
+	if (cmt.h)
+		GHT.comment = dx.ax = cmt
+		push ds
+			ds.si = dx.ax
+			Str.Len si
+		pop  ds
+		GHT.commentLen = cx
+		++cx
+		GHT.commentSiz = cx
+	fi
+	if (savNam.h)
+		es.di = ww(ds,&GHT.macName)
+		push ds
+			ds.si = savNam
+			if (b[si])
+				d[es:di] = 0x20202020
+				cx = 4
+				loop
+					rep.load al,si
+					break (al == 0)
+					rep.set di,al
+				endloop (--cx)
+			else
+				GH.T[es:0/*bx*/].macNameMode = 1
+				d[es:di] = 'M' + 'G'*0x100 + ' '*0x10000 + ' '*0x1000000
+			fi
+		pop ds
+	fi
+	if.w (rdPalF.h)							//パレット・ファイル入力
+		es.di = rdPalF
+		if (GHT.pln == 4)
+			if (b[es:di])
+				FPal.Get es.di, GHT.rgbPal
+			else
+				FPal.Get GHT.rdName, GHT.rgbPal
+			fi
+			GHT.palBit  = 4
+		else
+			if (b[es:di])
+				FPal.Get256 es.di, GHT.rgbPal
+			else
+				FPal.Get256 GHT.rdName, GHT.rgbPal
+			fi
+			GHT.palBit  = 8
+		fi
+		// 入力パレット・ファイル名設定
+		es = di = %var
+		di = %FPal.fname
+		if (b[es:di])
+			GHT.palFname = es.di
+		fi
+	elsif (rdPalF.h == 0 && rdPalF.l == 1)	//強制デジタル・パレット
+		GH.SetDigPal ds.bx
+	elsif (rdPalF.h == 0 && rdPalF.l == 2)	//強制グレイスケール・パレット
+		GH.SetMonoPal ds.bx
+	fi
+
+	// 16or256色自動判別
+  @if 1
+	if (GHT.plnW == 8 && expln == -1)
+		es.si = GHT.rgbPal
+		si += 16*3
+		cx = (256-16)*3/2
+		ax = 0
+		loop
+			ax += w[es:si]
+			si += 2
+		endloop(--cx)
+		if (ax == 0)
+			GHT.plnW = 4
+			GHT.col = 16
+		fi
+	fi
+  @fi
+
+	if (wrtPalF.h)							//パレット・ファイル出力
+		es.di = wrtPalF
+		if (b[es:di])
+			if (GHT.plnW == 4)
+				FPal.Put es.di, GHT.rgbPal
+			else
+				FPal.Put256 es.di, GHT.rgbPal
+			fi
+		else
+			if (GHT.plnW == 4)
+				FPal.Put onam, GHT.rgbPal
+			else
+				FPal.Put256 onam, GHT.rgbPal
+			fi
+		fi
+	fi
+	return
+endproc
+
+
+
+*proc CnvG (inFname:d, outFname:d,										\
+				bufAdr:d, bufSiz:d, x8flg:w, cnvflg:w, cmt:d, user:d,	\
+				aspFlg:w, asp:w,rdPalF:d,wrtPalF:d,						\
+				savNam:d, bcol:w,expln:w, wrt24flg:w,					\
+				I_Init:w, I_Open:w,   I_ReadPDB:w,	I_CloseR:w, 		\
+				O_Init:w, O_Create:w, O_WritePDB:w, O_CloseW:w)
+//	in	ds	ds = %var
+	cdecl
+enter
+	save bx,cx,dx,si,di,es, ds
+	local ght:d
+	//local ftime:w, fdate:w
+
+	es = ds
+//Deb.Chk;if (==); Pri.Fmt "ss.sp=%08lx\N", ss.sp; fi
+  Deb.Chk;if (==);Pri.Fmt "GH.Init %lx, %ld, 0\N", bufAdr, bufSiz;fi
+	GH.Init bufAdr, bufSiz, 0
+	if (dx == 0 /* && ax == 0*/)
+		Subr.PriExit "メモリが足りないよ.\N"
+	fi
+	ght = dx.ax
+	ds.bx = dx.ax
+
+ Deb.Chk;if (==);Pri.Fmt "I_Init %lx\N", dx.ax;fi
+	//I_Init dx.ax
+	push dx.ax; call I_Init; sp += 4
+ Deb.Chk; if (==); 	Pri.Fmt "O_Init %lx\N", dx.ax; fi
+	//O_Init  dx.ax
+	push dx.ax; call O_Init; sp += 4
+ Deb.Chk;if (==);Pri.Fmt "I_Open %lx\N", dx.ax;fi
+ 	if (x8flg)
+ 		GHT.wrtX8flg = 1
+ 	fi
+	GH.Df_SetExPln expln
+	//I_Open dx.ax, inFname
+	push dx.ax, inFname; call I_Open; sp += 8
+	go.w (ax) ERR
+
+	if (GHT.pln > 8)
+		Pri.Fmt "ゴメン. 257色色以上の画像には対応してないの\N"
+		go.w ERR
+	fi
+
+	ax = cnvflg
+	go.w (ax && al != GHT.pln) RET
+
+    ChgOpt bx,cmt,user,aspFlg,asp,rdPalF,wrtPalF,savNam,outFname,bcol,expln,wrt24flg
+
+ Deb.Chk;if (==);Pri.Fmt "O_Create %lx, %lx\N", ght, outFname;fi
+ 	if (x8flg)
+		GH.RngX8 ds.bx
+ 		if (GHT.fmtR == GH.MAG || GHT.fmtR == GH.VRAM)
+ 			GHT.startXofs = 0
+ 			GHT.endXofs = 0
+ 		fi
+ 	fi
+	//O_Create ght, outFname
+	push ght, outFname; call O_Create; sp += 8
+	go.w (ax) ERR
+
+ Deb.Chk;if (==);Pri.Fmt "GH.DspInfo %lx, 0\N", ght; fi
+	GH.DspInfo ght, 1
+
+	rep.inc
+	cx = GHT.blkCnt
+  Deb.Chk; if (==); Pri.Fmt "blkCnt = %d   ght=%lx\N", cx, ght; fi
+	ax = GHT.blkLin
+	Pri.Fmt "  (*=%dlines):",ax
+	if.w (cx)
+//Deb.Chk; if (==); Pri.Fmt "ss.sp=%08lx\N", ss.sp; fi
+		push ds.bx, ax	//push ght,ax
+		loop
+			Pri.Fmt "D\b"
+			call GH.ResizePDBr	//GH.ResizePDBr(GHTptr:d)
+	  	    Deb.Chk;if (==);Pri.Fmt "I_ReadPDB:%lx\N",ght; fi
+			Pri.Fmt "d\b"
+			call I_ReadPDB
+			Pri.Fmt "E\b"
+			call GH.ResizePDBw	//GH.ResizePDBw(GHTptr:d)
+	  	    Deb.Chk;if (==);Pri.Fmt "O_WritePDB %lx\N",ght;fi
+			Pri.Fmt "e\b"
+			call O_WritePDB
+			Pri.Fmt "m\b"
+			call GH.MovHisLin
+			Pri.Fmt "*"
+		endloop (--cx)
+		sp += 6
+	fi
+	ax = GHT.lastBlkLin
+  Deb.Chk; if (==); Pri.Fmt "lastBlkLin = %d\N", ax; fi
+//Deb.Chk; if (==); Pri.Fmt "ss.sp=%08lx\N", ss.sp; fi
+	if (ax)
+		push ds.bx,ax	//push ght,ax
+			Pri.Fmt "D\b"
+			call GH.ResizePDBr
+			Pri.Fmt "d\b"
+			call I_ReadPDB
+			Pri.Fmt "E\b"
+			call GH.ResizePDBw
+			Pri.Fmt "e\b"
+			call O_WritePDB
+			//Pri.Fmt "m\b"
+			//call GH.MovHisLin
+		sp += 6
+		Pri.Fmt "*"
+	fi
+//Deb.Chk; if (==); Pri.Fmt "ss.sp=%08lx\N", ss.sp; fi
+	push ds.bx	//ght
+		call O_CloseW
+		call I_CloseR
+		call GH.Term
+	sp += 4
+  Deb.Chk; if (==); Pri.Fmt "CnvG end\N"; fi
+//Deb.Chk; if (==); Pri.Fmt "ss.sp=%08lx\N", ss.sp; fi
+	Pri.Fmt "\N\N"
+	ax = 0
+  RET:
+	return
+  ERR:
+  	ax = 1
+	Pri.Fmt "%Fs は変換しません(できません)\N\N\N", inFname
+	go RET
+endproc
+
+
+
+
+*proc CnvPI (inFname:d, outFname:d, /*extR:w, extW:w,*/					\
+				bufAdr:d, bufSiz:d, x8flg:w, cnvflg:w, cmt:d, user:d,	\
+				aspFlg:w, asp:w,rdPalF:d,wrtPalF:d,						\
+				savNam:d, bcol:w,expln:w, wrt24flg:w,					\
+				I_Init:w, I_Open:w,   I_ReadPDB:w,	I_CloseR:w)
+//	in	ds	ds = %var
+	cdecl
+enter
+	save bx,cx,dx,si,di,es, ds
+	local ght:d
+	//local ftime:w, fdate:w
+
+	es = ds
+ Deb.Chk;if (==);Pri.Fmt "GH.Init %lx, %ld, 0\N", bufAdr, bufSiz;fi
+	GH.Init bufAdr, bufSiz, 0
+	if (dx == 0 /* && ax == 0*/)
+		Subr.PriExit "メモリが足りないよ.\N"
+	fi
+	ght = dx.ax
+	ds.bx = dx.ax
+
+ Deb.Chk;if (==);Pri.Fmt "I_Init %lx\N", dx.ax;fi
+	//I_Init dx.ax
+	push dx.ax; call I_Init; sp += 4
+ Deb.Chk;if (==);Pri.Fmt "O_Init %lx\N", dx.ax;fi
+	Pi.InitW  ght
+ 	if (x8flg)
+ 		GHT.wrtX8flg = 1
+ 	fi
+ Deb.Chk;if (==);Pri.Fmt "I_Open %lx\N", dx.ax;fi
+	GH.Df_SetExPln expln
+	//I_Open dx.ax, inFname
+	dx.ax = ght
+	push dx.ax, inFname; call I_Open; sp += 8
+ 	go.w (ax) ERR
+
+	if (GHT.pln > 8)
+		Pri.Fmt "ゴメン. 257色色以上の画像には対応してないの\N"
+		go.w ERR
+	fi
+
+	ax = cnvflg
+	go.w (ax && al != GHT.pln) RET
+
+    ChgOpt bx,cmt,user,aspFlg,asp,rdPalF,wrtPalF,savNam,outFname,bcol,expln,wrt24flg
+
+	//if (timesFlg)
+	//	push bx
+	//		Dos.GetFtime GHT.rdHdl
+	//		ftime = cx
+	//		fdate = dx
+	//	pop  bx
+	//fi
+ 	if (x8flg)
+		GH.RngX8 ds.bx
+ 		if (GHT.fmtR == GH.MAG || GHT.fmtR == GH.VRAM)
+ 			GHT.startXofs = 0
+ 			GHT.endXofs = 0
+ 		fi
+ 	fi
+ Deb.Chk;if (==);Pri.Fmt "O_Create %lx, %lx\N", ght, outFname;fi
+	Pi.Create ght, outFname
+ 	go.w (ax) ERR
+
+ Deb.Chk;if (==);Pri.Fmt "GH.DspInfo %lx, 0\N", ght;fi
+	GH.DspInfo ght, 1
+
+	Pri.Fmt "  (*=%dlines):", GHT.blkLin
+	rep.inc
+	Pi.Conv ght, I_ReadPDB
+
+	//if (timesFlg)
+	//	push bx
+	//		Dos.SetFtime GHT.wrtHdl, ftime, fdate
+	//	pop  bx
+	//fi
+	push ds.bx	//ght
+		call GH.CloseW //ght
+		call I_CloseR
+		call GH.Term
+	sp += 4
+	Pi.PriCntRep
+	Pri.Fmt "\N\N"
+  	ax = 0
+  RET:
+	return
+  ERR:
+	ax = 1
+	Pri.Fmt "%Fs は変換しません(できません)\N\N\N", inFname
+	go RET
+endproc
+
+
+*proc Info(inFname:d, bufAdr:d, bufSiz:d, x8flg:w, cnvflg:w,	\
+				I_Init:w, I_Open:w, I_CloseR:w,dspMode:w)
+	//in	ds	ds = %var
+	cdecl
+enter
+	save pusha,es, ds
+	local ght:d
+	//local ftime:w, fdate:w
+
+	es = ds
+  //Deb.Chk;if (==);Pri.Fmt "GH.Init %lx, %ld, 0\N", bufAdr, bufSiz;fi
+	GH.Init bufAdr, bufSiz, 0
+	if (dx == 0 /* && ax == 0*/)
+		Subr.PriExit "メモリが足りないよ.\N"
+	fi
+	ght = dx.ax
+	ds.bx = dx.ax
+
+  Deb.Chk;if (==);Pri.Fmt "I_Init %lx\N", dx.ax;fi
+	//I_Init dx.ax
+	push dx.ax; call I_Init; sp += 4
+  Deb.Chk;if (==);Pri.Fmt "I_Open %lx\N", dx.ax;fi
+ 	if (x8flg)
+ 		GHT.wrtX8flg = 1
+ 	fi
+	//I_Open dx.ax, inFname
+	push dx.ax, inFname; call I_Open; sp += 8
+	go.w (ax) ERR
+
+	ax = cnvflg
+	go.w (ax && al != GHT.pln) RET
+
+ 	if (x8flg)
+		GH.RngX8 ds.bx
+ 	fi
+	GH.DspInfo ght, dspMode
+
+	push ds.bx	//ght
+	call I_CloseR
+	sp += 4
+	push ds.bx	//ght
+	call GH.Term
+	sp += 4
+	Pri.Fmt "\N"
+  RET:
+	return
+  ERR:
+	Pri.Fmt "%Fs は不正\N\N", inFname
+	go RET
+endproc
+
+
+
+endmodule

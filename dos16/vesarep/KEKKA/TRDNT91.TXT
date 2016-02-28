@@ -1,0 +1,122 @@
+VESA ver01.02 flag:FFE8 memsiz  1024Kbytes  OEM:Copyright 1988-1991 TRIDENT MICROSYSTEMS INC.
+
+	VIDEO_MODE_TABLE=c0001408(c1400008)
+	113	114	110	111	112	105	106	170
+	171	10d	10e	10f	100	101	103	104
+	102	06a	108	109	10a	10b	10c
+
+  113   DirectColor  Pln=1  16bitsCol    800*600    (chr:8*16)  mode=001b
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=1600  ImgPagCnt=1  DrctColAtr=00
+	R:msk=05 pos=10	G:msk=05 pos=5	B:msk=05 pos=0	A:msk=01 pos=15
+
+  114   DirectColor  Pln=1  16bitsCol    800*600    (chr:8*16)  mode=001b
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=1600  ImgPagCnt=1  DrctColAtr=00
+	R:msk=05 pos=11	G:msk=06 pos=5	B:msk=05 pos=0	A:msk=00 pos=0
+
+  110   DirectColor  Pln=1  16bitsCol    640*480    (chr:8*16)  mode=001b
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=1280  ImgPagCnt=1  DrctColAtr=00
+	R:msk=05 pos=10	G:msk=05 pos=5	B:msk=05 pos=0	A:msk=01 pos=15
+
+  111   DirectColor  Pln=1  16bitsCol    640*480    (chr:8*16)  mode=001b
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=1280  ImgPagCnt=1  DrctColAtr=00
+	R:msk=05 pos=11	G:msk=06 pos=5	B:msk=05 pos=0	A:msk=00 pos=0
+
+  112   DirectColor  Pln=1  24bitsCol    640*480    (chr:8*16)  mode=001b
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=1920  ImgPagCnt=1  DrctColAtr=00
+	R:msk=08 pos=16	G:msk=08 pos=8	B:msk=08 pos=0	A:msk=00 pos=0
+
+  105   PackedPixel  Pln=1   8bitsCol   1024*768    (chr:8*16)  mode=001f
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=1024  ImgPagCnt=1  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  106   Plane        Pln=4   4bitsCol   1280*1024   (chr:8*16)  mode=001f
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=160  ImgPagCnt=1  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  170   DirectColor  Pln=1  16bitsCol    512*480    (chr:8*16)  mode=001b
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=1024  ImgPagCnt=1  DrctColAtr=00
+	R:msk=05 pos=10	G:msk=05 pos=5	B:msk=05 pos=0	A:msk=01 pos=15
+
+  171   DirectColor  Pln=1  16bitsCol    512*480    (chr:8*16)  mode=001b
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=1024  ImgPagCnt=1  DrctColAtr=00
+	R:msk=05 pos=11	G:msk=06 pos=5	B:msk=05 pos=0	A:msk=00 pos=0
+
+  10D   DirectColor  Pln=1  16bitsCol    320*200    (chr:8*16)  mode=001b
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=640  ImgPagCnt=1  DrctColAtr=00
+	R:msk=05 pos=10	G:msk=05 pos=5	B:msk=05 pos=0	A:msk=01 pos=15
+
+  10E   DirectColor  Pln=1  16bitsCol    320*200    (chr:8*16)  mode=001b
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=640  ImgPagCnt=1  DrctColAtr=00
+	R:msk=05 pos=11	G:msk=06 pos=5	B:msk=05 pos=0	A:msk=00 pos=0
+
+  10F   DirectColor  Pln=1  24bitsCol    320*200    (chr:8*16)  mode=001b
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=960  ImgPagCnt=1  DrctColAtr=00
+	R:msk=08 pos=16	G:msk=08 pos=8	B:msk=08 pos=0	A:msk=00 pos=0
+
+  100   PackedPixel  Pln=1   8bitsCol    640*400    (chr:8*16)  mode=001f
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=640  ImgPagCnt=1  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  101   PackedPixel  Pln=1   8bitsCol    640*480    (chr:8*16)  mode=001f
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=640  ImgPagCnt=1  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  103   PackedPixel  Pln=1   8bitsCol    800*600    (chr:8*16)  mode=001f
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=800  ImgPagCnt=1  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  104   Plane        Pln=4   4bitsCol   1024*768    (chr:8*16)  mode=001f
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=128  ImgPagCnt=1  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  102   Plane        Pln=4   4bitsCol    800*600    (chr:8*16)  mode=001f
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=100  ImgPagCnt=1  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  06A   Plane        Pln=4   4bitsCol    800*600    (chr:8*16)  mode=001f
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=100  ImgPagCnt=1  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  108   TEXT         Pln=4   4bitsCol     80*60     (chr:8*16)  mode=000f
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=b800,atr=07 B:seg=b800,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=160  ImgPagCnt=2  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  109   TEXT         Pln=4   4bitsCol    132*25     (chr:8*16)  mode=000f
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=b800,atr=07 B:seg=b800,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=264  ImgPagCnt=2  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  10A   TEXT         Pln=4   4bitsCol    132*43     (chr:8*16)  mode=000f
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=b800,atr=07 B:seg=b800,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=264  ImgPagCnt=2  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  10B   TEXT         Pln=4   4bitsCol    132*50     (chr:8*16)  mode=000f
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=b800,atr=07 B:seg=b800,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=264  ImgPagCnt=2  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  10C   TEXT         Pln=4   4bitsCol    132*60     (chr:8*16)  mode=000f
+	WIN:pagSz=64K,sz=64K,adr=c00018fa A:seg=b800,atr=07 B:seg=b800,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=264  ImgPagCnt=2  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+

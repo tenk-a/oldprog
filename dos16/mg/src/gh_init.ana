@@ -1,0 +1,238 @@
+submodule GH
+	import Std
+	import Pri
+	import Subr
+
+@define	GHT()	GH.T[ds:0]
+
+// module内変数
+cvar palLowNbl:b = 0x0f, palLowNblFlg:b = 0
+cvar rdX8flg:b = 0
+cvar wrtX8flg:b = 0
+cvar ovrWrtFlg:w = 0
+cvar rdBufSeg:w = 0,  rdBufSiz:w = 0
+cvar wrtBufSeg:w = 0, wrtBufSiz:w = 0
+cvar ncnv256flg:w = 0
+cvar ftimeFlg:w = 0
+cvar gvseg:w(4) = 0
+cvar ftimeFname:d = 0
+
+*proc  Init	(wrkAdr:d, wrkSiz:d, mode:w);cdecl
+	//GH.T使用時のGH.T変数の初期化手続き
+	//arg wrkAdr	変換や読み込み等に使うバッファへのポインタ
+	//				(0なら、Dos.allocMemで確保:未実装)
+	//arg wrkSiz	wrkバッファのサイズ
+	//arg mode	    0=ヘッダ読込のみ  1=コンバート作業を行う
+ 	//out dx.ax		GH.T変数へのポインタ	0=初期化失敗
+ 	//	バッファは実用時はﾊﾟﾗｸﾞﾗﾌ単位で扱う(端数ﾒﾓﾘは使わない)
+  	//	この時点ではバッファの配分は行わない
+enter
+	save bx,cx,si,di,es,ds
+	local topSeg:w, endSeg:w, wrkSzs:w
+
+	//バッファのアドレスのチェック&設定
+	dx.ax = wrkAdr
+	Std.FpToHp dx,ax, bx
+	go.w (ax == 0 && dx == 0) ERR	//NULLポインタだったら ERR
+	wrkAdr = dx.ax
+	if (ax)
+		bx = 16
+		bx -= ax
+		++dx
+	fi
+	topSeg = dx
+
+	//バッファ・サイズのチェック＆設定
+	dx.ax = wrkSiz
+	go.w (dx < bx && cx == 0) ERR
+	dx.ax -= ww(0,bx)
+	Std.DwToHp dx,ax, di
+	wrkSzs = dx
+
+	//GH.T変数の初期化
+	go.w (dx < Std.PARASIZE(sizeof(GH.T))) ERR
+	dx -= Std.PARASIZE(sizeof(GH.T))
+	es = topSeg
+	bx = ax = di = 0
+	rep.set di,al,sizeof(GH.T)
+
+	//各種初期値を設定
+	ds = ax = es
+	ax += Std.PARASIZE(sizeof(GH.T))
+	GHT.bufSeg = ax
+	GHT.bufCurSeg = ax
+	//GHT.bufSzs = dx
+	ax += dx
+	GHT.bufEndSeg = ax
+	GHT.bufAdrOrig = dx.ax = wrkAdr
+	GHT.bufSizOrig = dx.ax = wrkSiz
+	GHT.hdrRdFlg	= ax = mode
+
+	GHT.pln = 4
+	GHT.plnW = 0
+	GHT.col = 16
+
+	GHT.palLowNbl = al = palLowNbl
+	GHT.palLowNblFlg = al = palLowNblFlg
+	GHT.rdX8flg = al = rdX8flg
+	GHT.wrtX8flg = al = wrtX8flg
+	GHT.ovrWrtFlg = ax = ovrWrtFlg
+
+	GHT.rdBufSeg = ax = rdBufSeg
+	GHT.rdBufSiz = ax = rdBufSiz
+	GHT.wrtBufSeg = ax = wrtBufSeg
+	GHT.wrtBufSiz = ax = wrtBufSiz
+	GHT.rdPtr  = ax = 0xffff
+	GHT.wrtPtr = ax
+	//GHT.ncnv256flg = ax = ncnv256flg
+	GHT.ftimeFlg = ax = ftimeFlg
+	GHT.ftimeFname = cx.ax = ftimeFname
+	GHT.vSeg(0) = ax = gvseg(0)
+	GHT.vSeg(1) = ax = gvseg(1)
+	GHT.vSeg(2) = ax = gvseg(2)
+	GHT.vSeg(3) = ax = gvseg(3)
+
+	d[bx + %GH.T.macName] = cx.ax = ' '+' '*0x100+' '*0x10000+' '*0x1000000
+
+	dx = topSeg
+RET:
+	ax = 0
+	return
+ERR:
+	dx = 0
+	go RET
+endproc
+
+*proc Term(GHTptr:d);cdecl
+enter
+	return
+endproc
+
+@if 1
+*proc Df_WrtX8mode(flg:w);cdecl
+	//flg=1:出力が横８ドット間隔になるように指定
+enter
+	save ax
+	wrtX8flg = al = flg.l
+	return
+endproc
+
+*proc Df_RdX8mode(flg:w);cdecl
+enter
+	save ax
+	rdX8flg = al = flg.l
+	return
+endproc
+@fi
+
+*proc Df_FtimeMode(flg:w);cdecl
+enter
+	save ax
+	ftimeFlg = ax = flg
+	return
+endproc
+
+*proc Df_FtimeFname(adr:d);cdecl
+enter
+	save dx,ax
+	ftimeFname = dx.ax = adr
+	return
+endproc
+
+@if 0
+*proc Df_NotCnv256(flg:w);cdecl
+enter
+	save ax
+	ncnv256flg = ax = flg
+	return
+endproc
+@fi
+
+@if 0
+*proc Df_PalLowNbl (lowNbl:w);cdecl
+  	//98ﾊﾟﾚｯﾄは4bitsなので8bitsに拡張するときに用いる下位ﾆﾌﾞﾙを設定
+	//lowNbl の上位バイトが０以外なら、GH.T[].palLowNblを変更不可能とする
+enter
+	save ax
+	ax = lowNbl
+	palLowNbl = al
+	palLowNblFlg = ah
+	return
+endproc
+@fi
+
+*proc Df_SetGvSeg(bsg:w, rsg:w, gsg:w, esg:w);cdecl
+enter
+	save ax
+	gvseg(0) = ax = bsg
+	gvseg(1) = ax = rsg
+	gvseg(2) = ax = gsg
+	gvseg(3) = ax = esg
+	return
+endproc
+
+@if 0
+*proc Df_overWrite(mode:w);cdecl
+	//出力オープンで同名があったとき, 0:上書き, 1:確認
+enter
+	save ax
+	ovrWrtFlg = ax = mode
+	return
+endproc
+@fi
+
+*proc Df_RdBuf(addr:d, siz:w);cdecl
+	//入力バッファのアドレス＆サイズ
+enter
+	save bx,dx
+
+	//バッファのアドレスのチェック&設定
+	dx.ax = addr
+	Std.FpToHp dx,ax, bx
+	if (ax)
+		bx = 16
+		bx -= ax
+		++dx
+	fi
+	rdBufSeg = dx
+	//バッファ・サイズのチェック＆設定
+	ax = siz
+	go (ax < 1024) ERR
+	ax -= bx
+	rdBufSiz = ax
+	ax = 0
+RET:
+	return
+ERR:
+	ax = -1
+	go RET
+endproc
+
+
+*proc Df_WrtBuf(addr:d, siz:w);cdecl
+	//出力バッファのアドレス＆サイズ
+enter
+	save bx,dx
+
+	//バッファのアドレスのチェック&設定
+	dx.ax = addr
+	Std.FpToHp dx,ax, bx
+	if (ax)
+		bx = 16
+		bx -= ax
+		++dx
+	fi
+	wrtBufSeg = dx
+	//バッファ・サイズのチェック＆設定
+	ax = siz
+	go (ax < 1024) ERR
+	ax -= bx
+	wrtBufSiz = ax
+RET:
+	return
+ERR:
+	ax = -1
+	go RET
+endproc
+
+endmodule

@@ -1,0 +1,17 @@
+module PARASIZE
+	c_name "Std"
+
+*proc Byte2Para(ax)
+//	arg	ax	バイト数
+//  out ax	パラグラフ数
+begin
+	save bx
+	bx = ax
+	ax >>= 4
+	if (bx & 0x0f)
+		ax += 1
+	fi
+	return
+endproc
+
+endmodule

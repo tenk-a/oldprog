@@ -1,0 +1,274 @@
+submodule Bmp
+
+	import Std
+	import GH
+	import Subr
+	import Pri
+
+@define	GHT()	GH.T[ds:0]
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+*proc InitW(ght:d);cdecl
+enter
+	save ax,ds,bx
+	ds.bx = ght
+	//GHT.wrtX8flg = 1
+	GHT.fmtW = GH.BMP
+	return
+endproc
+
+proc PutC(bx, al)
+begin
+	save pusha,ax,bx,cx,dx,ds
+	var gcbuf:b
+
+	ds = cx = %var
+	gcbuf = al
+	Subr.Write bx,&gcbuf,1
+	return
+endproc
+
+*proc Create(GHTptr:d, fname:d);cdecl
+  //PMTヘッダを出力(16or256色用)
+  //out ax  0:成功  以外:エラー
+enter
+	save bx,cx,dx,si,di,es,ds
+	cvar fmt:b() = "BMP"
+	local tmp:d
+	const HDRSZS = Std.PARASIZE(sizeof(Bmp.HDR))
+
+	ds.bx = GHTptr
+
+	//Pri.Fmt "Bmp.Create %lx,%Fs\N", GHTptr, fname
+    
+	//ヘッダ作成
+	GHT.wrtFmtName = cx.ax = ww(cs,&fmt)
+	//GHT.fmtW = GH.BMP
+	GH.GetMem bx, HDRSZS, HDRSZS
+	es = ax
+	rep.set 0, 0, sizeof(Bmp.HDR)
+
+	Bmp.HDR[es:0].id = 'B' + 'M'*0x100
+	Bmp.HDR[es:0].pdataOfs = 56+64
+	Bmp.HDR[es:0].infoHdrSiz = 40
+	Bmp.HDR[es:0].plnSiz = 1
+	Bmp.HDR[es:0].picBit.l = al = GHT.plnW	// plane
+	ax = GHT.col
+	Bmp.HDR[es:0].palSiz = ww(0,ax)
+	if (GHT.wrt24flg)
+		Bmp.HDR[es:0].picBit = 24
+		Bmp.HDR[es:0].palSiz = 0
+	fi
+
+	Bmp.HDR[es:0].dotX1m = dx.ax = GHT.bmpXdpm
+	Bmp.HDR[es:0].dotY1m = di.si = GHT.bmpYdpm
+	if ((dx == 0 && ax == 0) || (di == 0 && si == 0))
+		al = GHT.asp1;ah = 0
+		dl = GHT.asp2;dh = ah
+		GH.Asp2Resol ax,dx
+		push dx
+			dx.ax = ax * 40
+			Bmp.HDR[es:0].dotX1m = dx.ax
+		pop  ax
+		dx.ax = ax * 40
+		Bmp.HDR[es:0].dotY1m = dx.ax
+	fi
+	Bmp.HDR[es:0].sizeX.l = ax = GHT.sizeX 	// 横幅
+	Bmp.HDR[es:0].sizeY.l = dx = GHT.sizeY 	// 縦幅
+	GHT.bmpWline = dx
+
+	dx = 0
+	ax = Bmp.HDR[es:0].palSiz.l		//ax = GHT.col
+	ax <<= 2
+	ax += sizeof(Bmp.HDR)
+	Bmp.HDR[es:0].pdataOfs = dx.ax	// ピクセル・データへのオフセット
+	GHT.bmpWpdataOfs = dx.ax
+
+	//dx.ax = GHT.bmpWline * GHT.sizeXo
+	//if (GHT.plnW == 4)
+	//	dx.ax >>= 1
+	//fi
+
+	// バッファ準備
+	dx = ax = GHT.sizeX
+	if (GHT.wrt24flg)	// -x24でのﾌﾙｶﾗｰ出力のとき
+		ax += ax
+		ax += dx
+		dx = ax
+	elsif (GHT.plnW == 4)
+		++ax
+		ax >>= 1
+		dx = ax
+	fi
+	ax += 3
+	ax >>= 2
+	ax <<= 2
+	GHT.bmpWBfSizeXo = ax
+	cx = ax
+	ax -= dx
+	GHT.bmpWBfRstDotX = ax
+	dx.ax = 0xF000
+	div dx.ax, cx
+	//Pri.Fmt "BMP24:sizeX=%d sizeY=%d rst=%d\N",GHT.bmpWBfSizeXo,GHT.bmpWBfLine,GHT.bmpWBfRstDotX
+	if (ax == 0)
+		Pri.Fmt "横幅が広すぎてバッファが確保できない\N"
+		ax = 1
+		go.w RET
+	fi
+	GHT.bmpWBfLine = ax
+
+	// 
+	dx.ax = GHT.bmpWline * GHT.bmpWBfSizeXo
+	dx.ax += Bmp.HDR[es:0].pdataOfs
+	Bmp.HDR[es:0].fsize = dx.ax
+
+	//ファイルを作成
+	GH.Create bx,fname
+	if (ax)
+		GH.FreeMem bx,es
+		go RET
+	fi
+
+	// ヘッダ出力
+	GH.Write bx, ww(es,0), sizeof(Bmp.HDR)
+
+	//パレットを出力
+	cx = Bmp.HDR[es:0].palSiz.l		//ax = GHT.col
+	if (cx)
+		push es,bx
+		es.di = GHT.rgbPal
+		bx = GHT.wrtHdl
+		loop
+			al = b[es:di + 2]	//B
+			PutC bx,al
+			al = b[es:di + 1]	//G
+			PutC bx,al
+			al = b[es:di + 0]	//R
+			PutC bx,al
+			PutC bx,0
+			di += 3
+		endloop (--cx)
+		pop  es,bx
+	fi
+
+	//ヘッダのバッファのメモリを解放
+	GH.FreeMem bx, es
+
+	//作業バッファを確保
+	dx.ax = GHT.bmpWBfLine * GHT.bmpWBfSizeXo
+	ax += 15
+	ax >>= 4
+	GH.GetMem bx,ax,ax
+	GHT.bmpWBfSeg = ax
+
+	ax = 0
+  RET:
+	return
+endproc
+
+@if 0
+*proc CloseW(GHTptr:d);cdecl
+enter
+	save bx,ds,ax
+	ds.bx = GHTptr
+	//GH.FlushBuf bx
+	Subr.Close GHT.wrtHdl
+	return
+endproc
+@fi
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+
+*proc WritePDB(GHTptr:d,lineCnt0:w);cdecl
+//	ピクセル・データをバッファに出力
+enter
+	save pusha,es,ds
+	local lin:w,lineCnt:w
+
+	rep.inc
+	ds.bx = GHTptr
+	lineCnt = ax = lineCnt0
+	block	SEEK_POS
+		ax = GHT.bmpWline
+		ax -= lineCnt
+		GHT.bmpWline = ax
+		dx.ax = ax * GHT.bmpWBfSizeXo
+		dx.ax += GHT.bmpWpdataOfs
+		GH.SeekW bx, dx.ax
+	endblock
+
+	di = 0
+	lin = 0
+	go.w (lineCnt == 0) RET
+	loop.w
+		--lineCnt
+		dx.ax = lineCnt * GHT.sizeX		//GHT.sizeXo
+		ax += GHT.hisSiz				//GHT.hisSizO
+		si = ax
+
+		cx = GHT.sizeX
+		if (GHT.wrt24flg)
+			loop
+				es = GHT.pdbSeg
+				ah = 0
+				al = b[es:si]; ++si
+				//bx = ax * 3 + GHT.rgbPal.l
+				bx = ax
+				ax += ax
+				bx += ax
+				bx += GHT.rgbPal.l
+				es  = GHT.rgbPal.h
+				dl = b[es:bx+0]
+				ah = b[es:bx+1]
+				al = b[es:bx+2]
+				es = GHT.bmpWBfSeg
+				rep.set.w di,ax
+				rep.set.b di,dl
+			endloop (--cx)
+		elsif (GHT.plnW == 4)
+			++cx
+			cx >>= 1
+			loop
+				es = GHT.pdbSeg
+				al = b[es:si]; ++si
+				ah = b[es:si]; ++si
+				al <<= 4
+				ah &= 0x0f
+				al |= ah
+				es = GHT.bmpWBfSeg
+				rep.set.b di,al
+			endloop (--cx)
+		else	//(GHT.plnW == 8)
+			loop
+				es = GHT.pdbSeg
+				al = b[es:si]; ++si
+				es = GHT.bmpWBfSeg
+				rep.set.b di,al
+			endloop (--cx)
+		fi
+		cx = GHT.bmpWBfRstDotX
+		rep.set.b di, 0, cx
+		++lin
+		ax = lin
+		if (ax == GHT.bmpWBfLine || lineCnt == 0)
+			dx.ax = ax * GHT.bmpWBfSizeXo
+			cx = ax
+			GH.Write 0, ww(GHT.bmpWBfSeg, 0), cx
+			di = 0
+			lin = 0
+		fi
+	endloop (lineCnt)
+	ax = 0
+  RET:
+	return
+endproc
+
+endmodule

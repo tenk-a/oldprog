@@ -1,0 +1,19 @@
+submodule Subr
+	import Dos
+	import Lfn
+
+*proc Create(dx,cx)
+//	新しいファイルを作成
+//	arg dx	パス名
+//	arg cx	ファイル属性
+//	in	ds	パス名のセグメント
+//	out ax	ファイル・ハンドル
+begin
+	Lfn.Create(dx,cx)
+	if (cf)
+		Subr.ErrFile dx, &Subr.msgOpen
+	fi
+	return
+endproc
+
+endmodule

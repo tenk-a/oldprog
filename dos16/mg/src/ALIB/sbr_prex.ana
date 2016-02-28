@@ -1,0 +1,12 @@
+submodule Subr
+	import Dos
+	import Pri
+
+*proc PriExit(ax)
+begin
+	ds = bx = %var
+	Pri.S ax
+	Dos.EXIT(1)
+endproc
+
+endmodule

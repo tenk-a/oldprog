@@ -1,0 +1,1619 @@
+module V98
+	c_name "V98","_",1
+
+	import Pri
+	import Vv
+	import RPAL
+
+@define V() Vv.T[ds:0]
+
+@define RCL1(AL)	adc AL,AL
+
+/*--------------------------------------------------------------------------*/
+*proc ShowOn()
+begin
+	save ax
+	ax = 0x4000
+	intr 0x18
+	return
+endproc
+
+*proc ShowOff()
+begin
+	save ax
+	ax = 0x4100
+	intr 0x18
+	return
+endproc
+
+*proc SetRGB(tone:w, pal:d);cdecl
+enter
+	save pusha,es,ds
+	cvar rgb:b(48)
+
+	es.di = ww(cs, %rgb)
+	bx = di
+	ds.si = pal
+	cx = 48
+	loop
+		rep.load al,si
+		al >>= 4
+		rep.set di,al
+	endloop(--cx)
+	RPAL.SetRGB tone, cs.bx
+	return
+endproc
+
+*proc SetPal(datSeg:w, tone:w);cdecl
+enter
+	save pusha,es,ds
+	cvar ditRGB:b(48) = data
+		b  0, 0, 0
+		b  0, 0,15
+		b 15, 0, 0
+		b 15, 0,15
+		b  0, 5, 0
+		b  0, 5,15
+		b 15, 5, 0
+		b 15, 5,15
+		b  0,10, 0
+		b  0,10,15
+		b 15,10, 0
+		b 15,10,15
+		b  0,15, 0
+		b  0,15,15
+		b 15,15, 0
+		b 15,15,15
+	enddata
+	cvar rgb:b(48)
+
+	ds = datSeg
+	//Pri.Fmt "%d\n",V.pln
+	if (V.pln > 4 || V.ditFlg)
+		bx = %ditRGB
+	else
+		es.di = ww(cs, %rgb)
+		bx = di
+		ds.si = V.palette
+		cx = 48
+		loop
+			rep.load al,si
+			al >>= 4
+			rep.set di,al
+		endloop(--cx)
+	fi
+	RPAL.SetRGB tone, ww(cs,bx)
+	return
+endproc
+
+*proc SetTone(tone:w);cdecl
+enter
+	RPAL.SetTone tone
+	return
+endproc
+
+*proc GCls();cdecl
+//	画面消去
+begin
+	save ax,cx,dx,di,es
+	port(0x7c) = al = 0x80
+	ax = 0
+	dx = 0x7e
+	port(dx) = al
+	port(dx) = al
+	port(dx) = al
+	port(dx) = al
+	es = dx = 0xA800
+	di = ax
+	cx = (80*400)/2
+	rep.set.w di,ax,cx
+	port(0x7c) = al
+	return
+endproc
+
+/*--------------------------------------------------------------------------*/
+@define GdcWait2()	loop;al = port(0xa0);endloop((al & 0x04) == 0)
+@define GdcWait()	loop;al = port(0xa0);endloop(al & 0x02)
+cvar gdcOfsXX:w,gdcOfsY:w,gdcSclDat:w
+
+*proc GdcSclInit();cdecl
+enter
+	save pusha,es,ds
+	gdcOfsXX = ax = 0
+	gdcOfsY = ax
+	gdcSclDat = ax
+	al = port(0x31)
+	if (al & 0x80)
+		gdcSclDat.l = ah	// + (Gv_btmLine == 200) ? 0x80 : 0;
+	else
+		gdcSclDat.l = 0x40	// + (Gv_btmLine == 200) ? 0x80 : 0;
+	fi
+	//GdcWait()
+	GdcWait2()
+	port(0xa2) = al = 0x70
+	//GdcWait()
+	port(0xa0) = al = 0x00
+	//GdcWait()
+	port(0xa0) = al = 0x00
+	//GdcWait()
+	port(0xa0) = al = (400 & 0x0f) << 4
+	//GdcWait()
+	al = gdcSclDat.l; al |= (400 >> 4); port(0xa0) = al
+	//GdcWait()
+	port(0xa0) = al = 0x00
+	//GdcWait()
+	port(0xa0) = al = 0x00
+	//GdcWait()
+	port(0xa0) = al = 0x00
+	//GdcWait()
+	port(0xa0) = al = gdcSclDat.l
+	//GdcWait()
+	//GdcWait2()
+	return
+endproc
+
+*proc GdcGetSclOfs();cdecl
+begin
+	ax = gdcOfsXX
+	dx = gdcOfsY
+	return
+endproc
+
+proc GdcSclSub()
+begin
+	save dx,/*si,di,*/ ds,es
+
+	dx.ax = 400 * 80
+	bx = ax
+	dx = 0
+
+	es = ax = 0xA800
+	ds = ax
+	rep.cpy.w bx,dx,40
+	es = ax = 0xB000
+	ds = ax
+	rep.cpy.w bx,dx,40
+	es = ax = 0xB800
+	ds = ax
+	rep.cpy.w bx,dx,40
+	es = ax = 0xE000
+	ds = ax
+	rep.cpy.w bx,dx,40
+	return
+endproc
+
+
+proc GdcSclSub2()
+begin
+	save dx,/*si,di,*/ ds,es
+
+	dx.ax = 400 * 80
+	dx = ax
+
+	bx = 0
+
+	es = ax = 0xA800
+	ds = ax
+	rep.cpy.w bx,dx,40
+	es = ax = 0xB000
+	ds = ax
+	rep.cpy.w bx,dx,40
+	es = ax = 0xB800
+	ds = ax
+	rep.cpy.w bx,dx,40
+	es = ax = 0xE000
+	ds = ax
+	rep.cpy.w bx,dx,40
+	return
+endproc
+
+
+*proc GdcScl(ddx:w, ddy:w);cdecl
+enter
+	save bx,cx,si,di,es,ds
+	local sad1:w,/*sl1:w,*/sad2:w,sl2:w
+	local x:w//,btmLine:w
+
+	//btmLine = 400 //Gv_btmLine;
+	dx = ddx
+	//dx >>= 3
+	dx += gdcOfsXX
+	if (dx .<. 0)
+		GdcSclSub
+		dx += 80
+		--gdcOfsY
+	elsif (dx .>=. 80)
+		GdcSclSub2
+		dx -= 80
+		++gdcOfsY
+	fi
+	gdcOfsXX = dx
+	dx >>= 1
+	x = dx
+
+	ax = gdcOfsY
+	ax += ddy
+	gdcOfsY = ax
+	bx = 400	//btmLine
+	if (ax .<. 0)
+		ax += bx
+		gdcOfsY = ax
+	elsif (ax .>=. bx)
+		ax -= bx
+		gdcOfsY = ax
+	fi
+	if (ax) //gdcOfsY
+		dx.ax = ax * 40
+		dx = x
+		ax += dx
+		sad1 = ax
+		sad2 = dx
+		sl2 = ax = gdcOfsY
+		bx -= ax//sl2	//ax = bx;ax -= sl2;sl1 = ax
+	else
+		sad1 = ax = x
+		//sl1 = bx
+		sad2 = 0
+		sl2 = 0
+	fi
+	GdcWait2()
+	port(0xa2) = al = 0x70
+	//GdcWait()
+	port(0xa0) = al = sad1.l
+	//GdcWait()
+	port(0xa0) = al = sad1.h
+	//GdcWait()
+	al = bl; al <<= 4; port(0xa0) = al
+	//GdcWait()
+	ax = bx; ax >>= 4; al |= gdcSclDat.l; port(0xa0) = al
+	//GdcWait()
+	port(0xa0) = al = sad2.l
+	//GdcWait()
+	port(0xa0) = al = sad2.h
+	//GdcWait()
+	al = sl2.l; al <<= 4; port(0xa0) = al
+	//GdcWait()
+	ax = sl2; ax >>= 4; al |= gdcSclDat.l; port(0xa0) = al
+	//GdcWait2()
+	ax = gdcOfsXX
+	dx = gdcOfsY
+	return
+endproc
+
+/*---------------------------------------------------------------------------*/
+*proc PutPx(datSeg:w, gxx:w, gy:w, xx0:w, y0:w, xxsz:w, ysz:w);cdecl
+	// xx0 は 8ドット単位の値
+enter
+	save pusha, es,ds
+	local xxsz2:w,ptr0:w,ysize:w
+	local xofsL:b,xofsR:b,xmskL:b,xmskR:b,gptr:w
+
+	ds = datSeg
+
+	xxsz >>= 3
+	xx0 >>= 3
+	gxx >>= 3
+	ysize = ax = V.yvsize
+	xxsz2 = ax = 0
+	//port(0x7c) = al	// = 0
+	ax = xx0
+	ax += xxsz
+	if(ax > V.xxvsize)
+		ax = V.xxvsize
+		ax -= xx0
+		dx = xxsz
+		dx -= ax
+		xxsz = ax
+		xxsz2 = dx	//
+	fi
+
+	loop.w
+		ds = datSeg
+		ax = ysize
+		if (y0 == ax)
+			y0 = 0
+		fi
+		if (gy == 400)
+			gy = 0
+		fi
+		dx.ax = ww(0,y0)
+		div dx.ax, V.pgLine
+		Vv.PageSw ax
+		V.pgCurSeg = ax
+
+		// ax = 点(xx0,y0)のアドレス
+		dx.ax = dx * V.pgXsize
+		ptr0 = ax
+		ax += xx0
+		bx = si = ax
+
+		dx.ax = gy * 80
+		ax += V.gvOfs
+		ax += gxx
+		dx = V.xxvsize
+		ds = V.pgCurSeg
+		es = cx = 0xA800
+		di = ax
+		//intr.off
+		rep.cpy di,si,xxsz
+		if (xxsz2)
+			rep.cpy di,ptr0,xxsz2
+			ptr0 += dx
+		fi
+		es = di = 0xB000
+		di = ax
+		bx += dx
+		si = bx
+		rep.cpy di,si,xxsz
+		if (xxsz2)
+			rep.cpy di,ptr0,xxsz2
+			ptr0 += dx
+		fi
+		es = di = 0xB800
+		di = ax
+		bx += dx
+		si = bx
+		rep.cpy di,si,xxsz
+		if (xxsz2)
+			rep.cpy di,ptr0,xxsz2
+			ptr0 += dx
+		fi
+		es = di = 0xE000
+		di = ax
+		bx += dx
+		si = bx
+		rep.cpy di,si,xxsz
+		if (xxsz2)
+			rep.cpy di,ptr0,xxsz2
+			ptr0 += dx
+		fi
+		//intr.on
+		++y0
+		++gy
+	endloop (--ysz)
+	return
+endproc
+
+*proc ResetScl(datSeg:w);cdecl
+enter
+	save pusha,ds
+	ds = datSeg
+	GdcSclInit
+	ax = 0
+	V.xvstart = ax
+	V.yvstart = ax
+	V.gvOfs = ax
+	return
+endproc
+
+*proc PutPxPart(datSeg:w);cdecl
+	//部分セーブ画像の表示(始点が640*400以内のもの)
+	// xx0 は 8ドット単位の値
+enter
+	save pusha, es,ds
+	local /*xx0:w,*/ y0:w, xxsz:w, ysz:w, gxx:w,gy:w
+	local xofsL:b,xofsR:b,xmskL:b,xmskR:b,xmskLn:b,xmskRn:b,gptr:w
+
+	ds = datSeg
+	ResetScl ds
+	
+	//VsyncWait
+
+	xofsL = al = V.xofsL.l
+	xofsR = al = V.xofsR.l
+	xmskL = al = V.xmskL.l
+	com al
+	xmskLn= al
+	xmskR = al = V.xmskR.l
+	com al
+	xmskRn= al
+
+	dx = V.ygstart
+	gy = dx
+	ax = V.yvsize
+	dx += ax
+	if (dx > 400)
+		dx -= 400
+		ax -= dx
+	fi
+	ysz = ax
+
+	dx = V.xgstart
+	dx >>= 3
+	gxx = dx
+	ax = V.xxvsize
+	dx += ax
+	if (dx > 80)
+		dx -= 80
+		ax -= dx
+		xofsR = 0
+	fi
+	if (xofsL)
+		--ax
+	fi
+	if (xofsR)
+		if (ax == 0)
+			xofsR = 0
+		else
+			--ax
+		fi
+	fi
+	xxsz = ax
+
+	//xx0 = 0
+	y0 = 0
+	loop
+		ds = datSeg
+		dx.ax = ww(0,y0)
+		div dx.ax, V.pgLine
+		Vv.PageSw ax
+		V.pgCurSeg = ax
+
+		// ax = 点(xx0,y0)のアドレス
+		dx.ax = dx * V.pgXsize
+		//ax += xx0
+		bx = si = ax
+
+		dx.ax = gy * 80
+		ax += V.gvOfs
+		ax += gxx
+		dx = V.xxvsize
+		ds = V.pgCurSeg
+		gptr = ax
+		es = cx = 0xA800
+		gosub LIN
+		es = di = 0xB000
+		bx += dx
+		si = bx
+		gosub LIN
+		es = di = 0xB800
+		bx += dx
+		si = bx
+		gosub LIN
+		es = di = 0xE000
+		bx += dx
+		si = bx
+		gosub LIN
+		++y0
+		++gy
+	endloop (--ysz)
+	return
+ LIN:
+	di = gptr
+	if (xofsL)
+		rep.load al,si
+		al &= xmskL
+		ah = b[es:di]
+		ah &= xmskLn
+		al |= ah
+		rep.set di,al
+	fi
+	cx = xxsz
+	if (cx)
+		rep.cpy di,si,cx
+	fi
+	if (xofsR)
+		rep.load al,si
+		al &= xmskR
+		ah = b[es:di]
+		ah &= xmskRn
+		al |= ah
+		rep.set di,al
+	fi
+	ret
+
+endproc
+
+*proc PutPxBCol(datSeg:w);cdecl
+	//透明色処理をする表示(始点が640*400以内のもの)
+enter
+	save pusha, es,ds
+	local /*xx0:w,*/ y0:w, xxsz:w, ysz:w, gxx:w,gy:w
+	local gptr:w,xxsizeX3:w,xxsizeX3M1:w,xxcnt:w
+	local bcol:b(4)
+
+	ds = datSeg
+	ResetScl ds
+
+	ah = 0
+	al = V.overlayColor.l
+	bcol(0) = ah; if ((al >>= 1) .cf. 0); com bcol(0);fi
+	bcol(1) = ah; if ((al >>= 1) .cf. 0); com bcol(1);fi
+	bcol(2) = ah; if ((al >>= 1) .cf. 0); com bcol(2);fi
+	bcol(3) = ah; if ((al >>= 1) .cf. 0); com bcol(3);fi
+	
+	dx = V.ygstart
+	gy = dx
+	ax = V.yvsize
+	dx += ax
+	if (dx > 400)
+		dx -= 400
+		ax -= dx
+	fi
+	ysz = ax
+
+	dx = V.xgstart
+	dx >>= 3
+	gxx = dx
+	ax = V.xxvsize
+	dx += ax
+	if (dx > 80)
+		dx -= 80
+		ax -= dx
+	fi
+	xxsz = ax
+	dx = ax = V.xxvsize
+	ax += ax
+	ax += dx
+	xxsizeX3 = ax
+	--ax
+	xxsizeX3M1 = ax
+
+	//xx0 = 0
+	y0 = 0
+	loop.w
+		ds = datSeg
+		dx.ax = ww(0,y0)
+		div dx.ax, V.pgLine
+		Vv.PageSw ax
+		V.pgCurSeg = ax
+
+		// ax = 点(xx0,y0)のアドレス
+		dx.ax = dx * V.pgXsize
+		//ax += xx0
+		si = ax
+
+		dx.ax = gy * 80
+		ax += V.gvOfs
+		ax += gxx
+		di = ax
+
+		bx = V.xxvsize
+		cx = xxsz
+		ds = V.pgCurSeg
+		loop.w
+			dh = b[si]
+			dh ^= bcol(0)
+			si += bx	//xxvsize
+			al = b[si]
+			al ^= bcol(1)
+			dh &= al
+			si += bx	//xxvsize
+			al = b[si]
+			al ^= bcol(2)
+			dh &= al
+			si += bx	//xxvsize
+			al = b[si]
+			al ^= bcol(3)
+			dh &= al
+			dl = dh
+			com dl
+			si -= xxsizeX3
+
+			es = ax = 0xA800
+			al = b[si]
+			ah = b[es:di]
+			ax &= dx
+			al |= ah
+			b[es:di] = al
+
+			si += bx	//xxvsize
+			es = ax = 0xB000
+			al = b[si]
+			ah = b[es:di]
+			ax &= dx
+			al |= ah
+			b[es:di] = al
+
+			si += bx	//xxvsize
+			es = ax = 0xB800
+			al = b[si]
+			ah = b[es:di]
+			ax &= dx
+			al |= ah
+			b[es:di] = al
+
+			si += bx	//xxvsize
+			es = ax = 0xE000
+			al = b[si]
+			ah = b[es:di]
+			ax &= dx
+			al |= ah
+			b[es:di] = al
+			++di
+			si -= xxsizeX3M1
+		endloop (--cx)
+		++y0
+		++gy
+	endloop (--ysz)
+	return
+
+endproc
+
+
+*proc PutPxLoop(datSeg:w);cdecl
+enter
+	save pusha, es,ds
+	local xxsz:w
+	local x_cnt:w,x_rst:w,y0:w,gy:w
+
+	ds = datSeg
+	ResetScl ds
+	bx = V.xvsize
+	bx >>= 3
+	xxsz = bx
+	dx.ax = ww(0, V.xgscrn)
+	ax >>= 3
+	div dx.ax, bx
+	x_cnt = ax
+	x_rst = dx
+	gy = 0
+	y0 = 0
+	loop.w
+		ds = datSeg
+		ax = V.yvsize
+		if (y0 == ax)
+			y0 = 0
+		fi
+		dx.ax = ww(0,y0)
+		div dx.ax, V.pgLine
+		Vv.PageSw ax
+		V.pgCurSeg = ax
+
+		// ax = 点(xx0,y0)のアドレス
+		dx.ax = dx * V.pgXsize
+		bx = si = ax
+
+		dx.ax = gy * 80
+		ax += V.gvOfs
+		dx = V.xxvsize
+		ds = V.pgCurSeg
+		es = cx = 0xA800
+		di = ax
+		//intr.off
+		cx = x_cnt
+		if (cx)
+			loop
+				push cx;rep.cpy di,bx,xxsz;pop cx
+			endloop (--cx)
+		fi
+		if (x_rst)
+			rep.cpy di, bx, x_rst
+		fi
+
+		es = di = 0xB000
+		di = ax
+		bx += dx
+		cx = x_cnt
+		if (cx)
+			loop
+				push cx;rep.cpy di,bx,xxsz;pop cx
+			endloop (--cx)
+		fi
+		if (x_rst)
+			rep.cpy di, bx, x_rst
+		fi
+
+		es = di = 0xB800
+		di = ax
+		bx += dx
+		cx = x_cnt
+		if (cx)
+			loop
+				push cx;rep.cpy di,bx,xxsz;pop cx
+			endloop (--cx)
+		fi
+		if (x_rst)
+			rep.cpy di, bx, x_rst
+		fi
+
+		es = di = 0xE000
+		di = ax
+		bx += dx
+		cx = x_cnt
+		if (cx)
+			loop
+				push cx;rep.cpy di,bx,xxsz;pop cx
+			endloop (--cx)
+		fi
+		if (x_rst)
+			rep.cpy di, bx, x_rst
+		fi
+
+		//intr.on
+		++y0
+		++gy
+	endloop (gy < 400)
+	return
+endproc
+
+*proc PutPxScrn(datSeg:w, x0:w, y0:w);cdecl
+enter
+	save ax,ds
+
+	ds = datSeg
+	ResetScl ds
+	V.xvstart = ax = x0
+	V.yvstart = ax = y0
+	PutPx ds, 0,0, x0, y0, V.xgsize, V.ygsize
+	return
+endproc
+
+
+*proc GStart()
+enter
+	save ax
+	GdcSclInit
+	port(0x6a) = al = 0x01	//アナログ16色モード
+	return
+endproc
+
+*proc GEnd()
+enter
+	save ax
+	GdcSclInit
+	port(0x6a) = al = 0x01	//アナログ16色モード
+	return
+endproc
+
+*proc End(tone:w);cdecl
+enter
+	port(0xA6) = al = 0 //ActGVPage
+	port(0x6a) = al = 0x01	//アナログ16色モード
+	RPAL.SetTone tone
+	return
+endproc
+
+/*---------------------------------------------------------------------------*/
+
+*proc GetSclOfs(datSeg:w);cdecl
+//ret dx.ax
+enter
+	GdcGetSclOfs
+	ax <<= 3
+	return
+endproc
+
+*proc SclUp(datSeg:w, nnn:w);cdecl
+enter
+	save pusha,es,ds
+
+	ds = datSeg
+	cx = nnn
+	di = V.yvsize
+	loop
+		--V.yvstart
+		if (V.yvstart .<. 0)
+			if (V.loopFlg == 0)
+				V.yvstart = 0
+				go.w RET
+			fi
+			V.yvstart += di
+		fi
+		GdcScl 0, -1
+		ax <<= 3
+		PutPx ds, ax/*gX*/,dx/*gY*/, V.xvstart, V.yvstart, V.xgsize, 1
+	endloop (--cx)
+  RET:
+	return
+endproc
+
+*proc SclDw(datSeg:w, nnn:w);cdecl
+enter
+	save pusha,es,ds
+	local gX:w,gY:w
+
+	ds = datSeg
+	cx = nnn
+	di = V.yvsize
+	loop
+		dx = V.yvstart
+		dx += 400
+		if (dx .>=. di/*V.yvsize*/ && V.loopFlg == 0)
+			ax = di/*V.yvsize*/
+			ax -= 400
+			V.yvstart = ax
+			go.w RET
+		fi
+		GdcScl 0, 1
+		ax <<= 3
+		gX = ax
+		gY = dx
+		// bx = (V.yvstart + 400) % di/*V.yvsize*/
+		ax = V.yvstart
+		ax += 400
+		dx = 0
+		div dx.ax, di/*V.yvsize*/
+		bx = dx
+		// dx = (gdcOfsY + 400 - 1) % 400
+		ax = gY
+		ax += 400 - 1
+		dx = 0
+		si = 400
+		div dx.ax,si
+		PutPx ds, gX, dx, V.xvstart, bx, V.xgsize, 1
+		++V.yvstart
+		if (V.yvstart .>=. di/*V.yvsize*/)
+			V.yvstart -= di/*V.yvsize*/
+		fi
+	endloop (--cx)
+  RET:
+	return
+endproc
+
+*proc SclLft(datSeg:w, nnn:w);cdecl
+enter
+	save pusha,es,ds
+
+	ds = datSeg
+	cx = nnn
+	cx >>= 4
+	if (cx)
+		di = V.xxvsize
+		loop
+			V.xvstart -= 2*8
+			if (V.xvstart .<. 0)
+				if (V.loopFlg == 0)
+					V.xvstart = 0
+					goto RET
+				fi
+				ax = di
+				ax <<= 3
+				V.xvstart += ax/*V.xxvsize*/
+			fi
+			GdcScl -2, 0
+			ax <<= 3
+			PutPx ds, ax/*gX*/,dx/*gY*/, V.xvstart, V.yvstart,16, V.ygsize
+		endloop (--cx)
+	fi
+  RET:
+	return
+endproc
+
+*proc SclRig(datSeg:w, nnn:w);cdecl
+enter
+	save pusha,es,ds
+	local gX:w,gY:w,_80:w
+
+	ds = datSeg
+	cx = nnn
+	cx >>= 4
+	di = V.xxvsize
+	si = V.xvstart
+	si >>= 3
+	_80 = 80
+	go (cx == 0) RET2
+	loop
+		ax = si/*V.xxvstart*/
+		ax += 80
+		go (ax/*xxvstart+80*/ .>=. di/*xxvsize*/ && V.loopFlg == 0) RET3
+		GdcScl 2,0
+		gX = ax
+		gY = dx
+		V.gvOfs = 0
+		if (ax)
+			V.gvOfs = 80
+		fi
+		//bx = (V.xxvstart + 80) % V.xxvsize
+		ax = si
+		ax += 80
+		dx = 0
+		div dx.ax, di
+		bx = dx
+		// dx = (V.gdcOfsXX+80-2)%80
+		ax = gX
+		ax += 80 - 2
+		dx = 0
+		div dx.ax, _80
+		dx <<= 3
+		bx <<= 3
+		PutPx ds, dx, gY, bx, V.yvstart, 16, V.ygsize
+		V.gvOfs = 0
+		si += 2
+		if (si .>=. di)
+			si -= di
+		fi
+	endloop (--cx)
+  RET:
+	si <<= 3
+	V.xvstart = si
+  RET2:
+	return
+RET3:
+	if (di & 0x0001)
+		di += 1
+	fi
+	di -= 80
+	si = di
+	go RET
+endproc
+
+/*---------------------------------------------------------------------------*/
+
+*proc RevX(datSeg:w);cdecl
+	//左右反転
+enter
+	save pusha, es,ds
+	local y0:w, xxsz:w, xxszD2:w, ysz:w
+
+	ds = datSeg
+
+	ax = V.yvsize
+	ysz = ax
+
+	ax = V.xxvsize
+	xxsz = ax
+	|ax >>= 1; adc ax,0
+	xxszD2 = ax
+
+	y0 = 0
+	loop.w
+		ds = datSeg
+		dx.ax = ww(0,y0)
+		div dx.ax, V.pgLine
+		Vv.PageSw ax
+		V.pgCurSeg = ax
+
+		// ax = 点(xx0,y0)のアドレス
+		dx.ax = dx * V.pgXsize
+		bx = ax
+		es = V.pgCurSeg
+		ds = V.pgCurSeg
+
+		//B
+		cx = xxszD2
+		di = bx
+		bx += xxsz
+		si = bx
+		--si
+		loop
+			al = b[di]
+			ah = b[si]
+			|RCL1(al); |rcr(ah); |RCL1(al); |rcr(ah)
+			|RCL1(al); |rcr(ah); |RCL1(al); |rcr(ah)
+			|RCL1(al); |rcr(ah); |RCL1(al); |rcr(ah)
+			|RCL1(al); |rcr(ah); |RCL1(al); |rcr(ah)
+			|RCL1(al)
+			b[si] = ah; --si
+			rep.set di,al
+		endloop (--cx)
+		//R
+		cx = xxszD2
+		di = bx
+		bx += xxsz
+		si = bx
+		--si
+		loop
+			al = b[di]
+			ah = b[si]
+			|RCL1(al); |rcr(ah); |RCL1(al); |rcr(ah)
+			|RCL1(al); |rcr(ah); |RCL1(al); |rcr(ah)
+			|RCL1(al); |rcr(ah); |RCL1(al); |rcr(ah)
+			|RCL1(al); |rcr(ah); |RCL1(al); |rcr(ah)
+			|RCL1(al)
+			b[si] = ah; --si
+			rep.set di,al
+		endloop (--cx)
+		//G
+		cx = xxszD2
+		di = bx
+		bx += xxsz
+		si = bx
+		--si
+		loop
+			al = b[di]
+			ah = b[si]
+			|RCL1(al); |rcr(ah); |RCL1(al); |rcr(ah)
+			|RCL1(al); |rcr(ah); |RCL1(al); |rcr(ah)
+			|RCL1(al); |rcr(ah); |RCL1(al); |rcr(ah)
+			|RCL1(al); |rcr(ah); |RCL1(al); |rcr(ah)
+			|RCL1(al)
+			b[si] = ah; --si
+			rep.set di,al
+		endloop (--cx)
+		//E
+		cx = xxszD2
+		di = bx
+		bx += xxsz
+		si = bx
+		--si
+		loop
+			al = b[di]
+			ah = b[si]
+			|RCL1(al); |rcr(ah); |RCL1(al); |rcr(ah)
+			|RCL1(al); |rcr(ah); |RCL1(al); |rcr(ah)
+			|RCL1(al); |rcr(ah); |RCL1(al); |rcr(ah)
+			|RCL1(al); |rcr(ah); |RCL1(al); |rcr(ah)
+			|RCL1(al)
+			b[si] = ah; --si
+			rep.set di,al
+		endloop (--cx)
+		++y0
+	endloop (--ysz)
+	return
+endproc
+
+/*---------------------------------------------------------------------------*/
+
+*proc SetDitMode(n16seg:w,flg:w);cdecl
+enter
+	save ds,ax
+	ds = n16seg
+	ax = flg
+	V.ditFlg = ax
+	return
+endproc
+
+
+*proc Dit16(rbuf:d)
+//	in ds
+//	out dx.ax : pointer to pbuf
+enter
+	save ds
+	local y:w, ddy:w,rgbPal:d,xsz:w
+	cvar dit:b() = data
+		b 1/*0*/, 32,8, 40, 2, 34,10,42 /*Bayer 8*8*/
+		b 48,16,56,24, 50,18,58,26
+		b 12,44,4, 36, 14,46,6, 38
+		b 60,28,52,20, 62,30,54,22
+		b 3, 35,11,43, 1, 33,9, 41
+		b 51,19,59,27, 49,17,57,25
+		b 15,47,7, 39, 13,45,5, 36
+		b 63,31,55,23, 61,29,53,21
+	enddata
+
+	rgbPal = dx.ax = V.palette
+	es.di = ww(ds, %Vv.T.pbuf)
+	xsz = ax = V.xvsize
+	ax = V.ycur
+	ax &= 0x07
+	ax <<= 3
+	ddy = ax
+	cx = 0
+	loop
+		bx = cx
+		bx &= 0x7
+		bx |= ddy
+		ds = ax = cs
+		dh = bl = dit[bx]
+		dh += dh
+
+		bh = dl = ah = 0
+		ds.si = rbuf
+		rep.load al,si
+		rbuf.l = /*ds.*/si
+		ds.si = rgbPal
+		si += ax
+		si += ax
+		si += ax
+		rep.load al,si
+		|al += dh
+		if (cf)
+			dl = 0x02
+		fi
+		rep.load al,si
+		ax += bx
+		bx = ax
+		ax += ax
+		ax += bx
+		ah <<= 2
+		dl |= ah
+		rep.load al,si
+		|al += dh
+		if (cf)
+			dl |= 0x01
+		fi
+		al = dl
+		rep.set di,al
+		++cx
+	endloop (cx < xsz)
+	dx.ax = ww(es,%Vv.T.pbuf)
+	return
+endproc
+
+
+
+@if 10
+
+*proc Dit16_24(rbuf:d)
+//	in ds
+//	out dx.ax : pointer to pbuf
+enter
+	save ds
+	local y:w, ddy:w,rgbPal:d,xsz:w
+	cvar dit:b() = data
+		b 1/*0*/, 32,8, 40, 2, 34,10,42 /*Bayer 8*8*/
+		b 48,16,56,24, 50,18,58,26
+		b 12,44,4, 36, 14,46,6, 38
+		b 60,28,52,20, 62,30,54,22
+		b 3, 35,11,43, 1, 33,9, 41
+		b 51,19,59,27, 49,17,57,25
+		b 15,47,7, 39, 13,45,5, 36
+		b 63,31,55,23, 61,29,53,21
+	enddata
+
+	es.di = ww(ds, %Vv.T.pbuf)
+	xsz = ax = V.xvsize
+	ax = V.ycur
+	ax &= 0x07
+	ax <<= 3
+	ddy = ax
+	cx = 0
+	ds.si = rbuf
+	loop
+		bx = cx
+		bx &= 0x7
+		bx |= ddy
+		dh = bl = dit[bx]
+		dh += dh
+
+		bh = dl = ah = 0
+
+		rep.load al,si
+		|al += dh
+		if (cf)
+			dl = 0x02
+		fi
+
+		rep.load al,si
+		ax += bx
+		bx = ax
+		ax += ax
+		ax += bx
+		ah <<= 2
+		dl |= ah
+
+		rep.load al,si
+		|al += dh
+		if (cf)
+			dl |= 0x01
+		fi
+
+		al = dl
+		rep.set di,al
+		++cx
+	endloop (cx < xsz)
+	dx.ax = ww(es,%Vv.T.pbuf)
+	return
+endproc
+
+@fi
+
+
+*proc GetLines(datOfs:w, datSeg:w, pixPtr0:d);cdecl;far
+enter
+	local xb:w, cnt:w, pixPtr:d
+
+	ds = datSeg
+	xb = ax = V.pgXsizeSubOfs
+	dx.ax = pixPtr0
+  @if 0
+	if (V.pln == 24)
+		Vv.Decol pixPtr0, ww(%var,&Vv.decolLinBuf),V.xsize
+		dx.ax = ww(%var,&Vv.decolLinBuf)
+		pixPtr0 = dx.ax
+	fi
+  @else
+	go.w (V.pln == 24) PIX24
+  @fi
+	go LOOP
+
+	  X68K:
+		Vv.X68line dx.ax/*pixPtr0*/, V.x68flg
+		/*pixPtr = dx.ax*/
+		go (V.reductFlg == 0) REDUCT_2
+
+	  REDUCT:
+		if (V.reductFlgY)
+			++V.ycurReduct
+			cx = V.reductFlgY
+			go.w (V.ycurReduct & cx) NEXT		/////////// !!!!
+		fi
+		Vv.ReductLine dx.ax/*pixPtr*/
+		/*pixPtr = dx.ax*/
+	  REDUCT_2:
+		go (V.ditFlg == 0) DIT_RET
+
+	  DIT:
+		Dit16 dx.ax/*pixPtr*/
+		/*pixPtr = dx.ax*/
+		go DIT_RET
+
+	  PGL:
+		++V.pgNo
+		Vv.PageSw V.pgNo
+		V.pgCurSeg = ax
+		es = ax
+		V.pglcnt = ax = V.pgLine
+		V.pgPtr = 0
+		//Pri.Fmt "page = %d %04x\N",V.pgNo, V.pgCurSeg
+		go PGL_RET
+
+	//loop.w
+	 LOOP:
+		//Pri.Fmt "\r%3d",V.ycur
+		go (V.x68flg) X68K
+		go (V.reductFlg) REDUCT
+		go (V.ditFlg) DIT
+	   DIT_RET:
+		si = ax; si -= V.xofsL; pixPtr.h = dx	//pixPtr = dx.ax
+		++V.ycur
+		//Pri.Fmt "\r%8lx %04x %3d(%3d)",pixPtr0,ds,V.ycur,V.pglcnt
+
+		es = V.pgCurSeg
+		go (--V.pglcnt == 0) PGL
+	  PGL_RET:
+
+		//１行変換
+			//si = pixPtr.l;si -= V.xofsL
+		di = ax = V.pgPtr
+		bx = V.xxvsize
+		cnt = bx
+		ds = pixPtr.h
+		loop.w
+			rep.load.w ax,si
+			|al>>=1; |RCL1(cl); //B
+			|al>>=1; |RCL1(ch); //R
+			|al>>=1; |RCL1(dl); //G
+			|al>>=1; |RCL1(dh); //I
+			|ah>>=1; |RCL1(cl); //B
+			|ah>>=1; |RCL1(ch); //R
+			|ah>>=1; |RCL1(dl); //G
+			|ah>>=1; |RCL1(dh); //I
+			rep.load.w ax,si
+			|al>>=1; |RCL1(cl); //B
+			|al>>=1; |RCL1(ch); //R
+			|al>>=1; |RCL1(dl); //G
+			|al>>=1; |RCL1(dh); //I
+			|ah>>=1; |RCL1(cl); //B
+			|ah>>=1; |RCL1(ch); //R
+			|ah>>=1; |RCL1(dl); //G
+			|ah>>=1; |RCL1(dh); //I
+			rep.load.w ax,si
+			|al>>=1; |RCL1(cl); //B
+			|al>>=1; |RCL1(ch); //R
+			|al>>=1; |RCL1(dl); //G
+			|al>>=1; |RCL1(dh); //I
+			|ah>>=1; |RCL1(cl); //B
+			|ah>>=1; |RCL1(ch); //R
+			|ah>>=1; |RCL1(dl); //G
+			|ah>>=1; |RCL1(dh); //I
+			rep.load.w ax,si
+			|al>>=1; |RCL1(cl); //B
+			|al>>=1; |RCL1(ch); //R
+			|al>>=1; |RCL1(dl); //G
+			|al>>=1; |RCL1(dh); //I
+			|ah>>=1; |RCL1(cl); //B
+			|ah>>=1; |RCL1(ch); //R
+			|ah>>=1; |RCL1(dl); //G
+			|ah>>=1; |RCL1(dh); //I
+			b[es:di] = cl
+			di += bx
+			b[es:di] = ch
+			di += bx
+			b[es:di] = dl
+			di += bx
+			b[es:di] = dh
+			di -= xb
+		endloop (--cnt)
+
+		ds = datSeg
+		di = V.pgPtr
+		//if (di == 0);Pri.Fmt "es:di=%lx %d\t", es.di, bx;fi
+
+		//両端の調整
+		go (V.xmskFlg.l) XMSK
+		di += V.pgXsize
+		V.pgPtr = di
+	  XMSK_RET:
+	NEXT:
+		ds = datSeg
+		dx.ax = pixPtr0
+		go.w (V.l200flg && V.ycur & 0x0001) LOOP
+		ax += V.xsize
+		pixPtr0.l = ax
+	//endloop (--lincnt)
+	return
+
+  XMSK:
+		bx -= 2 	//= V.xxvsize - 2
+		//B
+		al = b[es:di]
+		ah = V.xmskL.l
+		al &= ah//V.xmskL.l
+		com ah
+		ah &= V.bcolptn(0)
+		al |= ah
+		rep.set di,al
+		di += bx
+		al = b[es:di]
+		ah = V.xmskR.l
+		al &= ah//V.xmskR.l
+		com ah
+		ah &= V.bcolptn(0)
+		al |= ah
+		rep.set di,al
+		//R
+		al = b[es:di]
+		ah = V.xmskL.l
+		al &= ah//V.xmskL.l
+		com ah
+		ah &= V.bcolptn(1)
+		al |= ah
+		rep.set di,al
+		di += bx
+		al = b[es:di]
+		ah = V.xmskR.l
+		al &= ah//V.xmskR.l
+		com ah
+		ah &= V.bcolptn(1)
+		al |= ah
+		rep.set di,al
+		//G
+		al = b[es:di]
+		ah = V.xmskL.l
+		al &= ah//V.xmskL.l
+		com ah
+		ah &= V.bcolptn(2)
+		al |= ah
+		rep.set di,al
+		di += bx
+		al = b[es:di]
+		ah = V.xmskR.l
+		al &= ah//V.xmskR.l
+		com ah
+		ah &= V.bcolptn(2)
+		al |= ah
+		rep.set di,al
+		//E
+		al = b[es:di]
+		ah = V.xmskL.l
+		al &= ah//V.xmskL.l
+		com ah
+		ah &= V.bcolptn(3)
+		al |= ah
+		rep.set di,al
+		di += bx
+		al = b[es:di]
+		ah = V.xmskR.l
+		al &= ah//V.xmskR.l
+		com ah
+		ah &= V.bcolptn(3)
+		al |= ah
+		rep.set di,al
+
+		//si = V.pgPtr
+		V.pgPtr = di
+		//if(si == 0);Pri.Fmt "es:di=%lx  %d %d\N", es.di, bx, V.xxvsize;fi
+	go.w XMSK_RET
+
+
+
+
+  //---------------------------------------------------------------
+	@if 10
+
+	  X68K24:
+		Vv.X68line24 dx.ax, V.x68flg, ww(datSeg, (%Vv.T.END + 0x3010))
+		/*pixPtr = dx.ax*/
+		go (V.reductFlg == 0) X68K24_RET
+
+	  REDUCT24:
+		if (V.reductFlgY)
+			++V.ycurReduct
+			cx = V.reductFlgY
+			go.w (V.ycurReduct & cx) NEXT24		/////////// !!!!
+		fi
+		Vv.ReductLine dx.ax/*pixPtr*/
+		/*pixPtr = dx.ax*/
+	  REDUCT24_2:
+		go REDUCT24_RET
+
+	  PGL24:
+		++V.pgNo
+		Vv.PageSw V.pgNo
+		V.pgCurSeg = ax
+		es = ax
+		V.pglcnt = ax = V.pgLine
+		V.pgPtr = 0
+		//Pri.Fmt "page = %d %04x\N",V.pgNo, V.pgCurSeg
+		go PGL_RET24
+
+	//loop.w
+	 PIX24:
+	 	//Pri.Fmt "\r%3d",V.ycur
+		go (V.x68flg) X68K24
+	 X68K24_RET:
+		Dit16_24 dx.ax/*pixPtr*/
+		go (V.reductFlg) REDUCT24
+	REDUCT24_RET:
+		si = ax; si -= V.xofsL; pixPtr.h = dx	//pixPtr = dx.ax
+		++V.ycur
+		//Pri.Fmt "\r%8lx %04x %3d(%3d)",pixPtr0,ds,V.ycur,V.pglcnt
+
+		es = V.pgCurSeg
+		go (--V.pglcnt == 0) PGL24
+	  PGL_RET24:
+
+		//１行変換
+			//si = pixPtr.l;si -= V.xofsL
+		di = ax = V.pgPtr
+		bx = V.xxvsize
+		cnt = bx
+		ds = pixPtr.h
+		loop.w
+			rep.load.w ax,si
+			|al>>=1; |RCL1(cl); //B
+			|al>>=1; |RCL1(ch); //R
+			|al>>=1; |RCL1(dl); //G
+			|al>>=1; |RCL1(dh); //I
+			|ah>>=1; |RCL1(cl); //B
+			|ah>>=1; |RCL1(ch); //R
+			|ah>>=1; |RCL1(dl); //G
+			|ah>>=1; |RCL1(dh); //I
+			rep.load.w ax,si
+			|al>>=1; |RCL1(cl); //B
+			|al>>=1; |RCL1(ch); //R
+			|al>>=1; |RCL1(dl); //G
+			|al>>=1; |RCL1(dh); //I
+			|ah>>=1; |RCL1(cl); //B
+			|ah>>=1; |RCL1(ch); //R
+			|ah>>=1; |RCL1(dl); //G
+			|ah>>=1; |RCL1(dh); //I
+			rep.load.w ax,si
+			|al>>=1; |RCL1(cl); //B
+			|al>>=1; |RCL1(ch); //R
+			|al>>=1; |RCL1(dl); //G
+			|al>>=1; |RCL1(dh); //I
+			|ah>>=1; |RCL1(cl); //B
+			|ah>>=1; |RCL1(ch); //R
+			|ah>>=1; |RCL1(dl); //G
+			|ah>>=1; |RCL1(dh); //I
+			rep.load.w ax,si
+			|al>>=1; |RCL1(cl); //B
+			|al>>=1; |RCL1(ch); //R
+			|al>>=1; |RCL1(dl); //G
+			|al>>=1; |RCL1(dh); //I
+			|ah>>=1; |RCL1(cl); //B
+			|ah>>=1; |RCL1(ch); //R
+			|ah>>=1; |RCL1(dl); //G
+			|ah>>=1; |RCL1(dh); //I
+			b[es:di] = cl
+			di += bx
+			b[es:di] = ch
+			di += bx
+			b[es:di] = dl
+			di += bx
+			b[es:di] = dh
+			di -= xb
+		endloop (--cnt)
+
+		ds = datSeg
+		di = V.pgPtr
+		//if (di == 0);Pri.Fmt "es:di=%lx %d\t", es.di, bx;fi
+
+		//両端の調整
+		go (V.xmskFlg.l) XMSK24
+		di += V.pgXsize
+		V.pgPtr = di
+	  XMSK_RET24:
+	NEXT24:
+		ds = datSeg
+		dx.ax = pixPtr0
+		go.w (V.l200flg && V.ycur & 0x0001) PIX24
+		ax += V.xsize
+		pixPtr0.l = ax
+	//endloop (--lincnt)
+	return
+
+  XMSK24:
+		bx -= 2 	//= V.xxvsize - 2
+		//B
+		al = b[es:di]
+		ah = V.xmskL.l
+		al &= ah//V.xmskL.l
+		com ah
+		ah &= V.bcolptn(0)
+		al |= ah
+		rep.set di,al
+		di += bx
+		al = b[es:di]
+		ah = V.xmskR.l
+		al &= ah//V.xmskR.l
+		com ah
+		ah &= V.bcolptn(0)
+		al |= ah
+		rep.set di,al
+		//R
+		al = b[es:di]
+		ah = V.xmskL.l
+		al &= ah//V.xmskL.l
+		com ah
+		ah &= V.bcolptn(1)
+		al |= ah
+		rep.set di,al
+		di += bx
+		al = b[es:di]
+		ah = V.xmskR.l
+		al &= ah//V.xmskR.l
+		com ah
+		ah &= V.bcolptn(1)
+		al |= ah
+		rep.set di,al
+		//G
+		al = b[es:di]
+		ah = V.xmskL.l
+		al &= ah//V.xmskL.l
+		com ah
+		ah &= V.bcolptn(2)
+		al |= ah
+		rep.set di,al
+		di += bx
+		al = b[es:di]
+		ah = V.xmskR.l
+		al &= ah//V.xmskR.l
+		com ah
+		ah &= V.bcolptn(2)
+		al |= ah
+		rep.set di,al
+		//E
+		al = b[es:di]
+		ah = V.xmskL.l
+		al &= ah//V.xmskL.l
+		com ah
+		ah &= V.bcolptn(3)
+		al |= ah
+		rep.set di,al
+		di += bx
+		al = b[es:di]
+		ah = V.xmskR.l
+		al &= ah//V.xmskR.l
+		com ah
+		ah &= V.bcolptn(3)
+		al |= ah
+		rep.set di,al
+
+		//si = V.pgPtr
+		V.pgPtr = di
+		//if(si == 0);Pri.Fmt "es:di=%lx  %d %d\N", es.di, bx, V.xxvsize;fi
+	go.w XMSK_RET24
+
+	@fi
+
+endproc
+
+/*---------------------------------------------------------------------------*/
+
+*proc Init(vvSeg:w,mmSeg:w,mmSzs:w,emsHdl:w,emsSeg:w,emsCnt:w,\
+			pln:w,xsz:w,ysz:w,xstart:w,ystart:w,pal:d,asp1:w,asp2:w,bcol:w,\
+			reductFlg:w,loopFlg:w	\
+			)
+	cdecl
+enter
+	save bx,cx,dx,si,di,es,ds
+	ds = vvSeg
+
+	Vv.Init 1, vvSeg,mmSeg,mmSzs,emsHdl,emsSeg,emsCnt,pln,640,400,\
+			xsz,ysz,xstart,ystart,pal,asp1,asp2,bcol,reductFlg,loopFlg
+
+	//4ﾌﾟﾚｰﾝ画面で256色画像を表示する場合は減色
+	V.ditFlg = 0
+	if (V.pln > 4)
+		V.ditFlg = 1
+		V.overlayColor = 0
+		V.bcolptn(0) = al = 0
+		V.bcolptn(1) = al
+		V.bcolptn(2) = al
+		V.bcolptn(3) = al
+		V.bcolptn(4) = al
+		V.bcolptn(5) = al
+		V.bcolptn(6) = al
+		V.bcolptn(7) = al
+	fi
+	ax = V.maxLine
+	return
+endproc
+
+/*---------------------------------------------------------------------------*/
+
+endmodule

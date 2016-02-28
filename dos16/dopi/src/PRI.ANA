@@ -1,0 +1,157 @@
+module Pri
+
+	import Dos
+	import Str
+
+*proc S(ax)
+//	in ds
+begin
+	save ax,bx,cx,dx,di,es
+	es = ds
+	di = dx = ax
+	rep.inc
+	ax = 0
+	cx = 0xffff
+	repn.scan di,al,cx
+	++cx
+	com cx
+	bx = Dos.STDOUT
+	Dos.Write bx,dx,cx
+	return
+endproc
+@if 0
+*proc StrM(msg:w)
+enter
+	save ax
+	ax = msg
+	Pri.S ax
+	return
+endproc
+@fi
+
+*proc Chr(ax)
+//	１文字表示
+//	  arg  ax		１文字（シフトJIS 対応）
+//	  out  cf		0:エラー無　1:エラー有(axにERR CODE)
+//	  out  ax,bx	そのまま
+begin
+	save cx,bx,dx,ds
+	bx = Dos.STDOUT
+	push ax
+	cx = 1
+	if (ax > 0xff)
+		ah <=> al
+		++cx
+	fi
+	push ax
+	ds = ax = ss
+	dx = sp
+	ax = 0x4000
+	|intr 0x21
+	|pop cx
+	if (cf == 0)
+		pop ax
+	else
+		pop cx
+	fi
+	return
+endproc
+
+@if 0
+*proc ChrM(chr:w)
+enter
+	save ax
+	ax = chr
+	Pri.Chr ax
+	return
+endproc
+@fi
+
+*proc Cr()
+begin
+	save ax
+	ax = '\r' * 0x100 + '\n'
+	Pri.Chr ax
+	return
+endproc
+
+var buf:b(12)
+
+*proc Word(ax)
+begin
+	save pusha,ds,es
+
+	ds = dx = %var
+	es = dx
+	dx = 0
+	di = &buf
+	Str.LtoA es.di,dx.ax,0,0,0
+	Pri.S &buf
+	return
+endproc
+
+@if 1
+*proc DWord(dx.ax)
+begin
+	save pusha,ds,es
+
+	ds = cx = %var
+	es = cx
+	di = &buf
+	Str.LtoA es.di,dx.ax,0,0,0
+	Pri.S &buf
+	return
+endproc
+@fi
+
+*proc Int(ax)
+begin
+	save pusha,ds,es
+
+	ds = dx = %var
+	es = dx
+	dx.ax .=. ax
+	di = &buf
+	cx = 0
+	Str.LtoA es.di,dx.ax,cl,ch,1
+	Pri.S &buf
+	return
+endproc
+
+*proc Hex8(dx.ax)
+begin
+	save pusha,es,ds
+	es = cx = %var
+	ds = cx
+	di = &buf
+	Str.DWtoH es.di,dx.ax
+	Pri.S &buf
+	return
+endproc
+
+*proc Hex4(ax)
+begin
+	save pusha,es,ds
+
+	es = dx = %var
+	ds = dx
+	di = &buf
+	Str.WtoH es.di,ax
+	Pri.S &buf
+	return
+endproc
+
+*proc Hex2(al)
+begin
+	save pusha,es,ds
+
+	es = dx = %var
+	ds = dx
+	dx = 0
+	di = &buf
+	Str.BtoH es.di,al
+	Pri.S &buf
+	return
+endproc
+
+endmodule

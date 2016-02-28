@@ -1,0 +1,433 @@
+submodule GH
+	import Std
+	import Pri
+	import Subr
+	import Deb
+
+@define	GHT		GH.T[ds:0]
+
+
+*proc SetHisLin(bx,ax)
+//	ヒストリ行数を設定
+begin
+	if (GHT.hisLin < ax)
+		GHT.hisLin = ax
+	fi
+	return
+endproc
+
+*proc RngX1(ght:d);cdecl
+enter
+	save pusha,ds
+	ds.bx = ght
+	GHT.sizeX = ax = GHT.sizeXb
+	GHT.startX = ax = GHT.startXb
+	GHT.endX  = ax = GHT.endXb
+	GHT.hisSiz = ax = GHT.hisSizB
+	GHT.blkSiz = ax = GHT.blkSizB
+	GHT.lastBlkSiz = ax = GHT.lastBlkSizB
+	return
+endproc
+
+*proc RngX8(ght:d);cdecl
+enter
+	save pusha,ds
+	ds.bx = ght
+	GHT.sizeX = ax = GHT.sizeXo
+	GHT.startX = ax = GHT.startXo
+	GHT.endX  = ax = GHT.endXo
+	GHT.hisSiz = ax = GHT.hisSizO
+	GHT.blkSiz = ax = GHT.blkSizO
+	GHT.lastBlkSiz = ax = GHT.lastBlkSizO
+	return
+endproc
+
+
+@if 0
+cvar  plnW:w = 0
+*proc Df_ForcePlnW(pln:w);cdecl
+enter
+	save ax
+	plnW = ax = pln
+	return
+endproc
+@fi
+
+cvar expln:w = 0
+*proc Df_SetExPln(pln:w);cdecl
+enter
+	save ax
+	expln = ax = pln
+	return
+endproc
+
+cvar mag256bug:w=0
+*proc Df_Mag256Bug(bug:w);cdecl
+enter
+	save ax
+	mag256bug = ax = bug
+	return
+endproc
+
+
+*proc InitPDB(ght:d);cdecl
+//  PDBバッファ・サイズの初期化等
+//	arg bx	  GH.Tへのポインタ
+enter
+	save pusha,es,ds
+	local pdbSiz:w,srcX1flg:w
+	cvar ptnB:b() = {0x00,0x80,0xC0,0xE0,0xF0,0xF8,0xFC,0xFE}
+	cvar ptnE:b() = {0x00,0x01,0x03,0x07,0x0f,0x1f,0x3f,0x7f}
+	ds.bx = ght
+	go.w (GHT.hdrRdFlg) RET
+
+	// 書き込み色ビット数の設定
+	if (GHT.plnW == 0)
+		ch = 0
+		cl = GHT.pln
+		if (expln && expln != -1)
+			cl = expln.l
+		fi
+		GHT.plnW = cl
+	  @if 0
+		if (GHT.plnW == 8 && expln == -1)
+			es.si = GHT.rgbPal
+			si += 16*3
+			cx = (256-16)*3/2
+			ax = 0
+			loop
+				ax += w[es:si]
+				si += 2
+			endloop(--cx)
+			if (ax == 0)
+				GHT.plnW = 4
+				GHT.col = 16
+			fi
+		fi
+	  @fi
+	fi
+
+	//横座標チェック&設定
+	srcX1flg = 0
+	GHT.startXb = ax = GHT.startX
+	GHT.startXofs = 0
+	GHT.endXb  = di = GHT.endX
+	GHT.endXofs = 0
+
+	if ((ax & 0x03) && (GHT.plnW == 8 || GHT.pln == 8))
+		si = ax
+		go.w (mag256bug && GHT.fmtR == GH.MAG)	JA_4	// mg 0.95-0.97で誤生成した256mag対策
+		go (GHT.fmtW == GH.MAG && GHT.plnW == 8) JA_8
+		go (GHT.fmtR == GH.MAG && GHT.pln  == 8) JA_8
+		go (GHT.fmtW == GH.MAG && GHT.plnW == 4) JA_4
+		go (GHT.fmtR == GH.MAG && GHT.pln  == 4) JA_4
+		go (GHT.fmtR == GH.VRAM|| GHT.fmtW == GH.VRAM) JA_4
+	  JA_8:
+		srcX1flg = 2
+		ax &= ~0x03
+		si &= 0x03
+		go JA3
+	elsif ((ax & 0x07) && (GHT.pln==4 ||GHT.plnW==4 || mag256bug) )
+		si = ax
+		go (mag256bug && GHT.fmtR == GH.MAG)	JA_4	// mg 0.95-0.97で誤生成した256mag対策
+		go (GHT.fmtW == GH.MAG && GHT.plnW == 8) JA_8
+		go (GHT.fmtR == GH.MAG && GHT.pln  == 8) JA_8
+		//go (GHT.fmtW == GH.MAG && GHT.plnW == 4) JA_4
+		//go (GHT.fmtR == GH.MAG && GHT.pln  == 4) JA_4
+	  JA_4:
+		srcX1flg = 1
+		ax &= ~0x07
+		si &= 0x07
+	  JA3:
+		GHT.startXofs = si
+		GHT.startXom.l = cl = ptnB[si]	//16色画像のときのみ(FRM,B1,VRAM等)
+	fi
+
+	GHT.startXo = ax
+
+	++di
+	if.w ((di & 0x03) && (GHT.plnW == 8 || GHT.pln == 8))
+		go.w (mag256bug && GHT.fmtR == GH.MAG)	JB_4	// mg 0.95-0.97で誤生成した256mag対策
+		go.w (srcX1flg == 1) JB_4
+		go (GHT.fmtW == GH.MAG && GHT.plnW == 8) JB_8
+		go (GHT.fmtR == GH.MAG && GHT.pln  == 8) JB_8
+		go.w (GHT.fmtW == GH.MAG && GHT.plnW == 4) JB_4
+		go.w (GHT.fmtR == GH.MAG && GHT.pln  == 4) JB_4
+		go.w (GHT.fmtR == GH.VRAM|| GHT.fmtW == GH.VRAM) JB_4
+	  JB_8:
+		srcX1flg = 2
+		di += 4
+		si = di
+		di &= ~0x03
+		si &= 0x03
+		GHT.endXofs = 4
+		GHT.endXofs -= si
+		si = GHT.endXofs
+		si &= 0x03
+		go.w JB3
+	elsif.w ((di & 0x07) && (GHT.pln==4 || GHT.plnW == 4 || mag256bug))
+		go (mag256bug && GHT.fmtR == GH.MAG)	JB_4	// mg 0.95-0.97で誤生成した256mag対策
+		go (GHT.fmtW == GH.MAG && GHT.plnW == 8) JB_8	//誤変換?
+		go (GHT.fmtR == GH.MAG && GHT.pln  == 8) JB_8	//誤変換?
+		if (srcX1flg == 2)								//誤変換
+			si = ax = GHT.startX
+			srcX1flg = 1
+			ax &= ~0x07
+			si &= 0x07
+			GHT.startXofs = si
+			GHT.startXom.l = cl = ptnB[si]
+			GHT.startXo = ax
+		fi
+		//go (GHT.fmtW == GH.MAG && GHT.plnW == 4) JB_4
+		//go (GHT.fmtR == GH.MAG && GHT.pln  == 4) JB_4
+	  JB_4:
+		srcX1flg = 1
+		di += 8
+		si = di
+		di &= ~0x07
+		si &= 0x07
+		GHT.endXofs = 8
+		GHT.endXofs -= si
+		si = GHT.endXofs
+		si &= 0x07
+	  JB3:
+		GHT.endXofs = si
+		GHT.endXom.l = cl = ptnE[si]	//16色画像のときのみ(FRM,B1,VRAM等)
+	fi
+	--di
+	GHT.endXo = di
+	++di
+	di -= ax
+	GHT.sizeXo = di
+	GHT.sizeXb = si = GHT.sizeX
+
+
+
+	//ﾋｽﾄﾘ部ｻｲｽﾞの設定
+	dx.ax = GHT.hisLin * si
+	GHT.hisSizB = ax
+	dx.ax = GHT.hisLin * di
+	GHT.hisSizO = ax
+
+	//PDBのサイズを求める
+	ax += GHT.sizeXo	//PDBの最低サイズ
+	if (GHT.pdbSeg && GHT.pdbSiz >= ax)
+		pdbSiz = ax = GHT.pdbSiz
+	else
+		Std.ParaSize ax,dx
+		GH.GetMemTest bx, ax, 0xFFF	//メモリが確保できるかチェック
+		cx <<= 4
+		pdbSiz = cx
+	fi
+
+	// PDBの行数&ｻｲｽﾞを求める
+	dx.ax = ww(0, pdbSiz)
+	div dx.ax, di
+	GHT.pdbLin = ax
+	if (ax <= GHT.hisLin)
+  J1:
+		Subr.PriExit "ピクセル・データの展開・圧縮のためのバッファが小さすぎる"
+	fi
+	ax -= GHT.hisLin
+	//  奇数*奇数は奇数になるので、サイズが偶数になるようライン数を調整
+	if ((si & 0x01) && (ax & 0x01))
+		--ax
+		go (ax <= 1) J1
+	fi
+	if (ax > GHT.sizeY)	//一回のReadで全部読み込めるなら blkLinをけちる^^;
+		ax = GHT.sizeY
+		++ax
+	fi
+	GHT.blkLin = ax
+	dx.ax = ax * di
+	GHT.blkSizO = ax
+	dx.ax = GHT.blkLin * si
+	GHT.blkSizB = ax
+
+	//最後のﾌﾞﾛｯｸ(余り)の行数&ｻｲｽﾞを求める
+	dx.ax = ww(0,GHT.sizeY)
+	div dx.ax, GHT.blkLin
+	GHT.blkCnt = ax
+	GHT.lastBlkLin = dx
+	dx.ax = dx * di
+	GHT.lastBlkSizO = ax
+	dx.ax = GHT.lastBlkLin * si
+	GHT.lastBlkSizB = ax
+
+	//PDBのサイズを決定
+	dx.ax = GHT.pdbLin * GHT.sizeXo
+
+	//PDBのメモリを確保
+	if (GHT.pdbSeg == 0)	//ﾃﾞﾌｫﾙﾄ･ﾊﾞｯﾌｧが設定されてないとき
+		Std.ParaSize ax, dx
+		GH.GetMem bx,ax,0xfff
+		GHT.pdbSeg = ax
+		cx <<= 4
+		GHT.pdbSiz = cx
+	fi
+
+		RngX1 ds.bx
+
+	//x8modeの設定
+	al = GHT.rdX8flg
+	ah = GHT.wrtX8flg
+	if (srcX1flg == 0 || ax == 0)
+		GHT.x8mode = 0		//入出力でサイズ調整なし(1->1,8->8)
+	elsif (al == ah)
+		GHT.x8mode = 3		//強制8ドット間隔化(8->8)
+	elsif (al)
+		GHT.x8mode = 1		//入力8->出力1	(例:mag->pi)
+	else
+		GHT.x8mode = 2		//入力1->出力8	(例:pi->mag)
+	fi
+	
+	//
+	Deb.Chk
+    if (==)
+    	Pri.Fmt "x8mode=%d  s:%d wr:%x\N",GHT.x8mode,srcX1flg,ax
+		Pri.Fmt "B:%d*%d (%d,%d)-(%d,%d)\N",GHT.sizeXb,GHT.sizeY,\
+			GHT.startXb,GHT.startY,GHT.endXb,GHT.endY
+		Pri.Fmt "O:%d*%d (%d,%d)-(%d,%d)\N",GHT.sizeXo,GHT.sizeY,\
+			GHT.startXo,GHT.startY,GHT.endXo,GHT.endY
+    	Pri.Fmt "startXofs=%d,endXofs=%d\N",GHT.startXofs,GHT.endXofs
+    fi
+  RET:
+	return
+endproc
+
+*proc Resize8to1(bx)
+enter
+	save pusha,es,ds
+	local xB:w,ofs:w
+
+	Deb.Chk;if (==);Pri.Fmt "GH.Resize8to1\N"; fi
+	RngX1 ds.bx
+
+	xB = ax = GHT.sizeXb
+	si = ax = GHT.startXofs
+	di = 0
+	ax += GHT.endXofs
+	ofs = ax
+	dx = GHT.pdbLin
+ Deb.Chk
+ if (==)
+	Pri.Fmt "8-1:%d*%d (%d,%d)-(%d,%d)\N",GHT.sizeX,GHT.sizeY,\
+		GHT.startX,GHT.startY,GHT.endX,GHT.endY
+ 	Pri.Fmt "startXofs=%d endXofs=%d\N",GHT.startXofs,GHT.endXofs
+ 	Pri.Fmt "xB=%d ofs=%d si=%x di=%x\N",xB,ofs,si,di
+ fi
+	es = GHT.pdbSeg
+	ds = cx = es
+	rep.inc
+	loop
+		rep.cpy di,si,xB
+		si += ofs
+	endloop (--dx)
+	return
+endproc
+
+*proc Resize1to8(bx)
+enter
+	save pusha,es,ds
+	local xB:w,ofsB:w,ofsE:w
+
+	Deb.Chk;if (==);Pri.Fmt "GH.Resize1to8\N"; fi
+
+	RngX8 ds.bx
+
+	ofsB = ax = GHT.startXofs
+	ofsE = ax = GHT.endXofs
+	xB = ax = GHT.sizeXb
+	dx.ax = ax * GHT.pdbLin
+	--ax
+	si = ax
+	dx.ax = GHT.sizeXo * GHT.pdbLin
+	--ax
+	di = ax
+
+	dx = GHT.pdbLin
+ Deb.Chk
+ if (==)
+	Pri.Fmt "1-8:%d*%d (%d,%d)-(%d,%d)\N",GHT.sizeX,GHT.sizeY,\
+		GHT.startX,GHT.startY,GHT.endX,GHT.endY
+ 	Pri.Fmt "startXofs=%d endXofs=%d\N",GHT.startXofs,GHT.endXofs
+ 	Pri.Fmt "xB=%d ofsB=%d ofsE=%d si=%x di=%x\N",xB,ofsB,ofsE,si,di
+ fi
+	es = GHT.pdbSeg
+	ds = ax = es
+	ax = 0
+	rep.dec
+	loop
+		if (ofsE)
+			rep.set di,al,ofsE
+		fi
+		rep.cpy di,si,xB
+		if (ofsB)
+			rep.set di,al,ofsB
+		fi
+	endloop (--dx)
+	rep.inc
+	return
+endproc
+
+*proc ResizePDBw(GHTptr:d);cdecl
+//PDBサイズ調整. ReadPDB後 WritePDB前に実行すること
+enter
+	save pusha,ds,es
+	ds.bx = GHTptr
+	Deb.Chk;if (==);Pri.Fmt "GH.ResizePDBw\N"; fi
+	if (GHT.x8mode == 1)
+		Resize8to1 bx
+	elsif (GHT.x8mode == 2)
+		Resize1to8 bx
+	fi
+	return
+endproc
+
+*proc ResizePDBr(GHTptr:d);cdecl
+//PDBサイズ調整. ReadPDB前に実行すること
+enter
+	save pusha,ds,es
+	ds.bx = GHTptr
+	Deb.Chk;if (==);Pri.Fmt "GH.ResizePDBr\N"; fi
+	if (GHT.x8mode == 1)
+		Resize1to8 bx
+	elsif (GHT.x8mode == 2)
+		Resize8to1 bx
+	fi
+	return
+endproc
+
+*proc MovHisLin(GHTptr:d);cdecl
+//バッファの後ろ hisLin 行をバッファの先頭へコピー
+//WritePDBの後, ReadPDBの前に実行すること
+enter
+	save pusha,ds,es
+
+	ds.bx = GHTptr
+	cx = GHT.hisSiz
+	Deb.Chk;if (==);Pri.Fmt "GH.MovHisLin  his:%u(%x) blk:%u(%x)\N",\
+								cx,cx,GHT.blkSiz,GHT.blkSiz; fi
+	if (cx)
+		//ヒストリ行の更新
+		di = GHT.pdbSeg
+		if (GHT.x8mode != 3)
+			si = GHT.blkSiz
+		else
+			si = GHT.blkSizO
+			cx = GHT.hisSizO
+		fi
+		ds = di
+		es = di
+		di = 0
+		if ((cx >>= 1) _c_ 1)
+			rep.cpy di,si
+		fi
+		if (cx)
+			rep.cpy.w di,si,cx
+		fi
+	fi
+	return
+endproc
+
+endmodule

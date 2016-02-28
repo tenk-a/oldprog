@@ -1,0 +1,8 @@
+module Err
+	model SMALL
+	c_name "","",1
+
+*proc DosError(errno:w);cdecl
+	endproc
+
+endmodule

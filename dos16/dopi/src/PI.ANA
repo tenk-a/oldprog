@@ -1,0 +1,450 @@
+module Pi
+	model SMALL
+	c_name "PiLd","_",1
+	//  in  ds = %var
+
+	import Dos
+	import RdDt:"readdata"
+	import Err
+
+  @if defined(DEBUG)
+	import Pri
+  @fi
+
+*var dotX:b,dotY:b
+*var plnCnt:b
+*var palMode:b
+*var sizX:w, sizY:w, sizY0:w
+*var topX:w, topY:w
+*var bcol:w
+*var macName:b(5)
+*var colTbl:b(16,16)
+*var pal:b(16,3)
+*var pal256:b(256*3)
+
+*var wkFlg:w
+*var wkNxtOfs:d
+*var wkSiz:d
+*var wkBuf:d
+*var wkBuf2:d
+*var wkBufMax:d
+*var wkBufMaxS:w   //16ﾊﾞｲﾄ単位
+*var commentBuf:d
+var  commentBufs:b(2*1024+4)
+
+var dfltPalRGB:b(16*3) = {	// Piの省略時のパレット
+	   0,   0,   0,
+	   0,   0,0x70,
+	0x70,   0,   0,
+	0x70,   0,0x70,
+	   0,0x70,   0,
+	   0,0x70,0x70,
+	0x70,0x70,   0,
+	0x70,0x70,0x70,
+	   0,   0,   0,
+	   0,   0,0xf0,
+	0xf0,   0,   0,
+	0xf0,   0,0xf0,
+	   0,0xf0,   0,
+	   0,0xf0,0xf0,
+	0xf0,0xf0,   0,
+	0xf0,0xf0,0xf0
+}
+///////////////////////////////////////////////////////////////////////////////
+*proc LdInit(szs:w);cdecl
+	// 展開ルーチンの初期化
+enter
+	save bx,cx,dx,si,di,es
+
+	ax = &commentBufs
+	commentBuf = ds.ax
+	bx = szs
+	wkBufMaxS = bx
+	ax = bx
+	ax >>= 12
+	wkBufMax.h = ax
+	ax = bx
+	ax <<= 4
+	wkBufMax.l = ax
+	Dos.AllocMem bx
+	go (cf) RTS	//ERR
+	wkBuf.h = ax
+ 	ax = 0
+	wkBuf.l = ax
+ RTS:
+	return
+//ERR:
+//	ax = -1
+//	go RTS
+endproc
+
+*proc ColTblInit();cdecl
+//  色表(16色*16通り) の初期化
+//  in  ds = %var
+//  in  rep.inc
+begin
+	save di,ax,cx,es
+
+	es = di = ds
+	di = &colTbl
+	ax = 0x1000 //ah = 16;al = 0
+	loop
+		cx = 16
+		loop
+			al &= 0x0f
+			rep.set di,al
+			--al
+		endloop (--cx)
+		++al
+	endloop (--ah)
+	return
+endproc
+/*
+	0 F E D C B A 9 8 7 6 5 4 3 2 1
+	1 0 F E D C B A 9 8 7 6 5 4 3 2
+	2 1 0 F E D C B A 9 8 7 6 5 4 3
+	3 2 1 0 F E D C B A 9 8 7 6 5 4
+	4 3 2 1 0 F E D C B A 9 8 7 6 5
+	5 4 3 2 1 0 F E D C B A 9 8 7 6
+	6 5 4 3 2 1 0 F E D C B A 9 8 7
+	7 6 5 4 3 2 1 0 F E D C B A 9 8
+	8 7 6 5 4 3 2 1 0 F E D C B A 9
+	9 8 7 6 5 4 3 2 1 0 F E D C B A
+	A 9 8 7 6 5 4 3 2 1 0 F E D C B
+	B A 9 8 7 6 5 4 3 2 1 0 F E D C
+	C B A 9 8 7 6 5 4 3 2 1 0 F E D
+	D C B A 9 8 7 6 5 4 3 2 1 0 F E
+	E D C B A 9 8 7 6 5 4 3 2 1 0 F
+	F E D C B A 9 8 7 6 5 4 3 2 1 0
+*/
+
+///////////////////////////////////////////////////////////////////////////////
+proc SetDfltPal256()
+//	in ds = es = %var
+begin
+	save pusha
+		
+	di = &pal256
+	dh = 0
+	loop	//G
+		dl = 0
+		loop	//R
+			ah = 0
+			loop	//B
+				al = dl; if (al); al |= 0x1f; fi	//R
+				rep.set di,al
+				al = dh; if (al); al |= 0x1f; fi	//G
+				rep.set di,al
+				al = ah; if (al); al |= 0x3f; fi	//B
+				rep.set di,al
+				ah += 64
+			endloop (ah)
+			dl += 32
+		endloop (dl)
+		dh += 32
+	endloop(dh)
+	return
+endproc
+
+proc GetPal256()
+begin
+	save pusha,es,ds
+	es = ax = %var
+	ds = ax
+	di = &pal256
+	cx = 256
+	loop
+		RdDt.RdByte
+		rep.set di,al
+		RdDt.RdByte
+		rep.set di,al
+		RdDt.RdByte
+		rep.set di,al
+	endloop (--cx)
+	return
+endproc
+
+*proc ReadHdr();cdecl
+	// Pi のヘッダを読み込む
+	// in  ds = %var
+begin
+	save bx,cx,dx,si,di,es,ds
+
+	// 'Pi'チェック
+	RdDt.RdWord   //result ax
+	go.w (ax != 'P'*0x100 + 'i') ERR
+	// コメント・スキップ
+	es.di = commentBuf
+	cx = sizeof(commentBufs)-4
+	loop
+		RdDt.RdByte   //result al
+		if (cx)
+			rep.set di,al
+			--cx
+		fi
+	endloop (al != 0x1a)
+	--di;b[es:di] = '\0'
+	// ダミーコメント・スキップ
+	loop
+		RdDt.RdByte
+	endloop (al)
+	// palMode,dotX,dotY,plnCnt を拾得
+	RdDt.RdByte;  palMode = al
+	RdDt.RdByte;  dotX = al
+	RdDt.RdByte;  dotY = al
+	RdDt.RdByte;  plnCnt = al
+	//go.w (al != 4) PLNCNT_ERR
+	// macName を拾得
+	RdDt.RdByte;  macName[0] = al
+	RdDt.RdByte;  macName[1] = al
+	RdDt.RdByte;  macName[2] = al
+	RdDt.RdByte;  macName[3] = al
+	// 機種依存データを読み飛ばす
+	RdDt.RdWord
+	cx = ax
+	topX = 0
+	topY = 0
+	bcol = 0
+	loop (cx >= 5) EXL
+		RdDt.RdByte
+		--cx
+		if (al == 0x01)	/* 始点 */
+			RdDt.RdWord
+			topX = ax
+			RdDt.RdWord
+			topY = ax
+			cx -= 4
+		elsif (al == 0x02)	/* 透明色 */
+			RdDt.RdWord
+			RdDt.RdWord
+			++ax
+			bcol = ax
+			cx -= 4
+		elsif (al <= 0x1f)
+			RdDt.RdWord
+			RdDt.RdWord
+			cx -= 4
+		elsif ((al >= 'A' && al <= 'Z')||(al >= 'a' && al <= 'z'))
+			RdDt.RdByte
+			RdDt.RdWord
+			cx -= 3
+			exit (cx < 2)
+			RdDt.RdWord
+			dx = ax
+			if (dx)
+				loop
+					RdDt.RdByte
+					exit (--cx == 0) EXL
+				endloop (--dx)
+			fi
+		else
+			exit
+		fi
+	endloop	//EXL
+	if (cx)
+		loop
+			RdDt.RdByte
+		endloop (--cx)
+	fi
+	// 画像サイズ(sizX,sizY)を拾得
+	RdDt.RdWord
+	go.w (ax == 0 || ax & 0x07) SCNSIZOVR_ERR
+	sizX = ax
+	RdDt.RdWord
+	go.w (ax == 0) SCNSIZOVR_ERR
+	sizY0 = ax
+	sizY = ax
+
+  JJJJ:
+	ax += 2
+	dx = sizX
+	dx.ax = ax * dx
+
+	if (plnCnt != 8)
+		dx.ax >>= 1
+	fi
+	wkSiz = dx.ax
+
+	if (dx >= wkBufMax.h)
+	  @if 0
+		go.w (dx > wkBufMax.h || ax > wkBufMax.l) WKBUF_ERR
+	  @else
+		if (dx > wkBufMax.h || ax > wkBufMax.l)
+			dx.ax = wkBufMax
+			cx = sizX
+			if (plnCnt != 8)
+				cx >>= 1
+			fi
+			div dx.ax, cx
+			go.w ((ax -= 2) .<=. 0) WKBUF_ERR
+			sizY = ax
+			go.w JJJJ
+		fi
+	  @fi
+	fi
+
+	// パレットを拾得
+	es = ax = %var
+	rep.inc
+	if (plnCnt != 8)
+		if (palMode & 0x80)
+			si = &dfltPalRGB
+			di = &pal256
+			rep.cpy.w di,si,48/2
+		else
+			ah = 16*3
+			di = &pal256
+			loop
+				RdDt.RdByte
+				rep.set di,al
+			endloop (--ah)
+		fi
+		si = &pal256
+		di = &pal
+		cx = 16*3
+		loop
+			rep.load al,si
+			al >>= 4
+			rep.set  di,al
+		endloop (--cx)
+	else
+		if (palMode & 0x80)
+			SetDfltPal256
+		else
+			GetPal256
+		fi
+		ah = 0
+		di = &pal
+		loop
+			al = ah
+			al += 2; if (al > 15); al = 15; fi
+			b[di] = al;++di	//R
+			b[di] = ah;++di	//G
+			al = ah
+			al -= 2; if (al .<. 0); al = 0; fi
+			b[di] = al;++di	//B
+			++ah
+		endloop (ah < 16)
+	fi
+	ax = 0
+RTS:
+	return
+ERR:
+	ax = 1
+	go RTS
+PLNCNT_ERR:
+	ax = 2
+	go RTS
+SCNSIZOVR_ERR:
+	ax = 3
+	go RTS
+WKBUF_ERR:
+	ax = 4
+	go RTS
+endproc
+
+*proc WkNxt(es.di,ax)
+//	out	es.di
+begin
+	ax = es
+	ax += wkNxtOfs.h
+	es = ax
+	di = wkNxtOfs.l
+	return
+endproc
+
+///////////////////////////////////////////////////////////////////////////////
+
+*proc ReadColor(ax,bh,dx)
+//	色データを１つ読み込む
+//  arg al = 0～15,ah = 0	bh,dx:RdDt.RdBit
+//	out	ax  ,bh,dx
+begin
+	save cx,di //,si
+
+	ah = 0
+	al <<= 4
+	di = &colTbl
+	di += ax
+	
+	block	//RdDt.RdColPos
+		RdDt.RdBit(bh,dx)
+		if (cf)
+			ax = 0
+			RdDt.RdBit(bh,dx);  rcl ax
+			exit.w
+		fi
+		ax = 1
+		RdDt.RdBit(bh,dx)
+		if (cf == 0)
+			RdDt.RdBit(bh,dx);  rcl ax
+			exit.w
+		fi
+		RdDt.RdBit(bh,dx)
+		if (cf == 0)
+		 @if 0
+			RdDt.RdBit(bh,dx); rcl ax
+			RdDt.RdBit(bh,dx); rcl ax
+		 @else
+		 	if (bh > 2)
+		 		bh -= 2
+		 		|dx <<= 1
+		 		|rcl ax
+		 		|dx <<= 1
+		 		|rcl ax
+		 	else
+				RdDt.RdBit(bh,dx); rcl ax
+				RdDt.RdBit(bh,dx); rcl ax
+		 	fi
+		 @fi
+			exit
+		fi
+	 @if 0
+		RdDt.RdBit(bh,dx); rcl ax
+		RdDt.RdBit(bh,dx); rcl ax
+		RdDt.RdBit(bh,dx);  rcl ax
+	 @else
+		if (bh > 3)
+			bh -= 3
+			|dx <<= 1;|rcl ax
+			|dx <<= 1;|rcl ax
+			|dx <<= 1;|rcl ax
+		else
+			RdDt.RdBit(bh,dx); rcl ax
+			RdDt.RdBit(bh,dx); rcl ax
+			RdDt.RdBit(bh,dx); rcl ax
+		fi
+	 @fi
+	endblock
+    @if 0;if (ax > 16);ax += 1000;Err.DosError ax;fi;@fi
+	cx = ax
+@if defined(DEBUG)
+	pusha
+	push ds
+		ds = dx = %var
+		Pri.S "Cn ";Pri.Word cx;Pri.Cr
+	pop  ds
+	popa
+@fi
+	//si = di
+	di += cx
+	al = b[di]
+    @if 0;if (ax > 16);ax += 2000;Err.DosError ax;fi;@fi
+	if (cx)
+		push si,es
+		es = si = ds
+		si = di
+		--si
+		//push ax;al = '+';intr 0x29;pop ax
+		rep.dec
+		rep.cpy di,si,cx
+		rep.inc
+		b[di] = al
+		pop  si,es
+	fi
+  //push ax;al = '-';intr 0x29;pop ax
+	//ah = 0
+	return
+endproc
+
+endmodule

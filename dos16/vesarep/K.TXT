@@ -1,0 +1,21 @@
+ESC,Q		Quit
+CR SPC		next
+Å™Å´Å©Å®(EXSD)	scroll
+HOME,O		reprint(0,0)
+END,P		reprint
+INS,I		tone 50%<->100%
+DEL,U		comment
+ROLL UP/DW	tone up/down(0Å`200%)
+
+F1,?		help
+F2,J		doc.
+F3,M		VESA mode Sw.
+F4,L		loop mode Sw.
+
+F5,Y		1/16 load
+F6,T		1/4 load
+F7,G		load
+F8,B		2x2 load
+
+F9,V		v reverse
+F10,H		h reverse

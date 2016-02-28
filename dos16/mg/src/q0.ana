@@ -1,0 +1,136 @@
+module Q0
+	c_name "Q0","_",1
+	import Subr
+	import GH
+	import Fname
+	import Str
+	import Pri
+
+@define	GHT()	GH.T[ds:0]
+
+cvar fmt:b(4) = "Q0"
+cvar iprFlg:w = 0
+
+*proc SetIprFlg(ax)
+begin
+	iprFlg = ax
+	return
+endproc
+
+*proc Init(GHTptr:d);cdecl
+enter
+	save bx,ds,ax
+	fmt(0) = 'Q'
+	fmt(1) = '0'
+	fmt(2) = '\0'
+	fmt(3) = '\0'
+	ds.bx = GHTptr
+	GHT.fmtW = GH.Q0
+	return
+endproc
+
+*proc InitRGB(GHTptr:d);cdecl
+enter
+	save bx,ds,ax
+
+	fmt(0) = 'R'
+	fmt(1) = 'G'
+	fmt(2) = 'B'
+	fmt(3) = '\0'
+	ds.bx = GHTptr
+	GHT.fmtW = GH.Q0
+	return
+endproc
+
+*proc Create(GHTptr:d, fname:d);cdecl
+//  out ax  0:成功  以外:エラー
+enter
+	save bx,cx,dx,si,di,es,ds
+	local buf:b(130)
+
+	ds.bx = GHTptr
+
+	// FAL|IPR ファイル作成
+	push ds.bx
+		es = ss
+		di = &buf
+		ds.si = fname
+		Str.Cpy es.di, si
+		ds = ax = %var
+		if (iprFlg == 0)
+			si = "FAL"
+		else
+			si = "IPR"
+		fi
+		Fname.ChgExt es.di, si
+		ds.dx = es.di
+		Subr.Create dx, 0
+		Pri.FmtHdl ax
+		dx = ax
+	pop  ds.bx
+	if (iprFlg == 0)
+		Pri.Fmt "F_ALL(V1.00)\N"
+		Pri.Fmt "%d\t%d\t%d\t%d\N",GHT.sizeX,GHT.sizeY,	\
+				GHT.startX, GHT.startY
+		Pri.Fmt "1.00\t255\t255\t255\t0\N"
+	else
+		Pri.Fmt "  %d  %d  %d  %d\N",GHT.sizeX,GHT.sizeY,	\
+				GHT.startX, GHT.startY
+	fi
+	Pri.FmtHdl 0
+	push bx
+		Subr.Close dx
+	pop  bx
+
+	// q0ファイル作成
+	GH.InitWrtBWD bx, 0x800, 0xF000	// バッファ確保
+	GH.Create bx, fname
+	GHT.wrtFmtName = dx.ax = ww(cs,&fmt)
+	//GHT.fmtW = GH.Q0
+	ax = 0
+	return
+endproc
+
+*proc CloseW(GHTptr:d);cdecl
+enter
+	save bx,ds,ax
+	ds.bx = GHTptr
+	GH.FlushBuf bx
+	GH.CloseW ds.bx
+	return
+endproc
+
+
+*proc WritePDB(GHTptr:d,lineCnt:w);cdecl
+//
+enter
+	save pusha,es,ds
+
+	ds.bx = GHTptr
+	dx.ax = lineCnt * GHT.sizeX
+	cx = ax
+	si = GHT.hisSiz
+	es.dx = GHT.rgbPal
+	ds = GHT.pdbSeg
+	loop
+		rep.load al,si
+		ah = 0
+		//bx = ax * 3 + GHT.rgbPal.l
+		di = ax
+		ax += ax
+		di += ax
+		di += dx
+		push ds
+			ds = GHTptr.h
+			al = b[es:di];++di
+			GH.WrtB bx,al
+			al = b[es:di];++di
+			GH.WrtB bx,al
+			al = b[es:di];++di
+			GH.WrtB bx,al
+		pop  ds
+	endloop (--cx)
+	return
+endproc
+
+endmodule

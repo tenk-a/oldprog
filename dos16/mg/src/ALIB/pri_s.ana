@@ -1,0 +1,22 @@
+submodule Pri
+	import Dos
+	import Str
+
+*proc S(ax)
+//	in ds
+begin
+	save ax,bx,cx,dx,di,es
+	es = ds
+	di = dx = ax
+	rep.inc
+	ax = 0
+	cx = 0xffff
+	repn.scan di,al,cx
+	++cx
+	com cx
+	bx = Dos.STDOUT
+	Dos.Write bx,dx,cx
+	return
+endproc
+
+endmodule

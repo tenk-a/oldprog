@@ -1,0 +1,27 @@
+module CNTVSYNC
+	//	1992	writen by M.Kitamura
+
+*proc CntVsync()
+//  port 0x60 に出ているVSYNCの信号が１の間に何回ループできるかカウントする
+//	out dx.ax
+begin
+	save bx,cx,si,di,fx
+
+	dx.cx = 0
+	intr.off
+	loop
+		al = port(0x60)
+	endloop(al & 0x20)
+	loop
+		al = port(0x60)
+	endloop !(al & 0x20)
+	loop
+		++cx
+		al = port(0x60)
+	endloop (al & 0x20)
+	intr.on
+	ax = cx
+	return
+endproc
+
+endmodule

@@ -1,0 +1,14 @@
+module Dbg
+	model SMALL
+	c_name "","",1
+
+*var  gChk:b
+*var  gChkPiLd4a:b
+
+*proc DbgPutWord(i:w);cdecl
+	endproc
+
+*proc PutWord(i:w);cdecl
+	endproc
+
+endmodule

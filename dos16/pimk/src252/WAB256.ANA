@@ -1,0 +1,932 @@
+module WAB256
+	c_name "WAB256","_",1
+	import RRPal
+	import Pri
+
+/*---------------------------------------------------------------------------*/
+cvar bank:w = -1
+cvar /*scrn_mode:w = 0x50,*/ dispMode:w = 0x00, hpos:w = 0, vpos:w = 0
+cvar scrn_xsize:w = 640, vram_ysize:w = 1638, scrn_ysize:w = 480
+cvar wab2000flg:w = 0
+
+*proc Sw2000(flg:w);cdecl
+enter
+	push flg
+	pop  wab2000flg
+	return
+endproc
+
+*proc SetVar(dmode:w,hps:w,vps:w);cdecl
+enter
+	save pusha
+
+	dispMode = ax = dmode
+	bh = hps.l
+	bl = vps.l
+	cx = 640
+	dx = 480
+	di = 1638
+	if (al <= 0x04) //al = 0x00,0x01,0x02,0x03,0x04
+		cx = 640
+		dx = 480
+		di = 1638
+		if (bh < 0x51 || bh > 0x61)
+			bh = 0x54
+			if (al == 0x04)
+				bh = 0x5C
+			fi
+		fi
+		if (bl < 0xe1 || bl > 0xfe)
+			bl = 0xEA
+			if (al == 0x04)
+				bl = 0xE1
+			fi
+		fi
+	elsif(al == 0x10 || al == 0x11)
+		cx = 800
+		dx = 600
+		di = 1310
+		if (bh < 0x65 || bh > 0x7e)
+			bh = 0x69
+		fi
+		if (bl < 0x58 || bl > 0x6f)
+			bl = 0x5d
+		fi
+	elsif(al == 0x12)
+		cx = 800
+		dx = 600
+		di = 1310
+		if (bh < 0x65 || bh > 0x7e)
+			bh = 0x69
+		fi
+		if (bl < 0x58 || bl > 0x99)
+			bl = 0x6f
+		fi
+	elsif(al >= 0x20 && al <= 0x22)
+		cx = 1024
+		dx = 768
+		di = 1024
+		if (bh < 0x81 || bh > 0xA2)
+			bh = 0x85
+		fi
+		if (bl == 0 || bl > 0x23)
+			bl = 0x08
+		fi
+	elsif(al == 0x30)
+		cx = 1024
+		dx = 768
+		di = 1024
+		if (bh < 0x81 || bh > 0xA2)
+			bh = 0x83
+		fi
+		if (bl < 0x80 || bl > 0x95)
+			bl = 0x84
+		fi
+	//elsif(al == 0x40)
+	//	cx = 800
+	//	dx = 500
+	//	di = 1310
+	fi
+	hpos.l = bh
+	vpos.l = bl
+	scrn_xsize = cx
+	scrn_ysize = dx
+	//if (wab2000flg)
+	//	di += di
+	//fi
+	vram_ysize = di
+	//Pri.Fmt "mode=%02x,hpos=%02x,vpos=%02x %d*%d(%d)\N",dispMode,hpos,vpos,scrn_xsize,scrn_ysize,vram_ysize;
+	return
+endproc
+
+/*---------------------------------------------------------------------------*/
+*proc SetBank(bnk:w);cdecl
+	//--------------------------------------------------------
+	// set RAM-window BANK (BL=Bank)
+	//	1bank は 4096byte(4kByte)
+	//	RAM-Window1 は $E000:0000-3FFF の 4Bank(16kByte)
+	//	RAM-Window2 は $E000:4000-7FFF の 4Bank(16kByte)
+	//	連続させれば一度に 8bank(32kByte) までのアクセスが可能
+	//--------------------------------------------------------
+enter
+		save ax,bx,dx
+
+		bx = bnk
+		//if (bx != bank)
+			bank = bx
+			dx = 0x4EE0
+			port(dx) = al = 0x09
+
+			dx = 0x4FE0
+			port(dx) = al = bl
+
+			dx = 0x4EE0
+			port(dx) = al = 0x0a
+
+			dx = 0x4FE0
+			al = bl
+			al += 4
+			port(dx) = al
+
+			dx = 0x4EE0
+			port(dx) = al = 0x0b
+
+			dx = 0x4FE0
+			al = port(dx)
+			al |= 0x01
+			port(dx) = al
+		//fi
+		return
+endproc
+
+@if 0
+*proc SetBankW(b1:w,b2:w);cdecl
+enter
+	save ax,bx,dx
+	dx = 0x4EE0
+	port(dx) = al = 0x09
+	dx = 0x4FE0
+	port(dx) = al = b1.l
+
+	ah = 0
+	bank = ax
+	dx = 0x4EE0
+	port(dx) = al = 0x0a
+	dx = 0x4FE0
+	al = b2.l
+	port(dx) = al
+
+	dx = 0x4EE0
+	port(dx) = al = 0x0b
+	dx = 0x4FE0
+	al = port(dx)
+	al |= 0x01
+	port(dx) = al
+	return
+endproc
+@fi
+
+/*---------------------------------*/
+
+*proc LineAddr(yy:w);cdecl
+	// ret dx.ax
+enter
+	save bx
+
+	dx.ax = yy * scrn_xsize
+	bh = dl
+	bl = ah
+	bx >>= 4
+
+	bx &= 0x00FC//bh=0
+
+
+	ax&=0x3fff//ax&=0x0fff
+
+
+	SetBank bx
+	dx = 0xE000
+	return
+endproc
+
+*proc PutXYN(x0:w,y0:w,len:w,src:d);cdecl
+	//ret dx.ax
+enter
+	save bx,cx,di,si,es,ds
+	dx.ax = y0 * scrn_xsize
+	|ax += x0
+	adc dx,0
+	bh = dl
+	bl = ah
+	bx >>= 4
+  @if 0
+	bh = 0	;
+	ax &= 0x0fff
+  @else
+	bx &= 0x00fc
+	ax &= 0x3fff
+  @fi
+	di = ax
+	SetBank bx
+	es = dx = 0xE000
+	cx = len
+	ds.si = src
+	rep.cpy di,si,cx
+	return
+endproc
+
+/*---------------------------------------------------------------------------*/
+*proc ShowOn()
+	//$E000:0000-7FFF WABに切り替え
+begin
+	save ax,dx
+	dx = 0x40E1; port(dx) = al = 0xFB
+	//port(0x6a) = al = 0
+	dx = 0x4CE0; al = port(dx); al |= 0x02; dx = 0x42E0; port(dx) = al
+	return
+endproc
+
+*proc ShowOff()
+	//$E000:0000-7FFF nomalに切り替え
+begin
+	save ax,dx
+	dx = 0x40E1; port(dx) = al = 0xFA
+	//port(0x6a) = al = 1
+	dx = 0x4CE0; al = port(dx); al &= 0xFD; dx = 0x42E0; port(dx) = al
+	return
+endproc
+
+*proc AccessOn()
+begin
+	save ax
+	port(0x6a) = al = 0
+	bank = -1
+	return
+endproc
+
+*proc AccessOff()
+begin
+	save ax
+	port(0x6a) = al = 1
+	bank = -1
+	return
+endproc
+
+@if 0
+*proc GetOnOff()
+	// Disp swicth mode read
+begin
+	save dx
+	dx = 0x40E1
+	al = 0xFA
+	al = port(dx)
+	ah = 0
+	return
+endproc
+@fi
+
+*proc GetDispMode()
+begin
+	save dx
+	dx = 0x54E0
+	port(dx) = al = 0x13
+	dx = 0x55E0
+	al = port(dx)
+	//scrn_mode.l = al
+	if (al == 0x80)
+		ax = 0x20
+	elsif(al == 0x64)
+		ax = 0x10
+	else
+		ax = 0x00
+	fi
+	return
+endproc
+
+@if 0
+*proc GetScreenMode()
+	// 現在の画面モードのREAD out( AL = X方向ドット数÷8 )
+	// ret al  0x50:640dot	0x64:800dot  0x80:1024dot
+begin
+	save dx
+	dx = 0x54E0
+	port(dx) = al = 0x13
+	dx = 0x55E0
+	al = port(dx)
+	//scrn_mode.l = al
+  @if 1
+	if (al == 0x80)
+		dispMode = 0x20
+	elsif(al == 0x64)
+		dispMode = 0x10
+	else
+		dispMode = 0x00
+	fi
+	SetVar dispMode
+  @fi
+	ah = 0
+	return
+endproc
+@fi
+
+@if 1
+*proc GetScrnXY()
+	// 現在の画面モードのドット数を ax = XSIZE,bx = YSIZE
+begin
+	save cx
+
+	ax = scrn_xsize
+	dx = scrn_ysize
+	return
+endproc
+@fi
+
+@if 0
+*proc SetDispOffs(xg:w,yg:w);cdecl
+enter
+	save pusha,es,ds
+	dx.ax = scrn_xsize * yg
+	ax += xg
+	adc dx,0
+	bx = ax
+	cl = 0x22
+	if (dl & 0x01)
+		cl += 1
+	fi
+	if (dl & 0x02)
+		cl += 4
+	fi
+	dx = 0x54E0;port(dx) = al = 0x1b
+	dx = 0x55E0;port(dx) = al = cl
+	dx = 0x54E0;port(dx) = al = 0x0c
+	dx = 0x55E0;port(dx) = al = bl
+	dx = 0x54E0;port(dx) = al = 0x0d
+	dx = 0x55E0;port(dx) = al = bh
+	return
+endproc
+@fi
+
+@if 1
+cvar wabsOfsX:w,wabsOfsY:w
+
+*proc GetSclOfs()
+begin
+	dx = wabsOfsY
+	ax = wabsOfsX
+	return
+endproc
+
+*proc SetSclOfs(xx:w,yy:w);cdecl
+enter
+	save ax,dx,cx,bx
+	wabsOfsX = bx = xx
+	wabsOfsY = ax = yy
+	dx.ax = scrn_xsize * ax
+	|ax += bx
+	adc dx,0
+	dx.ax >>= 2
+	bx = ax
+	cl = 0x22
+	if (dl & 0x02)
+		cl += 4
+	fi
+	|dl >>= 1
+	adc cl,0
+	dx = 0x54E0;port(dx) = al = 0x1b
+	dx = 0x55E0;port(dx) = al = cl
+	dx = 0x54E0;port(dx) = al = 0x0c
+	dx = 0x55E0;port(dx) = al = bh
+	dx = 0x54E0;port(dx) = al = 0x0d
+	dx = 0x55E0;port(dx) = al = bl
+	return
+endproc
+
+@if 0
+proc CpyL2L (ax,dx) //ax line -> dx line
+begin
+	save cx,dx,ax,es,ds
+
+	push ax
+		dx.ax = scrn_xsize * dx
+		dh = dl
+		dl = ah
+		dx >>= 4
+		bl = dl
+		ax &= 0xFFF
+		di = ax
+	pop dx
+	dx.ax = scrn_xsize * dx
+	dh = dl
+	dl = ah
+	dx >>= 4
+	ax &= 0x0FFF
+	ax += 0x4000
+	si = ax
+	al = dl
+	ah = bh = 0
+	SetBankW ax,bx
+	cx = scrn_xsize
+	cx >>= 1
+	ds = ax = 0xE000
+	es = ax
+	rep.cpy.w di,si,cx
+	return
+endproc
+@fi
+
+*proc Scl(ddx:w, ddy:w);cdecl
+enter
+	save bx,cx,si,di,es,ds
+	local x:w//,btmLine:w
+
+	dx = ddx
+	dx += wabsOfsX
+	if (dx .<. 0)
+		//bx = scrn_xsize
+		//--bx
+		//CpyL2L 0, bx
+		dx += scrn_xsize
+		--wabsOfsY
+	elsif (dx .>=. scrn_xsize)
+		//bx = scrn_xsize
+		//--bx
+		//CpyL2L bx, 0
+		dx -= scrn_xsize
+		++wabsOfsY
+	fi
+	wabsOfsX = dx
+
+	ax = wabsOfsY
+	ax += ddy
+	wabsOfsY = ax
+//	bx = vram_ysize
+//	bx -= scrn_ysize
+//	if (ax .<. 0)
+//		wabsOfsY = 0
+//		wabsOfsX = 0
+//	elsif (ax > bx)
+//		wabsOfsY = bx
+//	fi
+
+	dx.ax = scrn_xsize * wabsOfsY
+	|ax += wabsOfsX
+	adc dx,0
+	dx.ax >>= 2
+	bx = ax
+	cl = 0x22
+	if (dl & 0x02)
+		cl += 4
+	fi
+	|dl >>= 1
+	adc cl,0
+	dx = 0x54E0;port(dx) = al = 0x1b
+	dx = 0x55E0;port(dx) = al = cl
+	dx = 0x54E0;port(dx) = al = 0x0c
+	dx = 0x55E0;port(dx) = al = bh
+	dx = 0x54E0;port(dx) = al = 0x0d
+	dx = 0x55E0;port(dx) = al = bl
+
+	ax = wabsOfsX
+	dx = wabsOfsY
+	return
+endproc
+
+@fi
+
+/*---------------------------------------------------------------------------*/
+proc INIT_SYNC(bx/*dmode:w*/)
+	//-------------------------------------
+	// VSYNCレートの切り替え Mode(x0,x1,x3)
+	// $46E8 ... ソニックモード・レジスタ
+	// $42E0 ... ソニックモード・データ
+	//-------------------------------------
+begin
+	dx = 0x46E8; port(dx) = al = 0x18
+	dx = 0x42E0; port(dx) = al = 0x01
+	dx = 0x46E8; port(dx) = al = 0x08
+  @if 1
+	ah = bl
+	bl &= 0x0f
+	al = 0xE3
+	if (bl == 0)
+		al = 0xE3
+	elsif (bl == 1 || ah == 0x04)
+		al = 0xE7
+	elsif (bl == 2)
+		al = 0xEB
+	elsif (bl == 3)
+		al = 0xEF
+	fi
+  @else
+	al = bl
+	al &= 0x07
+	al <<= 2
+	al |= 0xE3
+  @fi
+	dx = 0x42E0; port(dx) = al
+	dx = 0x5AE0; port(dx) = al = 0
+	return
+endproc
+
+proc INIT_46E0()
+	//-----------------------------
+	// 表示モード・表示ページ設定
+	// $46E0 ... ディスプレイページ
+	//-----------------------------
+begin
+	//dx = 0x5AE0
+	//al = port(dx)
+	//dx = 0x46E0
+	//port(dx) = al = 0xff
+
+	dx = 0x5AE0
+	al = port(dx)
+	dx = 0x46E0
+	al = port(dx)
+	al = port(dx)
+	al = port(dx)
+	al = port(dx)
+	port(dx) = al = 0x20
+
+	port(dx) = al = 0xFF
+
+	return
+endproc
+
+proc INIT_44E0(ax)
+	//----------------------------------
+	// Mspeed調整等 SetMode(0x,1x,2x,30)
+	// $44E0 ... ディスプレイモード２・レジスタ
+	// $45E0 ... ディスプレイモード２・データ
+	//----------------------------------
+begin
+  cvar DATA_44E0:b() = data
+		b  0x00, 0x02,0x02,0x02,0x02
+		b  0x00, 0x03,0x03,0x03,0x03
+		b  0x01, 0x01,0x01,0x01,0x01
+		b  0x02, 0x0F,0x0F,0x0F,0x0F
+		b  0x04, 0x0E,0x0E,0x0E,0x0E
+		b  0x06, 0x12,0x12,0x12,0x12
+		b  0x07, 0x01,0x01,0x01,0x01
+		b  0x08, 0x00,0x00,0x00,0x00
+		b  0x0B, 0x66,0x4E,0x75,0x55
+		b  0x0C, 0x48,0x78,0x6D,0x4E
+		b  0x0D, 0x56,0x63,0x66,0x75
+		b  0x0E, 0x60,0x55,0x55,0x55
+		b  0x0F, 0x54,0x54,0x54,0x54
+		b  0x16, 0xF0,0xF0,0xF0,0xF0
+		b  0x18, 0x02,0x02,0x02,0x02
+		b  0x1B, 0x3B,0x3A,0x34,0x36
+		b  0x1C, 0x23,0x31,0x2A,0x3A
+		b  0x1D, 0x3D,0x3A,0x26,0x34
+		b  0x1E, 0x3B,0x36,0x36,0x36
+		b  0x1F, 0x1C,0x1C,0x1C,0x1C
+	enddata
+
+	//al = dmode
+	al >>= 4
+	bl = al
+	bh = 0
+	si = &DATA_44E0
+	cx = 20
+	loop
+		rep.load al,si
+		ah = b[si+bx]
+		dx = 0x44E0
+		port(dx) = al
+		dx = 0x45E0
+		port(dx) = al = ah
+		si += 4
+	endloop(--cx)
+	return
+endproc
+
+
+proc INIT_54E0(dmode:w)
+	//---------------------------------------
+	// H/V_hold調整等
+	// $54E0 ... ディスプレイモード・レジスタ
+	// $55E0 ... ディスプレイモード・データ
+	//---------------------------------------
+enter
+	cvar modeDef00:b() = data
+		b 0x5F,0x4F,0x50,0x82,0x54,0x80,0x0B,0x3E
+		b 0x00,0x40,0x00,0x00,0x00,0x00,0x00,0x00
+		b 0xEA,0x0C,0xDF,0x50,0x00,0xE1,0x0A,0xE3,0xFF,0x32,0x90,0x22
+		enddata
+	cvar modeDef03:b() = data
+		b 0x68,0x4F,0x50,0x82,0x54,0x80,0x07,0x3E
+		b 0x00,0x40,0x00,0x00,0x00,0x00,0x00,0x00
+		b 0xEA,0x0C,0xDF,0x50,0x00,0xE1,0x0A,0xE3,0xFF,0x32,0x90,0x22
+		enddata
+	cvar modeDef10:b() = data
+		b 0x7A,0x63,0x64,0x9E,0x69,0x92,0x76,0xF0
+		b 0x00,0x60,0x00,0x00,0x00,0x00,0x00,0x00
+		b 0x5D,0x0A,0x57,0x64,0x00,0x58,0x75,0xE3,0xFF,0x32,0x90,0x22
+		enddata
+	cvar modeDef12:b() = data
+		b 0x7A,0x63,0x64,0x9E,0x69,0x92,0x9A,0xF0
+		b 0x00,0x60,0x00,0x00,0x00,0x00,0x00,0x00
+		b 0x6F,0x0A,0x57,0x64,0x00,0x58,0x9B,0xE3,0xFF,0x32,0x90,0x22
+		enddata
+	cvar modeDef20:b() = data
+		b 0xA1,0x7F,0x80,0x85,0x85,0x96,0x24,0xFD
+		b 0x00,0x60,0x00,0x00,0x00,0x00,0x00,0x00
+		b 0x08,0x08,0xFF,0x80,0x00,0x00,0x23,0xE3,0xFF,0x32,0xE0,0x22
+		enddata
+	cvar modeDef30:b() = data
+		b 0x99,0x7F,0x80,0x9D,0x83,0x19,0x96,0x1F
+		b 0x00,0x40,0x11,0x12,0x00,0x00,0x02,0x09
+		b 0x84,0x04,0x7F,0x80,0x00,0x80,0x95,0xE3,0xFF,0x4A,0x61,0x22
+		enddata
+
+	al = dmode.l
+	si = &modeDef00
+	if (al <= 0x04) //al = 0x00,0x01,0x02,0x03,0x04
+		si = &modeDef00
+		if (al == 0x03)
+			si = &modeDef03
+		fi
+	elsif(al == 0x10 || al == 0x11)
+		si = &modeDef10
+	elsif(al == 0x12)
+		si = &modeDef12
+	elsif(al >= 0x20 && al <= 0x22)
+		si = &modeDef20
+	elsif(al == 0x30)
+		si = &modeDef30
+	//elsif(al == 0x40)
+	fi
+	cx = 28 //0x1c
+	ah = 0
+	loop
+		dx = 0x54E0
+		port(dx) = al = ah
+		rep.load al,si
+		dx = 0x55E0
+		port(dx) = al
+		++ah
+	endloop(--cx)
+	if (dmode == 0x04)
+		dx = 0x54E0; port(dx) = al = 0
+		dx = 0x55E0; port(dx) = al = 0x72
+	fi
+	dx = 0x54E0; port(dx) = al = 0x04
+	dx = 0x55E0; port(dx) = al = hpos.l
+	dx = 0x54E0; port(dx) = al = 0x10
+	dx = 0x55E0; port(dx) = al = vpos.l
+	return
+endproc
+
+proc INIT_40E0()
+	//-------------------
+	// >謎< ポート
+	// $40E0 ... 表示系？
+	//-------------------
+begin
+  @if 1
+	dx = 0x40E0
+	port(dx) = al = 0x10
+	port(dx) = al = 0x41
+	port(dx) = al = 0x11
+	port(dx) = al = 0x00
+	port(dx) = al = 0x12
+	port(dx) = al = 0x0f
+	port(dx) = al = 0x13
+	port(dx) = al = 0x00
+	port(dx) = al = 0x14
+	port(dx) = al = 0x00
+	dx = 0x5aE0
+	al = port(dx)
+	dx = 0x40E0
+	port(dx) = al = 0x20
+	dx = 0x5aE0
+	al = port(dx)
+	return
+  @else
+	cvar DATA_40E0:b() = data
+		b 0x10,0x41,0x11,0x00,0x12,0x0F,0x13,0x00,0x14,0x00
+		enddata
+
+	dx = 0x54E0
+	port(dx) = al = 0x24
+
+	dx = 0x55E0
+	al = port(dx)
+	if (al & 0x80)
+
+		dx = 0x41E0
+		al = port(dx)
+		dx = 0x40E0
+		port(dx) = al
+	fi
+
+	si = &DATA_40E0
+	cx = 10
+	dx = 0x40E0
+	loop
+		rep.load al,si
+		port(dx) = al
+	endloop(--cx)
+
+	dx = 0x5AE0
+	al = port(dx)
+	dx = 0x40E0
+	port (dx) = al = 0x20
+
+	dx = 0x5AE0
+	al = port(dx)
+
+	return
+  @fi
+endproc
+
+proc INIT_4EE0()
+	//-------------------------------------------
+	// RAM-Windowアクセスモード・バンク位置の設定
+	// $4EE0 ... アクセスモード・レジスタ
+	// $4FE0 ... アクセスモード・データ
+	//-------------------------------------------
+begin
+	cvar DATA_4EE0:w() = data
+		w 0x000B, 0x4005, 0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0506
+		w 0x0F07, 0xFF08, 0x0010, 0xFF11, 0x0431
+		enddata
+
+	si = &DATA_4EE0
+	cx = 13
+	loop
+		rep.load.w ax,si
+		dx = 0x4EE0
+		port(dx) = al
+		dx = 0x4FE0
+		port(dx) = al = ah
+	endloop(--cx)
+	return
+endproc
+
+//==================================================
+*proc Init(dmode:w,hps:w,vps:w);cdecl
+	// WAB-S 初期化 & データ	----------------------------
+	//mode		Res    Color  Hsync  / Vsync
+	// 00 ...  640x480	256  31.5kHz / 60Hz
+	// 01 ...  640x480	256  37.9kHz / 72Hz
+	// 02 ...  640x480	256  25.7kHz / 48.8Hz (Normal Mode1)
+	// 03 ...  640x480	256  27.4kHz / 52.6Hz (Normal Mode2)
+	// 04 ...  640x480	256  25.5kHz / 51Hz   (Normal Mode3)
+	// 10 ...  800x600	256  37.9kHz / 60Hz
+	// 11 ...  800x600	256  35.2kHz / 56Hz
+	// 12 ...  800x600	256  48.1kHz / 72Hz
+	// 20 ... 1024x768	256  48.3kHz / 60Hz
+	// 21 ... 1024x768	256  56.0kHz / 56Hz
+	// 22 ... 1024x768	256  48.1kHz / 72Hz
+	// 30 ... 1024x768	256  35.5kHz / 87Hz (Interlace mode)
+	//------------------------------------------------------
+enter
+	save bx,cx,dx,si,di,es,ds
+	ds = ax = cs
+	es = ax
+
+	dx = 0x40E1; port(dx) = al = 0xFB
+	al = port(dx)
+	if (al != 0xFB) 	//WAB-S Check
+		ax = -1
+		go.w RET
+	fi
+	//謎^^;
+	//dx = 0x4CE0; al = port(dx); al &= 0xFD; dx = 0x42E0; port(dx) = al
+	dx = 0x4CE0; al = port(dx); al |= 0x02; dx = 0x42E0; port(dx) = al
+	port(0x6a) = al = 0
+	ax = dmode
+	if (al<=0x04||(al>=0x10&&al<=0x12)||(al>=0x20&&al<=0x22)\
+	  ||al==0x30||al==0x40)
+		SetVar dmode,hps,vps
+		INIT_SYNC(dmode)		// VSYNCレートの切り替え Mode(x0,x1,x3)
+		INIT_46E0				// 表示モード・表示ページ設定
+		INIT_44E0(dmode)		// Mspeed調整等 SetMode(0x,1x,2x,30)
+		INIT_54E0(dmode)		// H/V_hold調整等
+		INIT_40E0				// >謎< ポート
+		if (wab2000flg) 		//WAB2000のとき, WABS互換?にする.
+			dx = 0x44E0
+			port(dx) = al = 0x0f
+			dx = 0x45E0
+			port(dx) = al = 0xB4
+		fi
+		INIT_4EE0				// アクセスモード・バンク位置の設定
+	else
+		GetDispMode
+		SetVar ax, hps,vps
+		dx = 0x4EE0; port(dx) = al = 0x06	// wabアクティブ
+		dx = 0x4FE0; port(dx) = al = 0x05
+		dx = 0x4CE0; al = port(dx); al |= 0x02; dx = 0x42E0; port(dx) = al
+	fi
+	bank = -1
+	SetBank 0
+	ax = 0
+  RET:
+	return
+endproc
+
+/*---------------------------------------------------------------------------*/
+*proc Cls()
+	// WAB の RAM を全て消去
+begin
+	save ax,bx,cx,dx,si,di,es
+	dx = 64
+	//if (wab2000flg)
+	//	dx += dx
+	//fi
+	es = ax = 0xE000
+	bx = 0
+	loop
+		SetBank bx
+		si = di = 0
+		rep.set.w di, si, 0x4000/2
+		bx += 4
+	endloop(--dx)
+	return
+endproc
+
+/*---------------------------------------------------------------------------*/
+*proc GetPal(pal:d);cdecl
+enter
+	save pusha,es,ds
+	es.di = pal
+	cx = 0x100
+
+	loop
+		dx = 0x48E0
+		ax = 256
+		ax -= cx
+		port(dx) = al
+		dx = 0x49E0
+		al = port(dx)
+		al = port(dx)
+		al = port(dx)
+
+		dx = 0x48E0
+		ax = 256
+		ax -= cx
+		port(dx) = al
+		dx = 0x49E0
+
+		al = port(dx)
+		al <<= 2
+		rep.set di,al
+		al = port(dx)
+		al <<= 2
+		rep.set di,al
+		al = port(dx)
+		al <<= 2
+		rep.set di,al
+	endloop(--cx)
+	return
+endproc
+
+*proc SetRGB(tone:w, pal:d);cdecl
+enter
+	save pusha,es,ds
+
+	RRPal.SetTone tone
+	RRPal.GetPalAddr
+	ds.si = pal
+	dx = 0x48E0
+	port (dx) = al = 0
+	bx = 100
+	cx = 256
+	loop
+		rep.load al,si
+		rep.set di,al
+		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+		al >>= 2
+		dx = 0x49E0
+		port(dx) = al	// PalData.R
+		rep.load al,si
+		rep.set di,al
+		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+		al >>= 2
+		dx = 0x49E0
+		port(dx) = al	// PalData.G
+		rep.load al,si
+		rep.set di,al
+		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+		al >>= 2
+		dx = 0x49E0
+		port(dx) = al	// PalData.B
+	endloop(--cx)
+	return
+endproc
+
+*proc SetTone(tone:w);cdecl
+enter
+	save pusha,es,ds
+
+	RRPal.SetTone tone
+	RRPal.GetPalAddr
+	ds.si = es.di
+	dx = 0x48E0
+	port (dx) = al = 0
+	bx = 100
+	cx = 256
+	loop
+		rep.load al,si
+		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+		al >>= 2
+		dx = 0x49E0
+		port(dx) = al	// PalData.R
+		rep.load al,si
+		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+		al >>= 2
+		dx = 0x49E0
+		port(dx) = al	// PalData.G
+		rep.load al,si
+		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+		al >>= 2
+		dx = 0x49E0
+		port(dx) = al	// PalData.B
+	endloop(--cx)
+	return
+endproc
+
+/*---------------------------------------------------------------------------*/
+endmodule

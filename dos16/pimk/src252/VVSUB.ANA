@@ -1,0 +1,111 @@
+module Vv
+	c_name "Vv","_",1
+	import Std
+	import Pri
+	import EMS
+
+@define V() Vv.T[ds:0]
+
+
+*proc RevX(datSeg:w);cdecl
+	//左右反転
+enter
+	save pusha, es,ds
+	local y0:w, xxsz:w, xxszD2:w, ysz:w
+
+	ds = datSeg
+
+	ax = V.yvsize
+	ysz = ax
+
+	ax = V.xvsize
+	xxsz = ax
+	|ax >>= 1//; adc ax,0
+	xxszD2 = ax
+
+	y0 = bx = 0
+	loop
+		ds = datSeg
+		dx.ax = ww(0,y0)
+		div dx.ax, V.pgLine
+		Vv.PageSw ax
+		bx=ax//V.pgCurSeg = ax
+
+		// ax = 点(xx0,y0)のアドレス
+		dx.ax = dx * V.xvsize
+		si = di = ax
+		si += xxsz
+		--si
+		es = bx //V.pgCurSeg
+		ds = bx //V.pgCurSeg
+		cx = xxszD2
+		loop
+			ah = b[di]
+			al = b[si]
+			b[si] = ah; --si
+			rep.set di,al
+		endloop (--cx)
+		++y0
+	endloop (--ysz)
+	ds = datSeg
+	if (bx)
+		V.pgCurSeg = bx
+	fi
+	return
+endproc
+
+*proc GetLines(datOfs:w, datSeg:w, pixPtr0:d);cdecl;far
+enter
+	local pixPtr:d
+
+
+	ds = datSeg
+	dx.ax = pixPtr0
+	//loop.w
+	  LOOP:
+		if (V.x68flg)
+			Vv.X68line dx.ax, V.x68flg
+		fi
+		if (V.reductFlg)
+			if (V.reductFlgY)
+				++V.ycurReduct
+				cx = V.reductFlgY
+				go.w (V.ycurReduct & cx) NEXT
+			fi
+			Vv.ReductLine dx.ax
+		fi
+		pixPtr = dx.ax
+
+		++V.ycur
+
+		//格納するメモリをセット
+		es = V.pgCurSeg
+		if (--V.pglcnt == 0)
+			++V.pgNo
+			Vv.PageSw V.pgNo
+			V.pgCurSeg = ax
+			es = ax
+			V.pglcnt = ax = V.pgLine
+			V.pgPtr = 0
+			//Pri.Fmt "page = %d %04x\N",V.pgNo, V.pgCurSeg
+		fi
+
+		//１行コピー
+		di = ax = V.pgPtr
+		cx = V.pgXsize
+		ax += cx
+		V.pgPtr = ax
+		ds.si = pixPtr
+		rep.cpy di,si,cx
+	NEXT:
+		ds = datSeg
+		dx.ax = pixPtr0
+		go.w (V.l200flg && V.ycur & 0x0001) LOOP
+		ax += V.xsize
+		pixPtr0.l = ax
+	//endloop (--lincnt)
+	return
+endproc
+
+
+endmodule

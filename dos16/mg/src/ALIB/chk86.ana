@@ -1,0 +1,16 @@
+module CHK86
+	//	1992	writen by M.Kitamura
+	c_name "",""
+
+*proc Chk86()
+//	CPUÇ™ 8086(V30)Ç»ÇÁ 0, 186à»è„Ç»ÇÁ 1
+//	out	ax
+begin
+	save cx
+	ax = 1
+	cl = 32
+	|shr ax,cl
+	return
+endproc
+
+endmodule

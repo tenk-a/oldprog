@@ -1,0 +1,13 @@
+vhload.c gl.c glva.c vag.c msemode.c dos_read.c dos_find.c
+-r-
+extcat +getname +error
+b_buf_init +b_getc_init +b_getc
++initgetbit +getbit +getbits
+getflg +setflg
+putpat2 +putpat +tbgetpat +tbsetpat +convpat +findpat
+paint
+pass1
+pass2
+vhload
+main
+

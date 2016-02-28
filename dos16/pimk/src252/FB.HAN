@@ -1,0 +1,20 @@
+module FB
+	c_name "FB","",1
+
+*proc _Init()
+	endproc
+
+*proc _Mode(mode:w);cdecl
+	endproc
+
+*const PCONLY=0x00, BOTH=0x01, FBONLY=0x03, FBOFF=0x04
+			/*FBONLY(3) ＳＦ２ΣではＰＣ画面をカット出来ない */
+			/*FBOFF(4)	HF+の拡張。ポートが当たるのを防ぐ	*/
+
+*proc Clear()
+	endproc
+
+*proc Scroll(xx:w,yy:w);cdecl
+	endproc
+
+endmodule

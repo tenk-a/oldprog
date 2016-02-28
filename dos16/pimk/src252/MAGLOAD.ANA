@@ -1,0 +1,943 @@
+/*
+	Mag 展開
+		writen by M.Kitamura(Tenk*)
+		1993/12/11
+ */
+module MAG
+	c_name "MAG","_",1
+	import Std
+	import Dos
+	import Pri
+	import Key
+//@define DEBUG() 1
+
+///////////////////////////////////////////////////////////////////////////////
+//@define M64	1
+@if defined(M64)	//T=64Kバイト版
+const PIXBUF_SIZE  = 2048*17	// 34Kバイト^^;
+const PIXLINSIZ    = 2048
+const FLAGLINESIZE = 2048/8	 						//(PIXLINSIZ/8)
+const COMMENT_SIZE = 4096-256-768-256-(2048/8)-2	//(2048/8)=(FLAGLINESIZE)
+const FLG_A_SIZE   = 4*1024
+const FLG_B_SIZE   = (8)*1024
+const DAT_P_SIZE   = (14)*1024
+@else	//T=128Kバイト版
+const PIXBUF_SIZE  = 64*1024
+const PIXLINSIZ    = 4096
+const FLAGLINESIZE = 4096/8 						//(PIXLINSIZ/8)
+const COMMENT_SIZE = 4096-256-768-256-(4096/8)-2	//(4096/8)=(FLAGLINESIZE)
+const FLG_A_SIZE   = 8*1024
+const FLG_B_SIZE   = 20*1024
+const DAT_P_SIZE   = 32*1024
+@fi
+
+*const MF_200L = 0x01,MF_8C = 0x02, MF_DIG = 0x04, MF_256C = 0x80
+
+@define MT()	MAG.T[ds:0]
+
+*struct T
+	//dummy:b(16)		// セグメント境界調整用
+	/*-------------*/
+	pln:w				// 色のビット数(4 or 8)
+	xsize:w				// 横幅(ドット)
+	ysize:w				// 縦幅(ドット)
+	xstart:w			// 始点x
+	ystart:w			// 始点y
+	aspect1:w			// アスペクト比x
+	aspect2:w			// アスペクト比y
+	overlayColor:w		// 透明色
+	color:w				// パレットの使用個数
+	palBit:w			// パレットのビット数
+	exSize:w			// pi拡張領域サイズ
+	dfltPalFlg:w		// piデフォルトパレットフラグ
+	loopMode:w			// piループモード(pimkの実験/隠しTAG)
+	filHdl:w			// ファイル・ハンドル
+	saverName:b(4+2)	// 機種名
+	artist:b(18+2)		// 作者名
+	/*-------------*/
+	putLin:d			// 出力手続きのアドレス
+	putLinDt:d			// 出力手続きへわたすデータ
+	pixStart:w			// ピクセルバッファ中の解凍開始位置
+	pixEnd:w			//                         終了位置
+	pixHisSrc:w			// バッファ更新でヒストリバッファへのコピー元
+	pixHisSiz:w			// ヒストリ・サイズ
+	ymax:w				// 展開する最大行数
+	/*-------------*/
+	xofs8:w				// 始点ｘオフセット
+	xsize8:w			// 8ドット間隔でのｘサイズ
+	xsizeO:w			// 展開での横カウンタ
+	ycnt:w				// 展開での縦カウンタ
+	rdAcnt:b,rdAdat:b	// フラグA 読み込み関係
+	ptrA:w
+	ptrB:w				// フラグB 読み込み関係
+	ptrP:w				// ピクセルデータ読み込み関係
+	pos:w(16)			// 比較点へのオフセット
+	/*-------------*/
+	warning:b			//
+	macNo:b				// 機種番号
+	macFlg:b			// 機種依存データ
+	scrnMode:b			// スクリーン・モード
+	flagAofs:d			// フラグＡへのオフセット
+	flagAsiz:d			// フラグＡのサイズ
+	flagBofs:d			// フラグＢへのオフセット
+	flagBsiz:d			// フラグＢのサイズ
+	dataPofs:d			// ピクセル・データへのオフセット
+	dataPsiz:d			// ピクセル・データのサイズ
+	hdrOfs:d			// ヘッダへのオフセット
+	/*-------------*/
+	dummy2:b( 256 /* -16*/ -(14*2+6+20) -(2*4+5*2) -(8*2+16*2) -(4+7*4))
+	/*-------------*/
+	palette:b(256*3)
+	fileName:b(254+2)
+	comment:b(COMMENT_SIZE + 2)
+	/*--------------------------------------------------------*/
+	flagLine:b(FLAGLINESIZE)
+	/*------------------------- ここまでで 4Kバイト ---*/
+//  @if defined(M64)	//ANA のバグで、構造体中で @if が使えない(T T)
+//	pixBuf:b(PIXBUF_SIZE)
+//  @fi
+	flagAbuf:b(FLG_A_SIZE)
+	flagBbuf:b(FLG_B_SIZE)
+	dataPbuf:b(DAT_P_SIZE)
+endstruct
+
+
+struct HDR		// MAGヘッダ
+	nil:b		// 0
+	macNo:b		// 機種番号
+	macFlg:b	// 機種依存データ
+	scrnMode:b	// スクリーン・モード
+	xstart:w	// 始点ｘ
+	ystart:w	// 始点ｙ
+	xend:w		// 終点ｘ
+	yend:w		// 終点ｙ
+	flagAofs:d	// フラグＡへのオフセット
+	flagBofs:d	// フラグＢへのオフセット
+	flagBsiz:d	// フラグＢのサイズ
+	dataPofs:d	// ピクセル・データへのオフセット
+	dataPsiz:d	// ピクセル・データのサイズ
+	grbPal:b()	// GRBパレット・データ
+endstruct
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+cvar hdrHdl:w
+
+proc InitGetC(ax)
+begin
+	hdrHdl = ax
+	return
+endproc
+
+proc GetC()
+	// ax : 読み込んだ値
+	// cf : Read Error
+begin
+	save bx,cx,dx,ds,es
+	var gcbuf:w = 0
+
+	ds = ax = %var
+	Dos.Read hdrHdl,&gcbuf,1
+	|ax = gcbuf
+	return
+endproc
+
+
+*proc Open(magPtr:d, fileName:d); cdecl; far
+//	MAGファイルをオープンしてヘッダを読み込む
+enter
+	save bx,cx,si,di,es,ds
+	local idbuf:b(10)
+	local hdr:MAG.HDR
+
+	// 設定
+	rep.inc
+
+	bx.ax = magPtr
+	magPtr = 0
+	Std.FpToHp bx,ax,cx
+	go.w (bx == 0 && ax == 0) RTS
+	if (ax)
+		++bx
+	fi
+	ax = 0
+	magPtr = bx.ax
+	es = bx
+	rep.set.w 0, ax, %MAG.T.dummy2
+
+	// ファイル名コピー
+	ds.si = fileName
+	di = %MAG.T.fileName
+	loop
+		rep.load al,si
+		rep.set di,al
+	endloop (al)
+
+	//ファイル・オープン
+	ds = bx	//es
+	//Pri.Fmt "%Fs:%Fs\n", fileName, ww(ds,%MAG.T.fileName)
+	Dos.Open %MAG.T.fileName, 0x00
+	go.w (cf) OPEN_ERR
+	MT.filHdl = ax
+	bx = ax
+
+	//IDチェック
+	push ds,es
+		ax.dx = ww(ss, &idbuf)
+		ds = ax
+		es = ax
+		Dos.Read bx, dx, 8
+		go.w (cf) FIL_ERR
+		ds = ax = %var
+		repe.cmp.w &idbuf, "MAKI02  ", 4
+		go.w (!=) HDR_ERR
+	pop  ds,es
+
+	//機種名取得
+	Dos.Read bx, %MAG.T.saverName, 4
+	go.w (cf) FIL_ERR
+	MT.saverName(4) = 0
+
+	//バイト読み込み初期化
+	InitGetC MT.filHdl
+
+	// ユーザ名取得
+	di = %MAG.T.artist
+	cx = 18
+	GetC	//result al
+	go.w (cf) FIL_ERR
+	go (al != ' ' && al != '\t') J1
+	loop
+		GetC
+		go.w (cf) FIL_ERR
+  J1:
+		exit (al == 0x1a)
+		if (al)
+			rep.set di,al
+		fi
+	endloop (--cx)
+	dh = al
+	rep.set di,'\0'
+	//Pri.Fmt "%Fs\n",ww(ds,%MAG.T.artist)
+
+	//コメント収得
+	cx = COMMENT_SIZE
+	di = %MAG.T.comment
+	b[di] = 0
+	go.w (dh == 0x1A) J3	//
+	GetC
+	go.w (cf) FIL_ERR
+	go.w (al == 0x1A) J3	//
+	go (al != ' ' && al != '\t') J2
+	loop
+		GetC
+		go.w (cf) FIL_ERR
+	  J2:
+		exit (al == 0x1a)
+		next (cx == 0)
+		next (al == '\0')
+		rep.set di,al
+		--cx
+	endloop
+	b[di] = 0
+  J3:
+	//Pri.Fmt "[cmt]%Fs\n",ww(ds,%MAG.T.comment)
+
+	//-- ヘッダ位置を求めておく
+	cx.dx = 0
+	al = 1
+	Dos.Lseek bx, cx.dx, al
+	go.w (cf) FIL_ERR
+	MT.hdrOfs = dx.ax
+	//Pri.Fmt "ヘッダ先頭:%lx\N", dx.ax
+
+	//-- ヘッダ読み込み--
+	push ds
+		ds.dx = ww(ss,&hdr)
+		Dos.Read bx, dx, sizeof(MAG.HDR)
+	|pop ds
+	go.w (cf) FIL_ERR
+
+	// ヘッダ情報判別
+	MT.macNo = ah = hdr.macNo
+	MT.macFlg = al = hdr.macFlg
+	if (ah == 98 && al & 0x10)	//透明色があるばあい
+		al &= 0x0f
+		al += 1
+		ah = 0
+		MT.overlayColor = ax
+	fi
+	MT.scrnMode = al = hdr.scrnMode
+
+	// ドット比
+	MT.aspect1 = ax = 0
+	MT.aspect2 = ax = 0
+	if (MT.scrnMode & MAG.MF_200L)
+		MT.aspect1 = 1
+		MT.aspect2 = 2
+	fi
+
+	// 色数
+	MT.pln = 4
+	MT.color = 16
+	if (MT.scrnMode & MAG.MF_256C)
+		MT.pln = 8
+		MT.color = 256
+	fi
+
+	//座標を設定
+	MT.ystart = ax = hdr.ystart
+	dx = hdr.yend
+	++dx
+	dx -= ax
+	MT.ysize = dx
+	go.w (dx == 0) VAL_ERR
+
+	MT.xstart = ax = hdr.xstart
+	dx = hdr.xend
+	++dx
+	cx = dx
+	dx -= ax
+	MT.xsize = dx
+	go.w (dx == 0) VAL_ERR
+
+	//８ドット間隔でのｘサイズを求める
+	dx = ax	//MT.xstart
+	if (MT.pln == 4)
+		ax &= 0x7
+		MT.xofs8 = ax
+		if (cx & 0x07)
+			cx += 8
+		fi
+		cx &= ~0x07
+		dx &= ~0x07
+		cx -= dx
+		MT.xsize8 = cx
+	else
+		ax &= 0x3
+		MT.xofs8 = ax
+		if (cx & 0x03)
+			cx += 4
+		fi
+		cx &= ~0x03
+		dx &= ~0x03
+		cx -= dx
+		MT.xsize8 = cx
+	fi
+	go.w (cx == 0) VAL_ERR
+
+	// フラグAのオフセット
+	dx.ax = hdr.flagAofs
+	if (ax & 0x01)
+		MT.warning = 1
+		//Pri.Fmt "MAGヘッダでフラグＡのオフセット値が不正かも"
+	fi
+	dx.ax += MT.hdrOfs
+	MT.flagAofs = dx.ax
+
+	// フラグAのサイズを求める
+	dx.ax = MT.xsize8 * MT.ysize
+	if (MT.pln == 8)
+		if (ax & 0x1f)
+			dx.ax += 4*8
+		fi
+		dx.ax >>= 5		//dx.ax /= 4*8
+	else
+		if (ax & 0x3f)
+			dx.ax += 4*2*8
+		fi
+		dx.ax >>= 6		//dx.ax /= 4*2*8
+	fi
+	MT.flagAsiz = dx.ax
+
+	// フラグBのサイズ&オフセット
+	MT.flagBsiz = dx.ax = hdr.flagBsiz
+	dx.ax = hdr.flagBofs
+	if (ax & 0x01)
+		MT.warning = 2
+		//Pri.Fmt "MAGヘッダでフラグＢのオフセット値が不正かも"
+	fi
+	dx.ax += MT.hdrOfs
+	MT.flagBofs = dx.ax
+
+	// ピクセルデータへのサイズ＆オフセット
+	MT.dataPsiz = dx.ax = hdr.dataPsiz
+	dx.ax = hdr.dataPofs
+	if (ax & 0x01)
+		MT.warning = 3
+		//Pri.Fmt "MAGヘッダでピクセル・データのオフセット値が不正かも"
+	fi
+	dx.ax += MT.hdrOfs
+	MT.dataPofs = dx.ax
+
+	//パレット読み込み
+	di = %MAG.T.palette
+	rep.set.w di,0,256*3/2
+	dx.ax = 48
+	if (MT.pln == 8)
+		ax = 256 * 3
+	fi
+	cx = ax
+	di = dx = %MAG.T.palette
+	Dos.Read bx, dx, cx
+	go.w (cf) FIL_ERR
+	loop
+		ax = w[di]
+		ah <=> al
+		w[di] = ax
+		di += 3
+	endloop ((cx -= 3) > 0)
+
+  @if 0
+	Pri.Fmt "%04x : %04x\n", %MAG.T.palette, %MAG.T.fileName
+	Pri.Fmt "%Fs : %Fs\n", ww(ds,%MAG.T.fileName), ww(ds,%MAG.T.artist)
+	Pri.Fmt "[%d] %3d*%-3d  (%3d,%3d)  %d:%d\n",
+		MT.pln,MT.xsize,MT.ysize,MT.xstart,MT.ystart,MT.aspect1,MT.aspect2
+	Pri.Fmt "     xsize8=%d xofs8=%d\n",MT.xsize8,MT.xofs8
+	Pri.Fmt "flagA:%08lx sz%8lx(%ld)\n",MT.flagAofs, MT.flagAsiz, MT.flagAsiz
+	Pri.Fmt "flagB:%08lx sz%8lx(%ld)\n",MT.flagBofs, MT.flagBsiz, MT.flagBsiz
+	Pri.Fmt "dataP:%08lx sz%8lx(%ld)\n",MT.dataPofs, MT.dataPsiz, MT.dataPsiz
+	Pri.Fmt "[CMT]%Fs\n",ww(ds,%MAG.T.comment);
+  @fi
+	dx.ax = magPtr
+  RTS:
+	return
+
+FIL_ERR:
+OPEN_ERR:	//ファイル・オープンできなかった
+	dx.ax = 1
+	go RTS
+
+HDR_ERR:	//Pri.Fmt "magのヘッダでない\N"
+	dx.ax = 2
+	go RTS
+
+VAL_ERR:	//Pri.Fmt "ヘッダに矛盾がある\N"
+	dx.ax = 3
+	go RTS
+
+endproc
+
+
+*proc Close(magPtr:d);cdecl;far
+enter
+	save ax,bx,dx,ds
+
+	bx.ax = magPtr
+	Std.FpToHp bx,ax,dx
+	go.w (bx == 0 && ax == 0) RTS
+	if (ax)
+		++bx
+	fi
+	ds = bx
+	Dos.Close MT.filHdl
+  RTS:
+	return
+endproc
+
+
+proc ReadBufA()
+begin
+	save ax,bx,cx,dx
+	bx = MT.filHdl
+	cx.dx = MT.flagAofs
+	Dos.Lseek bx, cx.dx, 0
+	dx.ax = MT.flagAsiz
+	if (dx || ax > FLG_A_SIZE)
+		dx.ax -= FLG_A_SIZE
+		MT.flagAsiz = dx.ax
+		Dos.Read bx, %MAG.T.flagAbuf, FLG_A_SIZE
+		dx.ax = MT.flagAofs
+		dx.ax += FLG_A_SIZE
+		MT.flagAofs = dx.ax
+	elsif (ax)
+		cx = ax
+		MT.flagAsiz = 0
+		dx.ax = MT.flagAofs
+		dx.ax += ww(0,cx)
+		MT.flagAofs = dx.ax
+		Dos.Read bx, %MAG.T.flagAbuf, cx
+	fi
+	MT.ptrA = %MAG.T.flagAbuf
+	MT.rdAcnt = 1
+	//MT.rdAdat = 0
+	return
+endproc
+
+proc ReadBufB()
+begin
+	save ax,bx,cx,dx,es
+	es = ds
+	bx = MT.filHdl
+	cx.dx = MT.flagBofs
+	Dos.Lseek bx, cx.dx, 0
+	dx.ax = MT.flagBsiz
+	if (dx || ax > FLG_B_SIZE)
+		dx.ax -= FLG_B_SIZE
+		MT.flagBsiz = dx.ax
+		Dos.Read bx, %MAG.T.flagBbuf, FLG_B_SIZE
+		dx.ax = MT.flagBofs
+		dx.ax += FLG_B_SIZE
+		MT.flagBofs = dx.ax
+	elsif (ax)
+		cx = ax
+		MT.flagBsiz = 0
+		dx.ax = MT.flagBofs
+		dx.ax += ww(0,cx)
+		MT.flagBofs = dx.ax
+		Dos.Read bx, %MAG.T.flagBbuf, cx
+	fi
+	MT.ptrB = %MAG.T.flagBbuf
+	return
+endproc
+
+proc ReadBufP()
+	// ret bx = &MAG.T.dataPbuf
+	// break ax
+begin
+	save cx,dx,es
+	es = ds
+	bx = MT.filHdl
+	cx.dx = MT.dataPofs
+	Dos.Lseek bx, cx.dx, 0
+	dx.ax = MT.dataPsiz
+	if (dx || ax > DAT_P_SIZE)
+		dx.ax -= DAT_P_SIZE
+		MT.dataPsiz = dx.ax
+		Dos.Read bx, %MAG.T.dataPbuf, DAT_P_SIZE
+		dx.ax = MT.dataPofs
+		dx.ax += DAT_P_SIZE
+		MT.dataPofs = dx.ax
+	elsif (ax)
+		cx = ax
+		MT.dataPsiz = 0
+		dx.ax = MT.dataPofs
+		dx.ax += ww(0,cx)
+		MT.dataPofs = dx.ax
+		Dos.Read bx, %MAG.T.dataPbuf, cx
+	fi
+	MT.ptrP = bx = %MAG.T.dataPbuf
+	return
+endproc
+
+@if 0
+//	proc ReadA()
+//	フラグA のバッファより１ビット読み出す
+//	out cf
+//	break si
+@define ReadA()									\
+	if (--MT.rdAcnt == 0);						\
+		push ax;								\
+		si = MT.ptrA;							\
+		if (si >= %MAG.T.flagAbuf+FLG_A_SIZE);	\
+			ReadBufA;							\
+			si = MT.ptrA;						\
+		fi;										\
+		rep.load al,si;							\
+		MT.rdAdat = al;							\
+		MT.ptrA = si;							\
+		MT.rdAcnt = 8;							\
+		pop  ax;								\
+	fi;											\
+	|MT.rdAdat <<= 1;							\
+
+//	proc ReadB()
+//	フラグB のバッファより１バイト読み出す
+//	out al
+//	break	si
+@define ReadB()									\
+	si = MT.ptrB;								\
+	if (si >= %MAG.T.flagBbuf+FLG_B_SIZE);		\
+		ReadBufB;								\
+		si = MT.ptrB;							\
+	fi;											\
+	rep.load al,si;								\
+	MT.ptrB = si;								\
+
+
+//	proc ReadP()
+//	ピクセル・データのバッファより 1バイト読み出す
+//	out ax
+//	break si
+@define ReadP()									\
+	si = MT.ptrP;								\
+  @if 0;										\
+	if (si >= %MAG.T.dataPbuf+DAT_P_SIZE);		\
+  @else;										\
+	if (si == 0);								\
+  @endif;										\
+		ReadBufP;								\
+		si = MT.ptrP;							\
+	fi;											\
+	rep.load.w ax, si;							\
+	MT.ptrP = si;								\
+@fi
+
+
+*proc Load(magPtr:d, putLinFunc:d, putLinDat:d, linCnt:w);cdecl;far
+	//画像の展開.
+	//putLinFuncは16色/256色対応の１行出力ﾙｰﾁﾝのｱﾄﾞﾚｽ
+	//linCnt は展開する最大行数. 0なら ysizeとなる
+	//putLinDat は １行出力ﾙｰﾁﾝに渡される。そのﾙｰﾁﾝのﾃﾞｰﾀ領域へのポインタを想定
+	//ret dx.ax:構造体へのポインタ(ｵﾌｾｯﾄ0) ｾｸﾞﾒﾝﾄが0ならｴﾗｰ(ｵﾌｾｯﾄ値がｴﾗｰNo)
+enter
+	save  bx,cx,dx,si,di,es,ds,fx
+
+	// 設定
+	rep.inc
+	dx.ax = magPtr
+	Std.FpToHp dx,ax,cx
+	if (dx == 0 && ax == 0)
+		ax = 4
+		go.w RET
+	fi
+	if (ax)
+		++dx
+	fi
+	ds = dx
+	es = dx
+
+	// 出力手続き用意
+	MT.putLin   = dx.ax = putLinFunc
+	MT.putLinDt = dx.ax = putLinDat
+
+	// 展開できる行数をセット
+	ax = linCnt
+	if (ax == 0 || ax > MT.ysize)
+		ax = MT.ysize
+	fi
+	MT.ycnt = ax	//展開する行数
+
+	// 横幅チェック
+	ax = MT.xsize8
+	if (ax > MAG.PIXLINSIZ)
+		ax = 3
+		go.w RET
+	fi
+
+	// フラグ展開用のライン・バッファの初期化
+	rep.set.w %MAG.T.flagLine, 0, (PIXLINSIZ / 8)/2
+
+	// 読み込みバッファの準備
+	ReadBufA
+	ReadBufB
+	ReadBufP
+
+	//展開で用いる相対位置のオフセット値を求める.
+	//１６色時、１dot４ビット。作業1ピクセル(2byte)は4dot単位
+	//256 色時、１dot８ビット。作業1ピクセル(2byte)は2dot単位
+	cx = MT.xsize8
+	dx = 4
+	if (MT.pln == 8)
+		dx = 2
+	fi
+	ax = 0
+	MT.pos(0) = ax		//( 0, 0)
+	ax += dx
+	MT.pos(1) = ax		//(-1, 0)
+	ax += dx
+	MT.pos(2) = ax		//(-2, 0)
+	ax += dx
+	ax += dx
+	MT.pos(3) = ax		//(-4, 0)
+	ax = cx
+	MT.pos(4) = ax		//( 0,-1)
+	ax += dx
+	MT.pos(5) = ax		//(-1,-1)
+	ax = cx
+	ax <<= 1
+	MT.pos(6) = ax		//( 0,-2)
+	ax += dx
+	MT.pos(7) = ax		//(-1,-2)
+	ax += dx
+	MT.pos(8) = ax		//(-2,-2)
+	ax = cx
+	ax <<= 2
+	MT.pos(9) = ax		//( 0,-4)
+	ax += dx
+	MT.pos(10) = ax 	//(-1,-4)
+	ax += dx
+	MT.pos(11) = ax 	//(-2,-4)
+	ax = cx
+	ax <<= 3
+	MT.pos(12) = ax 	//( 0,-8)
+	ax += dx
+	MT.pos(13) = ax 	//(-1,-8)
+	ax += dx
+	MT.pos(14) = ax 	//(-2,-8)
+	ax = cx
+	ax <<= 4
+	MT.pos(15) = ax 	//(0,-16)
+
+	// ピクセルバッファ初期化
+	//rep.set.b %MAG.T.pixBuf, 0, PIXBUF_SIZE
+
+	// 展開したピクセルデータを収める開始アドレスと終了アドレスを求める
+	cx    = MT.xsize8
+	//// Pri.Fmt "x8=%d  ",cx
+	dx.ax = cx * 16		// 先頭 16 行分はヒストリバッファ
+	MT.pixHisSiz = ax	// ヒストリ・サイズ
+	//// Pri.Fmt "pixHisSiz=%x  ",ax
+	bx = ax
+  @if defined(M64)
+	ax += %MAG.T.pixBuf
+  @fi
+	MT.pixStart = ax	// ピクセルバッファの展開開始位置
+	//// Pri.Fmt "pixStart=%x  ",ax
+	dx.ax = PIXBUF_SIZE
+	div dx.ax, cx
+	//// Pri.Fmt "pix行数=%d  ",ax
+	dx.ax = cx * ax
+  @if defined(M64)
+	ax += %MAG.T.pixBuf
+  @fi
+	MT.pixEnd   = ax	// ピクセルバッファの終り
+	//// Pri.Fmt "pixEnd=%x  ",ax
+	ax -= bx
+	MT.pixHisSrc = ax		// バッファ更新でヒストリバッファへのコピー元
+	//// Pri.Fmt "pixHisSrc=%x\n",ax
+
+	// 展開開始
+  @if defined(M64)==0
+	ax = ds
+	ax += 0x1000
+	es = ax
+  @fi
+	push bp
+	di = MT.pixStart		//ピクセルを収めるバッファへのポインタ
+
+	ax = MT.xsize8			//展開する横幅
+	if.w (MT.pln == 4)
+		ax >>= 3
+		MT.xsizeO = ax		// 8ドット単位の横幅
+	else
+		ax >>= 2
+		MT.xsizeO = ax		// 4ドット単位の横幅
+	fi
+
+	go LOOPM	//	サブルーチンがあるためスキップ
+		GET_FLG_A_SUB1:	//フラグ A より 1バイト取ってくる
+			go (di >= %MAG.T.flagAbuf+FLG_A_SIZE) GET_FLG_A_SUB1_J
+			dl = b[di]
+			++di
+			dh = 8
+			go RET_GET_FLG_A_SUB1
+		GET_FLG_A_SUB1_J:
+			ReadBufA
+			di = MT.ptrA
+			dl = b[di]
+			++di
+			dh = 8
+			go RET_GET_FLG_A_SUB1
+				
+		GET_FLG_B_SUB1:	//フラグ B をファイルより読み込む
+			ReadBufB
+			si = MT.ptrB
+			go RET_GET_FLG_B_SUB1
+	LOOPM:
+
+	loop.w	// 指定行数分、ループ
+		//// Pri.Fmt "ycnt=%d  @di=%04x  ",MT.ycnt, di
+		// フラグA フラグB より１行分のフラグを展開
+		cx = MT.xsizeO
+		bx = %MAG.T.flagLine
+		//// Pri.Fmt "@%d@flag=%04x-",cx,bx
+		push di
+		di = MT.ptrA		//フラグ A へのポインタ
+		dh = MT.rdAcnt	//			何ビット残っているか
+		dl = MT.rdAdat	//			データ
+		si = MT.ptrB		//フラグ b へのポインタ
+
+		loop
+			//フラグ A より 1ビット得る
+			go (--dh == 0) GET_FLG_A_SUB1; RET_GET_FLG_A_SUB1:
+			|dl <<= 1
+			if (cf)
+				//フラグ B より 1バイト得る
+				go (si >= %MAG.T.flagBbuf+FLG_B_SIZE) GET_FLG_B_SUB1;
+				RET_GET_FLG_B_SUB1:
+				rep.load al,si
+				b[bx] ^= al
+			fi
+			++bx
+		endloop (--cx)
+		MT.ptrA = di
+		MT.rdAcnt = dh
+		MT.rdAdat = dl
+		MT.ptrB = si
+		pop  di
+		//// Pri.Fmt "%04x  ",bx
+
+		if.w (MT.pln == 4)	//--- 16色のとき ---------
+			// フラグ・データより画像１行を展開
+			cx = MT.xsizeO
+			bp = %MAG.T.flagLine
+			bx = MT.ptrP
+			//// Pri.Fmt "@flag=%04x-",bx
+			loop					//１回のループで８ドット(バイト)展開する
+				al = b[ds:bp]
+				++bp
+				push ax
+				if ((al>>=4) == 0)	//	相対位置番号が０のとき、
+					// ファイルより２バイト入力
+					//go(bx >= %MAG.T.dataPbuf+DAT_P_SIZE)
+					go (bx == 0) GET_DAT_P_SUB1; RET_GET_DAT_P_SUB1:
+					ah = al = b[bx]; ++bx
+					ah &= 0x0f
+					al >>= 4
+					rep.set.w di,ax
+					ah = al = b[bx]; ++bx
+					ah &= 0x0f
+					al >>= 4
+					rep.set.w di,ax
+				else				//相対値番号１～１５のとき
+					ah = 0			//指定位置より１ピクセル取得
+					ax += ax
+					si = ax
+					ax = w[%MAG.T.pos+si]
+					si = di
+					si -= ax
+				  @if defined(M64)==0;seg_es;@fi
+					rep.cpy.w di,si
+				  @if defined(M64)==0;seg_es;@fi
+					rep.cpy.w di,si
+				fi
+				pop ax
+				if ((al&=0x0f) == 0)	//	相対位置番号が０のとき、
+					// ファイルより２バイト入力
+					//if(bx >= %MAG.T.dataPbuf+DAT_P_SIZE)
+					go (bx == 0) GET_DAT_P_SUB2; RET_GET_DAT_P_SUB2:
+					ah = al = b[bx]; ++bx
+					ah &= 0x0f
+					al >>= 4
+					rep.set.w di,ax
+					ah = al = b[bx]; ++bx
+					ah &= 0x0f
+					al >>= 4
+					rep.set.w di,ax
+				else				//相対値番号１～１５のとき
+					ah = 0			//指定位置より１ピクセル取得
+					ax += ax
+					si = ax
+					ax = w[%MAG.T.pos+si]
+					si = di
+					si -= ax
+				  @if defined(M64)==0;seg_es;@fi
+					rep.cpy.w di,si
+				  @if defined(M64)==0;seg_es;@fi
+					rep.cpy.w di,si
+				fi
+			endloop (--cx)
+			MT.ptrP = bx
+			//// Pri.Fmt "%04x  ",bx
+			go.w J_FLG4	//サブルーチンがあるためスキップ
+				GET_DAT_P_SUB1:
+					ReadBufP
+					go RET_GET_DAT_P_SUB1
+				GET_DAT_P_SUB2:
+					ReadBufP
+					go RET_GET_DAT_P_SUB2
+
+		else.w	//------- 256色のとき ---------------
+
+			// フラグ・データより画像１行を展開
+			cx = MT.xsizeO
+			bp = %MAG.T.flagLine
+			bx = MT.ptrP
+			//// Pri.Fmt "@flag=%04x-",bx
+			loop					//１回のループで８ドット(バイト)展開する
+				al = b[ds:bp]
+				++bp
+				push ax
+				if ((al>>=4) == 0)	//	相対位置番号が０のとき、
+					// ファイルより２バイト入力
+					//go(bx >= %MAG.T.dataPbuf+DAT_P_SIZE)
+					go (bx == 0) GET_DAT_P_2SUB1; RET_GET_DAT_P_2SUB1:
+					ax = w[bx]; bx += 2
+					rep.set.w di,ax
+				else				//相対値番号１～１５のとき
+					ah = 0			//指定位置より１ピクセル取得
+					ax += ax
+					si = ax
+					ax = w[%MAG.T.pos+si]
+					si = di
+					si -= ax
+				  @if defined(M64)==0;seg_es;@fi
+					rep.cpy.w di,si
+				fi
+				pop ax
+				if ((al&=0x0f) == 0)	//	相対位置番号が０のとき、
+					// ファイルより２バイト入力
+					//if(bx >= %MAG.T.dataPbuf+DAT_P_SIZE)
+					go (bx == 0) GET_DAT_P_2SUB2; RET_GET_DAT_P_2SUB2:
+					ax = w[bx]; bx += 2
+					rep.set.w di,ax
+				else				//相対値番号１～１５のとき
+					ah = 0			//指定位置より１ピクセル取得
+					ax += ax
+					si = ax
+					ax = w[%MAG.T.pos+si]
+					si = di
+					si -= ax
+				  @if defined(M64)==0;seg_es;@fi
+					rep.cpy.w di,si
+				fi
+			endloop (--cx)
+			MT.ptrP = bx
+			//// Pri.Fmt "%04x  ",bx
+			go FLG8	//サブルーチンがあるためスキップ
+				GET_DAT_P_2SUB1:
+					ReadBufP
+					go RET_GET_DAT_P_2SUB1
+				GET_DAT_P_2SUB2:
+					ReadBufP
+					go RET_GET_DAT_P_2SUB2
+			FLG8:
+		fi
+		J_FLG4:
+
+		// 展開した一行を出力
+		block
+			ax = di
+			ax -= MT.xsize8
+			ax += MT.xofs8
+			//// Pri.Fmt "@px%08x ",es.ax
+			pusha
+			push	ds
+			push	es
+			push	MT.putLinDt, es.ax
+			call	MT.putLin
+			sp += 8
+			pop		es
+			pop		ds
+			popa
+		endblock
+
+		//// Pri.Fmt "?%04x:%04x ",di,MT.pixEnd
+		// ピクセルバッファいっぱいまで展開したなら、バッファ更新
+		if (di == MT.pixEnd)
+  		  @if defined(M64)
+			cx = MT.pixHisSiz
+			cx >>= 1
+			rep.cpy.w %MAG.T.pixBuf, MT.pixHisSrc, cx
+		  @else
+			push ds
+				cx = MT.pixHisSiz
+				si = MT.pixHisSrc
+				ds = ax = es
+				cx >>= 1
+				rep.cpy.w 0, si, cx
+			pop  ds
+		  @fi
+		fi
+		//// Pri.Fmt "\n"
+//Key.Wait
+	endloop (--MT.ycnt)
+	pop	bp
+	ax = 0
+  RET:
+	return
+endproc
+
+endmodule

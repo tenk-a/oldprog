@@ -1,0 +1,285 @@
+DGROUP	group	DATA,BSS
+
+TEXT	cseg byte  'CODE'
+
+DATA	dseg word  'DATA'
+
+BSS	dseg word  
+
+XSTACK	dseg para stack 'STACK'
+	rs	512
+
+BSS	dseg word  
+DirEntrydta_::	rs	43
+DirEntrykey_::	rs	2
+DirEntrydir_::	rs	200
+
+DATA	dseg word  'DATA'
+L$1:	rs	1
+
+TEXT	cseg byte  'CODE'
+DirEntryGet_::	push	ax
+	push	cx
+	push	dx
+	push	bx
+	push	si
+	push	di
+	push	ds
+	push	es
+	push	bp
+	mov	bp,sp
+	sub	sp,6
+	mov	ah,47
+	int	33
+	mov	[bp-4].w,bx
+	mov	[bp-2].w,es
+	mov	si,DGROUP
+	mov	ds,si
+	mov	dx,DirEntrydta_
+	mov	ah,26
+	int	33
+	mov	dx,[bp+12].w
+	mov	cx,[bp+14].w
+	mov	bx,[bp+10].w
+	mov	ax,[bp+16].w
+	or	bx,bx
+	jne	L$3
+	or	ax,ax
+	jne	L$3
+	jmp	L$2
+L$3:
+	or	dx,dx
+	jne	L$4
+	or	cx,cx
+	jne	L$4
+	cmp	[L$1].b,0
+	je	L$6
+	jmp	L$5
+L$6:
+	mov	ax,1
+	jmp	L$7
+L$4:
+	mov	[L$1].b,0
+	mov	si,cx
+	and	si,15
+	shr	cx,1
+	shr	cx,1
+	shr	cx,1
+	shr	cx,1
+	add	dx,cx
+	mov	es,dx
+	mov	bx,si
+	mov	dx,DirEntrydir_
+	mov	di,dx
+L$8:
+	mov	al,es:[si].b
+	inc	si
+	cmp	al,129
+	jb	L$13
+	cmp	al,159
+	jbe	L$12
+L$13:
+	cmp	al,224
+	jb	L$11
+	cmp	al,252
+	ja	L$11
+L$12:
+	mov	[di].b,al
+	inc	di
+	mov	al,es:[si].b
+	inc	si
+	or	al,al
+	jne	L$14
+	jmp	L$2
+L$14:
+	jmp	L$15
+L$11:
+	cmp	al,97
+	jb	L$16
+	cmp	al,122
+	ja	L$16
+	sub	al,32
+	jmp	L$15
+L$16:
+	cmp	al,47
+	jne	L$17
+	mov	al,92
+L$17:
+	cmp	al,92
+	je	L$19
+	cmp	al,58
+	jne	L$18
+L$19:
+	mov	es:[si-1].b,al
+	mov	dx,di
+	inc	dx
+	mov	bx,si
+L$18:
+L$15:
+	mov	[di].b,al
+	inc	di
+	or	al,al
+	jne	L$8
+	mov	di,dx
+	mov	[di].b,42
+	inc	di
+	mov	[di].b,46
+	inc	di
+	mov	[di].b,42
+	inc	di
+	mov	[di].b,0
+	inc	di
+	mov	[DirEntrykey_].w,di
+	mov	[bp-5].b,0
+L$20:
+	mov	al,es:[bx].b
+	inc	bx
+	cmp	al,129
+	jb	L$25
+	cmp	al,159
+	jbe	L$24
+L$25:
+	cmp	al,224
+	jb	L$23
+	cmp	al,252
+	ja	L$23
+L$24:
+	mov	[di].b,al
+	inc	di
+	mov	al,es:[bx].b
+	inc	bx
+	or	al,al
+	jne	L$26
+	jmp	L$2
+L$26:
+	jmp	L$27
+L$23:
+	cmp	al,97
+	jb	L$28
+	cmp	al,122
+	ja	L$28
+	sub	al,32
+	jmp	L$27
+L$28:
+	cmp	al,42
+	je	L$30
+	cmp	al,63
+	je	L$30
+	cmp	al,91
+	je	L$30
+	cmp	al,94
+	jne	L$29
+L$30:
+	mov	[L$1].b,1
+	jmp	L$27
+L$29:
+	cmp	al,46
+	jne	L$31
+	cmp	es:[bx].b,0
+	jne	L$31
+	mov	[bp-5].b,1
+L$31:
+L$27:
+	mov	[di].b,al
+	inc	di
+	or	al,al
+	jne	L$20
+	mov	dx,DirEntrydir_
+	mov	cx,[bp+20].w
+	mov	ah,78
+	int	33
+	jnc	L$33
+	jmp	L$32
+L$33:
+L$34:
+	mov	si,DirEntrydta_+30
+	xor	di,di
+L$37:
+	lodsb
+	or	al,al
+	jne	L$40
+	mov	di,si
+	dec	di
+	mov	[si].b,0
+	cmp	[bp-5].b,0
+	je	L$39
+	mov	[di].b,46
+	jmp	L$39
+L$40:
+	cmp	al,46
+	jne	L$37
+L$39:
+	mov	ax,[DirEntrykey_].w
+	mov	bx,ds
+	mov	cx,DirEntrydta_+30
+	mov	dx,ds
+	call	WildCmp_
+	or	di,di
+	je	L$41
+	mov	[di].b,0
+L$41:
+	or	ax,ax
+	je	L$36
+L$5:
+	mov	dx,DirEntrydir_
+	mov	cx,[bp+20].w
+	mov	ah,79
+	int	33
+	jc	L$32
+	jmp	L$34
+L$36:
+	mov	bx,[bp+10].w
+	mov	ax,[bp+16].w
+	mov	di,ax
+	shr	ax,1
+	shr	ax,1
+	shr	ax,1
+	shr	ax,1
+	add	bx,ax
+	mov	es,bx
+	and	di,15
+	mov	si,DirEntrydir_
+L$42:
+	lodsb
+	stosb
+	or	al,al
+	jne	L$42
+	sub	di,4
+	mov	si,DirEntrydta_+30
+L$45:
+	lodsb
+	stosb
+	or	al,al
+	jne	L$45
+	xor	ax,ax
+	mov	es:[di].b,al
+	jmp	L$7
+L$2:
+	mov	ax,(-1)
+	jmp	L$7
+L$32:
+	cmp	ax,18
+	jne	L$48
+	mov	ax,1
+L$48:
+L$7:
+	cwd
+	mov	[bp+16].w,ax
+	mov	[bp+10].w,dx
+	lds	dx,[bp-4].d
+	mov	ah,26
+	int	33
+	mov	sp,bp
+	pop	bp
+	pop	es
+	pop	ds
+	pop	di
+	pop	si
+	pop	bx
+	pop	dx
+	pop	cx
+	pop	ax
+	ret
+
+extrn WildCmp_
+	end

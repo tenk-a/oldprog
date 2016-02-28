@@ -1,0 +1,121 @@
+submodule GH
+	import Dos
+	import Lfn
+	import Str
+	import Subr
+	import Fname
+	import Pri
+	import Deb
+
+@define	GHT()	GH.T[ds:0]
+
+
+var tmpName:b() = "mg$$$tmp.bak"
+var tmpnamBuf:b(600)
+
+*proc Create(bx, ax.dx)
+enter
+	save pusha,ds,es, ret_ax:ax
+	local flg:b, fname:d
+
+  @if 0
+	fname = ax.dx
+	GHT.wrtName = ax.dx
+	di = ds
+	GHT.ovrWrtFlg = 0
+	ds = ax
+	Lfn.CreateNew dx, 0
+	|ds = di
+	if (_c_)
+		if (ax == 0x50)
+			GHT.ovrWrtFlg = 1
+			push ds
+				ds = ax = %var
+				Lfn.Create &tmpName, 0
+			pop  ds
+			go (_c_) ERR
+		else
+	  ERR:
+			Pri.Fmt "ファイル%Fsを作成できませんでした\N", fname
+			Dos.EXIT 1
+		fi
+	fi
+  @else
+	fname = ax.dx
+	GHT.wrtName = ax.dx
+	GHT.ovrWrtFlg = 1
+	push ds
+		ds.si = ax.dx
+		es = di = %var
+		di = &tmpnamBuf
+		Str.Cpy es.di,si
+		ds = ax = %var
+		si = &tmpnamBuf
+		Fname.GetFnameAddr si
+		di = si
+		Str.Cpy es.di,&tmpName
+		Lfn.Create &tmpnamBuf, 0
+	pop  ds
+  	if (_c_)
+		Pri.Fmt "ファイル%Fsを作成できませんでした\N", fname
+		Dos.EXIT 1
+  	fi
+  @fi
+	GHT.wrtHdl = ax
+	ret_ax = 0
+  RET:
+	return
+endproc
+
+*proc CloseW(ght:d);cdecl
+enter
+	save pusha,es,ds
+	var bakName:b(260*2)
+
+	ds.bx = ght
+	if (GHT.ftimeFlg)
+		cx = GHT.ftime
+		dx = GHT.fdate
+		push bx
+			Dos.SetFtime GHT.wrtHdl, cx, dx
+		pop  bx
+	fi
+	push bx
+		Subr.Close GHT.wrtHdl
+	pop  bx
+	if (GHT.ovrWrtFlg)
+		ds.si = GHT.wrtName
+		push ds.si
+			es = ax = %var
+			di = &bakName
+			Str.Cpy es.di, si
+			push ds,si
+				ds = ax = %var
+				Fname.ChgExt es.di, "bak"
+				Lfn.Delete di
+			pop  ds,dx
+			Lfn.Rename dx, es.di
+		pop  es.di
+		ds = ax = %var
+		Subr.Rename &tmpnamBuf, es.di
+	fi
+	return
+endproc
+
+
+
+
+*proc Write(bx, ax.dx, cx)
+begin
+	save pusha,ds
+	bx = GHT.wrtHdl
+ Deb.Chk
+ if (==)
+ 	Pri.Fmt "GH.Write %d, %lx, %u\N", bx, ds.dx, cx
+ fi
+	ds = ax
+	Subr.Write bx,dx,cx
+	return
+endproc
+
+endmodule

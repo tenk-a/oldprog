@@ -1,0 +1,266 @@
+module VFB
+	c_name "VFB","_",1
+
+	import Std
+	import Pri
+	import Vv
+
+@define V() Vv.T[ds:0]
+
+
+*proc LineAddr(datSeg:w,yy:w);cdecl
+	// ret dx.ax	address
+enter
+	save cx,es,ds
+
+	ds = datSeg
+	dx.ax = ww(0,yy)
+	div dx.ax, V.pgLine
+	Vv.PageSw ax
+	V.pgCurSeg = cx = ax
+	dx.ax = dx * V.pgXsize
+	dx = cx
+	return
+endproc
+
+
+*proc X68line(rbuf:d,stp:w)
+enter
+	save ds
+
+	dx = V.xsize
+	es.di = ww(ds,%Vv.T.pbuf)
+	ds.si = rbuf
+	bx = stp
+	loop
+		rep.cpy di,si,3
+		go (--bx == 0) J1
+	  J_RET:
+	endloop (--dx)
+	dx.ax = ww(es,%Vv.T.pbuf)
+	return
+ J1:
+		al = b[si - 3 + 0]
+		|al += b[si + 0]
+		rcr al,1
+		rep.set di,al
+		//ah = 0
+		al = b[si - 3 + 1]
+		|al += b[si + 1]
+		rcr al,1
+		rep.set di,al
+		al = b[si - 3 + 2]
+		|al += b[si + 2]
+		rcr al,1
+		rep.set di,al
+		bx = stp
+		go J_RET
+
+endproc
+
+*proc ReductLine(dx.ax)
+begin
+	save ds
+
+	cx = V.xvsize
+	es.di = ww(ds,%Vv.T.pbuf)
+	si = ax
+	if ((V.reductFlg & 0x04) == 0)
+		// 1/4縮小のとき
+		ds = dx
+		loop
+			//R
+			rep.load al,si
+			//ah = b[si+2]; al >>= 1; ah >>= 1; al += ah
+			//ah = 0; |al += b[si+2];	adc ah,0;	ax >>= 1
+			|al += b[si+2];	rcr al,1
+			rep.set di,al
+			//G
+			rep.load al,si
+			//ah = b[si+2]; al >>= 1; ah >>= 1; al += ah
+			//ah = 0; |al += b[si+2];	adc ah,0;	ax >>= 1
+			|al += b[si+2];	rcr al,1
+			rep.set di,al
+			//B
+			rep.load al,si
+			//ah = b[si+2]; al >>= 1; ah >>= 1; al += ah
+			//ah = 0; |al += b[si+2];	adc ah,0;	ax >>= 1
+			|al += b[si+2];	rcr al,1
+			rep.set di,al
+			si += 3
+		endloop (--cx)
+		dx.ax = ww(es,%Vv.T.pbuf)
+		return
+	else
+		// 1/16縮小のとき
+		ds = dx
+		ah = 0
+		loop
+			//
+			rep.load al,si
+			dx = ax
+			al = b[si+2]
+			dx += ax
+			al = b[si+2+3]
+			dx += ax
+			al = b[si+2+3+3]
+			dx += ax
+			dx >>= 2
+			al = dl
+			rep.set di,al
+			//
+			rep.load al,si
+			dx = ax
+			al = b[si+2]
+			dx += ax
+			al = b[si+2+3]
+			dx += ax
+			al = b[si+2+3+3]
+			dx += ax
+			dx >>= 2
+			al = dl
+			rep.set di,al
+			//
+			rep.load al,si
+			dx = ax
+			al = b[si+2]
+			dx += ax
+			al = b[si+2+3]
+			dx += ax
+			al = b[si+2+3+3]
+			dx += ax
+			dx >>= 2
+			al = dl
+			rep.set di,al
+			//
+			si += 3*3
+		endloop (--cx)
+	fi
+	dx.ax = ww(es,%Vv.T.pbuf)
+	return
+endproc
+
+
+*proc GetLines(datOfs:w, datSeg:w, pixPtr0:d);cdecl;far
+enter
+	local pixPtr:d,palette:d
+
+
+	ds = datSeg
+	palette = dx.ax = V.palette
+	dx.ax = pixPtr0
+	//loop.w
+	  LOOP:
+		if (V.x68flg)
+			Vv.X68line dx.ax, V.x68flg
+		fi
+		if (V.reductFlg)
+			if (V.reductFlgY)
+				++V.ycurReduct
+				cx = V.reductFlgY
+				go.w (V.ycurReduct & cx) NEXT
+			fi
+			ReductLine dx.ax
+		fi
+		pixPtr = dx.ax
+
+		++V.ycur
+
+		//格納するメモリをセット
+		es = V.pgCurSeg
+		if (--V.pglcnt == 0)
+			++V.pgNo
+			Vv.PageSw V.pgNo
+			V.pgCurSeg = ax
+			es = ax
+			V.pglcnt = ax = V.pgLine
+			V.pgPtr = 0
+			//Pri.Fmt "page = %d %04x\N",V.pgNo, V.pgCurSeg
+		fi
+
+		//１行コピー
+		di = ax = V.pgPtr
+		ax += V.pgXsize
+		V.pgPtr = ax
+		cx = V.xvsize
+		dx.bx = pixPtr
+		ah = 0
+		loop
+			ds = dx
+			al = b[bx];++bx
+			ds.si = palette
+			si += ax
+			si += ax
+			si += ax
+			rep.cpy.w di,si
+			rep.cpy di,si
+		endloop (--cx)
+	NEXT:
+		ds = datSeg
+		dx.ax = pixPtr0
+		go.w (V.l200flg && V.ycur & 0x0001) LOOP
+		ax += V.xsize
+		pixPtr0.l = ax
+	//endloop (--lincnt)
+	return
+endproc
+
+
+/*---------------------------------------------------------------------------*/
+
+*proc RevX(datSeg:w);cdecl
+	//左右反転
+enter
+	save pusha, es,ds
+	local y0:w, xxsz:w, xxszD2:w, ysz:w
+
+	ds = datSeg
+
+	ax = V.yvsize
+	ysz = ax
+
+	ax = V.pgXsize
+	xxsz = ax
+	//ax = V.xvsize
+	//ax >>= 1
+	//xxszD2 = ax
+
+	y0 = 0
+	loop
+		ds = datSeg
+		dx.ax = ww(0,y0)
+		div dx.ax, V.pgLine
+		Vv.PageSw ax
+		bx=ax//V.pgCurSeg = ax
+
+		// ax = 点(xx0,y0)のアドレス
+		dx.ax = dx * V.pgXsize
+		si = di = ax
+		si += xxsz
+		si -= 3
+		es = V.pgCurSeg
+		ds = V.pgCurSeg
+		//cx = xxszD2
+		//if (cx)
+			loop (di < si)
+				bx = w[di]
+				dh = b[di+2]
+				ax = w[si]
+				dl = b[si+2]
+				w[si] = bx
+				b[si+2] = dh
+				si -= 3
+				rep.set.w di,ax
+				rep.set di,dl
+			endloop// (--cx)
+		//fi
+		++y0
+	endloop (--ysz)
+	ds = datSeg
+	if (bx)
+		V.pgCurSeg = bx
+	fi
+	return
+endproc
+
+endmodule

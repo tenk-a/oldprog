@@ -1,0 +1,284 @@
+module Lfn
+	c_name "Lfn","_",1
+	//	2009	writen by M.Kitamura
+	stack 	0x200
+
+	import Std
+	import WILDCMP
+	typedef WC:WILDCMP
+
+
+*var Flag:b = 1
+
+var  file_timeL:d, file_timeH:d
+
+*proc Init()
+begin
+	save ax, bx, cx, dx, si, ds
+	ds = ax = %var
+	si = &file_timeL
+	ax = 0
+	w[si+0] = ax
+	w[si+2] = ax
+	w[si+4] = ax
+	w[si+6] = ax
+
+	// lfnの時間変換を流用して、LFN処理の有無をチェック.
+	Flag = 1
+	ax = 0x71a7
+	intr 0x21
+	if (ax == 0x7100)
+		Flag = 0
+	fi
+	return
+endproc
+
+
+*proc SetFlag(ax)
+begin
+	Flag = al
+	ret
+endproc
+
+
+*proc Open(dx,al)
+//	ファイルのオープン
+//	arg dx	パス名
+//	arg al	アクセス制御コード
+//	in	ds	パス名のセグメント
+//	out ax	ファイル・ハンドル
+//	out cf	0:成功／1:失敗 ax にERRコード)
+begin
+	if (Lfn.Flag == 0)
+		ah = 0x3d
+		intr 0x21
+		ret
+	fi
+	push bx, cx, si
+		//push fx
+		si = dx
+		bl = al
+		bh = 0
+		cx = 0
+		dx = 0x0001
+		ax = 0x716c
+		//pop  fx
+		intr 0x21
+		dx = si
+	pop  bx, cx, si
+	if (cf)
+		if (ax == 0x7100)
+			ah = 0x3d
+			intr 0x21
+		fi
+	fi
+	ret
+endproc
+
+
+*proc Create(dx,cx)
+//	ファイルの作成。すでにファイルが存在したばあい、その内容を消す。
+//	arg dx	パス名
+//	arg cx	ファイル属性
+//	in	ds	パス名のセグメント
+//	out ax	ファイル・ハンドル
+//	out cf	0:成功	1:失敗(ax にERRコード)
+begin
+	if (Lfn.Flag == 0)
+		ah = 0x3c
+		intr 0x21
+		ret
+	fi
+	push bx, si
+		//push fx
+		dx = 0x12
+		bx = 2
+		ax = 0x716c
+		//pop  fx
+		intr 0x21
+		dx = si
+	pop  bx, si
+	if (cf)
+		if (ax == 0x7100)
+			ah = 0x3c
+			intr 0x21
+		fi
+	fi
+	ret
+endproc
+
+
+*proc CreateNew(dx,cx)
+//	ファイルの作成。すでにファイルが存在したばあいは失敗。
+//	arg dx	パス名
+//	arg cx	ファイル属性
+//	in	ds	パス名のセグメント
+//	out ax	ファイル・ハンドル
+//	out cf	0:成功	1:失敗(ax にERRコード)
+begin
+	if (Lfn.Flag == 0)
+		ah = 0x5b
+		intr 0x21
+		ret
+	fi
+	push bx, si
+		//push fx
+		dx = 0x10
+		bx = 2
+		ax = 0x716c
+		//pop  fx
+		intr 0x21
+		dx = si
+	pop  bx, si
+	if (cf)
+		if (ax == 0x7100)
+			ah = 0x5b
+			intr 0x21
+		fi
+	fi
+	ret
+endproc
+
+
+
+*proc Rename(dx,es.di)
+//	arg dx		変更前のパス名
+//	arg es.di	変更後のパス名
+//	in	ds		変更前のパス名のあるセグメント
+//	out cf,ax	0:成功	1:失敗(ax にERRコード)
+begin
+	if (Lfn.Flag == 0)
+		ah = 0x56
+		intr 0x21
+		ret
+	fi
+	ax = 0x7156
+	intr 0x21
+	if (cf)
+		if (ax == 0x7100)
+			ah = 0x56
+			intr 0x21
+		fi
+	fi
+	ret
+endproc
+
+
+
+*proc Delete(dx)
+//	ファイルの削除
+//	arg dx		パス名
+//	in	ds		パス名のセグメント
+//	out cf,ax	0:成功	1:失敗(ax にERRコード)
+begin
+	if (Lfn.Flag == 0)
+		ah = 0x41
+		intr 0x21
+		ret
+	fi
+	push si
+		si = 0
+		ax = 0x7141
+		intr 0x21
+	pop si
+	if (cf)
+		if (ax == 0x7100)
+			ah = 0x41
+			intr 0x21
+		fi
+	fi
+	ret
+endproc
+
+
+*proc MakDir(dx)
+//	サブ・ディレクトリの作成
+//	arg dx	パス名
+//	in	ds	パス名のセグメント
+//	out cf	0:正常／1:失敗	ax=5:作成できない
+begin
+	if (Lfn.Flag == 0)
+		ah = 0x39
+		intr 0x21
+		ret
+	fi
+	ax = 0x7139
+	intr 0x21
+	if (cf)
+		if (ax == 0x7100)
+			ah = 0x39
+			intr 0x21
+		fi
+	fi
+	ret
+endproc
+
+*proc DelDir(dx)
+//	サブ・ディレクトリの削除
+//	arg dx	パス名
+//	in	ds	パス名のセグメント
+//	out cf	0:正常／1:失敗 ax=3:存在しない 5:削除できない 16:ｶﾚﾝﾄだった
+begin
+	if (Lfn.Flag == 0)
+		ah = 0x3A
+		intr 0x21
+		ret
+	fi
+	ax = 0x713A
+	intr 0x21
+	if (cf)
+		if (ax == 0x7100)
+			ah = 0x3a
+			intr 0x21
+		fi
+	fi
+	ret
+endproc
+
+*proc SetDir(dx)
+//	カレント・ディレクトリの変更
+//	arg dx	パス名
+//	in	ds	パス名のセグメント
+//	out cf	0:正常／1:失敗 ax=3:存在しないパス名
+begin
+	if (Lfn.Flag == 0)
+		ah = 0x3B
+		intr 0x21
+		ret
+	fi
+	ax = 0x713B
+	intr 0x21
+	if (cf)
+		if (ax == 0x7100)
+			ah = 0x3b
+			intr 0x21
+		fi
+	fi
+	ret
+endproc
+
+
+*proc GetDir(dl,si)
+//	カレント・ディレクトリ名の収得(ドライブ名無）
+//	arg dl	0:カレント・ドライブ 0:A  1:B ...
+//	out si	収得したパス名を収める
+begin
+	if (Lfn.Flag == 0)
+		ah = 0x47
+		intr 0x21
+		ret
+	fi
+	ax = 0x7147
+	intr 0x21
+	if (cf)
+		if (ax == 0x7100)
+			ah = 0x47
+			intr 0x21
+		fi
+	fi
+	ret
+endproc
+
+
+
+endmodule

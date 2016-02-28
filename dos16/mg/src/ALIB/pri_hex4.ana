@@ -1,0 +1,17 @@
+submodule Pri
+	import Dos
+	import Str
+
+*proc Hex4(ax)
+begin
+	save pusha,es,ds
+
+	es = dx = %var
+	ds = dx
+	di = &Pri.buf
+	Str.WtoH es.di,ax
+	Pri.S &Pri.buf
+	return
+endproc
+
+endmodule

@@ -1,0 +1,59 @@
+submodule Str
+	//	1992	writen by M.Kitamura
+
+	import Std
+
+//proc err_k2()
+//begin
+//	var  msg:b() = "漢字コード・エラー"
+//	save pusha
+//
+//	Tw.WritLn Dos.STDERR,&msg,sizeof(msg)
+//	return
+//endproc
+
+*proc DeCtrl(si,cx)
+//　サイズ cx の文字列 si 中の不要なコントロールコードと不正全角を削除
+//	arg   si	文字列へのﾎﾟｲﾝﾀ
+//	arg   cx	文字列のサイズ
+//	out   cx	変換後のサイズ
+//	break fx
+enter
+	save pusha, ret_cx:cx, es
+
+	dx = 0
+	//if (si == 0);go (cx == 0) RTS;fi
+	di = si
+	es = ds
+	loop
+		rep.load al,si
+		if (al < 0x20 || al == 0x7f)
+			go(al=='\t'||al=='\r'||al=='\n'||al=='\f'||al=='\a'||al=='\[') J1
+			//if (al == '\b' && dx > 0)
+			//	--dx
+			//	--di
+			//fi
+		elsif (Str.sjisFlg && Std.IsKanji(al))
+			rep.set di,al
+			rep.load al,si
+			exit (--cx == 0)
+			if (Std.IsKanji2(al))
+				rep.set di,al
+			else
+				//err_k2()
+				--di
+			fi
+			dx += 2
+		else
+  J1:
+			rep.set di,al
+			++dx
+		fi
+	endloop (--cx)
+	b[di] = '\0'
+  RTS:
+	ret_cx = dx
+	return
+endproc
+
+endmodule

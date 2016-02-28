@@ -1,0 +1,42 @@
+submodule Fname
+	//	1993	writen by M.Kitamura
+
+
+*proc EquExt(es.di,si)
+//	es.diで示されるファイル名の拡張子 VS siで示されるもの
+//	arg es.di	ファイル名
+//	arg si		ﾋｶｸ拡張子名
+//	in	ds		データ・セグメント
+//  out ax      ax=0 not equ	ax=1 equ
+enter
+	save bx,di,si,ds,es
+	//es <=>ds
+	push es; push ds
+	pop  es; pop  ds
+	bx = si
+	si = di
+	if (b[si] == '.')
+		++si
+	fi
+	if (b[si] == '.')
+		++si
+	fi
+	loop
+		rep.load al,si
+		go (al == 0) NEQ
+	endloop (al != '.')
+	loop
+		rep.load al,si
+		go (al != b[es:bx]) NEQ
+		++bx
+	endloop (al != 0)
+	ax = 1
+	cf = 1
+  RET:
+	return
+  NEQ:
+	|ax ^= ax	//ax = 0,cf=0
+  	go RET
+endproc
+
+endmodule

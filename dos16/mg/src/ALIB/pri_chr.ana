@@ -1,0 +1,41 @@
+submodule Pri
+	import Dos
+	import Str
+
+*proc Chr(ax)
+//	１文字表示
+//	  arg  ax		１文字（シフトJIS 対応）
+//	  out  cf		0:エラー無　1:エラー有(axにERR CODE)
+//	  out  ax,bx	そのまま
+begin
+	save cx,bx,dx,ds
+	bx = Dos.STDOUT
+	push ax
+	cx = 1
+	if (ax > 0xff)
+		ah <=> al
+		++cx
+	fi
+	push ax
+	ds = ax = ss
+	dx = sp
+	ax = 0x4000
+	|intr 0x21
+	|pop cx
+	if (cf == 0)
+		pop ax
+	else
+		pop cx
+	fi
+	return
+endproc
+
+*proc Cr()
+begin
+	save ax
+	ax = '\r' * 0x100 + '\n'
+	Chr ax
+	return
+endproc
+
+endmodule

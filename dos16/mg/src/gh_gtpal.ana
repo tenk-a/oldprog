@@ -1,0 +1,49 @@
+submodule GH
+
+@define	GHT()	GH.T[ds:0]
+
+*proc SetRGB12(ght:d, rgb12tbl:d);cdecl
+//	98ﾊﾟﾚｯﾄをGH.Tのパレットに格納する
+//	arg bx	  GH.Tへのポインタ
+//	arg dx.ax PC98のRGBパレット・データ
+//	in	ds
+enter
+	save ax,cx,si,di,ds
+
+	ds.bx = ght
+	ah = GHT.palLowNbl
+	es.di = GHT.rgbPal
+	ds.si = dx.ax = rgb12tbl
+	cx = 48
+	loop
+		rep.load al,si
+		if (al)
+			al <<= 4
+			al |= ah
+		fi
+		rep.set  di,al
+	endloop (--cx)
+	return
+endproc
+
+*proc GetRGB12(ght:d, rgb12tbl:d);cdecl
+//  GH.Tのパレットをdx.axに取り出す
+//	arg bx	  GH.Tへのポインタ
+//	arg dx.ax PC98のRGBパレット・データ
+//	in	ds
+enter
+	save ax,cx,si,di,ds
+
+	ds.bx = ght
+	ds.si = GHT.rgbPal
+	es.di = dx.ax = rgb12tbl
+	cx = 48
+	loop
+		rep.load al,si
+		al >>= 4
+		rep.set  di,al
+	endloop (--cx)
+	return
+endproc
+
+endmodule

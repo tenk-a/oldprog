@@ -1,0 +1,78 @@
+module Subr
+	c_name "Subr"
+
+*proc PriExit(ax)
+endproc
+
+*proc PriS(ax)
+endproc
+
+*proc ErrFile(dx,ax)
+endproc
+
+*var msgOpen:b() = "'をオープンできません"
+
+*proc Create(dx,cx)
+//	新しいファイルを作成
+//	arg dx	パス名
+//	arg cx	ファイル属性
+//	in	ds	パス名のセグメント
+//	out ax	ファイル・ハンドル
+endproc
+
+
+*proc Seek (bx,dx.ax)
+//	ファイル・ポインタの移動
+//	arg bx		ファイル・ハンドル
+//	arg dx.ax	移動するバイト数
+endproc
+
+*proc Read (bx,dx,cx)
+//	ファイルからの読み込み
+//	arg bx	ファイル・ハンドル
+//	arg dx	バッファ・アドレス
+//	arg cx	サイズ
+//	out ax	サイズ
+//	in	ds	バッファのセグメント
+endproc
+
+*proc Write(bx,dx,cx)
+//	ファイルへの書込み
+//	arg bx	ファイル・ハンドル
+//	arg dx	バッファ・アドレス
+//	arg cx	サイズ
+//	out ax	サイズ
+//	in	ds	バッファのセグメント
+endproc
+
+*proc Open(dx,al)
+//	ファイルのオープン
+//	arg dx	パス名
+//	arg al	アクセス制御コード
+//	in	ds	パス名のセグメント
+//	out ax	ファイル・ハンドル
+endproc
+
+*proc Close(bx)
+macro
+	push ax
+		ah = 0x3e
+		intr 0x21
+	pop ax
+endproc
+
+*proc Delete(dx)
+//	ファイルを削除
+//	arg dx	ファイル名
+endproc
+
+*proc Rename(dx,es.di)
+//	dx を di に変名
+//	arg dx		旧ファイル名
+//	arg di		新ファイル名
+endproc
+
+*proc AllocM(ax,bx)
+endproc
+
+endmodule

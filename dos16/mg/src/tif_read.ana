@@ -1,0 +1,526 @@
+submodule Tif
+	import GH
+	import Subr
+	import Pri
+	import Dos
+	import Str
+	import Std
+	import Deb
+
+@define	GHT()	GH.T[ds:0]
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/*
+*const T_MinSmpVal = 0x118	//  1ﾋﾟｸｾﾙの最小ﾃﾞｰﾀ
+*const T_MaxSmpVal = 0x119	//  1ﾋﾟｸｾﾙの最大ﾃﾞｰﾀ	(色数-1)
+*const T_ImgPos	   = 0x112	//  画像ﾃﾞｰﾀの開始位置	*1:左上
+*const T_Xdpi	   = 0x11a	//x 横方向解像度(dpi)
+*const T_Ydpi	   = 0x11b	//x 縦方向解像度(dpi)
+*const T_Thresh    = 0x107	//x 閾値 1:そのまま 2:ｵｰﾀﾞｰﾄﾞ･ﾃﾞｨｻﾞ法 3:誤差拡散法
+*/
+cvar pdataOfs:d, err_flg:w, palOfs:d
+cvar xdpiOfs:d
+cvar ydpiOfs:d
+cvar pdataOfsFlg:w = 0
+
+cvar resolUnit:w = 2
+
+cvar dfltRgbPal:b(48) = data
+	b 0x00,0x00,0x00	//0
+	b 0x00,0x00,0x77	//1
+	b 0x77,0x00,0x00	//2
+	b 0x77,0x00,0x77	//3
+	b 0x00,0x77,0x00	//4
+	b 0x00,0x77,0x77	//5
+	b 0x77,0x77,0x00	//6
+	b 0xAA,0xAA,0xAA	//7
+	b 0x44,0x44,0x44	//8
+	b 0x00,0x00,0xff	//9
+	b 0xff,0x00,0x00	//10
+	b 0xff,0x00,0xff	//11
+	b 0x00,0xff,0x00	//12
+	b 0x00,0xff,0xff	//13
+	b 0xff,0xff,0x00	//14
+	b 0xff,0xff,0xff	//15
+enddata
+
+cvar dfltPalFlg:w = 1	//0:Digital8&VA256	1:mono	2:TOWNS
+
+*proc Df_DfltPalMode (flg:w);cdecl
+	//1:デフォルト・パレットをモノクロ階調にする
+enter
+	save ax
+	dfltPalFlg = ax = flg
+	return
+endproc
+
+proc GetDW(bx,dx.ax)
+begin
+	save cx,si,di,es,ds
+	cvar buf:d
+	GH.SeekR bx, dx.ax
+	GH.Read  bx, ww(cs, &buf), 4
+	dx.ax = buf
+	if (GHT.rdMode != 0)
+		dx <=> ax
+		ah <=> al
+		dh <=> dl
+	fi
+	return
+endproc
+
+proc GetIFD (bx,ax)
+// IFD の取得
+//	arg bx	GH.Tへのポインタ
+//	arg ax  タグ番号
+enter
+	save pusha
+	local tag:w = ax, typ:w, cnt:d, dat:d
+
+	//型を取得
+	GH.ReadW bx
+	typ = ax
+
+	//データの数を取得
+	GH.ReadD bx
+	cnt = dx.ax
+
+	//データを取得
+	dat = 0
+	if ((typ == Tif.TT_B || typ == Tif.TT_A) && cnt.h == 0 && cnt.l <= 4)
+		GH.ReadB bx; dat.l.l = al
+		GH.ReadB bx; if (cnt.l > 1); dat.l.h = al;fi
+		GH.ReadB bx; if (cnt.l > 2); dat.h.l = al;fi
+		GH.ReadB bx; if (cnt.l > 3); dat.h.h = al;fi
+	elsif (typ == Tif.TT_W && cnt.h == 0 && cnt.l <= 2)
+		GH.ReadW bx; dat.l = ax
+		GH.ReadW bx; if (cnt.l > 1); dat.h = ax;fi
+	else
+		GH.ReadD bx; dat = dx.ax
+	fi
+	Deb.Chk
+	if (==)
+		Pri.Fmt "TAG:$%03X  Type:%2d  Count:%4ld  Data(4byte):$%8lX\N",	\
+					tag, typ, cnt, dat
+	fi
+	//各タグの処理
+	ax = tag
+	dx = dat.l
+	if    (ax == Tif.T_ImgTyp)
+		if (dx != 1 || dat.h != 0)
+			err_flg = 1
+		fi
+	elsif (ax == Tif.T_ImgWid)
+		GHT.sizeX = dx
+		if (dat.h);	err_flg = 1; fi
+	elsif (ax == Tif.T_ImgLen)
+		GHT.sizeY = dx
+		if (dat.h);	err_flg = 1; fi
+	elsif (ax == Tif.T_BitPerPix)
+		GHT.pln = dl
+		if (dx == 4)
+			GHT.col = 16
+		elsif (dx == 8)
+			GHT.col = 256
+		else
+			Pri.Fmt "16または256色画像以外の画像（2値やフルカラー）は未対応\N"
+			err_flg = 1
+		fi
+	elsif (ax == Tif.T_SmpPerPix)
+		if (dx > 1)
+			Pri.Fmt "フルカラー画像は未対応\N"
+			err_flg = 1
+		fi
+	elsif (ax == Tif.T_Comp)
+		if (dx != 1)
+			Pri.Fmt "圧縮TIFFには未対応\N"
+			err_flg = 1
+		fi
+	elsif (ax == Tif.T_Photo)
+		if (dx != 3 && dx != 1)
+			Pri.Fmt "色モード(TAG=$106)が%dです。3(パレット有り)以外では色がおかしくなるかも\N",dx
+			//err_flg = 1
+		fi
+	elsif (ax == Tif.T_FilOdr)
+		if (dx == 2)
+			GHT.tifRfilOdr = 2
+		else
+			GHT.tifRfilOdr = 1
+		fi
+	elsif (ax == Tif.T_StripOfs)
+		pdataOfs = dx.ax = dat
+		pdataOfsFlg = 0
+		if (cnt.l > 1)
+			pdataOfsFlg = 1
+		fi
+	elsif (ax == Tif.T_PlnCfg)
+		if (dx != 1)
+			Pri.Fmt "パックドピクセルでないといけません.マルチプレーンは未対応\N"
+			err_flg = 1
+		fi
+	elsif (ax == Tif.T_PalOfs)
+		palOfs = dx.ax = dat
+	elsif (ax == Tif.T_ResolUnit)
+		resolUnit = ax = dat.l
+	elsif (ax == Tif.T_Xdpi)
+		if (typ < Tif.TT_F)
+			GHT.tifXdpi(0) = dx.ax = dat
+			GHT.tifXdpi(1) = 1
+		else
+			xdpiOfs = dx.ax = dat
+		fi
+	elsif (ax == Tif.T_Ydpi)
+		if (typ < Tif.TT_F)
+			GHT.tifYdpi(0) = dx.ax = dat
+			GHT.tifYdpi(1) = 1
+		else
+			ydpiOfs = dx.ax = dat
+		fi
+	else
+		Deb.Chk
+		if (==)
+			Pri.Fmt "タグ番号 $%03X は無視します\N", ax
+		fi
+	fi
+	return
+endproc
+
+proc GetPal(bx,es.di)
+begin
+	save pusha
+	cx = GHT.col
+	loop
+		GH.ReadW bx
+		b[es:di] = ah
+		di += 3
+	endloop (--cx)
+	return
+endproc
+
+*proc Open(GHTptr:d, fileName:d);cdecl
+//	Tifファイルをオープンしてヘッダを読み込み、ファイル・ポインタをピクセル
+//	データの先頭にして復帰する
+//  out ax  0:成功  以外:エラー
+enter
+	save bx,cx,dx,si,di,ds,es
+	cvar fmt:b() = "TIF"
+	cvar asp1:w,asp2:w
+
+	ds.bx = GHTptr
+  //Pri.Hex8 ds.bx
+
+	//変数初期化
+	pdataOfs = dx.ax = 0
+	pdataOfsFlg = ax
+	palOfs = dx.ax
+	xdpiOfs = dx.ax
+	ydpiOfs = dx.ax
+	err_flg = ax
+	resolUnit = 2
+	GHT.rdFmtName = cx.ax = ww(cs,&fmt)
+	//GHT.fmtR = GH.TIF
+	d[bx + %GH.T.macName] = cx.ax = 'T'+'I'*0x100+'F'*0x10000+'F'*0x1000000
+
+	GHT.tifRfilOdr = 1
+
+	//ヘッダ入力のためのメモリを確保
+	GH.InitReadBWD bx, 0x100, 0x400
+
+	//ファイル・オープン
+	GH.Open bx, fileName
+
+	//ヘッダIDチェック
+	GH.ReadW bx
+	if (ax == 'II')
+		GHT.rdMode = 0
+	elsif (ax == 'MM')
+		GHT.rdMode = 1
+	else
+		// マック・バイナリへの安易対策
+		cx = 128/2
+		loop
+			GH.ReadW bx
+		endloop(--cx)
+		if (ax == 'II')
+			GHT.rdMode = 0
+		elsif (ax == 'MM')
+			GHT.rdMode = 1
+		else
+			Pri.Fmt "Tiffのヘッダでない\N"
+			ax = 1
+			go.w RET
+		fi
+	fi
+
+	//Tiffバージョン
+	GH.ReadW bx
+	GHT.tifRver = ax
+
+	//IFDﾃｰﾌﾞﾙへのｵﾌｾｯﾄを取得
+	GH.ReadD bx
+	if (dx == 0)
+		if (ax < 8)//
+			Pri.Fmt "TIFFヘッダでIFDﾃｰﾌﾞﾙへのｵﾌｾｯﾄが矛盾している\N"
+			ax = 8
+		fi
+		go (ax == 8) JJ1
+	fi
+  	GH.SeekR bx, dx.ax	//IFDテーブルへSeek
+
+  JJ1:
+	//IFDの数を取得
+	GH.ReadW bx
+	//各IFDを取得
+	cx = ax
+	if (cx)
+		loop
+			GH.ReadW bx
+			break (ax == Tif.T_End)
+			GetIFD bx,ax
+		endloop (--cx)
+	fi
+	if (GHT.sizeX == 0 || GHT.sizeY == 0 || GHT.col == 0)
+		Pri.Fmt "必要なヘッダ情報が足りないよ(縦横サイズ,ピクセル・サイズ)\N"
+		ax = 1
+		go.w RET
+	fi
+
+	if (err_flg)
+		Pri.Fmt "対応していないTIFFファイルだったから、変換やーめたっ^^;\N"
+		ax = 1
+		go.w RET
+	fi
+	//
+	ax = GHT.sizeX
+	--ax
+	GHT.endX = ax
+	ax = GHT.sizeY
+	--ax
+	GHT.endY = ax
+
+	//
+	GH.GetPalBuf bx
+	dx.ax = palOfs
+	if (dx == 0 && ax == 0)
+		if (dfltPalFlg == 1)
+			GH.SetMonoPal ds.bx	//モノクロ階調
+			ax = "グレイスケール(モノクロ階調)"
+		elsif (dfltPalFlg == 2)
+			if (GHT.pln == 8)
+				GH.SetDigPal ds.bx	//とりあえずデジタル８色(or VA256)を設定
+			else
+				push ds,es
+					es.di = GHT.rgbPal
+					si = &dfltRgbPal
+					ds = cs
+					rep.cpy.w di, si, 48/2
+				pop  ds,es
+			fi
+			ax = "FM-TOWNSデフォルト・パレット"
+		else
+			ax = "適当なパレット"
+		fi
+		dx = %var
+		Pri.Fmt "TIFF:パレット・データがないよ～なので%Fsを使用\N", dx.ax
+	else
+		//パレットをとりだす
+	  //Pri.Fmt "seek %lx\N",dx.ax
+		GH.SeekR bx, dx.ax
+	  //Pri.Fmt "ResetReadBWD\N"
+		GH.ResetReadBWD bx
+		cx = GHT.col
+		es.di = GHT.rgbPal
+	  //Pri.Fmt "GetPal B\N"
+		GetPal bx, es.di
+		es.di = GHT.rgbPal
+		++di
+	  //Pri.Fmt "GetPal R\N"
+		GetPal bx, es.di
+		es.di = GHT.rgbPal
+		di += 2
+	  //Pri.Fmt "GetPal G\N"
+		GetPal bx, es.di
+	fi
+  @if 1
+	//dpi
+	asp1 = ax = 0
+	asp2 = ax
+	dx.ax = xdpiOfs
+	if (ax || dx)
+		GetDW bx, dx.ax
+		GHT.tifXdpi(0) = dx.ax
+		dx.ax = xdpiOfs
+		dx.ax += 4
+		GetDW bx, dx.ax
+		GHT.tifXdpi(1) = dx.ax
+		cx = ax
+		if (dx)
+			cx = 0
+		fi
+		ax = 0
+		if (cx)
+			dx.ax = GHT.tifXdpi(0)
+			if (dx)
+				ax = 0
+			fi
+			dx = 0
+			//Pri.Fmt "%ld / %d\N",dx.ax, cx
+			div dx.ax, cx
+		fi
+		//Pri.Fmt "asp1 = %d\N", ax
+		asp1 = ax
+	fi
+	dx.ax = ydpiOfs
+	if (ax || dx)
+		GetDW bx, dx.ax
+		GHT.tifYdpi(0) = dx.ax
+		dx.ax = ydpiOfs
+		dx.ax += 4
+		GetDW bx, dx.ax
+		GHT.tifYdpi(1) = dx.ax
+		cx = ax
+		if (dx)
+			cx = 0xFFFF
+		fi
+		ax = 0
+		if (cx)
+			dx.ax = GHT.tifYdpi(0)
+			if (dx)
+				ax = 0xFFFF
+			fi
+			dx = 0
+			//Pri.Fmt "%ld / %d\N",dx.ax, cx
+			div dx.ax, cx
+		fi
+		//Pri.Fmt "asp2 = %d\N", ax
+		asp2 = ax
+	fi
+	if (resolUnit != 2)
+		dx.ax = 0
+		GHT.tifXdpi(0) = dx.ax
+		GHT.tifXdpi(1) = dx.ax
+		GHT.tifYdpi(0) = dx.ax
+		GHT.tifYdpi(1) = dx.ax
+	fi
+	if (asp1 && asp2)
+	  @if 1
+	  	GH.Resol2Asp ww(0,asp1), ww(0,asp2)
+	  	GHT.asp1 = al
+	  	GHT.asp2 = ah
+	  @else
+		ax = asp1
+		dx = 0
+		div dx.ax, asp2
+		if (ax)
+			if (ah)
+				ax = 0xff
+			fi
+			GHT.asp1 = al
+			GHT.asp2 = 1
+		else
+			ax = asp2
+			dx = 0
+			div dx.ax, asp1
+			if (ah)
+				ax = 0xff
+			fi
+			GHT.asp1 = 1
+			GHT.asp2 = al
+		fi
+	  @fi
+	fi
+  @fi
+	//ピクセル・データ
+	if (pdataOfsFlg)
+		GetDW bx, pdataOfs
+	else
+		dx.ax = pdataOfs
+	fi
+	if (dx == 0 && ax == 0)
+		Pri.Fmt "ピクセル・データへのオフセットがないよ～\N"
+		ax = 1
+		go.w RET
+	fi
+  //Pri.Fmt "Seek pdataOfs = %lx\N", dx.ax
+	GH.SeekR bx, dx.ax
+	
+	//PDBの初期化（バッファ取得）
+  //Pri.Fmt "GH.InitPDB\N"
+	GH.InitPDB ds.bx
+	ax = 0
+  RET:
+	return
+endproc
+
+
+*proc CloseR(GHTptr:d);cdecl
+enter
+	save bx,ds,ax
+	ds.bx = GHTptr
+	Subr.Close GHT.rdHdl
+	return
+endproc
+
+*proc InitR(GHTptr:d);cdecl
+enter
+	save bx,ds,ax
+	ds.bx = GHTptr
+	GHT.fmtR = GH.TIF
+	return
+endproc
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+*proc ReadPDB(GHTptr:d, lineCnt:w);cdecl
+//	ピクセル・データをバッファに入力
+enter
+	save pusha,ds,es
+	local kisuFlg:w, xsize:w
+
+	ds.bx = GHTptr
+	ax = GHT.sizeX
+	kisuFlg = 0
+	if ((GHT.pln == 4) && (ax & 0x0001))
+		++ax
+		kisuFlg = 1
+	fi
+	dx.ax = lineCnt * ax
+	cx = ax
+  Deb.Chk
+  if (==)
+  	Pri.Fmt "Tif.ReadPDB:%lx %d*%d=%u\N",ds.bx, lineCnt, GHT.sizeX, cx
+  fi
+	dx = GHT.hisSiz
+	es = ax = GHT.pdbSeg
+	if (GHT.pln == 8)
+		GH.Read bx, ax.dx, cx
+	else
+		push cx
+			|cx >>= 1
+			cx +=. 0	//adc cx,0
+			GH.Read bx, ax.dx, cx
+		pop  cx
+		Tif.N2B bx, es.dx, cx, GHT.tifRfilOdr
+		if (kisuFlg)
+			si = di = dx
+			dx = lineCnt
+			xsize = ax = GHT.sizeX
+			push ds
+				ds = ax = es
+				loop
+					rep.cpy di,si,xsize
+					++si
+				endloop (--dx)
+			pop  ds
+		fi
+	fi
+	return
+endproc
+
+endmodule

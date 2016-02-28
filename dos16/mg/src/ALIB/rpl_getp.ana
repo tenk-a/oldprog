@@ -1,0 +1,34 @@
+submodule RPal
+
+*proc GetRGB(bx)
+//	arg bx	rgb buf
+//	in	ds
+//	out ax	tone	ax=-1:error(í’“ƒpƒŒƒbƒg‚ªŒ©‚Â‚©‚ç‚È‚¢)
+begin
+	save dx,cx,si,di,ds,es
+	ds = dx = %var
+	dx.ax = RPal.ptr
+	if (dx == 0)
+		RPal.Search
+		if (dx == 0)
+			ax = -1
+			go RET
+		fi
+	fi
+	es.di = ds.bx
+	ds = dx
+	si = %RPal.T.grb
+	cx = 16
+	loop
+		rep.load.w ax,si
+		ah <=> al
+		rep.set.w  di,ax
+		rep.cpy di,si
+	endloop (--cx)
+	al = RPal.T[0].tone
+	ah = 0
+  RET:
+	return
+endproc
+
+endmodule

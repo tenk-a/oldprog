@@ -1,0 +1,2 @@
+-ms -a- -G -1 -f- -Ox -epimk.exe  gomi.obj	fullpath.obj	dirname.obj	wildcmp.obj	direntry.obj	rpal.obj	ems.obj		pri.obj		key.obj		text.obj	sub.obj		rrpal.obj	fil.obj								piload.obj	magload.obj	djpload.obj	q0load.obj	bmpload.obj	pmtload.obj					vv.obj		vvw.obj		pimk.obj	keyloop.obj	v98.obj		vmp.obj		v21.obj				wab256.obj	vwab.obj					fb.obj		vhf.obj		hf_sub.obj noehs.lib
+

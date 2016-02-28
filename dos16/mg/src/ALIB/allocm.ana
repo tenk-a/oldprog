@@ -1,0 +1,29 @@
+module ALLOCM
+
+	import Dos
+
+*proc AllocM(ax,bx)
+// 最低サイズaxで、なるべくサイズbxまでメモリを確保. ax確保できないときはエラー
+//	arg ax	最低パラグラフ・サイズ
+//	arg bx	最大パラグラフ・サイズ. bx=0xffff のとき出来る限り確保
+//	out ax	先頭パラグラフ
+//	out bx	実際に確保したパラグラフ・サイズ
+//	out cf	0:成功	1:失敗(ax:エラー番号)
+begin
+	save dx
+	dx = ax
+	Dos.AllocMem bx
+	if (cf)
+		if (ax == 0x08 && bx)
+			|bx - dx
+			go (<) RET	//cf=1
+			Dos.AllocMem bx
+		else
+			cf = 1
+		fi
+	fi
+  RET:
+	return
+endproc
+
+endmodule

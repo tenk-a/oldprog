@@ -1,0 +1,17 @@
+module	OMAKE
+
+cvar	msg:b() = data
+		b	"\N\N"
+		b	"\tみな\N"
+		b	"\tどれ程の悔しさを\N"
+		b	"\t胸に呑み込んで\N"
+		b	"\tいる事だろう\N"
+		b	"\N"
+		b	"\tまっすぐな思いが\N"
+		b	"\tやがて幸運を\N"
+		b	"\t呼ぶと信じて\N"
+		b	"\N"
+		b	"\t\t\t（内田美奈子著『赤々丸』より）\N"
+		b	"\N"
+		enddata
+endmodule

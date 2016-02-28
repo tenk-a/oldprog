@@ -1,0 +1,226 @@
+module VR
+	c_name "VR","_",1
+
+
+///////////////////////////////////////////////////////////////////////////////
+*const COMMENT_SIZE = 4*1024-2-256-768-256 - 1280
+*const PIXLINSIZ = 1280
+
+@define DT()	BMP.T[ds:0]
+
+*struct T
+	//dummy:b(16)		// セグメント境界調整用
+	/*-------------*/
+	pln:w				// 色のビット数(4 or 8)
+	xsize:w				// 横幅(ドット)
+	ysize:w				// 縦幅(ドット)
+	xstart:w			// 始点x
+	ystart:w			// 始点y
+	aspect1:w			// アスペクト比x
+	aspect2:w			// アスペクト比y
+	overlayColor:w		// 透明色
+	color:w				// パレットの使用個数
+	palBit:w			// パレットのビット数
+	exSize:w			// pi拡張領域サイズ
+	dfltPalFlg:w		// piデフォルトパレットフラグ
+	loopMode:w			// piループモード(pimkの実験/隠しTAG)
+	filHdl:w			// ファイル・ハンドル
+	saverName:b(4+2)	// 機種名
+	artist:b(18+2)		// 作者名
+	/*-------------*/
+	putLin:d			// 出力手続きのアドレス
+	putLinDt:d			// 出力手続きへわたすデータ
+	pixStart:w			//X ピクセルバッファ中の解凍開始位置
+	pixEnd:w			//X                         終了位置
+	pixHisSrc:w			//X バッファ更新でヒストリバッファへのコピー元
+	pixHisSiz:w			//X ヒストリ・サイズ
+	ymax:w				//X 展開する最大行数
+	/*-------------*/
+	ycnt:w				// 展開での縦カウンタ
+	pixLinSiz:w			// 展開での横カウンタ
+	pixLinCnt:w			// バッファに収まるサイズ
+	pixSiz:w			// 一回の読み込みサイズ
+	pixBlkCnt:w			// 読み込み回数
+	pixRstSiz:w			// 余り読み込み回数
+	rdOfs:d				// 前回の読み込みオフセット
+	hdr:HDR				// BMPヘッダ  54バイト
+	/*-------------*/
+	dummy2:b( 256 /* -16*/ -(14*2+6+20) -(2*4+5*2) -(6*2+1*4+54))
+	/*-------------*/
+	palette:b(256*3)
+	fileName:b(254+2)
+	comment:b(COMMENT_SIZE+2)
+	pixLinBuf:b(PIXLINSIZ)
+	/*------------------------- ここまでで 3Kバイト ---*/
+endstruct
+
+
+*proc Open(datPtr:d, fileName:d); cdecl; far
+//	BMPファイルをオープンしてヘッダを読み込む
+//  out ax  0:成功  以外:エラー
+enter
+	save bx,cx,si,di,ds,es,fx
+
+	// 設定
+	rep.inc
+	bx.ax = datPtr
+	datPtr = 0
+	Std.FpToHp bx,ax,cx
+	go.w (bx == 0 && ax == 0) RTS
+	if (ax)
+		++bx
+	fi
+	ax = 0
+	datPtr = bx.ax
+	es = bx
+	rep.set.w 0, ax, %BMP.T.pixBuf //最初の4Kバイトをクリア
+
+	// ファイル名コピー
+	ds.si = fileName
+	di = %BMP.T.fileName
+	loop
+		rep.load al,si
+		rep.set di,al
+	endloop (al)
+
+	DT.aspect1 = 1
+	DT.aspect2 = 1
+
+	// 色数
+	//パレット・バッファ確保
+	DT.pln = 4
+	DT.color = 16
+
+	// パレット読み込み
+	RPAL.GetRGB ww(ds, %T.palette)
+
+	// サイズ
+	DT.xstart = ax = 0
+	DT.ystart = ax
+	DT.xsize = 640
+	DT.ysize = 400
+
+	// 読み込みサイズ調整
+
+	dx.ax = datPtr
+  RTS:
+	return
+
+//FIL_ERR:
+//OPEN_ERR:	//ファイル・オープンできなかった
+//	ax = 1
+// RTS_E:
+//	dx = 0
+//	go RTS
+
+//HDR_ERR:	//Pri.Fmt "BMPのヘッダでない\N"
+//	dx.ax = 2
+//	go RTS_E
+
+//VAL_ERR:	//Pri.Fmt "ヘッダに矛盾がある\N"
+//	ax = 3
+//	go RTS_E
+
+endproc
+
+*proc Close(datPtr:d);cdecl;far
+	return
+endproc
+
+
+
+*proc Load(datPtr:d, putLinFunc:d, putLinDat:d, linCnt:w);cdecl;far
+	//画像の展開.
+	//putLinFuncは１行出力ﾙｰﾁﾝのｱﾄﾞﾚｽ
+	//linCnt は展開する最大行数. 0なら ysizeとなる
+	//putLinDat は １行出力ﾙｰﾁﾝに渡される。そのﾙｰﾁﾝのﾃﾞｰﾀ領域へのポインタを想定
+	//ret dx.ax:構造体へのポインタ(ｵﾌｾｯﾄ0) ｾｸﾞﾒﾝﾄが0ならｴﾗｰ(ｵﾌｾｯﾄ値がｴﾗｰNo)
+enter
+	save  bx,cx,dx,si,di,es,ds,fx
+	cvar gv:w() = {0xA800, 0xB000, 0xB800, 0xE00}
+
+	// 設定
+	rep.inc
+	dx.ax = datPtr
+	Std.FpToHp dx,ax,cx
+	if (dx == 0 && ax == 0)
+		ax = 4
+		go.w RET
+	fi
+	if (ax)
+		++dx
+	fi
+	ax = 0
+	datPtr = dx.ax
+	ds = dx
+	es = dx
+
+	// 展開できる行数をセット
+	//ax = linCnt
+	//if (ax == 0 || ax > DT.ysize)
+	//	ax = DT.ysize
+	//fi
+	linCnt = 400
+
+	//
+	cx = 80
+	si = 0
+	loop
+		push si,es
+			di = %T.pixLinBuf
+			cx = 80
+			loop.w
+				ds = gv(0)
+				bl = b[si]
+				ds = gv(1)
+				bh = b[si]
+				ds = gv(2)
+				dl = b[si]
+				ds = gv(3)
+				dh = b[si]
+				ax = 0
+				|dh <<= 1; |rcl al; |dl <<= 1; |rcl al
+				|bh <<= 1; |rcl al; |bl <<= 1; |rcl al
+				|dh <<= 1; |rcl ah; |dl <<= 1; |rcl ah
+				|bh <<= 1; |rcl ah; |bl <<= 1; |rcl ah
+				rep.set.w di,ax
+
+				ax = 0
+				|dh <<= 1; |rcl al; |dl <<= 1; |rcl al
+				|bh <<= 1; |rcl al; |bl <<= 1; |rcl al
+				|dh <<= 1; |rcl ah; |dl <<= 1; |rcl ah
+				|bh <<= 1; |rcl ah; |bl <<= 1; |rcl ah
+				rep.set.w di,ax
+
+				ax = 0
+				|dh <<= 1; |rcl al; |dl <<= 1; |rcl al
+				|bh <<= 1; |rcl al; |bl <<= 1; |rcl al
+				|dh <<= 1; |rcl ah; |dl <<= 1; |rcl ah
+				|bh <<= 1; |rcl ah; |bl <<= 1; |rcl ah
+				rep.set.w di,ax
+
+				ax = 0
+				|dh <<= 1; |rcl al; |dl <<= 1; |rcl al
+				|bh <<= 1; |rcl al; |bl <<= 1; |rcl al
+				|dh <<= 1; |rcl ah; |dl <<= 1; |rcl ah
+				|bh <<= 1; |rcl ah; |bl <<= 1; |rcl ah
+				rep.set.w di,ax
+
+				++si
+			endloop (--cx)
+
+			push putLinDat, ww(es, %T.pixLinBuf)
+			call putLinFunc
+			sp += 8
+
+		pop  si,es
+		si += 80
+	endloop (--linCnt)
+  EXITLOOP:
+	ax = 0
+  RET:
+	return
+endproc
+
+
+endmodule

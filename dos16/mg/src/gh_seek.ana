@@ -1,0 +1,23 @@
+submodule GH
+	import Subr
+
+@define	GHT()	GH.T[ds:0]
+
+
+*proc SeekR(bx, dx.ax)
+begin
+	save pusha,ds
+	bx = GHT.rdHdl
+	Subr.Seek bx,dx.ax
+	return
+endproc
+
+*proc SeekW(bx, dx.ax)
+begin
+	save pusha,ds
+	bx = GHT.wrtHdl
+	Subr.Seek bx,dx.ax
+	return
+endproc
+
+endmodule

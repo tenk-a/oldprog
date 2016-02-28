@@ -1,0 +1,484 @@
+module Decol
+	c_name "Decol","_",1
+	//‚±‚ÌŒë·ŠgŽUƒ‹[ƒ`ƒ“‚ÍŽRŒû‰ë•FŽì‚Ì gosakaku.lzh ‚ðŽQl‚É‚µ‚Ä
+	//ì¬‚µ‚Ü‚µ‚½B
+	import Std
+	import Pri
+
+var  gosaFlg:b = 1
+var  gosaPtr:d, gosaPtrBgn:w, gosaPtrEnd:w, gosaX:w
+var  gosaBuf:d, gosaBufSiz:w
+var  sizeX:w, sizeY:w
+var  pal256ptr:w
+var  mono256:b(256)
+
+
+proc Mono16Gosa(al,di)
+//	in  ds
+//	out cl
+//  out di
+//	break bx,cx,dx
+begin
+	save es
+	es = gosaPtr.h	//es.di = gosaPtr
+	ah = 0
+	dx = ax
+	al = b[es:di]
+	b[es:di] = 0
+	ax .=. al
+	dx += ax
+	if (dx .>. 0xff)
+		dx = 0xff
+	elsif(dx .<. 0)
+		dx = 0
+	fi
+	cx = dx
+	if (cx & 0b1000)
+		cx >>= 4
+		++cx
+		if (cx > 0x0f)
+			cx = dx
+			cx >>= 4
+		fi
+	else
+		cx >>= 4
+	fi
+	ax = cx
+	ax <<= 4
+	dx -= ax
+	ax = dx
+
+	////
+//	dx = gosaX
+//	++dx
+	ax .>>= 2
+//	if (dx < sizeX)
+		b[es:di+1] += al
+//	fi
+	bx = di
+	bx += sizeX
+	if (bx >= gosaPtrEnd)
+		bx -= gosaBufSiz
+	fi
+	b[es:bx] += al
+
+	++bx
+	if (bx >= gosaPtrEnd)
+		bx -= gosaBufSiz
+	fi
+//	if (dx < sizeX)
+		b[es:bx] += al
+//	fi
+
+//	if (gosaX)
+		bx = di
+		bx += sizeX
+		--bx
+		if (bx >= gosaPtrEnd)
+			bx -= gosaBufSiz
+		fi
+		b[es:bx] += al
+//	fi
+//	if (dx >= sizeX)
+//		dx = 0
+//	fi
+//	gosaX = dx
+
+	++di
+	if (di >= gosaPtrEnd)
+		di = gosaPtrBgn
+	fi
+	//	gosaPtr.l = di
+
+	// ax = cx
+	return
+endproc
+
+//////////
+proc Mono256to16sub()
+//  in ds = %var
+begin
+	save pusha
+
+	si = pal256ptr
+	di = &mono256
+	cx = 256
+	dx = 0
+	loop
+		// dx = G * 9 + R * 5 + B * 2 --> dh
+		rep.load al,si
+		ah = 0
+		//ax += 1	//
+		dx = ax
+		ax += ax
+		dx += ax
+		dx += ax
+		rep.load al,si
+		ah = 0
+		dx += ax
+		ax += ax
+		ax += ax
+		dx += ax
+		dx += ax
+		rep.load al,si
+		ah = 0
+		//if (ax > 2)	//
+		//	ax -= 2		//
+		//fi			//
+		ax += ax
+		dx += ax
+
+		dx >>= 4
+		if (dx > 255)
+			dx = 255
+		fi
+		b[di] = dl
+		++di
+	endloop (--cx)
+	return
+endproc
+
+*proc Mono16(pbuf:d, xx:w, yy:w, pal:w, wbuf:d, wbufSiz:w, gosFlg:w);cdecl
+//	wbufSiz > xx
+enter
+	save pusha,es,ds
+	var  cntX:w,cntY:w
+
+	ds = ax = %var
+	gosaFlg = al = gosFlg.l
+	sizeX = ax = xx
+	sizeY = ax = yy
+	pal256ptr = ax = pal
+	Mono256to16sub
+	if (gosaFlg)
+		gosaBuf = dx.ax = wbuf
+		es.di   = dx.ax
+		gosaPtr = dx.ax
+		gosaPtrBgn = ax
+		gosaBufSiz = cx = wbufSiz
+		ax += cx
+		gosaPtrEnd = ax
+		rep.set di, 0, cx
+		gosaX = 0
+	fi
+	bx.si = pbuf
+	di = gosaPtr.l
+	cntY = ax = yy
+	loop
+		es = bx
+		cntX = bx = xx
+		loop
+			bl = b[es:si]
+			bh = 0
+			al = mono256[bx]
+			if (gosaFlg)
+				Mono16Gosa al,di	//
+				b[es:si] = cl
+			else
+				al >>= 4
+				b[es:si] = al
+			fi
+			++si
+		endloop(--cntX)
+		bx = es
+		Std.FpToHp bx,si,ax
+	endloop (--cntY)
+	return
+endproc
+
+/////////////////////////////////////////////////////////////////////////////
+@if 1
+var  gosaVal:w
+var  gosa:w,gosa2:w,gosa3:w,gosa5:w
+
+@define AddGosa(ES, DI, ADR, AX)	\
+	DI = ADR;						\
+	if (DI >= gosaPtrEnd);			\
+		DI -= gosaBufSiz;			\
+	fi;								\
+	w[ES:DI] += AX;					
+
+
+proc GosaRB(al)
+//	in  ds
+//	out ax
+begin
+	push bx,cx,dx,si,di,es
+
+	es.si = gosaPtr
+	dl = al
+	dh = 0
+//Pri.Int dx
+//Pri.Chr ','
+//Pri.Int w[es:si]
+//Pri.Chr '\t'
+	dx += w[es:si]
+	w[es:si] = 0
+@if 0
+	if (dx .>. 0xff)
+		dx = 0xff
+	elsif (dx .<. 0)
+		dx = 0
+	fi
+@fi
+	ax = gosaVal
+	ax .>>= 1
+	if (dx .<. ax)
+		cx = 0
+	else
+		cx = 1
+		dx -= gosaVal
+	fi
+	//jmp RetGosaRGB()
+endproc //continue
+
+proc RetGosaRGB()
+begin
+	//gosa
+	bx = ax = dx
+	dx <<= 1
+	bx .>>= 5
+	gosa  = bx
+	ax += dx
+	bx = ax
+	bx .>>= 5
+	gosa3 = bx
+	ax += dx
+	ax .>>= 5
+	gosa5 = ax
+	dx .>>= 5
+	gosa2 = dx
+
+// Pri.Int gosa
+// Pri.Chr ','
+// Pri.Int gosa2
+// Pri.Chr ','
+// Pri.Int gosa3
+// Pri.Chr ','
+// Pri.Int gosa5
+// Pri.Cr
+
+	//bx = sizeX * 6
+	bx =  sizeX
+	bx += bx
+	bx += sizeX
+	bx += bx
+
+	ax = gosa5
+	AddGosa (es, di, si   +1*6, ax)			//(x+1,y  ) += gosa*5/32
+	AddGosa (es, di, si+bx    , ax)			//(x  ,y+1) += gosa*5/32
+	ax = gosa3
+	AddGosa (es, di, si   +2*6, ax)			//(x+2,y  ) += gosa*3/32
+	AddGosa (es, di, si+bx+1*6, ax)			//(x+1,y+1) += gosa*3/32
+	AddGosa (es, di, si+bx+(-1)*6, ax)		//(x-1,y+1) += gosa*3/32
+	ax = gosa2
+	AddGosa (es, di, si+bx+2*6, ax)			//(x+2,y+1) += gosa*2/32
+	AddGosa (es, di, si+bx+(-2)*6, ax)		//(x-2,y+1) += gosa*2/32
+	bx += bx
+	ax = gosa3
+	AddGosa (es, di, si+bx    , ax)			//(x  ,y+2) += gosa*3/32
+	ax = gosa2
+	AddGosa (es, di, si+bx+1*6, ax)			//(x+1,y+2) += gosa*2/32
+	AddGosa (es, di, si+bx+(-1)*6, ax)		//(x-1,y+2) += gosa*2/32
+	ax = gosa
+	AddGosa (es, di, si+bx+2*6, ax)			//(x+2,y+2) += gosa/32
+	AddGosa (es, di, si+bx+(-2)*6, ax)		//(x-2,y+2) += gosa/32
+
+	si += 2
+	if (si >= gosaPtrEnd)
+		si = gosaPtrBgn
+	fi
+	gosaPtr.l = si
+
+	ax = cx
+	pop  bx,cx,dx,si,di,es
+	ret
+endproc
+
+proc GosaG(al)
+//	in  ds
+//	out al
+begin
+	push bx,cx,dx,si,di,es
+
+	es.si = gosaPtr
+	dl = al
+	dh = 0
+	ax = w[es:si]
+	w[es:si] = 0
+	dx += ax
+	if (dx .>. 0xff)
+		dx = 0xff
+	elsif (dx .<. 0)
+		dx = 0
+	fi
+	cx = dx
+	if (cx & 0x20)
+		cx >>= 6
+		++cx
+		if (cx > 3)
+			cx = dx
+			cx >>= 6
+		fi
+	else
+		cx >>= 6
+	fi
+	ax = cx
+	ax <<= 6
+	dx -= ax
+	jmp RetGosaRGB
+endproc
+
+
+*proc Col16(pbuf:d, xx:w, yy:w, pal:w, wbuf:d, wbufSiz:w);cdecl
+//	wbufSiz > xx * 3	wbufSiz = 3(xx+n)
+enter
+	save pusha,es,ds
+
+	ds = ax = %var
+	sizeX = ax = xx
+	sizeY = ax = yy
+
+	//
+//Pri.Hex4 pal;Pri.Chr '\t'
+//Pri.Word wbufSiz;Pri.Cr
+	gosaVal 	= 240
+	gosaBuf 	= dx.ax = wbuf
+	es.di   	= dx.ax
+	gosaPtr		= dx.ax
+	gosaPtrBgn	= ax
+	gosaBufSiz	= cx = wbufSiz
+	rep.set di, 0, cx
+	gosaPtrEnd 	= di
+	bx.di = pbuf
+	cx = 0
+	loop
+		es = bx
+		dx = 0
+		loop
+//ah = 0
+//al =  b[es:di];Pri.Int ax;Pri.Chr ' '
+			al =  b[es:di]
+			ah =  0
+			si =  ax
+			ax += ax
+			si += ax
+//Pri.Word si;Pri.Chr ' '
+			si += pal
+//Pri.Hex4 si;Pri.Chr ' '
+//al =  b[si];Pri.Hex2 al;Pri.Chr ' '
+//al =  b[si+1];Pri.Hex2 al;Pri.Chr ' '
+//al =  b[si+2];Pri.Hex2 al;Pri.Cr
+			bx = 0
+
+			//R
+			rep.load al,si
+			GosaRB al
+			al <<= 1
+			bl |= al
+
+			//G
+			rep.load al,si
+//push ax;Pri.Hex2 al;Pri.S "  ";pop ax
+			GosaG  al	//GosaG  al
+//push ax;Pri.Hex2 al;Pri.S "  ";pop ax
+			al <<= 2
+			bl |= al
+
+			//B
+			rep.load al,si
+			GosaRB al
+
+			//
+			al |= bl
+			rep.set di,al
+			++dx
+//ah = 0
+//Pri.Int ax
+//Pri.Cr
+//Pri.Cr
+		endloop(dx < xx)
+		bx = es
+		Std.FpToHp bx,di,ax
+		++cx
+Pri.S    "\r"
+Pri.Word cx
+	endloop (cx < yy)
+	return
+endproc
+@fi
+
+
+//-----------------------------------------------------------------------------
+var dit:b() = data
+    b 0, 32,8, 40, 2, 34,10,42	/*Bayer 8*8*/
+	b 48,16,56,24, 50,18,58,26
+	b 12,44,4, 36, 14,46,6, 38
+	b 60,28,52,20, 62,30,54,22
+	b 3, 35,11,43, 1, 33,9, 41
+	b 51,19,59,27, 49,17,57,25
+	b 15,47,7, 39, 13,45,5, 36
+	b 63,31,55,23, 61,29,53,21
+enddata
+
+
+*proc Dit16(pbuf:d, szX:w, szY:w, rgbpal:w );cdecl
+//
+enter
+	save pusha, es,ds
+	local y:w, ddy:w
+
+	ds = ax = %var
+	y = 0
+	es.di = pbuf
+	loop
+		ax = y
+		ax &= 0x07
+		ax <<= 3
+		ddy = ax
+		dx = es
+		Std.FpToHp dx,di,ax
+		es = dx
+		cx = 0
+		loop
+			bx = cx
+			bx &= 0x7
+			bx |= ddy
+			dh = bl = dit[bx]
+			dh += dh
+
+			bh = dl = ah = 0
+			al = b[es:di]
+			si = rgbpal
+			si += ax
+			si += ax
+			si += ax
+			rep.load al,si
+			|al += dh
+			if (cf)
+				dl = 0x02
+			fi
+			rep.load al,si
+			ax += bx
+			bx = ax
+			ax += ax
+			ax += bx
+			ah <<= 2
+			dl |= ah
+			rep.load al,si
+			|al += dh
+			if (cf)
+				dl |= 0x01
+			fi
+			al = dl
+			rep.set di,al
+			++cx
+		endloop (cx < szX)
+		++y
+		ax = y
+	endloop (ax < szY)
+	return
+endproc
+
+
+endmodule

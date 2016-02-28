@@ -1,0 +1,18 @@
+# rules
+CC = lcc
+ASM = r86
+AFLAGS =
+CFLAGS = -O
+
+.c.obj:
+	$(CC) $(CFLAGS) -c $<
+.a86.obj:
+	$(ASM) $(AFLAGS) $<
+#
+OBJ = cgldsv.obj direntry.obj wildcmp.obj
+pihdr.exe : $(OBJ)
+	$(CC) $(CFLAGS) $(OBJ) -lnoexpand.obj
+#
+cgldsv.obj   : cgldsv.c
+direntry.obj : direntry.a86
+wildcmp.obj  : wildcmp.a86

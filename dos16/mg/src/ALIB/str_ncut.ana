@@ -1,0 +1,37 @@
+submodule Str
+	//	1992	writen by M.Kitamura
+
+	import Std
+
+*proc NCut(si,cx)
+//	文字列の行頭 cx バイトを削除。文字列自体を書き換える
+//	arg si	文字列
+//	arg cx	削除するバイト数
+//	in	ds
+begin
+	save ax,cx,di,si,es
+	if (cx)
+		es = ds
+		di = si
+		loop
+			rep.load al,si
+			if (Str.sjisFlg && Std.IsKanji(al))
+				rep.load al,si
+				if (cx > 1)
+					--cx
+				fi
+			fi
+			if(al == 0 || al == '\n')
+				--si
+				exit
+			fi
+		endloop (--cx)
+		loop
+			rep.load al,si
+			rep.set  di,al
+		endloop (al)
+	fi
+	return
+endproc
+
+endmodule

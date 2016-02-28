@@ -1,0 +1,52 @@
+module Pri
+	c_name "Pri","_",1
+	import Dos
+	import Str
+
+*proc S(ax)
+//	in ds
+	endproc
+
+*proc Chr(ax)
+//	１文字表示
+//	  arg  ax		１文字（シフトJIS 対応）
+//	  out  cf		0:エラー無　1:エラー有(axにERR CODE)
+//	  out  ax,bx	そのまま
+	endproc
+
+*proc Cr()
+	endproc
+
+*var buf:b(12)	//module only
+
+*proc Word(ax)
+	endproc
+
+*proc DWord(dx.ax)
+	endproc
+
+*proc Int(ax)
+	endproc
+
+*proc Hex8(dx.ax)
+	endproc
+
+*proc Hex4(ax)
+	endproc
+
+*proc Hex2(al)
+	endproc
+
+@if 1
+//*proc FmtS( ...av:w() )
+//	endproc
+
+*proc FmtDS( ...av:w() );cdecl
+	endproc
+*proc Fmt( ...av:w() );cdecl
+	endproc
+*proc FmtHdl(hdl:w);cdecl
+	endproc
+@fi
+
+endmodule

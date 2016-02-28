@@ -1,0 +1,24 @@
+submodule RPal
+
+@if 1
+*proc GetTone()
+begin
+	save dx,ds
+	ds = dx = %var
+	dx = RPal.ptr.h
+	if (dx == 0)
+		RPal.Search
+		if (dx == 0)
+			ax = -1
+			go RET
+		fi
+	fi
+	ds = dx
+	al = RPal.T[0].tone
+	ah = 0
+  RET:
+	return
+endproc
+@fi
+
+endmodule

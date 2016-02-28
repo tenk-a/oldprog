@@ -1,0 +1,528 @@
+module Pmt
+	c_name "Pmt","_",1
+
+	import GH
+	import Subr
+	import Std
+	import Str
+	import Pri
+	import Tif
+	import Dos
+	import Deb
+
+@define	GHT()	GH.T[ds:0]
+
+*struct HDR
+	id:w			// 'pm':16色 'Pm':256色  'pM':15/16bit色  PM:24BIT色
+	pln:b			// 1ﾄﾞｯﾄあたりのﾋﾞｯﾄ数. 8以下:8ﾋﾞｯﾄ色画扱い 9以上:24ﾋﾞｯﾄ色
+	dat:b			// b7:ﾊﾟﾚｯﾄの有無 b6:透明色フラグ b5:拡張領域の有無
+	xsz:w			// 横幅ドット数('pm'では横幅は偶数になるようパティンク
+	ysz:w			// 縦幅ドット数
+	x0:w			// 始点 x
+	y0:w			// 始点 y
+	bcol:w			// 透明色
+	rsv:w			// 予約
+	xasp:w			// xアスペクト
+	yasp:w			// yアスペクト
+	commentOfs:d	// コメントへのオフセット
+	artist:b(18)	// 作者名
+	artistTerm:b	// '\0'
+	timeSec1:b		// 0 or 1秒
+	time:w			// MS-DOSな時間
+	date:w			// MS-DOSな日付
+	dmy:b(16)		// 予約
+endstruct
+
+*struct EXHDR
+	comment:b()		// コメント.サイズ不定 '\0'が現れるまで.
+endstruct
+
+
+/*---------------------------------------------------------------------------*/
+cvar pln4flg:w=0
+
+*proc Df_SetPln4()
+begin
+	pln4flg = 1
+	return
+endproc
+
+*proc Df_SetPlnAuto()
+begin
+	pln4flg = -1
+	return
+endproc
+
+
+*proc InitR(ght:d);cdecl
+enter
+	save ax,ds,bx
+	ds.bx = ght
+	GHT.fmtR = GH.PMT
+	return
+endproc
+
+
+cvar hdrHdl:w
+
+proc InitGetC(ax)
+begin
+	hdrHdl = ax
+	return
+endproc
+
+proc GetC()
+begin
+	save bx,cx,dx,ds,es
+	var gcbuf:w = 0
+
+	ds = ax = %var
+	Dos.Read hdrHdl,&gcbuf,1
+	if (_c_)
+		Pri.Fmt "ヘッダ読み込みでエラー #%d\N", ax
+		gcbuf = 0
+	fi
+	ax = gcbuf
+	return
+endproc
+
+
+*proc Open(GHTptr:d, fileName:d);cdecl
+//	Pmtファイルをオープンしてヘッダを読み込み、ファイル・ポインタをピクセル
+//	データの先頭にして復帰する
+//  out ax  0:成功  以外:エラー
+enter
+	save bx,cx,dx,si,di,ds,es
+	cvar fmt:b() = "PMT"
+	const HDRSZS = Std.PARASIZE(sizeof(Pmt.HDR))
+	cvar hdr:Pmt.HDR
+
+	ds.bx = GHTptr
+  //Pri.Hex8 ds.bx
+
+	GH.Open bx, fileName
+	GH.Read bx, ww(cs,%hdr), sizeof(Pmt.HDR)
+
+	if (hdr.id  != 'P' + 'm'*0x100)
+	  @if 0
+		if (hdr.id == 'P' + 'M'*256)
+			Pri.Fmt "フルカラーのPMTには未対応\N"
+		else
+			Pri.Fmt "PMTのヘッダでないかも\N"
+		fi
+	  @else
+		Pri.Fmt "PMTのヘッダでないかも\N"
+	  @fi
+		go.w ERR
+	fi
+
+	// ヘッダの値をコピー
+	GHT.rdFmtName = cx.ax = ww(cs,&fmt)
+	//GHT.fmtR = GH.PMT
+	d[bx + %GH.T.macName] = cx.ax = 'P'+'M'*0x100+'T'*0x10000+' '*0x1000000
+	GHT.startX = dx = hdr.x0
+	GHT.sizeX = ax = hdr.xsz
+	ax += dx
+	--ax
+	GHT.endX = ax
+
+	GHT.startY = dx = hdr.y0
+	GHT.sizeY = ax = hdr.ysz
+	ax += dx
+	--ax
+	GHT.endY = ax
+
+	// アスペクト比
+	ah = 0
+	GHT.asp1 = al = hdr.yasp.l
+	GHT.asp2 = al = hdr.xasp.l
+
+	//透明色
+	GHT.bakCol = ax = hdr.bcol
+
+	//色
+	cl = hdr.pln
+	GHT.pln = 8
+	GHT.col = 256
+	if (cl <= 4)
+		GHT.pln = 4
+		GHT.col = 16
+	elsif (cl > 8)
+		GHT.pln = 24;
+		GHT.col = 0;
+	fi
+
+	if (pln4flg .>. 0 && cl <= 8)	//強制 16色モード
+		GHT.pln = 4
+		GHT.col = 16
+	fi
+
+	//日付
+	ax = hdr.date
+	if (ax)
+		GHT.fdate = ax
+		GHT.ftime = ax = hdr.time
+		GHT.ftimeFlg = 1
+	fi
+
+	//作者名
+	hdr.artistTerm = 0
+	if (hdr.artist(0) == 0)
+		ax = 0
+		GHT.userName = ww(ax,ax)
+		GHT.userNameLen = ax
+		GHT.userNameSiz = ax
+	else
+		push	ds
+			ds = cs
+			si = %hdr.artist
+			GHT.userName = ds.si
+			Str.Len si
+			GHT.userNameLen = cx
+			++cx
+			GHT.userNameSiz = cx
+		pop 	ds
+	endif
+
+	dx.ax = hdr.commentOfs
+	if.w (dx || ax)
+		//コメント位置までシーク
+		GH.SeekR bx,dx.ax
+		//コメントを取得
+		InitGetC GHT.rdHdl
+		GHT.commentLen = 0
+		GH.GetMem bx, 0x5, 0x800
+		es.di = ww(ax,0)
+		GHT.comment = ww(es,0)
+		cx <<= 4
+		GHT.commentSiz = cx
+		cx = 0
+		loop
+			GetC
+			++cx
+			break (al == 0)
+			|cx - GHT.commentSiz
+			if (<)
+				rep.set di,al
+			elsif (==)
+				Pri.Fmt "コメントが長すぎるので途中で切りました\N"
+			else
+				--cx
+			fi
+		endloop
+		al = 0
+		rep.set di,al
+		--cx
+		GHT.commentLen = cx
+    	//Pri.Fmt ">%u/%u\N",GHT.commentLen, GHT.commentSiz
+		cx+=2
+		Std.ParaSize cx, ax
+		GH.ResizeMem bx, es, cx
+  		cx <<= 4
+		GHT.commentSiz = cx
+    	//Pri.Fmt "%lx>%Fs\N",GHT.comment, GHT.comment
+    	//Pri.Fmt "ｺﾒﾝﾄ長:%u/%u\N",GHT.commentLen, GHT.commentSiz
+		//シーク位置を元に戻す
+		dx.ax = sizeof(Pmt.HDR)
+		GH.SeekR bx, dx.ax
+	fi
+
+	//パレット・バッファ確保
+	GH.GetPalBuf bx
+	al = hdr.dat
+	if (al & 0x80 || GHT.pln > 8)
+		es.di = GHT.rgbPal
+		ax = cx
+		ax += ax
+		cx += ax
+		rep.set.b di,0,cx
+	else
+		ax.dx = GHT.rgbPal
+		cx = 256*3;
+		GH.Read bx, ax.dx, cx
+	  @if 10
+		if (GHT.pln == 8 && pln4flg == -1)
+			es.si = GHT.rgbPal
+			si += 16*3
+			cx = (256-16)*3/2
+			ax = 0
+			loop
+				ax += w[es:si]
+				si += 2
+			endloop(--cx)
+			if (ax == 0)
+				GHT.pln = 4
+				GHT.col = 16
+			fi
+		fi
+	  @fi
+	endif
+
+	//get buffer
+	GH.InitPDB ds.bx
+
+	ax = 0
+  RET:
+	return
+  ERR:
+  	ax = 1
+  	go RET
+
+endproc
+
+*proc CloseR(GHTptr:d);cdecl
+enter
+	save bx,ds,ax
+	ds.bx = GHTptr
+	Subr.Close GHT.rdHdl
+	return
+endproc
+
+*proc ReadPDB(GHTptr:d, lineCnt:w);cdecl
+//	ピクセル・データをバッファに入力
+enter
+	save pusha,ds,es
+	local xsize:w
+
+	ds.bx = GHTptr
+	ax = GHT.sizeX
+	dx.ax = lineCnt * ax
+	cx = ax
+  Deb.Chk
+  if (==)
+  	Pri.Fmt "Pmt.ReadPDB:%lx %d*%d=%u\N",ds.bx, lineCnt, GHT.sizeX, cx
+  fi
+	dx = GHT.hisSiz
+	es = ax = GHT.pdbSeg
+	GH.Read bx, ax.dx, cx
+	return
+endproc
+
+
+/*---------------------------------------------------------------------------*/
+//cvar wrt24flg:w = 0
+
+//*proc Df_SetPln24()
+//begin
+//	wrt24flg = 1
+//	return
+//endproc
+
+*proc InitW(ght:d);cdecl
+enter
+	save ax,ds,bx
+	ds.bx = ght
+	GHT.fmtW = GH.PMT
+	return
+endproc
+
+
+//cvar hdrHdl:w
+
+proc InitPutC(ax)
+begin
+	hdrHdl = ax
+	return
+endproc
+
+proc Err()
+begin
+	dx = ax
+	Pri.S "PMTヘッダ書込みでエラー #"; Pri.Int dx; Pri.Cr
+	Dos.Exit(1)
+endproc
+
+proc PutC(al)
+begin
+	save pusha,ax,bx,cx,dx,ds
+	var gcbuf:b,dmy:b
+
+	ds = bx = %var
+	gcbuf = al
+	Dos.Write hdrHdl,&gcbuf,1
+	if (_c_)
+		Err
+	fi
+	return
+endproc
+
+
+*proc CloseW(GHTptr:d);cdecl
+enter
+	save bx,cx,dx,si,di,es,ds
+
+	ds.bx = GHTptr
+	if (GHT.wrt24flg)
+		GH.FlushBuf bx
+	fi
+	if (GHT.commentLen)
+		// コメント
+		InitPutC GHT.wrtHdl
+		es.di = GHT.comment
+		cx = GHT.commentLen
+		loop
+			al = b[es:di] ; ++di
+			PutC al
+		endloop(al)
+		al = 0
+		PutC al
+	fi
+	GH.CloseW ds.bx
+	return
+endproc
+
+
+*proc Create(GHTptr:d, fname:d);cdecl
+  //PMTヘッダを出力(16or256色用)
+  //out ax  0:成功  以外:エラー
+enter
+	save bx,cx,dx,si,di,es,ds
+	cvar fmt:b() = "PMT"
+	cvar hdr:Pmt.HDR
+
+	ds.bx = GHTptr
+
+	//Pri.Fmt "Pmt.Create %lx,%Fs\N", GHTptr, fname
+
+	//ヘッダ作成
+	GHT.wrtFmtName = cx.ax = ww(cs,&fmt)
+	//GHT.fmtW = GH.PMT
+
+	es = cs
+	rep.set %hdr, 0, sizeof(Pmt.HDR)
+
+	hdr.id = 'P' + 'm'*256
+	hdr.dat = 0x00
+	al = GHT.plnW
+	hdr.pln = 8
+	if (al == 4)
+		hdr.pln = 4
+	fi
+	if (GHT.wrt24flg)
+		//hdr.id = 'P' + 'M'*256
+		hdr.pln = 24
+	fi
+
+	hdr.xsz = ax = GHT.sizeX 		// 横幅
+	hdr.ysz = dx = GHT.sizeY 		// 縦幅
+	hdr.x0  = ax = GHT.startX 	// 横幅
+	hdr.y0  = dx = GHT.startY 	// 縦幅
+	hdr.bcol = ax = GHT.bakCol	// 透明色
+	ah = 0
+	al = GHT.asp2	// アスペクト比
+	if (ax == 0)
+		++ax
+	fi
+	hdr.xasp = ax
+	al = GHT.asp1
+	if (ax == 0)
+		++ax
+	fi
+	hdr.yasp = ax
+
+	//作者名
+	if (GHT.userNameLen)
+		push ds,es
+			di = &hdr.artist
+			es = cs
+			ds.si = GHT.userName
+			Str.Cpy es.di, si	//, GHT.userNameLen
+			hdr.artistTerm = 0
+		pop  ds,es
+	fi
+
+	//日付
+	ax = GHT.fdate
+	if (GHT.ftimeFlg && ax /*GHT.fdate*/)
+		dx = GHT.ftime
+	else
+		ax = 0
+		dx = 0
+	fi
+	hdr.date = ax
+	hdr.time = dx
+
+	//コメント
+	if (GHT.commentLen)	//あれば、とりあえずオフセットを設定
+		if (GHT.wrt24flg == 0)
+			dx.ax = hdr.xsz * hdr.ysz
+			dx.ax += 256*3 + sizeof(Pmt.HDR)
+		else
+			dx.ax = hdr.xsz * 3
+			dx.ax = ax * hdr.ysz
+			dx.ax += sizeof(Pmt.HDR)
+		fi
+		hdr.commentOfs = dx.ax
+	fi
+
+	// フルカラー出力時のワークバッファを確保
+	if (GHT.wrt24flg)
+		GH.InitWrtBWD bx, 0x800, 0xF000	// バッファ確保
+	fi
+
+	//ファイルを作成
+	GH.Create bx,fname
+	go (ax) RET
+	GH.Write bx, ww(cs,%hdr), sizeof(Pmt.HDR)
+
+	//パレットを出力
+	if (GHT.wrt24flg == 0)
+		ax.dx = GHT.rgbPal
+		GH.Write bx, ax.dx, 3*256
+	fi
+
+	ax = 0
+  RET:
+	return
+endproc
+
+*proc CreatY(GHTptr:d, fname:d);cdecl
+enter
+	push ds,bx
+	ds.bx = GHTptr
+	GHT.wrt24flg = 1
+	Create GHTptr, fname
+	return
+endproc
+
+*proc WritePDB(GHTptr:d,lineCnt:w);cdecl
+//	ピクセル・データをバッファに出力
+enter
+	save pusha,es,ds
+
+	ds.bx = GHTptr
+	dx.ax = lineCnt * GHT.sizeX
+	cx = ax
+	if (GHT.wrt24flg == 0)
+		dx = GHT.hisSiz
+		es = GHT.pdbSeg
+		GH.Write bx, es.dx, cx
+	else
+		si = GHT.hisSiz
+		es.dx = GHT.rgbPal
+		ds = GHT.pdbSeg
+		loop
+			rep.load al,si
+			ah = 0
+			//bx = ax * 3 + GHT.rgbPal.l
+			di = ax
+			ax += ax
+			di += ax
+			di += dx
+			push ds
+				ds = GHTptr.h
+				al = b[es:di];++di
+				GH.WrtB bx,al
+				al = b[es:di];++di
+				GH.WrtB bx,al
+				al = b[es:di];++di
+				GH.WrtB bx,al
+			pop  ds
+		endloop (--cx)
+	fi
+	return
+endproc
+
+
+
+endmodule

@@ -1,0 +1,133 @@
+submodule GH
+	import Dos
+	import Subr
+	import Std
+	import Pri
+	import Deb
+
+@define	GHT()	GH.T[ds:0]
+
+
+*proc InitWrtBWD(bx,ax,cx)
+  //入力ﾊﾞｯﾌｧのﾒﾓﾘを確保する。そのとき、ﾃﾞﾌｫﾙﾄのﾊﾞｯﾌｧが設定済みならそちらを使う
+  //arg bx	GH.Tへのポインタ
+  //arg ax	ﾊﾞｯﾌｧの最小ｻｲｽﾞ
+  //arg cx	ﾊﾞｯﾌｧの最大ｻｲｽﾞ
+begin
+	save pusha
+	if (GHT.wrtBufSeg == 0 || ax > GHT.wrtBufSiz)
+		Std.ParaSize ax,dx
+		Std.ParaSize cx,dx
+		GH.GetMem bx, ax, cx
+		GHT.wrtBufSeg = ax
+		cx <<= 4
+		GHT.wrtBufSiz = cx
+	fi
+	GHT.wrtPtr = 0	//0xffff
+  Deb.Chk
+  if (==)
+  	Pri.Fmt "GH.InitWrtBWD seg=%x  siz=%d(%x)\N",\
+  				GHT.wrtBufSeg, GHT.wrtBufSiz, GHT.wrtBufSiz
+  fi
+	//GHT.wrtBufBtm = 0	//////////
+	return
+endproc
+
+*proc WrtBWDbuf(bx,di)
+  //出力バッファの初期化
+  //arg si	GH.Tへのポインタ
+begin
+	save pusha,ds,es
+	cx = di
+	GHT.wrtPtr = dx = 0
+	ax = GHT.wrtBufSeg
+  di.si = ds.bx
+	bx = GHT.wrtHdl
+	ds = ax
+ Deb.Chk
+ if (==)
+ 	Pri.Fmt "WrtBWDbuf[%lx] %d, %lx, %u\N", di.si, bx, ds.dx, cx
+ fi
+	Dos.Write bx,dx,cx
+	if (_c_)
+		Subr.PriExit "データの書出しに失敗しました\N"
+	elsif (ax != cx)
+		Subr.PriExit "データの書出しに失敗しました（ディスクがいっぱいかも）\N"
+	fi
+	return
+endproc
+
+*proc FlushBuf(bx)
+begin
+	save di
+	WrtBWDbuf bx, GHT.wrtPtr
+	return
+endproc
+
+@if 0
+*proc InitWrt(bx)
+  //arg si	GH.Tへのポインタ
+begin
+	GHT.wrtPtr = 0
+	return
+endproc
+@fi
+
+*proc WrtB (bx,al)
+	//1 バイト整数出力
+begin
+	save di,es
+	es = GHT.wrtBufSeg
+	di = GHT.wrtPtr
+	if (di >= GHT.wrtBufSiz)
+		WrtBWDbuf bx, GHT.wrtBufSiz
+		di = GHT.wrtPtr
+	fi
+	b[es:di] = al
+	++di
+	GHT.wrtPtr = di
+	return
+endproc
+
+*proc WrtW (bx,ax)
+	//2 バイト整数出力
+begin
+	save ax
+	if (GHT.wrtMode != 0)
+		al <=> ah
+	fi
+	WrtB bx,al
+	al = ah
+	WrtB bx,al
+	return
+endproc
+
+*proc WrtD (bx, dx.ax)
+	//4 バイト整数出力
+begin
+	save ax,dx
+	if (GHT.wrtMode != 0)
+		ax <=> dx
+	fi
+	WrtW bx,ax
+	ax = dx
+	WrtW bx,ax
+	return
+endproc
+
+*proc WrtS (bx,dx.ax)
+begin
+	save cx,dx,ax,si
+	si = ax
+	loop
+		push ds
+			ds = dx
+			rep.load al,si
+		pop  ds
+		break(al == 0)
+		WrtB bx,al
+	endloop
+	return
+endproc
+
+endmodule

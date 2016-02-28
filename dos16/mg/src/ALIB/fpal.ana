@@ -1,0 +1,541 @@
+module FPal
+	c_name "FPal","_",1
+
+	import Pri
+	import Subr
+	import Deb
+	import Fname
+	import Dos
+	import Lfn
+	import Str
+	import Alg
+
+@define ALG 1
+
+cvar  palLowNbl:b = 0xff
+*var  fname:b(130)
+cvar  palExtNumber:w = 0
+@if defined(ALG)
+  var hsvBuf:w(48)
+@fi
+var   eRgb:b() = "RGB"
+var   ePal:b() = "PAL"
+var   ePl8:b() = "PL8"
+@if defined(ALG)
+  var eAlg:b() = "ALG"
+@fi
+
+*proc PalExtNo(nn:w);cdecl
+enter
+	save ax
+	ax = nn
+	if (ax > 3)
+		ax = 0
+	fi
+	palExtNumber = ax
+	return
+endproc
+
+
+*proc LowNbl(nn:w);cdecl
+enter
+	save ax
+	palLowNbl = al = nn.l
+	return
+endproc
+
+*proc C4to8(rgbPal4:d,rgbPal8:d);cdecl
+enter
+	save pusha,es,ds
+
+	cx = 48
+	ds.si = rgbPal4
+	es.di = rgbPal8
+	ah = palLowNbl
+	if (ah != 0xff)
+		loop
+			rep.load al,si
+			if (al)
+				al <<= 4
+				al |= ah
+			fi
+			rep.set  di,al
+		endloop (--cx)
+	else
+		loop
+			rep.load al,si
+			ah = al
+			ah <<= 4
+			al |= ah
+			rep.set  di,al
+		endloop (--cx)
+	fi
+	return
+endproc
+
+*proc C8to4(rgbPal8:d,rgbPal4:d);cdecl
+enter
+	save pusha,es,ds
+	
+	ds.si = rgbPal8
+	es.di = rgbPal4
+	cx = 48
+	loop
+		rep.load al,si
+		al >>= 4
+		rep.set  di,al
+	endloop (--cx)
+	return
+endproc
+
+
+proc SkipSpc(si)
+begin
+	save ax
+	loop
+		rep.load al,si
+	endloop (al > 0 && al <= 0x20)
+	--si
+	return
+endproc
+
+proc GetPalFile(bx, es.di)
+enter
+	save pusha,es,ds
+	local buf:b(0x800)
+
+	ds = ss
+	dx = &buf
+	Subr.Read bx, dx, sizeof(buf)-2
+	si = dx
+	si += ax
+	b[si] = 0
+	si = dx
+	Subr.Close bx
+	bx = di
+	loop
+		SkipSpc si
+		go (b[si] == 0) RET
+		gosub ATOL
+		go (b[si] == 0) RET
+		di += ax
+		di += ax
+		di += ax
+
+		SkipSpc si
+		go (b[si] == 0) RET
+		gosub ATOL
+		rep.set di,al
+		go (b[si] == 0) RET
+
+		SkipSpc si
+		go (b[si] == 0) RET
+		gosub ATOL
+		rep.set di,al
+		go (b[si] == 0) RET
+
+		SkipSpc si
+		go (b[si] == 0) RET
+		gosub ATOL
+		rep.set di,al
+		go (b[si] == 0) RET
+		di = bx
+	endloop
+ RET:
+	return
+
+ ATOL:
+	cx = si
+	Str.AtoL si
+	if (cx == si || ax > 15 || dx)
+		Pri.FmtDS "bad .pal file\N"
+		go RET
+	fi
+	ret
+endproc
+
+*proc Get(fnam:d,rgbPal:d);cdecl
+enter
+	save pusha,es,ds
+	//local fname:b(130)
+
+	ds.si = fnam
+	ax = %var;es.di = ww(ax,&fname)	//es.di = ww(ss,&fname)
+	Str.Cpy es.di, si
+	ds.si = es.di
+	Str.UpLow si,1
+	ds = ax = %var
+	block
+		Fname.EquExt es.di, &ePal
+		bx = 3
+		exit (ax)
+      @if defined(ALG)
+		Fname.EquExt es.di, &eAlg
+		bx = 2
+		exit (ax)
+	  @fi
+		Fname.EquExt es.di, &eRgb
+		bx = 1
+		exit (ax)
+		Fname.ChgExt es.di, &eRgb
+		bx = 0
+	endblock
+	ds = es
+	Lfn.Open di, 0
+	if (cf)
+		go.w (bx) ERR
+      @if defined(ALG)
+		bx = 2
+		ds = ax = %var
+		Fname.ChgExt es.di, &eAlg
+		ds = es
+		Lfn.Open di, 0
+		if (cf)
+	  @fi
+			bx = 3
+			ds = ax = %var
+			Fname.ChgExt es.di, &ePal
+			ds = es
+			Lfn.Open di, 0
+			go (cf) ERR
+      @if defined(ALG)
+		fi
+	  @fi
+	fi
+	if (bx == 3)
+		bx = ax
+		GetPalFile bx, rgbPal
+  @if defined(ALG)
+	elsif (bx == 2)
+		bx = ax
+		ds = dx = %var
+		dx = &hsvBuf
+		Subr.Read bx, dx, 48*2
+		Alg.Hsv2Rgb ds.dx, rgbPal
+		Subr.Close bx
+  @fi
+	else
+		bx = ax
+		cx = 48
+		ds.dx = rgbPal
+		Subr.Read bx, dx, cx
+		Subr.Close bx
+	fi
+	C4to8 rgbPal,rgbPal
+
+  //ax = &fname
+  //Pri.FmtDS "PALETTE=%Fs\N", ww(%var,ax)	//ss.ax
+
+  	ax = 0
+  RET:
+	return
+  ERR:
+	push ds
+		ds = ax = %var
+		fname(0) = 0
+	pop  ds
+  	ax = 1
+  	go RET
+endproc
+
+
+proc PutPalFile(ax, cx.si)
+	// ax     ハンドル
+	// cx.si  rgbパレット
+begin
+	save pusha,ds
+
+	Pri.FmtHdl ax
+	ds = cx
+	cx = 0
+	ah = 0
+	loop
+		rep.load al,si
+		bx = ax
+		rep.load al,si
+		dx = ax
+		rep.load al,si
+		Pri.FmtDS "%d\t%d\t%d\t%d\N",cx,bx,dx,ax
+		++cx
+	endloop (cx < 16)
+	Pri.FmtHdl 0
+	return
+endproc
+
+*proc Put(fnam:d,rgbPal:d);cdecl
+enter
+	save pusha,es,ds
+	local pal:b(16*3)
+	//local fname:b(130)
+
+	ax = &pal
+	C8to4 rgbPal, ss.ax
+
+	ds.si = fnam
+	ax = %var;es.di = ww(ax,&fname)	//es.di = ww(ss,&fname)
+	Str.Cpy es.di, si
+	ds.si = es.di
+	Str.UpLow si,1
+	ds = ax = %var
+	block
+		Fname.EquExt es.di, &ePal
+		bx = 3
+		exit (ax)
+	  @if defined(ALG)
+		Fname.EquExt es.di, &eAlg
+		bx = 2
+		exit (ax)
+	  @fi
+		Fname.EquExt es.di, &eRgb
+		bx = 1
+		exit (ax)
+		if (palExtNumber == 3)
+			si = &ePal
+			bx = 3
+  @if defined(ALG)
+		elsif (palExtNumber == 2)
+			si = &eAlg
+  			bx = 2
+  @fi
+		else
+			si = &eRgb
+			bx = 0
+		fi
+		Fname.ChgExt es.di, si
+	endblock
+	ds = es
+	Lfn.Create di, 0
+	go (cf) RET
+	if (bx == 3)
+		bx = ax
+		PutPalFile ax, ww(ss,&pal)
+  @if defined(ALG)
+	elsif (bx == 2)
+		bx = ax
+		ds = dx = %var
+		dx = %hsvBuf
+		ax = &pal
+		Alg.Rgb2Hsv ss.ax, ds.dx
+		Subr.Write bx, dx, 48*2
+  @fi
+	else
+		bx = ax
+		cx = 3*16
+		ds.dx = ww(ss,&pal)
+		Subr.Write bx, dx, cx
+	fi
+	Subr.Close bx
+
+  //ax = &fname
+  //Pri.FmtDS "PALETTE=%Fs\N", ww(%var,ax)	//ss.ax
+
+  	ax = 0
+  RET:
+	return
+endproc
+
+
+/*---------------------------------------------------------------------------*/
+
+proc GetPalFile256(bx, es.di)
+enter
+	save pusha,es,ds
+	local buf:b(0x2000)
+
+	ds = ss
+	dx = &buf
+	Subr.Read bx, dx, sizeof(buf)-2
+	si = dx
+	si += ax
+	b[si] = 0
+	si = dx
+	Subr.Close bx
+	bx = di
+	loop
+		SkipSpc si
+		go (b[si] == 0) RET
+		gosub ATOL
+		go (b[si] == 0) RET
+		di += ax
+		di += ax
+		di += ax
+
+		SkipSpc si
+		go (b[si] == 0) RET
+		gosub ATOL
+		rep.set di,al
+		go (b[si] == 0) RET
+
+		SkipSpc si
+		go (b[si] == 0) RET
+		gosub ATOL
+		rep.set di,al
+		go (b[si] == 0) RET
+
+		SkipSpc si
+		go (b[si] == 0) RET
+		gosub ATOL
+		rep.set di,al
+		go (b[si] == 0) RET
+		di = bx
+	endloop
+ RET:
+	return
+
+ ATOL:
+	cx = si
+	Str.AtoL si
+	if (cx == si || ax > 255 || dx)
+		Pri.FmtDS "bad .pal file\N"
+		go RET
+	fi
+	ret
+endproc
+
+*proc Get256(fnam:d,rgbPal:d);cdecl
+enter
+	save pusha,es,ds
+	//local fname:b(130)
+
+	ds.si = fnam
+	ax = %var;es.di = ww(ax,&fname)	//es.di = ww(ss,&fname)
+	Str.Cpy es.di, si
+	ds.si = es.di
+	Str.UpLow si,1
+	ds = ax = %var
+	block
+		Fname.EquExt es.di, &ePal
+		bx = 3
+		Fname.EquExt es.di, &ePl8
+		bx = 2
+		exit (ax)
+		Fname.EquExt es.di, &eRgb
+		bx = 1
+		exit (ax)
+		Fname.ChgExt es.di, &eRgb
+		bx = 0
+	endblock
+	ds = es
+	Lfn.Open di, 0
+	if (cf)
+		go.w (bx) ERR
+		bx = 2
+		ds = ax = %var
+		Fname.ChgExt es.di, &ePl8
+		ds = es
+		Lfn.Open di, 0
+		if (cf)
+			bx = 3
+			ds = ax = %var
+			Fname.ChgExt es.di, &ePal
+			ds = es
+			Lfn.Open di, 0
+			go (cf) ERR
+		fi
+	fi
+	if (bx == 3)
+		bx = ax
+		GetPalFile256 bx, rgbPal
+	else
+		bx = ax
+		cx = 256*3
+		ds.dx = rgbPal
+		Subr.Read bx, dx, cx
+		Subr.Close bx
+	fi
+
+  //ax = &fname
+  //Pri.FmtDS "PALETTE=%Fs\N", ww(%var,ax)	//ss.ax
+
+  	ax = 0
+  RET:
+	return
+  ERR:
+	push ds
+		ds = ax = %var
+		fname(0) = 0
+	pop  ds
+  	ax = 1
+  	go RET
+endproc
+
+
+proc PutPalFile256(ax, cx.si)
+	// ax     ハンドル
+	// cx.si  rgbパレット
+begin
+	save pusha,ds
+
+	Pri.FmtHdl ax
+	ds = cx
+	cx = 0
+	ah = 0
+	loop
+		rep.load al,si
+		bx = ax
+		rep.load al,si
+		dx = ax
+		rep.load al,si
+		Pri.FmtDS "%d\t%d\t%d\t%d\N",cx,bx,dx,ax
+		++cx
+	endloop (cx < 256)
+	Pri.FmtHdl 0
+	return
+endproc
+
+*proc Put256(fnam:d,rgbPal:d);cdecl
+enter
+	save pusha,es,ds
+	//local fname:b(130)
+
+	ds.si = fnam
+	ax = %var;es.di = ww(ax,&fname)	//es.di = ww(ss,&fname)
+	Str.Cpy es.di, si
+	ds.si = es.di
+	Str.UpLow si,1
+	ds = ax = %var
+	block
+		Fname.EquExt es.di, &ePal
+		bx = 3
+		exit (ax)
+		Fname.EquExt es.di, &ePl8
+		bx = 1
+		exit (ax)
+		Fname.EquExt es.di, &eRgb
+		bx = 1
+		exit (ax)
+		if (palExtNumber == 3)
+			si = &ePal
+			bx = 3
+		elsif (palExtNumber == 2)
+			si = &ePl8
+			bx = 0
+		else
+			si = &eRgb
+			bx = 0
+		fi
+		Fname.ChgExt es.di, si
+	endblock
+	ds = es
+	Lfn.Create di, 0
+	go (cf) RET
+	if (bx/* == 3*/)
+		bx = ax
+		PutPalFile256 ax, rgbPal
+	else
+		bx = ax
+		cx = 3*256
+		ds.dx = rgbPal
+		Subr.Write bx, dx, cx
+	fi
+	Subr.Close bx
+
+  //ax = &fname
+  //Pri.FmtDS "PALETTE=%Fs\N", ww(%var,ax)	//ss.ax
+
+  	ax = 0
+  RET:
+	return
+endproc
+
+endmodule

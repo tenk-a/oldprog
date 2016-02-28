@@ -1,0 +1,84 @@
+module EMS
+	c_name "EMS","_",1
+
+*proc Exist();cdecl
+enter
+	save cx,di,si,ds,es
+
+	ds = ax = %var
+	es = ax = 0
+	es = d[es:0x67*4].h
+	di = 0x0A
+	rep.cmp.w di,"EMMXXXX0",4
+	if (==)
+		++ax
+	fi
+	return
+endproc
+
+*proc Alloc(pagCnt:w);cdecl
+enter
+	save bx,dx
+	ah = 0x43
+	bx = pagCnt
+	intr 0x67
+	if (ah)
+		ax = 0
+	else
+		ax = dx
+	fi
+	return
+endproc
+
+*proc Free(handle:w);cdecl
+enter
+	ah = 0x45
+	dx = handle
+	intr 0x67
+	al = ah
+	ah = 0
+	return
+endproc
+
+*proc PageSeg();cdecl
+begin
+	save bx
+	ah = 0x41
+	intr 0x67
+	if (ah)
+		ax = 0
+	else
+		ax = bx
+	fi
+	return
+endproc
+
+*proc Page(hdl:w, pag:w);cdecl
+enter
+	save bx,dx,cx
+	ax = 0x4400
+	bx = pag
+	dx = hdl
+	intr 0x67
+	if (ah)
+		ax = 0
+	else
+		ax = dx
+	fi
+	return
+endproc
+
+*proc FreePageCount();cdecl
+enter
+	save bx
+	ah = 0x42
+	intr 0x67
+	if (ah)
+		ax = 0
+	else
+		ax = bx
+	fi
+	return
+endproc
+
+endmodule

@@ -1,0 +1,84 @@
+module Mag
+	c_name "Mag","_",1
+	/*
+		横は最大 3790ドット
+	*/
+
+//////////////////////////////////////////////////////////////////////////////
+
+
+*struct HDR		// MAGヘッダ
+	nil:b		// 0
+	macNo:b		// 機種番号
+	macFlg:b	// 機種依存データ
+	scrnMode:b	// スクリーン・モード
+	startX:w	// 始点ｘ
+	startY:w	// 始点ｙ
+	endX:w		// 終点ｘ
+	endY:w		// 終点ｙ
+	flagAofs:d	// フラグＡへのオフセット
+	flagBofs:d	// フラグＢへのオフセット
+	flagBsiz:d	// フラグＢのサイズ
+	pdataOfs:d	// ピクセル・データへのオフセット
+	pdataSiz:d	// ピクセル・データのサイズ
+	grbPal:b()	// GRBパレット・データ
+endstruct
+
+//スクリーン・モード
+*const MF_200L = 0x01,MF_8C = 0x02, MF_DIG = 0x04, MF_256C = 0x80
+
+@if 0
+*struct R
+	hdrOfs:d
+	flagAofs:d, flagAsiz:d
+	flagBofs:d, flagBsiz:d//, flagBofs0:d
+	pdataOfs:d, pdataSiz:d
+endstruct
+
+*struct W
+	hdrOfs:d
+	flagAofs:d, flagAsiz:d
+	flagBofs:d, flagBsiz:d, flagBofs0:d
+	pdataOfs:d, pdataSiz:d
+endstruct
+@endif
+
+//*const RDBUFA = 0x800,RDBUFB = 0x1000,RDBUFP = 0x1000
+*const RDBUFA = 0x2000,RDBUFB = 0x7000,RDBUFP = 0xE000
+*const FLAGLINBUFSIZ = (4096/2)+32
+*const RDBUFSIZP = (RDBUFA+RDBUFB+RDBUFP+FLAGLINBUFSIZ+4*16)>>4
+
+*proc Open(ght:d, fname:d);cdecl
+endproc
+
+*proc Create(ght:d,filename:d);cdecl
+//	Magファイルのヘッダ出力
+endproc
+
+*proc ReadPDB(ght:d, cnt:w);cdecl
+// ピクセル・データ・バッファに cnt 行, MAGを展開
+endproc
+
+*proc WritePDB(ght:d,cnt:w);cdecl
+// ピクセル・データ・バッファ cnt 行, MAGに変換
+endproc
+
+*proc CloseR(GHTptr:d);cdecl
+endproc
+
+*proc CloseW(ght:d);cdecl
+endproc
+
+*proc InitW(ght:d);cdecl
+endproc
+
+*proc InitR(ght:d);cdecl
+endproc
+
+*proc InitRead(bx)
+endproc
+
+*proc InitWrite(bx)
+endproc
+
+endmodule

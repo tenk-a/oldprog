@@ -1,0 +1,29 @@
+module HF_SUB
+	c_name "FB","",1
+
+*proc Scroll(x0:w,y0:w);cdecl
+enter
+	save ax
+
+	port(0xd6) = ax = 0x193
+
+	port(0xd4) = ax = 0x80 + 4
+	//loop; al = port(0x60); endloop ((al & 0x20) != 0)
+	port(0xda) = al = x0.l
+
+	port(0xd4) = ax = 0x80 + 5
+	//loop; al = port(0x60); endloop ((al & 0x20) != 0)
+	port(0xda) = al = x0.h
+
+	port(0xd4) = ax = 0x80 + 6
+	//loop; al = port(0x60); endloop ((al & 0x20) != 0)
+	port(0xda) = al = y0.l
+
+	port(0xd4) = ax = 0x80 + 7
+	//loop; al = port(0x60); endloop ((al & 0x20) != 0)
+	port(0xda) = al = y0.h
+	return
+endproc
+
+endmodule
+

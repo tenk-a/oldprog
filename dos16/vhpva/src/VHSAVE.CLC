@@ -1,0 +1,10 @@
+vhsave.c gs.c dos_read.c dos_find.c
+-r-
+error +extcat
++putbits +flushbit +tbsetpat +tbcmppat +paintbmt +getpat
+pass1
+savepass1
+pass2
+vhsave
+main
+

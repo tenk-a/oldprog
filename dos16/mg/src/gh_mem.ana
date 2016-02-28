@@ -1,0 +1,84 @@
+submodule GH
+	import Subr
+	import Pri
+
+
+@define	GHT()	GH.T[ds:0]
+
+
+*proc GetMem(bx,ax,cx)
+	//arg ds.bx	pointer to GH.T
+	//arg ax	min size(para)
+	//arg cx	max size(para)
+	//out ax 	segment
+	//out cx	size(para)
+begin
+	save dx
+	dx = GHT.bufEndSeg
+	dx -= GHT.bufCurSeg
+	if (dx < ax)
+		Subr.PriExit "ÉÅÉÇÉäÇ™ë´ÇËÇ»Ç¢ÇÊØ\N"
+  @if 0
+	elsif (ax == 0 && cx == 0)
+		ax = GHT.bufCurSeg
+		cx = dx
+		go RET
+  @fi
+	elsif (dx > cx)
+		dx = cx
+	fi
+ 	//Pri.Fmt "GetMem %x -> %x\N", cx, dx
+	cx = dx
+	ax = GHT.bufCurSeg
+	dx += ax
+	GHT.bufCurSeg = dx
+  RET:
+	return
+endproc
+
+*proc FreeMem(bx,ax)
+	//arg ds.bx	pointer to GH.T
+	//out ax 	segment
+begin
+	GHT.bufCurSeg = ax
+	return
+endproc
+
+*proc GetMemTest(bx,ax,cx)
+	//arg ds.bx	pointer to GH.T
+	//arg ax	min size(para)
+	//arg cx	max size(para)
+	//out ax 	segment
+	//out cx	size(para)
+begin
+	save dx
+	dx = GHT.bufEndSeg
+	dx -= GHT.bufCurSeg
+	if (dx < ax)
+		Subr.PriExit "ÉÅÉÇÉäÇ™ë´ÇËÇ»Ç¢ÇÊ›\N"
+	elsif (dx > cx)
+		dx = cx
+	fi
+	cx = dx
+	ax = GHT.bufCurSeg
+	return
+endproc
+
+*proc ResizeMem(bx,ax,cx)
+	//arg ds.bx	pointer to GH.T
+	//arg ax	segment
+	//arg cx	size(para)
+begin
+	save dx,ax
+	dx = GHT.bufEndSeg
+	dx -= ax
+	if (cx > dx)
+		Subr.PriExit "ÉÅÉÇÉäÇ™ë´ÇËÇ»Ç¢ÇÊ.\N"
+	fi
+	ax += cx
+	GHT.bufCurSeg = ax
+  RET:
+	return
+endproc
+
+endmodule

@@ -1,0 +1,465 @@
+submodule Tif
+	import GH
+	import Subr
+	import Std
+	import Pri
+	import Deb
+	//import Deb_Dmp
+
+@define	GHT()	GH.T[ds:0]
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+cvar filOdr:w = 1	//-1
+cvar idTyp:w = 'II'
+
+*proc Df_FilOdr(flg:w);cdecl
+enter
+	save ax
+	ax = flg
+	if (ax != 1)
+		ax = 2
+	fi
+	filOdr = ax
+	return
+endproc
+
+*proc Df_IDtyp(flg:w);cdecl
+enter
+	save ax
+	ax = flg
+	if (ax != 0)
+		ax = 'MM'
+	else
+		ax = 'II'
+	fi
+	idTyp = ax
+	return
+endproc
+
+proc WrtTag(bx, ax, dx, cnt:w, dat:w)//;cdecl
+enter
+	save pusha,es,ds
+
+	cx = dx
+	GH.WrtW bx, ax
+	GH.WrtW bx, dx
+	GH.WrtD bx, ww(0,cnt)
+	if (cx == Tif.TT_B && cnt <= 4)
+		GH.WrtB bx, dat.l
+		ax = 0
+		GH.WrtB bx, al
+		GH.WrtW bx, ax
+	elsif (cx == Tif.TT_W && cnt <= 2)
+		GH.WrtW bx, dat
+		GH.WrtW bx, 0
+	else	//elsif (cx == Tif.TT_D)
+		GH.WrtD bx, ww(0, dat)
+	fi
+	return
+endproc
+
+proc Create24()
+begin
+	GH.WrtW bx, 15		//IFDの数: 15
+	WrtTag bx,	Tif.T_ImgTyp, 	Tif.TT_W,	1,	1
+	WrtTag bx,	Tif.T_ImgWid, 	Tif.TT_W,	1,	GHT.sizeX
+	WrtTag bx,	Tif.T_ImgLen, 	Tif.TT_W,	1,	GHT.sizeY
+	WrtTag bx,	Tif.T_BitPerPix,Tif.TT_W,	3,	0xDE
+	WrtTag bx,	Tif.T_Comp,		Tif.TT_W,	1,	1
+	WrtTag bx,	Tif.T_Photo,	Tif.TT_W,	1,	2
+	WrtTag bx,	Tif.T_StripOfs,	Tif.TT_D,	1,	0x100
+	WrtTag bx,	Tif.T_ImgPos,	Tif.TT_W,	1,	1
+	WrtTag bx,	Tif.T_SmpPerPix,Tif.TT_W,	1,	3
+	WrtTag bx,	Tif.T_MinSmpVal,Tif.TT_W,	3,	0xE4
+	WrtTag bx,	Tif.T_MaxSmpVal,Tif.TT_W,	3,	0xEA
+	WrtTag bx,	Tif.T_Xdpi,		Tif.TT_F,	1,	0xF0
+	WrtTag bx,	Tif.T_Ydpi,		Tif.TT_F,	1,	0xF8
+	WrtTag bx,	Tif.T_PlnCfg,	Tif.TT_W,	1,	1
+	WrtTag bx,  Tif.T_ResolUnit,Tif.TT_W,	1,	2
+	WrtTag bx,	Tif.T_End,		0	 	,	0,	0
+	//
+	cx = 0xDE - (8 + 2 + 12*(15+1));
+	al = 0
+	loop
+		GH.WrtB bx, al
+	endloop (--cx)
+	//
+	GH.WrtW bx,8; GH.WrtW bx,8; GH.WrtW bx,8;			// Bits Per Sample
+	GH.WrtW bx,0x00; GH.WrtW bx,0x00; GH.WrtW bx,0x00;	// Min.Smpl.Val
+	GH.WrtW bx,0xFF; GH.WrtW bx,0xFF; GH.WrtW bx,0xFF;	// Max.Smpl.Val
+
+
+	//ドット縦横比
+	dx.ax = GHT.tifXdpi(0)
+	di.si = GHT.tifYdpi(0)
+	cl = GHT.asp1
+	ch = GHT.asp2
+	if ((dx || ax) && (di || si))
+		GH.WrtD bx, GHT.tifXdpi(0)		//Xdpi	//offset=0xf0
+		GH.WrtD bx, GHT.tifXdpi(1)
+		GH.WrtD bx, GHT.tifYdpi(0)		//Ydpi	//offset=0xf8
+		GH.WrtD bx, GHT.tifYdpi(1)
+	elsif (cl && ch)
+	  	al = cl; ah = 0
+	  	dl = ch; dh = ah
+	  	GH.Asp2Resol ax,dx
+		push dx
+			dx = 0
+			GH.WrtD bx, dx.ax; GH.WrtD bx, 0x01	//Xdpi	//offset=0xf0
+		pop  ax
+		dx = 0
+		GH.WrtD bx, dx.ax; GH.WrtD bx, 0x01	//Ydpi	//offset=0xf8
+	else
+		GH.WrtD bx, 0x4b; GH.WrtD bx, 0x01	//Xdpi	//offset=0xf0
+		GH.WrtD bx, 0x4b; GH.WrtD bx, 0x01	//Ydpi	//offset=0xf8
+	fi
+	return
+endproc
+
+
+*proc Create(GHTptr:d, fname:d);cdecl
+  //PMTヘッダを出力(16or256色用)
+  //out ax  0:成功  以外:エラー
+enter
+	save bx,cx,dx,si,di,es,ds
+	cvar fmt:b() = "TIF"
+	cvar memSeg:w
+
+	ds.bx = GHTptr
+	GH.GetMemTest bx, 0x40, 0x100
+	memSeg = ax
+	cx = 0x1000
+	if (GHT.wrt24flg)
+		cx = 0xF000
+	fi
+	GH.InitWrtBWD bx, 0x400,cx
+
+	//ヘッダ作成
+	GHT.wrtFmtName = dx.ax = ww(cs,&fmt)
+	//GHT.fmtW = GH.TIF
+	GH.Create bx, fname
+	if (idTyp == 'MM')
+		GHT.wrtMode = 1
+	else//elsif (idTyp == 'II')
+		GHT.wrtMode = 0
+	fi
+	GH.WrtW bx, idTyp	//ID: 'II' or 'MM'
+	GH.WrtW bx, 4*10+2	//ver: v4.2
+	GH.WrtD bx, 8		//IFDﾌｨｰﾙﾄﾞへのｵﾌｾｯﾄ: 8
+
+	if (GHT.wrt24flg)
+		Create24
+		go.w RET0
+	fi
+
+	GH.WrtW bx, 17		//IFDの数: 16
+  @if 1
+	WrtTag bx,	Tif.T_ImgTyp, 	Tif.TT_W,	1,	1
+  @else
+	WrtTag bx,	Tif.T_SubFilTyp,Tif.TT_D,	1,	0
+  @fi
+
+	WrtTag bx,	Tif.T_ImgWid, 	Tif.TT_W,	1,	GHT.sizeX
+	WrtTag bx,	Tif.T_ImgLen, 	Tif.TT_W,	1,	GHT.sizeY
+	cl = GHT.plnW; ch = 0
+	WrtTag bx,	Tif.T_BitPerPix,Tif.TT_W,	1,	cx
+	WrtTag bx,	Tif.T_Comp,		Tif.TT_W,	1,	1
+	WrtTag bx,	Tif.T_Photo,	Tif.TT_W,	1,	3
+	cx = filOdr
+  @if 0
+	if (cx != 1 && cx != 2)
+		Pri.Fmt "TIFF出力では -tl か -th を指定してください\N"
+		ax = 1
+		go.w RET
+	fi
+  @fi
+	GHT.tifWfilOdr = cx
+	WrtTag bx,	Tif.T_FilOdr,	Tif.TT_W,	1,	cx
+	//
+	//cx = 0x100
+	//ax = GHT.col
+	//cx += ax; cx += ax; cx += ax
+	if (GHT.plnW == 4)
+		cx = 0x200
+	else
+		cx = 0x100 + 0x100*2*3
+	fi
+	WrtTag bx,	Tif.T_StripOfs,	Tif.TT_D,	1,	cx
+	WrtTag bx,	Tif.T_ImgPos,	Tif.TT_W,	1,	1
+	WrtTag bx,	Tif.T_SmpPerPix,Tif.TT_W,	1,	1
+	WrtTag bx,	Tif.T_MinSmpVal,Tif.TT_W,	1,	0
+	cx = GHT.col;	--cx
+	WrtTag bx,	Tif.T_MaxSmpVal,Tif.TT_W,	1,	cx
+
+	//AllowSoft-Asm のバグ?  push 0f0h とか push 0f8h は誤ったコードを生成..?
+	cx = 0xf0											
+	WrtTag bx,	Tif.T_Xdpi,		Tif.TT_F,	1,	cx		//
+	cx = 0xf8
+	WrtTag bx,	Tif.T_Ydpi,		Tif.TT_F,	1,	cx		//
+	//
+	WrtTag bx,	Tif.T_PlnCfg,	Tif.TT_W,	1,	1
+	WrtTag bx,  Tif.T_ResolUnit,Tif.TT_W,	1,	2
+	cx = ax = GHT.col; cx += ax; cx += ax
+	WrtTag bx,	Tif.T_PalOfs,	Tif.TT_W,	cx,	0x100
+	WrtTag bx,	Tif.T_End,		0	 	,	0,	0
+	//
+	cx = 26-12
+	al = 0
+	loop
+		GH.WrtB bx, al
+	endloop (--cx)
+	//ドット縦横比
+	dx.ax = GHT.tifXdpi(0)
+	di.si = GHT.tifYdpi(0)
+	cl = GHT.asp1
+	ch = GHT.asp2
+	if ((dx || ax) && (di || si))
+		GH.WrtD bx, GHT.tifXdpi(0)		//Xdpi	//offset=0xf0
+		GH.WrtD bx, GHT.tifXdpi(1)
+		GH.WrtD bx, GHT.tifYdpi(0)		//Ydpi	//offset=0xf8
+		GH.WrtD bx, GHT.tifYdpi(1)
+	elsif (cl && ch)
+	  @if 1
+	  	al = cl; ah = 0
+	  	dl = ch; dh = ah
+	  	GH.Asp2Resol ax,dx
+		push dx
+			dx = 0
+			GH.WrtD bx, dx.ax; GH.WrtD bx, 0x01	//Xdpi	//offset=0xf0
+		pop  ax
+		dx = 0
+		GH.WrtD bx, dx.ax; GH.WrtD bx, 0x01	//Ydpi	//offset=0xf8
+	  @else
+		go (cl > 10 || ch> 10) J1
+		//if (cx == 0x0102)
+		//	GH.WrtD bx, 0x4b; GH.WrtD bx, 0x01	//Xdpi	//offset=0xf0
+		//	GH.WrtD bx, 0x4b; GH.WrtD bx, 0x02	//Ydpi	//offset=0xf8
+		//else
+			al = cl;ah=0
+			dx.ax = ax * 0x4b
+			GH.WrtD bx, dx.ax; GH.WrtD bx, 0x01	//Xdpi	//offset=0xf0
+			al = ch;ah=0
+			dx.ax = ax * 0x4b
+			GH.WrtD bx, dx.ax; GH.WrtD bx, 0x01	//Ydpi	//offset=0xf8
+		//fi
+	  @fi
+	else
+  J1:
+		GH.WrtD bx, 0x4b; GH.WrtD bx, 0x01	//Xdpi	//offset=0xf0
+		GH.WrtD bx, 0x4b; GH.WrtD bx, 0x01	//Ydpi	//offset=0xf8
+	fi
+	//palette R
+	cx = GHT.col
+	es.di = GHT.rgbPal
+	loop
+		ah = b[es:di]
+		al = ah
+		di += 3
+		GH.WrtW bx, ax
+	endloop (--cx)
+	//palette G
+	cx = GHT.col
+	es.di = GHT.rgbPal
+	++di
+	al = 0
+	loop
+		ah = b[es:di]
+		al = ah
+		di += 3
+		GH.WrtW bx, ax
+	endloop (--cx)
+	//palette B
+	cx = GHT.col
+	es.di = GHT.rgbPal
+	di += 2
+	al = 0
+	loop
+		ah = b[es:di]
+		al = ah
+		di += 3
+		GH.WrtW bx, ax
+	endloop (--cx)
+
+	//
+	if (GHT.plnW == 4)
+		cx = 0x100 - 2*0x10*3
+		al = 0
+		loop
+			GH.WrtB bx, al
+		endloop (--cx)
+	fi
+
+	//
+  RET0:
+	GH.FlushBuf bx
+	if (GHT.wrt24flg == 0)
+		GH.FreeMem bx, memSeg
+	fi
+  Deb.Chk;if (==);Pri.Fmt "fillOrder=%d\N", GHT.tifWfilOdr;fi
+  	ax = 0
+  RET:
+	return
+endproc
+
+*proc CloseW(GHTptr:d);cdecl
+enter
+	save bx,ds,ax
+	ds.bx = GHTptr
+	if (GHT.wrt24flg)
+		GH.FlushBuf bx
+	fi
+	GH.CloseW	ds.bx
+	return
+endproc
+
+*proc InitW(GHTptr:d);cdecl
+enter
+	save bx,ds,ax
+	ds.bx = GHTptr
+	GHT.fmtW = GH.TIF
+	return
+endproc
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+*proc WritePDB24(GHTseg:w, dx)
+//	ピクセル・データをバッファに出力
+enter
+	ds = GHTseg
+	dx.ax = dx * GHT.sizeX
+	cx = ax
+	si = GHT.hisSiz
+	es.dx = GHT.rgbPal
+	ds = GHT.pdbSeg
+	loop
+		rep.load al,si
+		ah = 0
+		//bx = ax * 3 + GHT.rgbPal.l
+		di = ax
+		ax += ax
+		di += ax
+		di += dx
+		push ds
+			ds = GHTseg
+			al = b[es:di];++di
+			GH.WrtB bx,al
+			al = b[es:di];++di
+			GH.WrtB bx,al
+			al = b[es:di];++di
+			GH.WrtB bx,al
+		pop  ds
+	endloop (--cx)
+	return
+endproc
+
+proc B2N (bx, es.dx, cx,ax)
+begin
+	save pusha,ds,es
+ Deb.Chk;if (==);Pri.Fmt "Tif.B2N %lx,%lx,%u,%u\N",ds.bx,es.dx,cx,ax;fi
+	ds = es
+	si = di = dx
+	cx >>= 1
+	rep.inc
+	if (ax == 1)
+		loop
+			rep.load.w ax,si
+			al <<= 4
+			ah &= 0x0f
+			al |= ah
+			rep.set di,al
+		endloop (--cx)
+	else
+		loop
+			rep.load.w ax,si
+			al &= 0x0f
+			ah <<= 4
+			al |= ah
+			rep.set di,al
+		endloop (--cx)
+	fi
+	return
+endproc
+
+
+cvar kisuFlg:w = 0
+
+*proc WritePDB(GHTptr:d,lineCnt:w);cdecl
+//	ピクセル・データをバッファに出力
+enter
+	save pusha,es,ds
+	local siz:w, c16flg:w,xsize:w
+
+	ds.bx = GHTptr
+	if (GHT.wrt24flg)
+		WritePDB24 ds, lineCnt
+		go.w RET
+	fi
+	c16flg = 0
+	kisuFlg = 0
+	ax = GHT.sizeX
+	if (GHT.plnW == 4)
+		c16flg = 1
+		if (ax & 0x0001)
+			kisuFlg = 1
+			++ax
+		fi
+	fi
+	dx.ax = lineCnt * ax
+	siz = cx = ax
+	dx = GHT.hisSiz
+	es = GHT.pdbSeg
+	if (c16flg == 0)
+		GH.Write bx, es.dx, cx
+	else
+		if (kisuFlg)
+			push ds,cx,dx
+				si = dx
+				dx.ax = lineCnt * GHT.sizeX
+				si += ax
+				--si
+				di = si
+				dx = lineCnt
+				di += dx
+				xsize = ax = GHT.sizeX
+				ax = GHT.bakCol
+				if (ax)
+					--ax
+				fi
+				ds = es
+				rep.dec
+				loop
+					rep.set di,al
+					rep.cpy di,si,xsize
+				endloop (--dx)
+				rep.inc
+			pop  ds,cx,dx
+		fi
+		B2N     bx, es.dx,  cx, GHT.tifWfilOdr
+
+		|cx >>= 1
+		cx +=. 0	//adc cx,0
+		GH.Write bx, es.dx, cx
+
+		Tif.N2B bx, es.dx, siz, GHT.tifWfilOdr
+		if (kisuFlg)
+			si = di = dx
+			dx = lineCnt
+			xsize = ax = GHT.sizeX
+			push ds
+				ds = ax = es
+				loop
+					rep.cpy di,si,xsize
+					++si
+				endloop (--dx)
+			pop  ds
+		fi
+	fi
+  RET:
+	return
+endproc
+
+endmodule

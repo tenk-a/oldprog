@@ -1,0 +1,19 @@
+submodule Subr
+	import Dos
+	import Lfn
+
+*proc Open(dx,al)
+//	ファイルのオープン
+//	arg dx	パス名
+//	arg al	アクセス制御コード
+//	in	ds	パス名のセグメント
+//	out ax	ファイル・ハンドル
+begin
+	Lfn.Open(dx,al)
+	if (cf)
+		Subr.ErrFile dx, &Subr.msgOpen
+	fi
+	return
+endproc
+
+endmodule

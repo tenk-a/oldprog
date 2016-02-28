@@ -1,0 +1,44 @@
+submodule RPal
+
+*proc SetTone(ax)
+//	arg ax	tone
+//	arg bx	rgb buf
+//	in	ds
+//	out ax	0:ok -1:error(í’“ƒpƒŒƒbƒg‚ªŒ©‚Â‚©‚ç‚È‚¢)
+enter
+	save pusha,tone:ax,ds,es
+
+	ds = dx = %var
+	dx.ax = RPal.ptr
+	if (dx == 0)
+		RPal.Search
+		if (dx == 0)
+			--dx
+			go ERR
+		fi
+	fi
+	ds.si = ww(dx,%RPal.T.grb)
+	es = dx
+	RPal.T[es:0].tone = bl = tone.l
+	bh = 100
+	cx = 0
+	loop
+		port(0xa8) = al = cl
+		rep.load al,si
+		al &= 0x0f; ax = al * bl; div ax,bh;if (al > 15);al = 15;fi
+		port(0xaa) = al //G
+		rep.load al,si
+		al &= 0x0f; ax = al * bl; div ax,bh;if (al > 15);al = 15;fi
+		port(0xac) = al //R
+		rep.load al,si
+		al &= 0x0f; ax = al * bl; div ax,bh;if (al > 15);al = 15;fi
+		port(0xae) = al //B
+		++cx
+	endloop (cx < 16)
+	dx = 0
+ ERR:
+	tone = dx
+	return
+endproc
+
+endmodule

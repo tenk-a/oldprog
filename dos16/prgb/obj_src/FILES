@@ -1,0 +1,9 @@
+masm 系アセンブラ用ソース
+wildcmp.asm
+direntry.asm
+
+LSI-C86試食版付属アセンブラ r86用ソース
+wildcmp.a86
+direntry.a86
+
+  ※  a86でアセンブルしても、当然、TC(++) 用の関数が生成されます^o^

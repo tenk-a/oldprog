@@ -1,0 +1,42 @@
+module Bios98Key
+	model MODEL
+
+*proc Init()
+macro
+	push ax
+	ah = 0x03
+	intr 0x18
+	pop ax
+endproc
+
+*proc ReadWait()
+//	out ax
+macro
+	ah = 0
+	intr 0x18
+endproc
+
+*proc Read()
+//	out ax　キーコード・データ
+//	out bh  0:ﾃﾞｰﾀ無効 1:ﾃﾞｰﾀ有効
+macro
+	ah = 1
+	intr 0x18
+endproc
+
+*proc ShiftKeyRead()
+//	out al	b0:ｼﾌﾄ  b1:CAPS  b2:ｶﾅ  b3:GRPH  b4:CTRL
+//	out ah	ah = 02h
+macro
+	ah = 0x02
+	intr 0x18
+endproc
+
+*proc BufClr()
+//	dos コールによるキー入力バッファ・クリア
+macro
+	ax = 0x0cff
+	intr	0x21
+endproc
+
+endmodule

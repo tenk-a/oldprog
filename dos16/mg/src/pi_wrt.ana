@@ -1,0 +1,1551 @@
+submodule Pi
+	import GH
+	import Subr
+	import Dos
+	import Std
+	import Pri
+	import Str
+	import Deb
+
+	//import Gvr98
+
+@define	GHT()	GH.T[ds:0]
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+cvar dfltPalFlg:b = 0, gLoopFlg:b = 0
+
+*proc Df_DfltPalFlg (al)
+begin
+	save ax
+	dfltPalFlg = al
+	return
+endproc
+
+*proc Df_LoopFlg(al)
+	// ループモードにして出力する
+begin
+	save ax
+	gLoopFlg = al
+	return
+endproc
+
+
+*proc InitW(ght:d);cdecl
+enter
+	save ax,ds,bx
+	ds.bx = ght
+	GH.SetHisLin bx,2
+	GHT.fmtW = GH.PI
+	return
+endproc
+
+proc WrtHb(bx,al)
+begin
+	save ax,dx
+	dl = al
+	al >>= 4
+	if (al > 9)
+		al += 'A'-10
+	else
+		al += '0'
+	fi
+	GH.WrtB bx,al
+	al = dl
+	al &= 0x0f
+	if (al > 9)
+		al += 'A'-10
+	else
+		al += '0'
+	fi
+	GH.WrtB bx,al
+	return
+endproc
+
+*proc Create(GHTptr:d, fname:d);cdecl
+//	Piのヘッダを出力
+//  out ax  0:成功  以外:エラー
+enter
+	save bx,cx,dx,si,di,es,ds
+	local exFlg:w
+	cvar fmt:b() = "PI"
+
+	ds.bx = GHTptr
+	GH.InitWrtBWD bx, 0x400,0xF000
+
+	//ヘッダ作成
+	GHT.wrtFmtName = dx.ax = ww(cs,&fmt)
+	GHT.fmtW = GH.PI
+	GH.Create bx, fname
+	GHT.wrtMode = 1
+	
+	//ID出力
+	GH.WrtW bx, 'P'*0x100 + 'i'
+
+	//ユーザ名出力
+	cx = GHT.userNameLen
+	if (cx)
+		GH.WrtS bx, ww(%var, "User:")
+		GH.WrtS bx, GHT.userName
+		GH.WrtB bx,'\r'
+		GH.WrtB bx,'\n'
+	fi
+	//コメント出力
+	cx = GHT.commentLen
+	if (cx)
+		GH.WrtS bx, GHT.comment
+	fi
+	GH.WrtB bx,0x1a
+
+	// ダミーコメント
+  /*
+	cx = GHT.hidCmtLen
+	if (cx)
+		GH.WrtS bx, GHT.hidCmt
+	fi
+   */
+	dh = GHT.magScrnMode
+	dh &= 0b01111110	//(~(Mag.MF_200L|Mag.MF_256C))&0xff
+	//exFlg = 0
+	if (GHT.fmtR == GH.MAG	\
+		&& (GHT.magMacNo || GHT.magMacFlg || dh))
+		//if (GHT.macNameMode == 0)
+			GH.WrtB bx,'-'
+			GH.WrtB bx,'m'
+			GH.WrtB bx,'a'
+			GH.WrtB bx,'g'
+			WrtHb bx, GHT.magMacNo
+			WrtHb bx, GHT.magMacFlg
+			WrtHb bx, GHT.magScrnMode
+			GH.WrtB bx,'\n'
+		//else
+		//	exFlg = 1
+		//fi
+	else
+		if (GHT.macNameMode == 0)
+			GH.WrtS bx,ww(%var,"MG\n")
+		//else
+		//	GH.WrtS bx,ww(%var,"-sn")
+		//	GH.WrtS bx,GHT.macName
+		fi
+	fi
+
+	//
+	GH.WrtB bx,'\0'
+
+	//パレット・モード出力
+	if (dfltPalFlg)
+		GH.WrtB bx,0x80
+	else
+		GH.WrtB bx,0
+	fi
+
+	//ドット比出力
+	GH.WrtB bx, GHT.asp1
+	GH.WrtB bx, GHT.asp2
+
+	//プレーン数出力
+	GH.WrtB bx, GHT.plnW
+
+	//セーバ機種名出力
+	if (GHT.macNameMode == 0 && gLoopFlg == 0)
+		GH.WrtB bx, GHT.macName(0)
+		GH.WrtB bx, GHT.macName(1)
+		GH.WrtB bx, GHT.macName(2)
+		GH.WrtB bx, GHT.macName(3)
+	else
+		GH.WrtS bx,ww(%var,"MG  ")
+	fi
+
+	//拡張領域
+	ax = 0
+	if (GHT.bakCol)					//背景色
+		ax += 5
+	fi
+	if (GHT.palBit)					//パレットの有効ビット数
+		ax += 5
+	fi
+	if (GHT.palCnt)					//パレットの使用個数
+		ax += 5
+	fi
+	if (gLoopFlg)
+		ax += 7
+	fi
+	if (ax /*|| GHT.bakCol*/ || GHT.startX || GHT.startY)	//始点
+		ax += 5
+	fi
+
+	GH.WrtW bx, ax	//拡張領域のサイズを出力
+	if.w (ax)
+		GH.WrtB bx, 1				//始点
+		GH.WrtW bx, GHT.startX
+		GH.WrtW bx, GHT.startY
+		dx = GHT.bakCol			//背景色
+		if (dx)
+			GH.WrtB bx, 2
+			GH.WrtW bx, 0
+			--dx
+			GH.WrtW bx, dx
+		fi
+		dx = GHT.palBit			//パレットの有効ビット数
+		if (dx)
+			GH.WrtB bx, 3
+			GH.WrtW bx, 0
+			GH.WrtW bx, dx
+		fi
+		dx = GHT.palCnt			//パレットの使用個数
+		if (dx)
+			GH.WrtB bx, 4
+			GH.WrtW bx, 0
+			GH.WrtW bx, dx
+		fi
+		if (gLoopFlg)
+			GH.WrtB bx, 'l';GH.WrtB bx, 'o';GH.WrtB bx, 'o';GH.WrtB bx, 'p'
+			GH.WrtW bx, 1
+			al = gLoopFlg
+			--al
+			GH.WrtB bx, al
+		fi
+	fi
+
+	//画像サイズ出力
+	ax = GHT.sizeX
+	go (ax <= 2) ERR
+	GH.WrtW bx, ax
+	GH.WrtW bx, GHT.sizeY
+	//パレット出力
+	if (dfltPalFlg == 0)
+		cx = 16 * 3
+		if (GHT.plnW == 8)
+			cx = 256 * 3
+		fi
+		es.di =	GHT.rgbPal
+		loop
+			al = b[es:di];++di
+			GH.WrtB bx, al
+		endloop (--cx)
+	fi
+	
+	//ヘッダを実際にファイルに出力
+	GH.FlushBuf bx
+
+	//復帰
+	ax = 0
+  RET:
+	return
+  ERR:
+	Pri.Fmt "Pi出力では横幅が２ドット以上ないといけません\N"
+  	ax = 1
+  	go RET
+endproc
+
+@if 0
+*proc CloseW(GHTptr:d);cdecl
+enter
+	save bx,ds,ax
+	ds.bx = GHTptr
+	//GH.FlushBuf bx
+	Subr.Close GHT.wrtHdl
+	return
+endproc
+@fi
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/*
+	0 F E D C B A 9 8 7 6 5 4 3 2 1
+	1 0 F E D C B A 9 8 7 6 5 4 3 2
+	2 1 0 F E D C B A 9 8 7 6 5 4 3
+	3 2 1 0 F E D C B A 9 8 7 6 5 4
+	4 3 2 1 0 F E D C B A 9 8 7 6 5
+	5 4 3 2 1 0 F E D C B A 9 8 7 6
+	6 5 4 3 2 1 0 F E D C B A 9 8 7
+	7 6 5 4 3 2 1 0 F E D C B A 9 8
+	8 7 6 5 4 3 2 1 0 F E D C B A 9
+	9 8 7 6 5 4 3 2 1 0 F E D C B A
+	A 9 8 7 6 5 4 3 2 1 0 F E D C B
+	B A 9 8 7 6 5 4 3 2 1 0 F E D C
+	C B A 9 8 7 6 5 4 3 2 1 0 F E D
+	D C B A 9 8 7 6 5 4 3 2 1 0 F E
+	E D C B A 9 8 7 6 5 4 3 2 1 0 F
+	F E D C B A 9 8 7 6 5 4 3 2 1 0
+*/
+
+
+cvar colTblSeg:w = 0, colTblSzs:w = 0
+
+@if 0
+*proc Df_ColTbl (coltSeg:w, szs:w);cdecl
+enter
+	save ax
+	colTblSeg = ax = coltSeg
+	colTblSzs = ax = szs
+endproc
+@fi
+
+@if 0
+*proc GetColTblBuf(bx)
+enter
+	if (GHT.pln == 4)
+		cx = 0x10
+	else
+		cx = 0x1000
+	fi
+	ax = cx
+	GH.GetMem bx,ax,cx
+	return
+endproc
+@fi
+
+proc InitColTbl(bx,ax, cl)
+//	色表(16色*16通り) の初期化
+//	in	rep.inc
+begin
+	save pusha,es
+
+	if (ax == 0)
+		if ((cl/*GHT.pln*/ != 4 && colTblSzs < 0x1000) || colTblSeg == 0)
+			Subr.PriExit "Piの色表のためのメモリが足りない\N"
+		fi
+		ax = colTblSeg
+	fi
+	es = ax
+	di = ax = 0
+	if (cl/*GHT.pln*/ == 4)
+		bx = 16
+		loop
+			cx = 16
+			loop
+				al &= 0x0f
+				rep.set di,al
+				//Deb.Chk
+				//if (==)
+				//	Pri.Fmt "%02x ",ax
+				//fi
+				--al
+			endloop (--cx)
+			//Deb.Chk
+			//if (==)
+			//	Pri.Cr
+			//fi
+			++al
+		endloop (--bx)
+	else
+		bx = 256
+		loop
+			cx = 256
+			loop
+				rep.set di,al
+				//Deb.Chk
+				//if (==)
+				//	Pri.Fmt "%02x ",ax
+				//fi
+				--al
+			endloop (--cx)
+			//Deb.Chk
+			//if (==)
+			//	Pri.Cr
+			//fi
+			++al
+		endloop (--bx)
+	fi
+	return
+endproc
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+@if 0
+cvar priCntFlg:b = 0
+@fi
+cvar priDatFlg:b = 0
+cvar dbgFlg:b = 0
+var debPos:d(5), debLen:d(30), debCol:d(256)
+
+@if 0
+*proc Df_PriCntFlg(al)
+begin
+	priCntFlg = al
+	return
+endproc
+@fi
+
+*proc Df_PriDatFlg(al)
+begin
+	priDatFlg = al
+	return
+endproc
+
+*proc Df_CntFlg(al)
+begin
+	dbgFlg = al
+	//Pi.debFlg = 1
+	return
+endproc
+
+
+*proc PriCntRep()
+//	圧縮状態の表示
+begin
+	save pusha,es,ds
+	var buf:b(80)
+	
+	if.w (dbgFlg)
+		ds = ax = %var
+		rep.inc
+		es = ax
+		Pri.S "\N圧縮データ\N"
+		Pri.S "\N相対位置での圧縮\N"
+		Pri.S "相対位置 _____0 _____1 _____2 _____3 _____4\N"
+		Pri.S "出力回数"
+		es.di = ww(es,&buf)
+		cx = 0x0707
+		bl = 0
+		dx.ax = debPos(0);Str.LtoA es.di,dx.ax,cl,ch,bl
+		dx.ax = debPos(1);Str.LtoA es.di,dx.ax,cl,ch,bl
+		dx.ax = debPos(2);Str.LtoA es.di,dx.ax,cl,ch,bl
+		dx.ax = debPos(3);Str.LtoA es.di,dx.ax,cl,ch,bl
+		dx.ax = debPos(4);Str.LtoA es.di,dx.ax,cl,ch,bl
+		dx.ax = 0x0d + 0x0a * 0x100
+		rep.set.w di,ax
+		al = 0
+		rep.set di,al
+		Pri.S &buf
+
+		Pri.S "\N長さ(*2)   00台   10台   20台   30台   40台   50台   60台  以降2  以降4(ﾊﾞｲﾄ)\N出力回数"
+		di = &buf
+		bx = 20*4
+		loop
+			dx.ax = debLen[bx]
+			push bx
+				bl = 0
+				Str.LtoA es.di,dx.ax,cl,ch,bl
+				pop  bx
+			bx += 4
+		endloop (bx < 29*4)
+		ax = 0x0d + 0x0a * 0x100
+		rep.set.w di,ax
+		al = 0
+		rep.set di,al
+		Pri.S &buf
+		Pri.S "\N00台,10台（1～19）の詳細(0は色圧縮の回数で<00台の長さ>には加えていない)\N"
+		Pri.S "長さ(*2) (___0) _____1 _____2 _____3 _____4 _____5 _____6 _____7 _____8 _____9\N出力回数"
+		di = &buf
+		bx = 0
+		loop
+			dx.ax = debLen[bx]
+			push bx
+			bl = 0
+			Str.LtoA es.di,dx.ax,cl,ch,bl
+			pop  bx
+			bx += 4
+		endloop (bx < 10*4)
+		ax = 0x0d + 0x0a * 0x100
+		rep.set.w di,ax
+		al = 0
+		rep.set di,al
+		Pri.S &buf
+
+		Pri.S "         ____10 ____11 ____12 ____13 ____14 ____15 ____16 ____17 ____18 ____19\N        "
+		di = &buf
+		bx = 10*4
+		loop
+			dx.ax = debLen[bx]
+			push bx
+			bl = 0
+			Str.LtoA es.di,dx.ax,cl,ch,bl
+			pop  bx
+			bx += 4
+		endloop (bx < 20*4)
+		ax = 0x0d + 0x0a * 0x100
+		rep.set.w di,ax
+		al = 0
+		rep.set di,al
+		Pri.S &buf
+
+		Pri.S "\N色圧縮で出力した色表での位置\N"
+		Pri.S "位置     _____0 _____1 _____2 _____3 _____4 _____5 _____6 _____7\N出力回数"
+		di = &buf
+		bx = 0
+		loop
+			dx.ax = debCol[bx]
+			push bx
+				bl = 0
+				Str.LtoA es.di,dx.ax,cl,ch,bl
+			pop  bx
+			bx += 4
+		endloop (bx < 8*4)
+		ax = 0x0d + 0x0a * 0x100
+		rep.set.w di,ax
+		al = 0
+		rep.set di,al
+		Pri.S &buf
+
+		Pri.S "         _____8 _____9 _____A _____B _____C _____D _____E _____F\N        "
+		di = &buf
+		bx = 8*4
+		loop
+			dx.ax = debCol[bx]
+			push bx
+				bl = 0
+				Str.LtoA es.di,dx.ax,cl,ch,bl
+			pop  bx
+			bx += 4
+		endloop (bx < 16*4)
+		ax = 0x0d + 0x0a * 0x100
+		rep.set.w di,ax
+		al = 0
+		rep.set di,al
+		Pri.S &buf
+	fi
+	return
+endproc
+
+proc DebDatInit()
+begin
+	save pusha,es,ds
+	
+	es = ax = %var
+	ax = 0
+	rep.set.w &debPos, ax, sizeof(debPos)/2
+	rep.set.w &debLen, ax, sizeof(debLen)/2
+	rep.set.w &debCol, ax, sizeof(debCol)/2
+	return
+endproc
+
+proc DebCntCmpLen(cl,dx.ax)
+begin
+	save bx,ds,dx,ax
+  @if 1
+	ds = bx = %var
+	dx.ax >>= 1
+	if (dx)
+		++debLen(28)
+	elsif(ax < 10)
+		bx = ax
+		bx <<= 2
+		dx.ax = debLen[bx]; dx.ax += 1; debLen[bx] = dx.ax
+		dx.ax = debLen(20); dx.ax += 1; debLen(20) = dx.ax
+	elsif(ax < 20)
+		bx = ax
+		bx <<= 2
+		dx.ax = debLen[bx]; dx.ax += 1; debLen[bx] = dx.ax
+		dx.ax = debLen(21); dx.ax += 1; debLen(21) = dx.ax
+	elsif (ax < 30)
+		dx.ax = debLen(22); dx.ax += 1; debLen(22) = dx.ax
+	elsif (ax < 40)
+		dx.ax = debLen(23); dx.ax += 1; debLen(23) = dx.ax
+	elsif (ax < 50)
+		dx.ax = debLen(24); dx.ax += 1; debLen(24) = dx.ax
+	elsif (ax < 60)
+		dx.ax = debLen(25); dx.ax += 1; debLen(25) = dx.ax
+	elsif (ax < 70)
+		dx.ax = debLen(26); dx.ax += 1; debLen(26) = dx.ax
+	else
+		dx.ax = debLen(27); dx.ax += 1; debLen(27) = dx.ax
+	fi
+	bl = cl
+	bh = 0
+	bx <<= 2
+	dx.ax = debPos[bx]; dx.ax += 1; debPos[bx] = dx.ax
+  @fi
+	return
+endproc
+
+proc DebCntCol(dl)
+begin
+  @if 1
+	save bx,ds,dx,ax
+
+	ds = bx = %var
+	bl = dl
+	bh = 0
+	bx <<= 2
+	dx.ax = debCol[bx]; dx.ax += 1; debCol[bx] = dx.ax
+	dx.ax = debLen(0); dx.ax += 1; debLen(0) = dx.ax
+  @fi
+	return
+endproc
+
+///////////////////////////////////////////////////////////////////////////////
+@if 0
+proc PriLin(ax)
+begin
+	save pusha,ds,es
+	var buf:b(20) = "\r["
+
+	ds = cx = %var
+	es = cx
+	di = &buf(2)
+	dx = 0
+	Str.LtoA es.di,dx.ax,0,0,0
+	ax = ']' + '\0'*0x100
+	rep.set.w di,ax
+	dx = si = &buf
+	Str.Len si
+	Dos.Write Dos.STDERR, dx, cx
+	return
+endproc
+@fi
+
+///////////////////////////////////////////////////////////////////////////////
+cvar blkMsgFlg:b = 0	// '*'を表示した直後(0)か否(1)か
+cvar ohdl:w,obuf:d,osize:w
+cvar gh_t:d
+//cvar colTblSeg:w
+
+cvar putCol:w
+
+
+proc WriteOBuf(di)
+begin
+	save ax,bx,cx,dx,es,ds
+
+	if (di)
+		ds.dx = obuf
+		Subr.Write ohdl,dx,di
+	fi
+	di = 0
+	return
+endproc
+
+// データ出力は、ビット単位で行なうので、少しでも処理を軽くするため、
+// bl にいったんデータをため、8ビットが満たされれば、出力バッファ中の
+// es.di の位置に書込み, es.di を更新し、もし、バッファが満たされれば
+// ファイルに出力して、es.di をバッファの先頭にする
+// このため、bx, es.di を他で使うときは気をつけること。
+
+@define InitPutb(S) bx = 0x0800;di = 0; es = S
+	// 出力処理の初期化
+
+proc Putb(es.di,bx)
+//	１ビット出力
+//	in cf
+begin
+	|bl <<=. 1
+	--bh
+	if (bh == 0)
+		push ax
+		al = bl
+		rep.set di,al
+		pop  ax
+		bh = 8
+		if (di == osize)
+			WriteOBuf di
+		fi
+	fi
+	return
+endproc
+
+proc PutW(dx, cx, es.di, bx)
+// dx.ax の下 cx ビット(1～16) を出力
+// out es.di,bx
+// out cx = 0
+// break dx.ax
+begin
+	push cx
+	cx -= 16
+	neg cx
+	dx <<= cl
+	pop  cx
+	loop
+		|dx <<= 1
+		bl <<=. 1
+		--bh
+		if (bh == 0)
+			al = bl
+			rep.set di,al
+			bh = 8
+			if (di == osize)
+				WriteOBuf di
+			fi
+		fi
+	endloop (--cx)
+	return
+endproc
+
+
+proc PutDW(dx.ax,cx, es.di,bx)
+// dx.ax の下 cx ビット(1～32) を出力
+// out es.di,bx
+// out cx = 0
+// break dx.ax
+begin
+  //intr 0xf0
+	if (cx > 16)
+		push ax
+		cx -= 16
+		push cx
+		cx -= 16
+		neg cx
+		dx <<= cl
+		pop  cx
+  //intr 0xf1
+		loop
+			|dx <<= 1
+			bl <<=. 1
+			--bh
+			if (bh == 0)
+  //intr 0xf3
+				al = bl
+				rep.set di,al
+				bh = 8
+				if (di == osize)
+					WriteOBuf di
+				fi
+			fi
+		endloop (--cx)
+		cx = 16
+		pop  ax
+	fi
+	dx = ax
+	push cx
+	cx -= 16
+	neg cx
+	dx <<= cl
+	pop  cx
+  //intr 0xf2
+	if (cx)
+		loop
+			|dx <<= 1
+			bl <<=. 1
+			--bh
+			if (bh == 0)
+  //intr 0xf3
+				al = bl
+				rep.set di,al
+				bh = 8
+				if (di == osize)
+					WriteOBuf di
+				fi
+			fi
+		endloop (--cx)
+	fi
+	return
+endproc
+
+
+proc PutPos(cl,es.di,bx)
+//相対位置番号 cl を圧縮して出力
+//break cl
+begin
+	save cx
+	if (cl < 2)
+		clc; Putb es.di,bx
+		|cl >>= 1
+	else
+		stc; Putb es.di,bx
+		if (cl == 2)
+			clc		//clc
+		else
+			stc; Putb es.di,bx
+			|cl >>= 1
+			cmc		//com cf
+		fi
+	fi
+	Putb es.di,bx
+	return
+endproc
+
+proc PutLen (dx.ax, es.di,bx)
+//	相対位置と一致した長さを圧縮して出力
+//	arg   dx.ax  長さ
+//	break cx
+begin
+	save dx,ax,si
+	push bp
+
+	dx.ax >>= 1
+	bp = 0
+	cx.si = 2
+	loop
+		|dx - cx
+		break (<)
+		if (==)
+			break (ax < si)
+		fi
+		++bp
+		cx.si <<= 1
+	endloop
+	push dx,ax,cx
+	cx = bp
+	++cx
+	//dx = 0xffff
+	//ax = 0xfffe
+	dx.ax = 0xfffffffe
+	PutDW dx.ax,cx, es.di,bx
+	pop  dx,ax,cx
+ //intr 0xf0
+	if (bp)
+		cx.si >>= 1
+		dx.ax -= cx.si
+		cx = bp
+		PutDW dx.ax,cx, es.di,bx
+	fi
+	pop bp
+	return
+endproc
+
+proc PutCol16(al,ah,es.di,bx)
+//	色を圧縮して出力
+//	arg al	１ドット左の色
+//	arg ah	実際に記録する色
+begin
+	save ax,cx,dx,si,ds
+
+	ds = dx = %var
+	ds = colTblSeg
+	dh = ah
+	ah = 0
+	al <<= 4
+	si = ax
+	ah = dh
+	dl = 0
+	block LLL
+		loop
+			al = b[si]
+			b[si] = ah
+			break (al == dh) LLL
+			ah = al
+			++si
+			++dl
+		endloop(dl < 16)
+		al = dh
+		ah = 0
+		Pri.Fmt "PRGERR:Put16Col %x\N", ax
+		GH.ChkPdata16 gh_t
+		Dos.Exit(1)
+	endblock
+	if (dbgFlg)
+		DebCntCol dl
+	fi
+	@if 1
+	Deb.Chk
+	if (==)
+		if (priDatFlg)
+			push dx
+			  dh = 0
+			  Pri.Fmt "Cn %u\N",dx
+			pop  dx
+		fi
+	fi
+	@fi
+	if (dl < 2)
+		stc; Putb es.di,bx
+		|dl >>= 1;	Putb es.di,bx
+	elsif (dl < 4)
+		clc; Putb es.di,bx
+		clc; Putb es.di,bx
+		//dl -= 2
+		|dl >>= 1;	Putb es.di,bx
+	elsif (dl < 8)
+		clc; Putb es.di,bx
+		stc; Putb es.di,bx
+		clc; Putb es.di,bx
+		//dl -= 4
+		dh = 0
+		PutW dx, 2, es.di,bx
+	else
+		clc; Putb es.di,bx
+		stc; Putb es.di,bx
+		stc; Putb es.di,bx
+		//dl -= 8
+		dh = 0
+		PutW dx, 3, es.di,bx
+	fi
+	return
+endproc
+
+proc PutCol256(al,ah,es.di,bx)
+//	色を圧縮して出力
+//	arg al	１ドット左の色
+//	arg ah	実際に記録する色
+begin
+	save ax,cx,dx,si,ds
+
+	ds = dx = %var
+	ds = colTblSeg
+	cx = ax
+	ah = al
+	al = 0
+	si = ax
+	ah = ch
+	dx = 0
+	block LLL
+		loop
+			al = b[si]
+			b[si] = ah
+			break (al == ch) LLL
+			ah = al
+			++si
+			++dx
+		endloop(dx <= 255)
+		ds = ax = %var
+		al = ch
+		ah = 0
+		ch = 0
+		Pri.Fmt "PRGERR:PutCol256 %x %x\N",cx,ax
+		//GH.ChkPdata16 gh_t
+		Dos.Exit(1)
+	endblock
+	if (dbgFlg)
+		DebCntCol dl
+	fi
+	@if 1
+	Deb.Chk
+	if (==)
+		if (priDatFlg)
+			push dx
+			  dh = 0
+			  Pri.Fmt "Cn %u\N",dx
+			pop  dx
+		fi
+	fi
+	@fi
+	if (dl < 2)
+		stc; Putb es.di,bx
+		|dl >>= 1;	Putb es.di,bx
+	elsif (dl < 4)
+		clc; Putb es.di,bx
+		clc; Putb es.di,bx
+		//dl -= 2
+		|dl >>= 1;	Putb es.di,bx
+	elsif (dl < 8)
+		clc; Putb es.di,bx
+		stc; Putb es.di,bx
+		clc; Putb es.di,bx
+		PutW dx, 2, es.di,bx
+	elsif (dl < 16)
+		clc; Putb es.di,bx
+		stc; Putb es.di,bx
+		stc; Putb es.di,bx
+		clc; Putb es.di,bx
+		PutW dx, 3, es.di, bx
+	elsif (dl < 32)
+		clc; Putb es.di,bx
+		stc; Putb es.di,bx
+		stc; Putb es.di,bx
+		stc; Putb es.di,bx
+		clc; Putb es.di,bx
+		PutW dx, 4, es.di, bx
+	elsif (dl < 64)
+		clc; Putb es.di,bx
+		stc; Putb es.di,bx
+		stc; Putb es.di,bx
+		stc; Putb es.di,bx
+		stc; Putb es.di,bx
+		clc; Putb es.di,bx
+		PutW dx, 5, es.di, bx
+	elsif (dx < 128)
+		clc; Putb es.di,bx
+		stc; Putb es.di,bx
+		stc; Putb es.di,bx
+		stc; Putb es.di,bx
+		stc; Putb es.di,bx
+		stc; Putb es.di,bx
+		clc; Putb es.di,bx
+		PutW dx, 6, es.di, bx
+	else
+		clc; Putb es.di,bx
+		stc; Putb es.di,bx
+		stc; Putb es.di,bx
+		stc; Putb es.di,bx
+		stc; Putb es.di,bx
+		stc; Putb es.di,bx
+		stc; Putb es.di,bx
+		PutW dx, 7, es.di, bx
+	fi
+	return
+endproc
+
+
+///////////////////////////////////////////////////////////////////////////////
+cvar sizeX:w,sizeY:w
+cvar pdbSeg:w
+cvar iendAdr:w,blkCnt:w,rstSiz:w
+cvar inpPDB:w		//ﾋﾟｸｾﾙ･ﾃﾞｰﾀを入力する手続きへのﾎﾟｲﾝﾀ
+		// inpPDB(gh_t,ax)  gh_t:GH.Tへのﾎﾟｲﾝﾀ  ax:入力する行数
+
+proc ReadIBuf()
+//	out si	//入力ﾊﾞｯﾌｧのﾎﾟｲﾝﾀ
+enter
+	save ax,bx,cx,dx,di,es,ds
+
+	ds.bx = gh_t
+  //Pri.Fmt "\N1)ss.sp = %lx\N",ss.sp
+	ax = GHT.blkLin
+	dx = GHT.blkSiz
+  //Pri.Fmt "blkCnt = %d\N",blkCnt
+	if (blkCnt == 0)
+		ax = GHT.lastBlkLin
+		dx = rstSiz	//GHT.lastBlkSiz
+		if (dx == 0)
+			stc
+			//blkMsgFlg = 0
+			go.w RET	// not debug -> go RET
+		fi
+		rstSiz = 0
+	else
+		--blkCnt
+	fi
+  //Pri.Fmt "ss.sp = %lx\N",ss.sp
+	Pri.Fmt "m\b"
+	GH.MovHisLin gh_t
+
+  //Pri.Fmt "ss.sp = %lx\N",ss.sp
+
+	push gh_t, ax
+	Pri.Fmt "D\b"
+	call GH.ResizePDBr
+	Pri.Fmt "d\b"
+	call inpPDB	//inpPDB(gh_t,ax)
+	sp += 4+2
+	Pri.Fmt "E\b"
+    GH.ResizePDBw ds.bx
+  //Pri.Fmt "ss.sp = %lx\N",ss.sp
+
+	Deb.Chk
+	if (==)
+		if (GHT.plnW == 4)
+			GH.ChkPdata16 gh_t
+		fi
+  	fi
+  //Pri.Fmt "ss.sp = %lx\N",ss.sp
+	si = GHT.hisSiz
+	dx += si
+	iendAdr = dx
+  @if 1 //確認ルーチン
+	Deb.Chk
+	if (==)
+		dx -= si
+		Pri.Fmt "Read Size = %u(%x)\N",dx,dx
+	fi
+	clc
+  @fi
+  //Pri.Fmt "2)ss.sp = %lx\N",ss.sp
+	Pri.Fmt "e\b"
+ 	blkMsgFlg = 1
+ RET:
+	return
+endproc
+
+///////////////////////////////////////////////////////////////////////////////
+cvar ofs0:w,ofs1:w,ofs2:w,ofs3:w,ofs4:w
+
+proc CntOfsLen(si,ax)
+//	注目しているピクセルの右側と相対位置のピクセルの右側を比較し、一致する
+//	長さを求める
+//	arg si	注目しているピクセルの位置（バッファ中のアドレス）
+//	arg ax	比較するピクセルの注目点からの相対位置(実際のアドレス=si-ax)
+//	in es,ds  es = ds
+//	out ax	一致した長さ
+//	out cl	比較でバッファの最後に到達したかどうかのフラグ 0:しなかった 1:した
+begin
+	save bx,dx,si,di
+
+	@if 0
+	Deb.Chk
+	if (==)
+		Pri.Fmt "? %u  ",ax
+	fi
+	@fi
+
+	push cx
+	bx = di = si
+	di -= ax
+	cx = iendAdr
+	cx -= si
+
+	@if 0
+	Deb.Chk
+	if (==)
+		Pri.Fmt "{%04x %04x %u} ", si, di, cx
+	fi
+	@fi
+
+	dl = 0
+	repe.cmp di,si,cx
+	if (==)
+		dl = 1
+	else
+		--si
+	fi
+	si -= bx
+	ax = si
+	pop  cx
+	cl = dl
+	ax &= 0xFFFE
+
+	@if 0	//デバッグ
+	Deb.Chk
+	if (==)
+		Deb.SaveReg
+		Pri.Fmt "%u", ax
+		if (cl)
+			Pri.Fmt "#"
+		fi
+		Pri.Fmt "\N"
+		Deb.LoadReg
+	fi
+	@fi
+
+	return
+endproc
+
+proc CmpPosLen(si,dl)
+//	注目しているピクセルの右側と相対位置の右側を比較し、一番長く
+//	一致した相対位置番号を cl にいれ、その長さを dx.ax に入れる
+//	一致するものがなければ前の相対位置番号で長さを０にして返す
+//	arg si	現在のピクセルの位置（バッファ内のアドレス）
+//	arg dl	前のピクセル位置
+//	in ds
+//	out dx.ax
+//	out si
+//	out cl
+begin
+	save bx,di,es
+
+	push bp
+	push cx 	//ch を保存するため
+
+	es = di = ds
+
+	di = 0	//最長の長さを
+	ch = 0
+	// 注目のピクセルより右側と相対位置0～4の右側と比較していくとき、
+	//	dl は最長に一致したときの相対位置番号を、
+	//	di は最長の長さを保持する
+	// また ch は、ビット０～４に対応する相対位置で比較が継続するかどうかの
+	// フラグを保持する
+
+	//相対位置0と比較
+	if (dl) //前回の相対位置番号が０なら、今回は相対位置０の比較はやめる
+		// 直前のピクセルの２ドットが、同じ色どうしなら、比較は２ドット前
+		// そうでなければ４ドット前の位置と比較する
+		ax = w[si-2]
+		if (ah == al)
+			ax = 2
+		else
+			ax = 4
+		fi
+		ofs0 = ax
+		CntOfsLen si,ax //result ax:len, cl:contFlg
+		ch = cl
+		if (di < ax)
+			di = ax
+			dl = 0
+		fi
+	fi
+
+	//相対位置1と比較
+	CntOfsLen si,ofs1
+	cl <<= 1
+	ch |= cl
+	if (di < ax)
+		di = ax
+		dl = 1
+	fi
+
+	//相対位置2と比較
+	CntOfsLen si,ofs2
+	cl <<= 2
+	ch |= cl
+	if (di < ax)
+		di = ax
+		dl = 2
+	fi
+
+	//相対位置3と比較
+	CntOfsLen si,ofs3
+	cl <<= 3
+	ch |= cl
+	if (di < ax)
+		di = ax
+		dl = 3
+	fi
+
+	//相対位置4と比較
+	CntOfsLen si,ofs4
+	cl <<= 4
+	ch |= cl
+	if (di < ax)
+		di = ax
+		dl = 4
+	fi
+
+	//比較が継続するばあいのループ
+	//	bx.bp に求める最長の長さを保持することにし、
+	//	di は、１回の比較での最長の長さを保持する
+	bx.bp = 0
+	loop.w
+		bx.bp += ww(0,di)	//求める最長の長さを更新
+		si += di			//注目しているピクセルを更新
+		break.w (ch == 0)	//すべての比較が継続していなければ、終了
+		di = 0
+		if (blkMsgFlg)
+			Pri.Fmt "*"
+			blkMsgFlg = 0
+		fi
+		ReadIBuf			//ピクセル・データを読み込む
+		break.w (_c_) 		//読み込むデータがなければ終了
+
+		// ch のビット０～４を調べ、立っているビットがあれば、
+		// 対応する相対位置の比較を行ない、今回の最長の長さと相対位置を得る
+		if (ch & 0x01)
+			ch &= ~0x01
+			CntOfsLen si,ofs0	//result ax:len, cl:contFlg
+			ch |= cl
+			if (di < ax)
+				di = ax
+				dl = 0
+			fi
+		fi
+		if (ch & 0x02)
+			ch &= ~0x02
+			CntOfsLen si,ofs1
+			cl <<= 1
+			ch |= cl
+			if (di < ax)
+				di = ax
+				dl = 1
+			fi
+		fi
+		if (ch & 0x04)
+			ch &= ~0x04
+			CntOfsLen si,ofs2
+			cl <<= 2
+			ch |= cl
+			if (di < ax)
+				di = ax
+				dl = 2
+			fi
+		fi
+		if (ch & 0x08)
+			ch &= ~0x08
+			CntOfsLen si,ofs3
+			cl <<= 3
+			ch |= cl
+			if (di < ax)
+				di = ax
+				dl = 3
+			fi
+		fi
+		if (ch & 0x10)
+			ch &= ~0x10
+			CntOfsLen si,ofs4
+			cl <<= 4
+			ch |= cl
+			if (di < ax)
+				di = ax
+				dl = 4
+			fi
+		fi
+	endloop
+
+	pop cx			// ch を復活
+	cl = dl 		// cl = 相対位置番号
+	dx.ax = bx.bp	// dx.ax = 一致した最長の長さ
+
+	@if 0	//確認ルーチン
+	Deb.Chk
+	if (==)
+		Deb.SaveReg
+			ch = 0
+			dx.ax >>= 1
+			Pri.Fmt "@%u  %lu(%lx)\N", cx, dx.ax, dx.ax
+		Deb.LoadReg
+	fi
+	@fi
+
+	pop  bp
+	return
+endproc
+
+
+*proc Conv(ght:d,readfunc:w);cdecl
+//	arg ght			GH.Tへのポインタ
+//	arg readfunc	ピクセル・データを入力する手続きへのポインタ
+enter
+	save pusha,ds,es
+	local cntY:w,cntX:w, posNo:b, ibgn:w
+
+	//デバッグ変数初期化
+	DebDatInit
+
+	// 変数初期化
+	ds.bx = ght
+	gh_t    = ds.bx	//デバッグ用
+	obuf = dx.ax = ww(GHT.wrtBufSeg,0)
+	osize   = ax = GHT.wrtBufSiz
+	ohdl	= ax = GHT.wrtHdl
+	inpPDB  = dx = readfunc
+	rstSiz  = ax = GHT.lastBlkSiz
+	pdbSeg  = ax = GHT.pdbSeg
+	blkCnt  = ax = GHT.blkCnt
+	ibgn	= ax = GHT.hisSiz
+	sizeX	= ax = GHT.sizeX
+	sizeY	= cx = GHT.sizeY
+	if (cx < 3 || ax < 4 /*|| ax & 0x01*/)
+		Pri.Fmt "圧縮範囲の横幅が奇数か 3以下、または縦が2以下になっている\N"
+		go.w RET
+	fi
+	ax = GHT.blkLin
+	if (ax < 2)
+		Pri.Fmt "圧縮のためのバッファのサイズが小さい\N"
+		go.w RET
+	fi
+
+	//比較のための相対値を計算
+	ax = sizeX
+	ofs1 = ax
+	dx = ax
+	dx <<= 1
+	ofs2 = dx
+	--ax
+	ofs3 = ax
+	ax += 2
+	ofs4 = ax
+
+	//色表初期化	Pi.GetColTblBuf bx
+	if (GHT.plnW == 4)
+		cx = 0x10
+	else
+		cx = 0x1000
+	fi
+	ax = cx
+	GH.GetMem bx,ax,cx
+	
+	colTblSeg = ax
+	/*Pi.*/InitColTbl bx, ax, GHT.plnW
+	if (GHT.plnW == 8)
+		putCol     = ax = &PutCol256
+	else
+		putCol     = ax = &PutCol16
+	fi
+
+  @if 1
+	//バッファを0で埋める(チェックのため)
+	es = pdbSeg
+	ax = 0
+	di = 0
+	cx = GHT.pdbSiz
+	cx >>= 1
+	rep.set.w di,ax,cx
+  @fi
+	//ピクセル・データを入力バッファに入力
+	blkMsgFlg = 0
+	ReadIBuf
+	if (_c_)
+		Subr.PriExit "Piファイルがおかしい\N"
+	fi
+  
+  @if 0; Deb.Chk; if (==); Pri.Fmt "OK1\N"; fi;@fi
+	
+	//前２行を最初の２ドットで埋める
+	cx = ibgn
+	cx >>= 1				//
+	es = pdbSeg
+	ax = w[es:si]
+	di = 0
+	rep.set.w di,ax,cx
+
+	//出力バッファ初期化
+	InitPutb (obuf.h)
+
+  @if 0; Deb.Chk; if (==); Pri.Fmt "OK2\N"; fi;@fi
+
+	//入力バッファのポインタを初期化
+	ds.si = ww(pdbSeg,ibgn)
+
+	//行カウンタ、桁カウンタを初期化
+	ax = 0
+	cntX = ax
+	cntY = ax
+
+	//最初の２ドットを出力
+	//al = 0
+	ah = b[si]
+	call putCol //al,ah, es.di,bx
+	al = ah
+	ah = b[si+1]
+	call putCol //al,ah, es.di,bx
+
+  @if 0; Deb.Chk; if (==); Pri.Fmt "OK3\N"; fi;@fi
+
+
+	//圧縮処理（ループ）
+	posNo = -1	//ひとつ前の相対位置番号を 0～4 以外にする
+	block CPL
+		CmpPosLen si,posNo
+			//注目しているピクセルの右側と相対位置の右側を比較し、一番長く
+			//一致した相対位置番号を cl にいれ、その長さを dx.ax に入れる
+			//一致するものがなければ前の相対位置番号で長さを０にして返す
+		posNo = cl
+		PutPos cl, es.di,bx //相対位置番号を出力
+		if.w (ax || dx) ////  一致したばあい
+  CPL_LOOPJMP:
+		  @if 1 //デバッグ・ルーチン
+			if (dbgFlg)
+				DebCntCmpLen cl,dx.ax
+			fi
+			//Deb.Chk;if (==)
+			if (priDatFlg)
+				Deb.SaveReg
+				ch = 0
+				dx.ax >>= 1
+				Pri.Fmt "@%u  %lu(%lx)\N", cx, dx.ax, dx.ax
+				Deb.LoadReg
+			fi
+		  @fi
+
+			PutLen dx.ax, es.di,bx	//長さを出力
+
+			// 桁カウンタ cntX と 行カウンタ cntY を更新
+			// 行が更新されていればカウンタをカウントし表示
+			dx.ax += ww(0,cntX)
+			div dx.ax, sizeX
+			cntX = dx
+			cntY += ax
+		  @if 0
+			if (ax)
+				ax = cntY
+				if (priCntFlg)
+					PriLin ax
+				fi
+			fi
+		  @fi
+			// 最終行を過ぎたなら、終了
+			ax = cntY
+			//break.w (ax >= sizeY) /////
+			if (ax >= sizeY)
+				//Pri.Fmt "*"
+				break.w
+			fi
+
+		  @if 1 //デバッグ・ルーチン
+			//バッファへのポインタとcntX,cntYの関係が矛盾しないかどうか
+			dx.ax = ww(0,si)
+			div dx.ax,sizeX
+			if (dx != cntX)
+				Deb.Chk
+				if(==)
+					Pri.Fmt "警告: (si%%sizeX) != cntX : %u != %u\N",dx,cntX
+				fi
+				cntX = dx
+			fi
+		  @fi
+
+			//次のピクセルの処理に移る
+			continue.w ///////
+		fi
+
+		//比較で一致しなかったばあい... ピクセルの圧縮(色圧縮)
+		posNo = -1
+		loop.w	/////
+			//１ピクセル（２ドット）を出力
+			--si
+			rep.load.w ax,si
+			call putCol //al,ah, es.di,bx
+				//arg al:左どなりの点（１ドット）の色  ah:圧縮する点の色
+			rep.load al,si
+			al <=> ah
+			call putCol //al,ah, es.di,bx
+
+			@if 1	//デバッグ・ルーチン
+			//Deb.Chk;if (==)
+			if (priDatFlg)
+				push ax
+					ah <=> al
+					Pri.Fmt ". %x\N",ax
+				pop ax
+			fi
+			@fi
+
+			// 桁カウンタ cntX と 行カウンタ cntY を更新
+			dx = cntX
+			dx += 2
+			if (dx >= sizeX)
+			  @if 0 // デバッグ・ルーチン
+				if (dx != sizeX)	//この条件は一致してはいけない（PRGERR）
+					Pri.Fmt "cntX error2(%x)\N",dx
+				fi
+			  @fi
+				ax = cntY
+				++ax
+				//break(ax >= sizeY)	//最終行を越えるなら終了
+				if (ax >= sizeY)
+					//Pri.Fmt "*"
+					break
+				fi
+			  @if 0
+				cntY = ax
+				if (priCntFlg)
+					PriLin ax		//行カウンタを表示
+				fi
+			  @fi
+				dx = 0
+			fi
+			cntX = dx
+
+			//入力バッファのデータをすべて処理したかチェック
+			//もうデータがないならデータの続きを入力
+			|si - iendAdr
+			if (>=)
+			  @if 1  //デバッグ・ルーチン
+				Deb.Chk
+				if (==)
+					if (>)
+						Pri.Fmt "PRGERR:si > iendAdr\N"
+					fi
+					if (dx != 0)
+						Pri.Fmt "PRGERR:cntX != 0\N"
+					fi
+			  	fi
+			  @fi
+				if (blkMsgFlg)
+					Pri.Fmt "*"
+					blkMsgFlg = 0
+				fi
+				ReadIBuf
+				break(_c_) CPL	 //入力するデータがなかったら終了
+				cntX = 0
+			fi
+
+			//次のピクセルで相対位置のものと一致するかチェック
+			CmpPosLen si,-1
+			//一致するものがあれば、色圧縮の終りを示す 1ビットの０を出力
+			//して、その相対位置を出力し、長さを出力するルーチンへ飛び込み、
+			//色圧縮のループより脱出
+			if (ax || dx)
+				clc; Putb es.di,bx
+				posNo = cl
+				PutPos cl, es.di,bx
+				go.w CPL_LOOPJMP	////	色圧縮ループより脱出
+			fi
+			stc; Putb es.di,bx
+			//一致するものがなければ色圧縮の継続を示す 1ビットの１を出力
+			//ピクセルを色圧縮するためにループ
+		endloop
+	endblock
+
+	if (blkMsgFlg)
+		Pri.Fmt "*"
+	fi
+	blkMsgFlg = 0
+	//最後に 0 を32ビット出力
+	PutDW 0,32,es.di,bx
+	PutDW 0,7,es.di,bx	//作業レジスタに残っているデータをバッファに掃き出す
+	WriteOBuf di
+  RET:
+	return
+endproc
+
+endmodule

@@ -1,0 +1,242 @@
+DGROUP	group	DATA,BSS
+
+TEXT	cseg byte  'CODE'
+
+DATA	dseg word  'DATA'
+
+BSS	dseg word  
+
+TEXT	cseg byte  'CODE'
+ax_get_:	mov	al,[si].b
+	xor	ah,ah
+	inc	si
+	cmp	al,129
+	jb	L$3
+	cmp	al,159
+	jbe	L$2
+L$3:
+	cmp	al,224
+	jb	L$1
+	cmp	al,252
+	ja	L$1
+L$2:
+	mov	ah,[si].b
+	inc	si
+	or	ah,ah
+	je	L$4
+	xchg	ah,al
+L$1:
+	ret
+L$4:
+	xor	al,al
+	ret
+
+cx_get_:	mov	cl,es:[di].b
+	xor	ch,ch
+	inc	di
+	cmp	cl,129
+	jb	L$7
+	cmp	cl,159
+	jbe	L$6
+L$7:
+	cmp	cl,224
+	jb	L$5
+	cmp	cl,252
+	ja	L$5
+L$6:
+	mov	ch,es:[di].b
+	inc	di
+	or	ch,ch
+	je	L$8
+	xchg	ch,cl
+L$5:
+	ret
+L$8:
+	xor	cl,cl
+	ret
+
+WildCmp_::	push	cx
+	push	dx
+	push	si
+	push	di
+	push	ds
+	push	es
+	pushf
+	push	bp
+	mov	bp,sp
+	dec	sp
+	dec	sp
+	mov	si,ax
+	shr	ax,1
+	shr	ax,1
+	shr	ax,1
+	shr	ax,1
+	add	bx,ax
+	mov	ds,bx
+	mov	di,cx
+	shr	cx,1
+	shr	cx,1
+	shr	cx,1
+	shr	cx,1
+	add	dx,cx
+	mov	es,dx
+	and	si,15
+	and	di,15
+	mov	[bp-2].w,di
+L$9:
+	mov	al,[si].b
+	inc	si
+	cmp	al,129
+	jb	L$14
+	cmp	al,159
+	jbe	L$13
+L$14:
+	cmp	al,224
+	jb	L$12
+	cmp	al,252
+	ja	L$12
+L$13:
+	mov	ah,[si].b
+	or	ah,ah
+	jne	L$16
+	jmp	L$15
+L$16:
+	xchg	ah,al
+	inc	si
+	call	cx_get_
+	cmp	ax,cx
+	jne	L$17
+	jmp	L$10
+L$12:
+	xor	ah,ah
+	cmp	al,42
+	jne	L$18
+L$19:
+	mov	ax,si
+	mov	bx,ds
+	mov	cx,di
+	mov	dx,es
+	call	WildCmp_
+	or	ax,ax
+	jne	L$23
+	jmp	L$22
+L$23:
+	cmp	ax,(-1)
+	jne	L$24
+	jmp	L$15
+L$24:
+	call	cx_get_
+	or	cx,cx
+	jne	L$19
+	jmp	L$17
+L$18:
+	cmp	al,63
+	jne	L$25
+	call	cx_get_
+	jcxz	L$17
+	jmp	L$26
+L$25:
+	cmp	al,91
+	jne	L$27
+	call	cx_get_
+	jcxz	L$17
+	call	ax_get_
+	xor	dl,dl
+	cmp	ax,94
+	jne	L$28
+	mov	dl,1
+	call	ax_get_
+L$28:
+	mov	bx,65535
+	jmp	L$29
+L$17:
+	jmp	L$30
+L$31:
+	cmp	ax,45
+	jne	L$34
+	call	ax_get_
+	or	ax,ax
+	je	L$15
+	cmp	ax,93
+	jne	L$35
+	cmp	bx,cx
+	je	L$36
+	jmp	L$37
+L$35:
+	cmp	cx,bx
+	jb	L$38
+	cmp	cx,ax
+	jbe	L$36
+L$38:
+	jmp	L$39
+L$34:
+L$29:
+	cmp	ax,cx
+	jne	L$40
+L$36:
+	or	dl,dl
+	jne	L$30
+L$41:
+	call	ax_get_
+	or	ax,ax
+	je	L$15
+	cmp	ax,93
+	jne	L$41
+	jmp	L$33
+L$40:
+L$39:
+	mov	bx,ax
+	call	ax_get_
+	or	ax,ax
+	je	L$15
+	cmp	ax,93
+	jne	L$44
+L$37:
+	or	dl,dl
+	jne	L$33
+	jmp	L$30
+L$44:
+	jmp	L$31
+L$33:
+	jmp	L$26
+L$27:
+	call	cx_get_
+	cmp	ax,cx
+	je	L$45
+	or	ax,ax
+	jne	L$30
+	sub	di,[bp-2].w
+	je	L$30
+	mov	ax,di
+	mov	bx,ax
+	jmp	L$46
+L$45:
+	jcxz	L$22
+L$26:
+L$10:
+	jmp	L$9
+L$22:
+	xor	ax,ax
+	sub	di,[bp-2].w
+	mov	bx,di
+	jmp	L$46
+L$15:
+	mov	ax,(-1)
+	jmp	L$47
+L$30:
+	mov	ax,(-2)
+L$47:
+	xor	bx,bx
+L$46:
+	mov	sp,bp
+	pop	bp
+	popf
+	pop	es
+	pop	ds
+	pop	di
+	pop	si
+	pop	dx
+	pop	cx
+	ret
+
+	end

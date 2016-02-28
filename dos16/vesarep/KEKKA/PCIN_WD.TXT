@@ -1,0 +1,34 @@
+VESA ver01.01 flag:FFE8 memsiz  1024Kbytes  OEM:Western Digital Inc
+	VIDEO_MODE_TABLE=c0007c18(c7c10008)
+	105	106	101	103	104	102
+
+  105   PackedPixel  Pln=1   8bitsCol   1024*768    (chr:8*16)  mode=001b
+	WIN:pagSz=4K,sz=64K,adr=c0007ee2 A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=1024  ImgPagCnt=1  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  106   Plane        Pln=4   4bitsCol   1280*1024   (chr:8*16)  mode=001b
+	WIN:pagSz=4K,sz=64K,adr=c0007ee2 A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=160  ImgPagCnt=1  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  101   PackedPixel  Pln=1   8bitsCol    640*480    (chr:8*16)  mode=001f
+	WIN:pagSz=4K,sz=64K,adr=c0007ee2 A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=640  ImgPagCnt=1  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  103   PackedPixel  Pln=1   8bitsCol    800*600    (chr:8*16)  mode=001b
+	WIN:pagSz=4K,sz=64K,adr=c0007ee2 A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=800  ImgPagCnt=1  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  104   Plane        Pln=4   4bitsCol   1024*768    (chr:8*16)  mode=001b
+	WIN:pagSz=4K,sz=64K,adr=c0007ee2 A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=128  ImgPagCnt=1  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  102   Plane        Pln=4   4bitsCol    800*600    (chr:8*8)  mode=001f
+	WIN:pagSz=64K,sz=64K,adr=c0007ee2 A:seg=a000,atr=07 B:seg=a000,atr=00
+	BnkCnt=1  BnkSz=0K  scanL=100  ImgPagCnt=1  DrctColAtr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+

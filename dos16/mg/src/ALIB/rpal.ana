@@ -1,0 +1,85 @@
+module RPal
+	//	1992	writen by M.Kitamura
+	// パレット・データは %var 領域にあること
+
+*struct T
+	id:b(10)	//ID
+	tone:b		//トーン
+	rsv:b(5)	//予約
+	grb:b(48)	//パレット G R B * 16
+endstruct
+
+struct mcb_t
+	flg:b
+	owner:w
+	blksiz:w
+	reserve:b(11)
+endstruct
+
+*var ptr:d = 0	//常駐パレットのアドレス
+
+*proc GetTone()
+endproc
+
+*proc SetTone(ax)
+//	arg ax	tone
+//	arg bx	rgb buf
+//	in	ds
+//	out ax	0:ok -1:error(常駐パレットが見つからない)
+endproc
+
+*proc GetRGB(bx)
+//	arg bx	rgb buf
+//	in	ds
+//	out ax	tone	ax=-1:error(常駐パレットが見つからない)
+endproc
+
+*proc SetRGB(ax,bx)
+//	arg ax	tone
+//	arg bx	rgb buf
+//	in	ds
+//	out ax	0:ok -1:error(常駐パレットが見つからない)
+endproc
+
+/////////////////////////////////////////////////////////////////////////
+
+*proc Search()
+//	out dx.ax : pointer to T
+begin
+	save bx,cx,si,di,es
+	var rpalID:b() = "pal98 grb"
+
+	ah = 0x52
+	intr 0x21
+	rep.inc
+	dx = w[es:bx-2]
+	loop
+		exit (dx == 0)
+		es = dx
+		++dx
+		if (mcb_t[es:0].owner != 0)
+			di = 0x10
+			cx = 10
+			si = &rpalID
+			repe.cmp di,si,cx
+			go (==) FIND
+		fi
+		dx += mcb_t[es:0].blksiz
+	endloop (mcb_t[es:0].flg != 'Z')
+	dx = 0
+FIND:
+	ds = ax = %var
+	ax = 0
+	RPal.ptr = dx.ax
+	return
+endproc
+
+*proc Forget()
+begin
+	save ds,ax
+	ds = ax = %var
+	RPal.ptr = 0
+	return
+endproc
+
+endmodule

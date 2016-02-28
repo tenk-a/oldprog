@@ -1,0 +1,306 @@
+module RdDt
+	model SMALL
+	c_name "PiLd","_",1
+	//  in  ds = %var
+	//  in  rep.inc
+
+	import Dos
+	import Err
+
+*var ph:w  	//DOS ファイル・ハンドル
+//*var  rwk:w //,rwkcnt:b
+var   bufSiz:w  //入力するバッファのサイズ
+var   bufSeg:w  //バッファのアドレス（セグメントのみ）
+var   bufBtm:w
+var   bufPtr:w
+
+*proc RdInitVRam();cdecl
+//	VRAMを入力バッファにする
+begin
+	bufSiz = 0x8000;//0x10000 - 0x400;
+	bufSeg = 0xB800;
+	return;
+endproc
+
+*proc RdInit(pSiz:w);cdecl
+//  arg pSiz バッファ・サイズ
+enter
+	save bx,ds
+
+	ds = ax = %var
+	bx = pSiz
+	if (bx < 0x2000)
+		goto ERR
+	fi
+	bufSiz = bx
+	bx >>= 4
+	++bx
+	Dos.AllocMem bx
+	go (cf) RTS
+	bufSeg = ax
+	ax = 0
+  RTS:
+	return
+  ERR:
+	ax = -1
+	go RTS
+endproc
+
+proc ReadBuf()
+//	ファイルよりデータを読み込む
+begin
+	save ax,bx,cx,dx,si,ds,fx
+	var errmsg:b() = "ファイルが潰れているかも？\N"
+
+	ds = si = %var
+	bx = ph
+	cx = bufSiz
+	dx = 0
+	ds = bufSeg
+	Dos.Read bx,dx,cx
+	|ds = si
+	go (cf) ERR
+	go (ax == 0) ERR2
+	--ax
+	bufBtm = ax
+	bufPtr = dx 	//dx = 0
+	return
+ ERR:
+ 	Err.DosError ax
+ ERR2:
+	Dos.Write 1, &errmsg, sizeof(errmsg) - 1
+	ax = -1
+	go ERR
+endproc
+
+*proc RdFirst(pHdl:w);cdecl
+//  バッファに入力するファイル・ハンドルを指定する
+//  arg ax  ファイル・ハンドル(ax > 4)
+//  out ax
+enter
+	ph = ax = pHdl
+	ReadBuf
+	ax = 0
+	//rwk = 0
+	//rwkcnt = 0
+	return
+endproc
+
+*proc RdByte()
+//	1バイト読み込む
+//  out al
+begin
+	save si,es
+
+	si = bufPtr
+	loop
+		es = bufSeg
+		if (si <= bufBtm)
+			al = b[es:si]
+			++si
+			bufPtr = si
+			return
+		fi
+		ReadBuf
+		si = 0
+	endloop
+endproc
+
+*proc RdWord()
+//	2バイト読み込む
+//  out ax
+begin
+	save si,es
+
+	si = bufPtr
+	loop
+		es = bufSeg
+		if (si < bufBtm)
+			ax = w[es:si]
+			ah <=> al
+			si += 2
+			bufPtr = si
+			return
+		fi
+		if (si == bufBtm)
+			ah = b[es:si]
+			++bufPtr
+			RdByte
+			return
+		fi
+		ReadBuf
+		si = 0
+	endloop
+endproc
+
+*proc RdBitSub()
+//	バッファの終りで、ファイルより次のデータを読み込む
+//  in  ds  = %var
+//		rep.inc
+//	out cf,bh,dx
+begin
+	save si,ax
+	si = bufPtr
+	loop
+		|si - bufBtm
+		if (<)
+			push ds
+			ds = bufSeg
+			rep.load.w ax,si
+			pop  ds
+			dh = al
+			dl = ah
+			bufPtr = si
+			bh = 16
+			|dx <<= 1
+			return
+		elsif (==)
+			push ds
+			ds = bufSeg
+			rep.load.b al,si
+			pop  ds
+			dh = al
+			dl = 0
+			bufPtr = si
+			bh = 8
+			|dx <<= 1
+			return
+		fi
+		ReadBuf
+		si = 0
+	endloop
+endproc
+
+*@define RdBitInit(z,y)	 bh = 1;dx = 0
+
+*@define RdBit(x,y)\
+	if (--bh != 0);\
+		|dx <<= 1;\
+	else;\
+		RdDt.RdBitSub;\
+	fi
+	// x,y はダミー。dx,bh を指定するため。
+
+
+*proc RdLen(bh,dx)
+//  長さ情報を１つ読み込む
+//  in  ds  = %var
+//  in  rep.inc
+//  out ax.cx
+begin
+	ax = 0
+	cx = 1
+	RdBit(bh,dx)
+	if (cf == 0)
+		return
+	fi
+	RdBit(bh,dx)
+	if (cf == 0)
+		RdBit(bh,dx);  rcl cx
+		return
+	fi
+	RdBit(bh,dx)
+	if (cf == 0)
+	 @if 0
+		RdDt.RdBit(bh,dx); rcl cx
+		RdDt.RdBit(bh,dx); rcl cx
+	 @else
+		if (bh > 2)
+			bh -= 2
+			|dx <<= 1;|rcl cx
+			|dx <<= 1;|rcl cx
+		else
+			RdDt.RdBit(bh,dx); rcl cx
+			RdDt.RdBit(bh,dx); rcl cx
+		fi
+	 @fi
+		return
+	fi
+	RdBit(bh,dx)
+	if (cf == 0)
+	 @if 0
+		RdDt.RdBit(bh,dx); rcl cx
+		RdDt.RdBit(bh,dx); rcl cx
+		RdDt.RdBit(bh,dx); rcl cx
+	 @else
+		if (bh > 3)
+			bh -= 3
+			|dx <<= 1;|rcl cx
+			|dx <<= 1;|rcl cx
+			|dx <<= 1;|rcl cx
+		else
+			RdDt.RdBit(bh,dx); rcl cx
+			RdDt.RdBit(bh,dx); rcl cx
+			RdDt.RdBit(bh,dx); rcl cx
+		fi
+	 @fi
+		return
+	fi
+	RdBit(bh,dx)
+	if (cf == 0)
+	 @if 0
+		RdDt.RdBit(bh,dx); rcl cx
+		RdDt.RdBit(bh,dx); rcl cx
+		RdDt.RdBit(bh,dx); rcl cx
+		RdDt.RdBit(bh,dx); rcl cx
+	 @else
+		if (bh > 4)
+			bh -= 4
+			|dx <<= 1;|rcl cx
+			|dx <<= 1;|rcl cx
+			|dx <<= 1;|rcl cx
+			|dx <<= 1;|rcl cx
+		else
+			RdDt.RdBit(bh,dx); rcl cx
+			RdDt.RdBit(bh,dx); rcl cx
+			RdDt.RdBit(bh,dx); rcl cx
+			RdDt.RdBit(bh,dx); rcl cx
+		fi
+	 @fi
+		return
+	fi
+	RdBit(bh,dx)
+	if (cf == 0)
+		RdBit(bh,dx);  rcl cx
+		RdBit(bh,dx);  rcl cx
+		RdBit(bh,dx);  rcl cx
+		RdBit(bh,dx);  rcl cx
+		RdBit(bh,dx);  rcl cx
+		return
+	fi
+	RdBit(bh,dx)
+	if (cf == 0)
+		RdBit(bh,dx);  rcl cx
+		RdBit(bh,dx);  rcl cx
+		RdBit(bh,dx);  rcl cx
+		RdBit(bh,dx);  rcl cx
+		RdBit(bh,dx);  rcl cx
+		RdBit(bh,dx);  rcl cx
+		return
+	fi
+
+	push di
+	cx = ax
+	di = 1
+	loop
+		++cx
+		RdBit(bh,dx)
+	endloop (cf)
+
+	RdBit(bh,dx); 	rcl di
+	RdBit(bh,dx);	rcl di
+	RdBit(bh,dx);	rcl di
+	RdBit(bh,dx);	rcl di
+	RdBit(bh,dx);	rcl di
+	RdBit(bh,dx);	rcl di
+	loop
+		RdBit(bh,dx)
+		rcl ax.di
+	endloop (--cx)
+	cx = di
+	pop  di
+	return
+endproc
+
+
+endmodule

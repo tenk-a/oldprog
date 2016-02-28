@@ -1,0 +1,197 @@
+VESA ver01.02 flag:FFE8 memsiz  1024Kbytes  OEM:Cirrus Logic GD-54xx VGA
+	369f	369f	fe5b	11b	049	12c	fde2	27c0
+	056	369f	467c	fe6d	131	301	f03	2d0
+	049	12c	049	fea0	11b0	2d0
+
+  369f   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  369f   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  00b   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  fde0   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  001   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  200   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  369f   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  c73   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  369f   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  369f   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  fe6b   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  281   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  200   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  c00   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  fd0c   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  2d0   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  020   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  030   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  00f   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  c73   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  fe00   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  2a98   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  2a98   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  1a7   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  00f   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  282   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  001   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  286   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  001   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  feb4   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  11b0   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+
+  2d0   TEXT         Pln=0  0bitsCol      0*0      (chr:0*0)
+	WIN:pagSz=0K,sz=0K,adr=00000000 A:seg=0000,atr=00 B:seg=0000,atr=00
+	mode=0000	scanline=0	ImgPagCnt=0
+	NumOfBnk=0	BnkSz=0K	1.1Flg=0	DirectColorAttr=00
+	R:msk=00 pos=0	G:msk=00 pos=0	B:msk=00 pos=0	A:msk=00 pos=0
+

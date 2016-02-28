@@ -1,0 +1,1234 @@
+module V21
+	c_name "V21","_",1
+
+	import Pri
+	import Vv
+	import C
+	import RRPal
+	import WAB256
+	//import V98
+
+@define V() Vv.T[ds:0]
+
+/*---------------------------------------------------------------------------*/
+cvar v21chkedFlg:w = 0
+cvar use21BiosFlg:w = 1
+cvar scrn_ysize:w = 400
+//cvar vsyncmode:b = 0b00001100	//31kHz
+cvar sav_vsync:b = 0b00001000	//24kHz
+cvar sav_grph:b  = 0b00100001	//G400L T25L
+cvar vsyncFlg:w = 0
+cvar bnkmsk:w = 0x07
+//cvar gdc25flg:w = 0x00
+cvar gMod0:b=-1
+*cvar scnMode:b=-1
+
+const VRAM_SEG = 0xA800
+
+*proc Sw480(flg:w);cdecl
+enter
+	save ax
+	if (ax)
+		scrn_ysize = 480
+	else
+		scrn_ysize = 400
+	fi
+	scnMode = -1
+	return
+endproc
+
+*proc GetYsize(mode:w);cdecl
+	//ret ax
+enter
+	ax = scrn_ysize
+	return
+endproc
+
+*proc ShowOn()
+begin
+	save ax
+	ax = 0x4000
+	intr 0x18
+	return
+endproc
+
+*proc ShowOff()
+begin
+	save ax
+	ax = 0x4100
+	intr 0x18
+	return
+endproc
+
+
+
+proc Check9821()
+begin
+	save ax,bx,cx,dx,es,ds
+  
+	go.w (v21chkedFlg) RET
+
+	es = 0
+	//PC9821か？
+	al = b[es:0x0458]
+	al &= 0x40
+	//PC9821の拡張ｸﾞﾗﾌｨｯｸ機能が使えるか
+	ah = b[es:0x045c]
+	ah &= 0x40
+	//PC9821のﾁｪｯｸ
+	dl = b[es:0x0597]
+	dl &= 0x80
+	if (al == 0 && ah && dl)
+		v21chkedFlg = 1
+	else
+	  @if 0
+		Pri.Fmt"\NPC9821(除B系)の256色は使えないみたいなので暴走しますかも\N"
+		ds = ax = %var
+		C.Exit 1
+	  @else
+		v21chkedFlg = 1
+	  @fi
+	fi
+
+	if.w (use21BiosFlg)
+		//同期モードの取得
+		ah = 0x31
+		intr 0x18
+
+		//終了時に設定するモードを保存
+	  	al &= 0xFE						//ラスタ・スキャン・モードを０にする
+		sav_vsync = al// = 0b00001100
+		sav_grph  = bh// = 0b00110010
+		if ((al & 0b1100) == 0)			// 15kHzだ... 9821では存在しない...
+		  	scnMode = 0xff				// 初期化の必要あり
+		elsif ((bh & 0b00100000) == 0)	// 200Lだ
+		  	scnMode = 0xff				// 初期化の必要あり
+			bh &= 0b00001111 			//textﾓｰﾄﾞを保存
+			bh |= 0b00100000 			//400l
+			sav_grph  = bh
+			//sav_vsync = al// = 0b00001100
+		elsif ((bh & 0b00010000) == 0)	//	480Ｌだ.. すでに拡張モード
+			scnMode = 2
+		else	// 400Lのとき
+			//拡張グラフィックスかどうか
+			dx = 0x9a0
+			port(dx) = al = 0x0a
+			al = port(dx)
+			al &= 0x01
+			scnMode = al
+		fi
+		gMod0 = al = scnMode
+
+		//強制的に終了時のモードを設定
+		if (vsyncFlg == 2)		//強制的に31kHzで終了
+			al = 0b00001100
+			bh = sav_grph
+			bh &= 0b00001111	//textﾓｰﾄﾞを保存
+			bh |= 0b00100000	//400l
+			sav_grph = bh
+			sav_vsync = al
+		elsif(vsyncFlg == 1)	//強制的に24kHzで終了
+			al = 0b00001000		//24kHz
+			bh = sav_grph
+			bh &= 0b00001111 	//textﾓｰﾄﾞを保存
+			//if (bh & 0xfe)	//25行以上なら25行ﾓｰﾄﾞにする
+			//	bh = 0b00000001
+			//fi
+			bh |= 0b00100000 //400l
+			sav_grph = bh
+			sav_vsync = al
+		fi
+
+		//再設定
+		//ah = 0x30
+		//intr 0x18
+	fi
+  RET:
+	return
+endproc
+
+*proc SetMode(mode:w);cdecl
+	//PC9821 -2:I/Oﾉﾐ  (-1:強制400) 0:400/480自動 1:強制480
+enter
+	save ax
+	ax = mode
+	if (ax == 1)
+		use21BiosFlg = 2
+		scrn_ysize = 480
+		//vsyncmode = al = 0b00001100	//31kHz
+		bnkmsk = 0x0f
+	elsif (ax == 0)
+		use21BiosFlg = 2
+		scrn_ysize = 400
+		//vsyncmode = al = 0b00001100	//31kHz
+		bnkmsk = 0x07
+	elsif (ax == -1)
+		use21BiosFlg = 1
+		scrn_ysize = 400
+		//vsyncmode = al = 0b00001000	//24kHz
+		bnkmsk = 0x07
+	else//elsif (ax == -2)
+		use21BiosFlg = 0
+		scrn_ysize = 400
+		//このﾓｰﾄﾞではvsyncmodeは使わないけどとりあえず
+		//vsyncmode = al = 0b00001000	//24kHz
+		bnkmsk = 0x07
+	fi
+	return
+endproc
+
+*proc SetVflg(vFlg:w);cdecl
+enter
+	vsyncFlg = ax = vFlg	//終了時のvsyncmodeを強制するか
+	return
+endproc
+
+*proc ChgGmode(md:w);cdecl
+	//md: 0=16色400L  1:256色400L  2:256色480L
+enter
+	save ax,bx,cx,dx
+
+	cl = md.l
+	if.w (use21BiosFlg)	//BIOSによる拡張ｸﾞﾗﾌｨｯｸｽﾓｰﾄﾞ
+		if (cl == scnMode)
+			go.w RET
+		fi
+		scnMode = cl
+		//port(0x6A) = al = 0x83;port(0x6A) = al = 0x85	//GDC 5Mにする
+		if (cl == 2)//256色G480L
+			bnkmsk = 0x0f
+			al = 0b00001100	//31kHz
+			bh = 0b00110010
+			ah = 0x30
+			intr 0x18
+			//ｼﾝｸﾞﾙ･ﾌﾟﾚｰﾝ
+			push ds
+				ds = ax = 0xE000
+				b[ds:0x100] = 0
+			pop  ds
+		elsif (cl == 1)	//256色G400L
+			bnkmsk = 0x07
+			al = 0b00001000	//24kHz
+			bh = 0b00100001
+			ah = 0x30
+			intr 0x18
+			//400L時拡張ｸﾞﾗﾌｨｯｸｽﾓｰﾄﾞにする
+			al = ch = 0x01
+			ah = 0x4D
+			intr 0x18
+			//ｼﾝｸﾞﾙ･ﾌﾟﾚｰﾝ
+			push ds
+				ds = ax = 0xE000
+				b[ds:0x100] = 0
+			pop  ds
+		else//elsif (cl == 0)	//16色G400L
+			bnkmsk = 0x07
+		  @if 1
+			al = port(0x31)
+			if (al & 0x80)	//GDC 2.5MHz
+				//いったん200ラインにして
+				al = 0b00001000	//24kHz
+				bh = 0b00000001
+				ah = 0x30
+				intr 0x18
+				//400にする
+				al = 0b00001000	//24kHz
+				bh = 0b00100001
+				ah = 0x30
+				intr 0x18
+			else			//GDC 5.0MHz
+		  @endif
+				//400にする
+				al = 0b00001000	//24kHz
+				bh = 0b00100001
+				ah = 0x30
+				intr 0x18
+				//400L時標準ｸﾞﾗﾌｨｯｸｽﾓｰﾄﾞにする
+				al = ch = 0x00
+				ah = 0x4D
+				intr 0x18
+		  @if 1
+			fi
+		  @endif
+			// 400L にする
+			ah = 0x42
+			ch = 0xc0
+			intr 0x18
+			// analog
+			port(0x6a) = al = 0x01
+		fi
+	else  //I/Oﾎﾟｰﾄをたたく
+		bnkmsk = 0x07
+		if (cl == 0)	//16色 400L
+			port(0x6a) = al = 0x07
+			port(0x6a) = al = 0x20
+			port(0x6a) = al = 0x06
+		else			//256色 400L
+			port(0x6a) = al = 0x07
+			port(0x6a) = al = 0x21
+			port(0x6a) = al = 0x06
+			push ds
+				ds = ax = 0xE000
+				b[ds:0x100] = 0
+			pop  ds
+		fi
+	fi
+  RET:
+	return
+endproc
+
+*proc GEnd()
+begin
+	ChgGmode 0	//ﾉｰﾏﾙ16色 400L
+
+	//テキスト画面の設定
+	dx = 0
+	ah = 0x0e
+	intr 0x18
+
+	ax = 0x0a00
+	intr 0x18
+
+	return
+endproc
+
+
+*proc GStart();cdecl
+begin
+	save ax,bx
+	if (scrn_ysize == 480)
+		ChgGmode 2
+	else
+		ChgGmode 1
+	fi
+	return
+endproc
+
+*proc SetRGB(tone:w, pal:d);cdecl
+enter
+	save pusha,es,ds
+	cx = 0
+	bx = 100
+	RRPal.SetTone tone
+	RRPal.GetPalAddr	//result es.di
+	ds.si = pal
+	loop
+		port(0xA8) = al = cl
+
+		rep.load al,si
+		rep.set di,al
+		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+		port(0xAC) = al
+		rep.load al,si
+		rep.set di,al
+		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+		port(0xAA) = al
+		rep.load al,si
+		rep.set di,al
+		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+		port(0xAE) = al
+		cx += 1
+	endloop(cx < 256)
+	return
+endproc
+
+*proc SetTone(tone:w);cdecl
+enter
+	save bx,cx,dx,si,di,es,ds
+	cx = 0
+	bx = 100
+	RRPal.SetTone tone
+	RRPal.GetPalAddr
+	ds.si = es.di
+	loop
+		port(0xA8) = al = cl
+		rep.load al,si
+		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+		port(0xAC) = al
+		rep.load al,si
+		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+		port(0xAA) = al
+		rep.load al,si
+		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+		port(0xAE) = al
+		cx += 1
+	endloop(cx < 256)
+	ax = 0
+	return
+endproc
+
+*proc SetPal(v21Seg:w, tone:w);cdecl
+enter
+	save pusha,es,ds
+	ds = v21Seg
+	SetRGB tone, V.palette
+	return
+endproc
+
+*proc GCls()
+begin
+	save pusha,es,ds
+	ds = ax = 0xE000
+	es = ax = VRAM_SEG
+	bx = ax = 0
+	loop
+		w[ds:0x0004] = bx
+		rep.set.w 0,ax,0x8000/2
+		++bx
+	endloop (bx < 16)
+	w[ds:0x0004] = 0
+	return
+endproc
+
+*proc Start();cdecl
+begin
+	save pusha,es,ds
+	//ah = 0
+	//al = port(0x31)
+	//al &= 0x80		//0x80 なら GDC2.5M  0ならGDC5M
+	//gdc25flg = ax
+  @if 1
+  	Check9821
+
+  //GEnd改
+	//ChgGmode 0	//ﾉｰﾏﾙ16色 400L
+
+	//テキスト画面の設定...?
+	dx = 0
+	ah = 0x0e
+	intr 0x18
+
+	ax = 0x0a00
+	intr 0x18
+
+  @fi
+	return
+endproc
+
+
+*proc End(tone:w);cdecl
+enter
+	if.w (v21chkedFlg)
+		//画面モードを復帰
+		if (use21BiosFlg)
+			SetTone tone
+		  @if 1
+			if (vsyncFlg == 0)	//起動時のモードで終了
+				if (scnMode)
+					ShowOff
+				fi
+				al = sav_vsync
+				bh = sav_grph
+				ah = 0x30
+				intr 0x18
+			elsif (vsyncFlg == 2)	//強制的に31kHzで終了
+				al = sav_vsync
+				bh = sav_grph
+				ah = 0x30
+				intr 0x18
+			else					//強制的に24kHzで終了
+			  @if 0
+				//if (scnMode == 2 || gMod0 == 2)
+					al = sav_vsync
+					bh = sav_grph
+					ah = 0x30
+					intr 0x18
+				//fi
+			  @else
+				al = scnMode
+				if (al > 1)
+					al = 1
+				fi
+				ah = 0
+				scnMode = -1
+				ChgGmode ax
+				//al = sav_vsync
+				//bh = sav_grph
+				//ah = 0x30
+				//intr 0x18
+			  @endif
+			fi
+		  @else
+			if (vsyncFlg == 0)	//起動時のモードで終了
+				al = sav_vsync
+				bh = sav_grph
+				ah = 0x30
+				intr 0x18
+				ShowOff
+			elsif (vsyncFlg == 2)	//強制的に31kHzで終了
+				al = 0b00001100
+				bh = sav_grph
+				bh &= 0b00001111 //textﾓｰﾄﾞを保存
+				bh |= 0b00100000 //400l
+				ah = 0x30
+				intr 0x18
+			else				//強制的に24kHzで終了
+				al = 0b00001000	//24kHz
+				bh = sav_grph
+				bh &= 0b00001111 //textﾓｰﾄﾞを保存
+				if (bh & 0xfe)	//25行以上なら25行ﾓｰﾄﾞにする
+					bh = 0b00000001
+				fi
+				bh |= 0b00100000 //400l
+				ah = 0x30
+				intr 0x18
+			fi
+		  @fi
+		else
+			GEnd
+			ShowOff
+		fi
+		//テキスト表示on
+		ah = 0x0C
+		intr 0x18
+	fi
+	return
+endproc
+
+
+/*---------------------------------------------------------------------------*/
+
+@if 0 /*---------------------------------------------------------------------*/
+cvar gBcolFlg:w = 0, gBcol:w = 0
+
+@define SetBank(dx) 	\
+	push 0xE000;		\
+	pop  es;			\
+	dx &= 0x0f;			\
+	w[es:0x0004] = dx;	\
+	++dx;				\
+	dx &= 0x0f;			\
+	w[es:0x0006] = dx;
+
+
+
+*proc PutXYN(xx0:w,yy0:w,len:w,ptr:d);cdecl
+enter
+	save ax,dx,cx,si,di,es,ds
+
+	dx.ax = yy0 * 640
+	|ax += xx0
+	adc dx,0
+	di = ax
+
+	di &= 0x7FFF		//ページサイズ 32Kバイト
+	dx.ax <<= 1
+	SetBank dx
+
+	es = ax = VRAM_SEG
+	ds.si = ptr
+	cx = len
+	go (gBcolFlg) BCOL_CPY1
+	rep.cpy di,si,cx
+  BCOL_RET1:
+	return
+
+  BCOL_CPY1:
+	loop
+		rep.load al,si
+		go(al == gBcol.l) BB1
+		rep.set di,al
+	  BB1R:
+	endloop (--cx)
+	go BCOL_RET1
+	BB1: ++di;go BB1R
+endproc
+
+*proc PutPx(datSeg:w,xg:w,yg:w,x0:w,y0:w,xsize:w,ysize:w);cdecl
+enter
+	save pusha,es,ds
+	local xsize2:w
+
+	ds = datSeg
+
+	xsize2 = ax
+
+	ax = x0
+	dx = xsize
+	ax += dx
+	if (ax > V.xvsize)
+		ax -= V.xvsize
+		xsize2 = ax
+		dx -= ax
+		xsize = dx
+	fi
+
+	di = yg
+	si = y0
+	cx = ysize
+
+	if (xsize2)
+		loop
+			Vv.LineAddr ds, si/*y0*/
+			push cx
+				bx = ax
+				ax += x0
+				PutXYN xg, di/*yg*/, xsize, dx.ax
+				ax = xg
+				ax += xsize
+				PutXYN ax, di/*yg*/, xsize2, dx.bx
+			pop  cx
+			++si;if (si == V.yvsize);si = 0;fi
+			++di;go (di == scrn_ysize) RET
+			//++di;if (di == scrn_ysize);di = 0;fi
+		endloop (--cx)
+	else
+		loop
+			Vv.LineAddr ds, si
+			ax += x0
+			PutXYN xg, di/*yg*/, xsize, dx.ax
+			++si;if (si == V.yvsize);si = 0;fi
+			++di;go (di == scrn_ysize) RET
+			//++di;if (di == scrn_ysize);di = 0;fi
+		endloop (--cx)
+	fi
+  RET:
+	return
+endproc
+
+*proc ResetScl(datSeg:w);cdecl
+enter
+	save pusha,ds
+	ds = datSeg
+	ax = 0
+	V.xvstart = ax
+	V.yvstart = ax
+	return
+endproc
+
+*proc PutPxPart(datSeg:w);cdecl
+enter
+	save ds,ax
+	ds = datSeg
+	ax = 0
+	V.xvstart = ax
+	V.yvstart = ax
+	gBcolFlg = ax
+	gBcol = ax
+	PutPx ds, V.xgstart, V.ygstart, ax, ax, V.xgsize, V.ygsize
+	return
+endproc
+
+*proc PutPxBCol(datSeg:w);cdecl
+enter
+	save ds,ax
+	ds = datSeg
+	gBcolFlg = 1
+	gBcol = ax = V.overlayColor
+	ax = 0
+	V.xvstart = ax
+	V.yvstart = ax
+	PutPx ds, V.xgstart, V.ygstart, ax, ax, V.xgsize, V.ygsize
+	gBcolFlg = 0
+	gBcol = 0
+	return
+endproc
+
+
+*proc PutPxScrn(datSeg:w,x0:w,y0:w);cdecl
+enter
+	save ds,dx,ax
+	ds = datSeg
+	ax = x0
+	dx = y0
+	V.xvstart = ax
+	V.yvstart = dx
+	ax = dx = 0
+	gBcolFlg = ax
+	gBcol = ax
+	PutPx ds, ax, dx, x0, y0, V.xgsize, V.ygsize
+	return
+endproc
+
+*proc PutPxLoop(datSeg:w);cdecl
+enter
+	save pusha,es,ds
+	local yg:w,y0:w,x_cnt:w,x_rst:w
+
+	ds = datSeg
+	ResetScl ds
+	dx.ax = ww(0, V.xgscrn)
+	div dx.ax, V.xvsize
+	x_cnt = ax
+	x_rst = dx
+	bx = V.ygstart
+	yg = si = 0
+	y0 = 0
+
+	loop
+		Vv.LineAddr ds, y0
+		bx.si = dx.ax
+		di = 0
+		cx = x_cnt
+		loop
+			PutXYN di, yg, V.xvsize, bx.si
+			di += V.xvsize
+		endloop (--cx)
+		if (x_rst)
+			PutXYN di, yg, V.xvsize, bx.si
+		fi
+		++y0
+		ax = V.ygsize
+		if (y0 == ax)
+			y0 = 0
+		fi
+		++yg
+		ax = yg
+	endloop (ax < V.ygscrn)
+	return
+endproc
+@else /*---------------------------------------------------------------------*/
+@define GdcWait()	loop;al = port(0xa0);endloop(al & 0x02)
+
+@define Pc21_SetBank(dx) 	\
+	push 0xE000;			\
+	pop  es;				\
+	dx &= bnkmsk;			\
+	w[es:0x0004] = dx;		\
+	++dx;					\
+	dx &= bnkmsk;			\
+	w[es:0x0006] = dx;
+
+*proc Pc21_LineAddr(yy:w);cdecl
+enter
+	save es
+
+	dx.ax = yy * 640
+	dx.ax <<= 1
+	ax >>= 1
+	Pc21_SetBank dx
+	dx = VRAM_SEG
+	return
+endproc
+
+cvar pc21OfsX:w, pc21OfsY:w
+
+*proc Pc21_GetSclOfs();cdecl
+enter
+	ax = pc21OfsX
+	dx = pc21OfsY
+	return
+endproc
+
+*proc Pc21_SetSclOfs(xx:w,yy:w);cdecl
+	//スクロールのためにVRAM表示開始位置セット
+enter
+	save ax,dx
+	
+	pc21OfsX = dx = xx
+	pc21OfsY = ax = yy
+	dx.ax = 640 * ax
+	|ax += xx
+	adc dx,0
+	//v21のｽｸﾛｰﾙは16ﾄﾞｯﾄ単位
+	dx.ax >>= 4
+	ax &= 0x7fff
+	dx = ax
+	GdcWait
+	port(0xa2) = al = 0x70
+	GdcWait
+	port(0xa0) = al = dl
+	GdcWait
+	port(0xa0) = al = dh
+	return
+endproc
+
+
+*proc Pc21_Scl(ddx:w, ddy:w);cdecl
+enter
+	save bx,cx,si,di,es,ds
+	local x:w//,btmLine:w
+
+	dx = ddx
+	dx += pc21OfsX
+	if (dx .<. 0)
+		dx += 640
+		--pc21OfsY
+	elsif (dx .>=. 640)
+		dx -= 640
+		++pc21OfsY
+	fi
+	pc21OfsX = dx
+
+	ax = pc21OfsY
+	ax += ddy
+	pc21OfsY = ax
+
+	//v21のｽｸﾛｰﾙは16ﾄﾞｯﾄ単位
+	dx.ax = 640 * pc21OfsY
+	dx.ax += ww(0,pc21OfsX)
+	//|ax += pc21OfsX
+	//adc dx,0
+	dx.ax >>= 4
+	ax &= 0x7fff
+	dx = ax
+	GdcWait
+	port(0xa2) = al = 0x70
+	GdcWait
+	port(0xa0) = al = dl
+	GdcWait
+	port(0xa0) = al = dh
+	ax = pc21OfsX
+	dx = pc21OfsY
+	return
+endproc
+
+
+*proc Pc21_PutXYN(xx0:w,yy0:w,len:w,ptr:d);cdecl
+	//ret dx.ax  ﾗｲﾝ･ﾄｯﾌﾟのｱﾄﾞﾚｽ
+enter
+	save cx,si,di,es,ds
+
+  @if 1
+	dx.ax = yy0 * 640
+  @else
+	ax = yy0
+	ax += ax
+	dx = ax
+	ax <<= 2
+	ax += dx
+	dx.ax <<= 6
+  @fi
+	dx.ax += ww(0,xx0)
+	//|ax += xx0
+	//adc dx,0
+	di = ax
+
+	di &= 0x7FFF		//ページサイズ 32Kバイト
+	dx.ax <<= 1
+	Pc21_SetBank dx
+
+	es = dx = VRAM_SEG
+	ax = di
+	ds.si = ptr
+	cx = len
+	//go (gBcolFlg) BCOL_CPY1
+	rep.cpy di,si,cx
+  BCOL_RET1:
+	return
+
+  @if 0
+  BCOL_CPY1:
+	loop
+		rep.load al,si
+		go(al == gBcol.l) BB1
+		rep.set di,al
+	  BB1R:
+	endloop (--cx)
+	go BCOL_RET1
+	BB1: ++di;go BB1R
+  @fi
+endproc
+
+/*-------------------------------------------------------------------------*/
+
+*proc PutPx(datSeg:w,xg:w,yg:w,x0:w,y0:w,xsize:w,ysize:w);cdecl
+enter
+	save pusha,es,ds
+	local xsize2:w
+
+	ds = datSeg
+	xsize2 = 0
+
+	ax = x0
+	dx = xsize
+	ax += dx
+	if (ax > V.xvsize)
+		ax -= V.xvsize
+		xsize2 = ax
+		dx -= ax
+		xsize = dx
+	fi
+
+	di = yg
+	si = y0
+	cx = ysize
+
+	if (xsize2)
+		loop
+			Vv.LineAddr ds, si/*y0*/
+			push ds,cx,si,di
+				bx.si = dx.ax
+				ax += x0
+				Pc21_PutXYN xg, di/*yg*/, xsize, dx.ax
+				ax += xsize
+				es.di = dx.ax
+				ds = bx
+				rep.cpy di,si,xsize2
+			pop  ds,cx,si,di
+			//si = y0
+			++si;if (si == V.yvsize);si = 0;fi
+			//y0 = si
+
+			//di = yg
+			++di;//if (di == scl_yvsize);di = 0;fi
+			//yg = di
+		endloop (--cx)
+	else
+		loop
+			Vv.LineAddr ds, si
+			ax += x0
+			Pc21_PutXYN xg, di/*yg*/, xsize, dx.ax
+			//si = y0
+			++si;if (si == V.yvsize);si = 0;fi
+			//y0 = si
+
+			//di = yg
+			++di;//if (di == scl_yvsize);di = 0;fi
+			//yg = di
+		endloop (--cx)
+	fi
+	return
+endproc
+
+*proc ResetScl(datSeg:w);cdecl
+enter
+	save pusha,ds
+	ds = datSeg
+	ax = 0
+	V.xvstart = ax
+	V.yvstart = ax
+	Pc21_SetSclOfs ax,ax
+	return
+endproc
+
+
+*proc PutPxScrn(datSeg:w,x0:w,y0:w);cdecl
+enter
+	save ds
+	ds = datSeg
+	ax = x0
+	dx = y0
+	V.xvstart = ax
+	V.yvstart = dx
+	if (V.loopFlg)
+		ax = dx = 0
+	fi
+	Pc21_SetSclOfs ax,dx
+	PutPx ds, ax, dx, x0, y0, V.xgsize, V.ygsize
+	return
+endproc
+
+
+*proc PutPxBCol(datSeg:w);cdecl
+enter
+	save pusha,es,ds
+	local yy:w,/*yy0:w,*/ycnt:w,xgsize:w,xgstart:w,bcol:w
+
+	ds = datSeg
+	ResetScl ds
+	bcol = ax = V.overlayColor
+	xgsize = ax = V.xgsize
+	xgstart = ax = V.xgstart
+	yy = bx = V.ygstart
+	bx = /*yy0 =*/ 0
+	ycnt = ax = V.ygsize
+	loop
+		Vv.LineAddr datSeg, bx/*yy0*/
+		ds.si = dx.ax
+		Pc21_LineAddr yy
+		es.di = dx.ax
+		di += xgstart
+		cx = xgsize
+		LOOP:
+			rep.load al,si
+			if (al != bcol.l)
+				rep.set di,al
+				go (--cx) LOOP
+				go LOOPOUT
+			fi
+			++di
+		go (--cx) LOOP
+	  LOOPOUT:
+		++bx/*yy0*/
+		++yy
+	endloop (--ycnt)
+	return
+endproc
+
+*proc PutPxPart(datSeg:w);cdecl
+enter
+	save pusha,es,ds
+	ds = datSeg
+	ResetScl ds
+	bx = V.ygstart
+	si = 0
+	cx = V.ygsize
+	loop
+		Vv.LineAddr ds, si
+		Pc21_PutXYN V.xgstart, bx, V.xgsize, dx.ax
+		++si
+		++bx
+	endloop (--cx)
+	return
+endproc
+
+*proc PutPxLoop(datSeg:w);cdecl
+enter
+	save pusha,es,ds
+	local yg:w,y0:w,x_cnt:w,x_rst:w
+
+	ds = datSeg
+	ResetScl ds
+	dx.ax = ww(0, V.xgscrn)
+	div dx.ax, V.xvsize
+	x_cnt = ax
+	x_rst = dx
+	bx = V.ygstart
+	yg = si = 0
+	y0 = 0
+	loop
+		Vv.LineAddr ds, y0
+		bx.si = dx.ax
+		di = 0
+		cx = x_cnt
+		loop
+			Pc21_PutXYN di, yg, V.xvsize, bx.si
+			di += V.xvsize
+		endloop (--cx)
+		if (x_rst)
+			Pc21_PutXYN di, yg, V.xvsize, bx.si
+		fi
+		++y0
+		ax = V.ygsize
+		if (y0 == ax)
+			y0 = 0
+		fi
+		++yg
+		ax = yg
+	endloop (ax < V.ygscrn)
+	return
+endproc
+
+@fi /*-----------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------*/
+@if 0
+
+*proc GetSclOfs(datSeg:w);cdecl
+enter
+	dx.ax = 0
+	return
+endproc
+
+*proc SclUp(Seg:w, ddd:w);cdecl
+enter
+	return
+endproc
+
+*proc SclDw(Seg:w, ddd:w);cdecl
+enter
+	return
+endproc
+
+*proc SclLft(Seg:w, ddd:w);cdecl
+enter
+	return
+endproc
+
+*proc SclRig(Seg:w, ddd:w);cdecl
+enter
+	return
+endproc
+
+@else
+
+*proc GetSclOfs(datSeg:w);cdecl
+//ret dx.ax
+enter
+	Pc21_GetSclOfs
+	return
+endproc
+
+*proc SclUp(datSeg:w, nnn:w);cdecl
+enter
+	save pusha,es,ds
+
+	ds = datSeg
+	cx = nnn
+	di = V.yvsize
+	loop
+		--V.yvstart
+		if (V.yvstart .<. 0)
+			V.yvstart = 0
+			go.w RET
+		fi
+		Pc21_Scl 0, -1
+		PutPx ds, ax/*gX*/,dx/*gY*/, V.xvstart, V.yvstart, V.xgsize, 1
+	endloop (--cx)
+  RET:
+	return
+endproc
+
+*proc SclDw(datSeg:w, nnn:w);cdecl
+enter
+	save pusha,es,ds
+
+	ds = datSeg
+	cx = nnn
+	if (cx)
+		di = V.yvsize	//scl_yvsize
+		di -= scrn_ysize
+		si = V.yvstart
+		loop
+			go (si .>=. di) RET2
+			Pc21_Scl 0, 1
+			dx += scrn_ysize
+			--dx
+			bx = si
+			bx += scrn_ysize
+			PutPx ds, ax/*gX*/, dx/*gY*/, V.xvstart, bx, V.xgsize, 1
+			++si
+		endloop (--cx)
+		V.yvstart = si
+	fi
+  RET:
+	return
+  RET2:
+	V.yvstart = di
+	go RET
+endproc
+
+*proc SclLft(datSeg:w, nnn:w);cdecl
+enter
+	save pusha,es,ds
+
+	ds = datSeg
+	cx = nnn
+	cx >>= 4
+	if (cx)
+		si = V.xvstart
+		loop
+			si -= 16
+			go (si .<. 0) RET2
+			Pc21_Scl -16, 0
+			PutPx ds, ax/*gX*/,dx/*gY*/, si, V.yvstart,16, V.ygsize
+		endloop (--cx)
+		V.xvstart = si
+	fi
+  RET:
+	return
+  RET2:
+	V.xvstart = 0
+	go RET
+endproc
+
+*proc SclRig(datSeg:w, nnn:w);cdecl
+enter
+	save pusha,es,ds
+
+	ds = datSeg
+	cx = nnn
+	cx >>= 4
+	if (cx)
+		di = V.xvsize
+		if (di & 0x0f)
+			di &= 0xfff0
+			di += 16
+		fi
+		go (di </*<=*/ 640) RET
+		//|di >>= 1;adc di,0;di+=di
+		di -= 640
+		si = V.xvstart
+		loop
+			go (si .>=. di) RET3
+			Pc21_Scl 16,0
+			ax += 640
+			ax -= 16
+			bx = si
+			bx += 640
+			PutPx ds, ax, dx, bx, V.yvstart, 16, V.ygsize
+			si += 16
+		endloop (--cx)
+		V.xvstart = si
+	fi
+  RET:
+	return
+RET3:
+	V.xvstart = di
+	go RET
+endproc
+
+@fi
+
+/*---------------------------------------------------------------------------*/
+
+*proc GetLines(datOfs:w, datSeg:w, pixPtr0:d);cdecl;far
+enter
+	local pixPtr:d
+
+	ds = datSeg
+	dx.ax = pixPtr0
+	//loop.w
+	  LOOP:
+		if (V.x68flg)
+			Vv.X68line dx.ax, V.x68flg
+		fi
+		if (V.reductFlg)
+			if (V.reductFlgY)
+				++V.ycurReduct
+				cx = V.reductFlgY
+				go.w (V.ycurReduct & cx) NEXT
+			fi
+			Vv.ReductLine dx.ax
+		fi
+		pixPtr = dx.ax
+
+		++V.ycur
+
+		//格納するメモリをセット
+		es = V.pgCurSeg
+		if (--V.pglcnt == 0)
+			++V.pgNo
+			Vv.PageSw V.pgNo
+			V.pgCurSeg = ax
+			es = ax
+			V.pglcnt = ax = V.pgLine
+			V.pgPtr = 0
+			//Pri.Fmt "page = %d %04x\N",V.pgNo, V.pgCurSeg
+		fi
+
+		//１行コピー
+		di = ax = V.pgPtr
+		cx = V.pgXsize
+		ax += cx
+		V.pgPtr = ax
+		ds.si = pixPtr
+		rep.cpy di,si,cx
+	NEXT:
+		ds = datSeg
+		dx.ax = pixPtr0
+		go.w (V.l200flg && V.ycur & 0x0001) LOOP
+		ax += V.xsize
+		pixPtr0.l = ax
+	//endloop (--lincnt)
+	return
+endproc
+
+
+/*---------------------------------------------------------------------------*/
+
+*proc Init(vvSeg:w,mmSeg:w,mmSzs:w,emsHdl:w,emsSeg:w,emsCnt:w,	\
+			pln:w,xsz:w,ysz:w,xstart:w,ystart:w,pal:d,asp1:w,asp2:w,bcol:w, \
+			reductFlg:w,loopFlg:w\
+			)
+	cdecl
+enter
+	save bx,cx,dx,si,di,es,ds
+	ds = vvSeg
+  @if 0
+	if (v21chkedFlg == 0)
+		Check9821
+		GEnd
+	fi
+  @fi
+	Vv.Init 0, vvSeg,mmSeg,mmSzs,emsHdl,emsSeg,emsCnt,pln,640, scrn_ysize,\
+			xsz,ysz,xstart,ystart,pal,asp1,asp2,bcol,reductFlg,loopFlg
+	ax = V.maxLine
+	return
+endproc
+
+/*---------------------------------------------------------------------------*/
+
+endmodule

@@ -1,0 +1,17 @@
+submodule Pri
+	import Dos
+	import Str
+
+*proc DWord(dx.ax)
+begin
+	save pusha,ds,es
+
+	ds = cx = %var
+	es = cx
+	di = &Pri.buf
+	Str.LtoA es.di,dx.ax,0,0,0
+	Pri.S &Pri.buf
+	return
+endproc
+
+endmodule

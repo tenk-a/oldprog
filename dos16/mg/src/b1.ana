@@ -1,0 +1,93 @@
+module B1
+	c_name "B1","_",1
+
+*const GVLINSIZ = 80
+
+*var pc98flg:w = 0
+
+
+@if 0
+*struct R
+	nextLine:w
+endstruct
+
+*struct W
+	nextLine:w
+endstruct
+@fi
+
+*proc InitR(ght:d);cdecl
+endproc
+
+*proc Open(ght:d,filename:d);cdecl
+endproc
+
+*proc ReadPDB(ght:d,lincnt:w);cdecl
+endproc
+
+*proc CloseR(ght:d);cdecl
+endproc
+
+*proc InitW(ght:d);cdecl
+endproc
+
+*proc Create(ght:d,filename:d);cdecl
+endproc
+
+*proc WritePDB(ght:d,lincnt:w);cdecl
+endproc
+
+*proc CloseW(ght:d);cdecl
+endproc
+
+*proc OpenFrm(ght:d,filename:d);cdecl
+endproc
+
+*proc CreaFrm(ght:d,filename:d);cdecl
+endproc
+
+*proc ClosFrmW(ght:d);cdecl
+endproc
+
+*proc OpenBlk(ght:d,filename:d);cdecl
+endproc
+
+*proc CreaBlk(ght:d,filename:d);cdecl
+endproc
+
+*proc ClosBlkW(ght:d);cdecl
+endproc
+
+*proc OpenGv(ght:d,filename:d);cdecl
+endproc
+*proc CreatGv(ght:d,filename:d);cdecl
+endproc
+*proc ReadPDB98(ght:d,lincnt:w);cdecl
+endproc
+*proc CloseGvR(ght:d);cdecl
+endproc
+*proc CloseGvW(ght:d);cdecl
+endproc
+
+*proc VCls(bx)
+endproc
+
+*proc VClsMode(ax)
+endproc
+
+*proc Df_FrmExPal(flg:w);cdecl
+endproc
+
+*proc Df_L2flg(flg:w);cdecl
+endproc
+
+*proc Df_GvSavSiz(x0:w,y0:w,x1:w,y1:w);cdecl
+endproc
+
+*proc Df_GvMP(flg:w);cdecl
+endproc
+
+//*proc Df_SetVRam(x8:w,y:w,b1:w,r1:w,g1:w,e1:w);cdecl
+//endproc
+
+endmodule

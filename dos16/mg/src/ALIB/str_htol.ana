@@ -1,0 +1,44 @@
+submodule Str
+	//	1992	writen by M.Kitamura
+
+*proc HtoL(si)
+//	16進文字列の値を dx.ax に入れて返す。オーバーフローチェックなし。
+//	桁溢れはﾁｪｯｸしない. セグメント境界のチェック無
+//	arg si	文字列
+//	out si	読み込んだ文字の次のアドレス
+//	in	ds		data segment
+//	out dx.ax	値
+enter
+	save cx,bx,di
+	local sflg:b
+
+	dx.ax = 0
+	bh = al
+	sflg = al
+	if (b[si] == '-')
+		++si
+		sflg = 1
+	elsif (b[si] == '+')
+		++si
+	fi
+	loop
+		bl = b[si]
+		exit ((bl -= '0') < 0)
+		if (bl >= 'A'-'0' && bl <= 'F'-'0')
+			bl += -('A'-'0')+10
+		elsif (bl >= 'a'-'0' && bl <= 'f'-'0')
+			bl += -('a'-'0')+10
+		else
+			exit (bl > 9)
+		fi
+		dx.ax <<= 4
+		dx.ax += ww(0,bx)
+		++si
+	endloop
+	if (sflg)
+		neg dx.ax
+	fi
+	return
+endproc
+
+endmodule

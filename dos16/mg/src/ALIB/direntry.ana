@@ -1,0 +1,449 @@
+module DirEntry
+	//	1992	writen by M.Kitamura
+	//	2009	無理やり LFN 対応 by M.Kitamura
+
+	c_name "DirEntry","", defined(TURBO_C) + defined(LSI_C)*2
+	model SMALL
+	stack 0x200
+
+	import Std
+	import WILDCMP
+	import Lfn
+	import Pri
+	typedef WC:WILDCMP
+
+
+
+*struct DTA16_T
+	drv:b
+	name:b(8)
+	ext:b(3)
+	attr:b
+	count:w
+	cluster:w
+	rsv:b(4)
+	fattr:b
+	ftime:w
+	fdate:w
+	fsize:d
+	fname:b(13)
+endstruct
+
+
+*struct DTA32_T
+	attrL:w
+	attrH:w
+	createTimeL:d
+	createTimeH:d
+	lastAcsTimeL:d
+	lastAcsTimeH:d
+	lastWrtTimeL:d
+	lastWrtTimeH:d
+	fsizeH:d
+	fsizeL:d
+	rsv:b(8)
+	fname:b(260)
+	fname83:b(14)
+endstruct
+
+
+
+*var dta16:DTA16_T
+*var dta32:DTA32_T
+*var key:word
+*var dir:byte(512+4)	// 260でいいかもだけど.
+*var wcFlg:b = 0		//キー文字列にワイルド・カード機能が使われていたかどうか
+var	 NoSupportLfnFlag:b = 0
+var  lfn_handle:w    = 0
+
+
+
+proc DtaGet()
+//	DTA のアドレスを得る
+//	out   es.bx
+//	break ah
+macro
+	ah = 0x2f
+	intr 0x21
+endproc
+
+
+proc DtaSet(dx)
+//	DTA のアドレスを変更する
+//	in	ds
+//	break ah
+macro
+	ah = 0x1a
+	intr 0x21
+endproc
+
+
+proc lfn_DirEntryFirst(dx,cx)
+begin
+	if (Lfn.Flag == 0)
+		ah = 0x4e
+		intr 0x21
+		ret
+	fi
+
+	push si, di, es
+
+	lfn_handle = 0
+	es = ax = ds
+	di = &dta32
+	si = 0
+	ax = 0x714e
+	intr 0x21
+	push fx
+	if (cf == 0)
+		lfn_handle = ax
+		//Pri.Fmt "find first key=%s  hdl=%x  s=%s があった\N", dx, ax, &dta32.fname
+	  @if 1
+		if (ax == 0x7100)
+			NoSupportLfnFlag = 1
+			pop ax	// pop fxの代わり
+			ah = 0x4e
+			intr 0x21
+			push fx
+			if (cf == 0)
+				es = ds
+				si = &dta16.fname
+				di = &dta32.fname
+				loop
+					rep.load al,si
+					rep.set  di,al
+				endloop (al)
+			fi
+		fi
+	  @fi
+	fi
+	pop fx
+
+	pop si, di, es
+	ret
+endproc
+
+
+
+proc lfn_DirEntryNext(dx,cx)
+//	in	ds
+//	out dx,cx,ax,cf
+begin
+	if (Lfn.Flag == 0 || NoSupportLfnFlag)
+		ah = 0x4f
+		intr 0x21
+		ret
+	fi
+	ax = lfn_handle
+	if (ax == 0)
+		cf = 1
+		ret
+	fi
+	push bx, si, di, es
+		bx = ax
+		es = ax = ds
+		di = &dta32
+		si = 0
+		ax = 0x714f
+		intr 0x21
+		//push fx
+		//if (cf)
+		//	Pri.Fmt " ER find next hdl=%x : %s\N", lfn_handle, &dta32.fname
+		//else
+		//	Pri.Fmt " find next hdl=%x : %s\N", lfn_handle, &dta32.fname
+		//fi
+		//pop fx
+	  @if 1
+		if (cf)
+			if (ax == 0x7100)
+				NoSupportLfnFlag = 1
+				pop ax	// pop fxの代わり
+				ah = 0x4f
+				intr 0x21
+				push fx
+				if (cf == 0)
+					es = ds
+					si = &dta16.fname
+					di = &dta32.fname
+					loop
+						rep.load al,si
+						rep.set  di,al
+					endloop (al)
+				fi
+			fi
+		fi
+	  @fi
+	pop  bx, si, di, es
+	ret
+endproc
+
+
+
+
+*proc FindClose()
+begin
+	//Pri.Fmt " find close\N"
+	if (Lfn.Flag == 0)
+		cf = 0
+		ret
+	fi
+	push ax, bx
+	bx = lfn_handle
+	if (bx != 0 && NoSupportLfnFlag == 0)
+		ax = 0x71a1
+		intr 0x21
+	fi
+	lfn_handle 		 = 0
+	NoSupportLfnFlag = 0
+	pop  ax, bx
+	ret
+endproc
+
+
+
+*proc Get
+  @if defined(TURBO_C)
+	//(pRslt:d,pKey:d,pFlg:w)
+	(pRslt_l:w,pRslt_h:w,pKey_l:w,pKey_h:w,pFlg:w)
+	cdecl
+  @else
+	(bx.ax,dx.cx,pFlg:w)
+	@if defined(LSI_C)
+		cdecl
+	@fi
+  @fi
+//	ワイルド・カード機能付ファイル名のディレクトリ・エントリを得る
+//	ワイルド・カード指定で継続のファイル名を得るときは dx.cx（pKey）= NULL
+//	で呼び出す
+//	arg pRslt:bx.ax 見つかったパス名を格納する場所 要128バイト以上
+//	arg pKey:dx.cx	ワイルドカード機能付パス名 128バイト以内
+//	arg pFlg		ディレクトリ・エントリ検索で対象とするファイル属性
+//						0x01(bit 0) 読出専用ファイル
+//						0x02(bit 1) 不可視属性
+//						0x04(bit 2) システム・ファイル
+//						0x08(bit 3) ボリュームラベル
+//						0x10(bit 4) ディレクトリ
+//						0x20(bit 5) 保存ビット
+//	out ax			0:エラー無	-1:設定誤り 1:これ以上ファイルがない
+//					2:ファイルが無い
+//	out dx.cx		そのまま
+//	break bx
+enter
+	local dtaSave:d, aPirFlg:b, dtaFname:w
+	var   aNextFlg:b = 0
+  @if !defined(TURBO_C)
+	save pusha,pRslt_h:bx,pRslt_l:ax, pKey_h:dx, pKey_l:cx, si,di,es,ds
+  @else
+	save pusha,pRet:ax,bx,cx,dx,si,di,es,ds
+  @fi
+
+	// DTA を設定
+	DtaGet
+	dtaSave = es.bx
+	ds = si = %var
+	dx = &dta16
+	dtaFname = ax = &dta16.fname
+	if (Lfn.Flag)
+		dtaFname = ax = &dta32.fname
+		dta32.attrH   = 0
+		dta32.attrL   = ax = pFlg
+	fi
+	DtaSet dx
+	dx = pKey_h; cx = pKey_l
+	bx = pRslt_h;ax = pRslt_l
+	go.w (bx == 0 && ax == 0) ERR		// 結果を入れる pRslt が NULL とき
+	if (dx == 0 && cx == 0) 			// pKey が NULL のとき
+		go.w (wcFlg) SRCH_NEXT
+		ax = 1
+		go.w RTS_E
+	fi
+	NoSupportLfnFlag = 0
+	aNextFlg = 0
+	wcFlg    = 0
+	// es.si = dx.cx ポインタの正規化
+	si = cx
+	si &= 0x0f
+	cx >>= 4
+	dx += cx
+	es = dx
+	bx = si
+	// pKey の ディレクトリ名を dir にコピー
+	di = dx = &dir
+	loop
+		al = b[es:si]
+		++si
+		if (Std.IsKanji(al))
+			b[di] = al
+			++di
+			al = b[es:si]
+			++si
+			go.w (al == 0) ERR
+		elsif (al >= 'a' && al <= 'z')	//	半角小文字の大文字化
+			al -= 0x20
+		else
+			if (al == '/')	//	'/'を'\'に変える
+				al = '\\'
+			fi
+			if (al == '\\' || al == ':')
+				b[es:si-1] = al
+				dx = di
+				++dx
+				bx = si
+			fi
+		fi
+		b[di] = al
+		++di
+	endloop (al)
+	// 取り出したﾃﾞｨﾚｸﾄﾘ名 dir に *.* をつける。
+	di = dx
+	b[di] = '*'
+	++di
+	b[di] = '.'
+	++di
+	b[di] = '*'
+	++di
+	b[di] = '\0'
+	// pKeyより検索するファイル名を key にコピー
+	++di
+	key = di
+	aPirFlg = 0
+	loop
+		al = b[es:bx]
+		++bx
+		if (Std.IsKanji(al))
+			b[di] = al
+			++di
+			al = b[es:bx]
+			++bx
+			go.w (al == 0) ERR
+		elsif (al >= 'a' && al <= 'z')
+			al -= 0x20
+		elsif (al == '*' || al == '?' || al == '[' /* || al == '^'*/)
+			wcFlg   = 1
+		elsif (al == '.' && b[es:bx] == '\0')
+			aPirFlg = 1
+		fi
+		b[di] = al
+		++di
+	endloop (al)
+
+  //pusha;Ps.PutStrCr 1,ww(ds,&dir);popa
+  //pusha;Ps.PutStrCr 1,ww(ds,key);popa
+	dx = &dir
+	cx = pFlg
+	lfn_DirEntryFirst dx,cx
+	if (cf)
+		//if (ax == 0x12)
+		//	ax = 2
+		//fi
+		go.w FIN
+	fi
+
+	//Pri.Fmt "key = %s\N", key
+	loop
+	  //push bx,dx.ax;Ps.PutStrCr 1,ww(ds,&dta16.fname);pop bx,dx.ax
+		si = dtaFname	// si = &dta16.fname
+		// Pri.Fmt "dta.fname = %s\N", si
+	  @if 0	// LFN対応... やっぱり比較側で行うことにしたので、破棄.
+		loop
+			rep.load  al, si
+			if (Std.IsKanji(al) && b[si] != 0)
+				++si
+			elsif (al >= 'a' && al <= 'z')
+				al -= 0x20
+				b[si-1] = al
+			fi
+		endloop (al)
+	  @endif
+		si = dtaFname	// si = &dta16.fname
+		di = 0
+		loop
+			rep.load  al, si
+			if (al == '\0')
+				di = si
+				--di
+				b[si] = '\0'
+				exit (aPirFlg == 0)
+				b[di] = '.'
+				exit
+			fi
+		endloop (al != '.')
+	  //push bx,dx.ax;Ps.PutStrCr 1,ww(ds,&dta16.fname);pop bx,dx.ax
+	  @if defined(TURBO_C)
+		cx = dtaFname	// cx = &dta16.fname
+		WC.WildCmp ww(ds,key),ds.cx
+	  @else
+		bx.ax = ww(ds,key)
+		dx.cx = ww(ds,dtaFname)	// cx = ww(ds,&dta16.fname)
+		WC.WildCmp bx.ax, dx.cx
+	  @fi
+		if (di)
+			b[di] = '\0'
+		fi
+		exit (ax == 0)
+  SRCH_NEXT:
+		dx = &dir
+		cx = pFlg
+		lfn_DirEntryNext dx,cx
+		go (cf) FIN
+	endloop
+
+	// pRslt に dir をコピー
+	bx = pRslt_h
+	ax = pRslt_l
+	di = ax
+	ax >>= 4
+	bx += ax
+	es = bx
+	di &= 0x0f
+	si = &dir
+	loop
+		rep.load al,si
+		rep.set  di,al
+	endloop (al)
+	// pRslt の後に見つかったファイル名をコピー
+	di -= 4
+	si = dtaFname	// si = &dta16.fname
+	loop
+		rep.load al,si
+		rep.set  di,al
+	endloop (al)
+	ax = 0
+	b[es:di] = al
+	go (wcFlg == 0) RTS_E
+	aNextFlg = 1
+	go	RTS
+
+  ERR:
+	ax       = -1
+	go	RTS_E
+
+  FIN:
+	//pusha;dx = ax;dx += '0';ah = 0x02;intr 0x21;popa
+	if (ax == 0x12)
+		ax = 2
+		if (aNextFlg)
+			--ax
+		fi
+	fi
+
+  RTS_E:
+	aNextFlg = 0
+	FindClose
+
+  RTS:
+  @if defined(TURBO_C)
+	pRet = ax
+  @else
+	dx.ax .=. ax
+	pRslt_l = ax
+	pRslt_h = dx
+  @fi
+	ds.dx = dtaSave
+	DtaSet dx
+	return
+endproc
+
+
+
+endmodule

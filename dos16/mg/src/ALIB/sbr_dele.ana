@@ -1,0 +1,18 @@
+submodule Subr
+	import Dos
+	import Lfn
+
+*proc Delete(dx)
+//	ファイルを削除
+//	arg dx	ファイル名
+begin
+	Lfn.Delete(dx)
+	if (cf)
+		go (ax != 0x05) J1
+		Subr.ErrFile dx, "'を削除できません"
+	fi
+ J1:
+	return
+endproc
+
+endmodule
