@@ -4,3 +4,5 @@ sav
 *.sav
 tmp
 *.tmp
+!dos16/*.obj
+!dos16/*.exe

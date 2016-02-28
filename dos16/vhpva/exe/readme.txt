@@ -24,7 +24,7 @@
 
 
 ■FILES
-  readme.doc   このファイル
+  readme.txt   このファイル
   vhp.doc      vhsave.exe & vhload.exe の使い方
   vhload.exe   画像データを展開するプログラム
   vhsave.exe   画像データを圧縮するプログラム
@@ -133,4 +133,3 @@
 ■
                                 原作者  マシーンＭ   NIFTY-Serve      MAH02663
                           (VA版)変更者  てんか☆ふん NIFTY-Serve      NBB00541
-

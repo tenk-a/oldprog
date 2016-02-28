@@ -1,7 +1,7 @@
   FILES
-    readme.doc   このファイル
+    readme.txt   このファイル
     cgldsv.exe   実行ファイル
-    cgldsv.doc   説明
+    cgldsv.txt   説明
 
     cgldsv.c     Ｃソース
     direntry.asm TC用関数

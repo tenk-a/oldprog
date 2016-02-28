@@ -19,7 +19,7 @@
 □  FILES
 
   この圧縮ファイルに入っているファイルは以下のとおりです。
-	dopi_src.doc	このファイル
+	dopi_src.txt	このファイル
 	dopi.c		dopi のメイン
 	gvsub.c		スクロール関係と画面読み込みルーチン
 	sub.c		いろいろ
@@ -48,7 +48,7 @@
 　　　＊あとTEKITO氏作の HF/SF 用初期化＆モード変更ルーチン fb.c をそのまま
 　　　　使わせていただいてます（感謝）. でもってかってに同梱させていただき
 　　　　ました（ﾄﾞｷｭﾒﾝﾄ見たところ大丈夫そうなので）
-	fbreadme.doc	readme.doc を変名
+	readme.fb	readme.doc を変名
 	fb.c		
 	fbport.h
 	usertype.h
