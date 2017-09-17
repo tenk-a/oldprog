@@ -1,0 +1,19 @@
+bccEr2hm
+
+bcc32(v5.5) のエラーメッセージは、そのままだと秀丸エディタで
+タグジャンプできないので、できるように調整するフィルタコマン
+ドです。
+
+ bcc32 foo.c | bccEr2hm >err.txt
+
+のように使うのを想定。
+
+usage>BccEr2Hm [-opts] [infile]
+
+ -?        ヘルプ
+ -o[FILE]  標準出力でなく FILE に吐き出す.
+
+
+北村雅史
+NBB00541@nifty.com
+tenk@6809.net
