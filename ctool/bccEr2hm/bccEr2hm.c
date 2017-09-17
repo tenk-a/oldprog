@@ -11,14 +11,14 @@
 #include <ctype.h>
 #include <stdarg.h>
 
-#define STDERR	    stdout
+#define	STDERR	    stdout
 
 
 
 void usage(void)
 {
     printf(
-    	"usage>BccEr2Hm [-opts] [infile]   // " __DATE__ "  by tenk*\n"
+    	"usage>BccEr2Hm [-opts] [infile]   // "	__DATE__ "  by tenk*\n"
     	"bcc32 が出力したエラーメッセージを標準入力(infileが指定されれば\n"
     	"ファイル読込)し、秀丸エディタでタグジャンプできる形（というか\n"
     	"一般的?なタグファイル形式)に変えて標準出力する\n"
@@ -41,7 +41,7 @@ void err_exit(char *fmt, ...)
 
 
 
-FILE *fopenE(const char *name, char *mod)
+FILE *fopenE(const char	*name, char *mod)
 {
     /* エラーがあれば即exitの fopen() */
     FILE *fp;
@@ -50,17 +50,17 @@ FILE *fopenE(const char *name, char *mod)
     if (fp == NULL) {
     	err_exit("ファイル %s をオープンできません\n",name);
     }
-    setvbuf(fp, NULL, _IOFBF, 1024*1024);
+    setvbuf(fp,	NULL, _IOFBF, 1024*1024);
     return fp;
 }
 
 
 
-void BccErrMsg2vc(const char *iname, const char *oname)
+void BccErrMsg2vc(const	char *iname, const char	*oname)
 {
     FILE *fp;
     FILE *ofp;
-    int  l;
+    int	 l;
     char mm[256];
     char buf[2048];
     char *p;
@@ -76,40 +76,40 @@ void BccErrMsg2vc(const char *iname, const char *oname)
     	ofp = fopenE(oname, "wt");
     }
 
-    for (;;) {
+    for	(;;) {
     	p = fgets(buf, sizeof(buf), fp);
     	if (p == NULL)
     	    break;
     	if (ferror(fp))
     	    err_exit("ファイル読み込みでエラー発生\n");
-    	if (memcmp(buf, "エラー E", 8) == 0) {
+    	if (memcmp(buf,	"エラー E", 8) == 0) {
     	    memcpy(mm, buf, 12);
     	    mm[12] = 0;
-    	    p = strchr(buf+12+1, ' ');
+    	    p =	strchr(buf+12+1, ' ');
     	    if (p) {
     	    	p++;
     	    	q = strchr(p, ':');
     	    	if (q) {
-    	    	    p = buf+13;
-    	    	    l = q - p;
+    	    	    p =	buf+13;
+    	    	    l =	q - p;
     	    	    memmove(buf, p, l);
     	    	    buf[l] = ':';
-    	    	    memcpy(buf+l+1, mm, strlen(mm));
+    	    	    memcpy(buf+l+1, mm,	strlen(mm));
     	    	}
     	    }
     	} else if (memcmp(buf, "警告 W", 6) == 0) {
     	    memcpy(mm, buf, 10);
     	    mm[10] = 0;
-    	    p = strchr(buf+10+1, ' ');
+    	    p =	strchr(buf+10+1, ' ');
     	    if (p) {
     	    	p++;
     	    	q = strchr(p, ':');
     	    	if (q) {
-    	    	    p = buf + 11;
-    	    	    l = q - p;
+    	    	    p =	buf + 11;
+    	    	    l =	q - p;
     	    	    memmove(buf, p, l);
     	    	    buf[l] = ':';
-    	    	    memcpy(buf+l+1, mm, strlen(mm));
+    	    	    memcpy(buf+l+1, mm,	strlen(mm));
     	    	}
     	    }
     	}
@@ -123,55 +123,55 @@ void BccErrMsg2vc(const char *iname, const char *oname)
 
 
 
-int main(int argc, char *argv[])
+int main(int argc, char	*argv[])
 {
-    int     c;
-    int     i;
+    int	    c;
+    int	    i;
     char    *p;
     char    tmp[2048];
     char    *name  = NULL;
     char    *oname = NULL;
 
-    for (i = 1; i < argc; i++) {
+    for	(i = 1;	i < argc; i++) {
     	p = argv[i];
     	if (*p == '-') {
     	    p++;
-    	    c = *p++;
-    	    c = toupper(c);
+    	    c =	*p++;
+    	    c =	toupper(c);
     	    switch (c) {
     	    case 'O':
-    	    	oname = strdup(p);
+    	    	oname =	strdup(p);
     	    	break;
     	    case '?':
     	    	usage();
     	    default:
     	    	err_exit("オプションがおかしい(%s)\n", argv[i]);
     	    }
-    	} else if (name == NULL) {
+    	} else if (name	== NULL) {
     	    name = p;
     	} else {
     	    err_exit("ファイル名が多すぎる\n");
     	}
     }
-    if (name == NULL) {
+    if (name ==	NULL) {
     	// 標準入力ありだから、エラーチェックしちゃダメ！
     	//err_exit("ファイル名が指定されていない\n");
     }
     tmp[0] = 0;
     if (oname) {
-    	if (oname[0] == 0 || (name && stricmp(name,oname) == 0)) {
+    	if (oname[0] ==	0 || (name && stricmp(name,oname) == 0)) {
     	    tmpnam(tmp);
     	    oname = tmp;
     	}
     }
     BccErrMsg2vc(name, oname);
-    if (tmp[0] && name) {
-    	char *p = calloc(1, strlen(name)+16);
+    if (tmp[0] && name)	{
+    	char *p	= calloc(1, strlen(name)+16);
     	if (p) {
     	    sprintf(p, "%s.bak", name);
     	    remove(p);
     	    rename(name, p);
-    	    rename(tmp, name);
+    	    rename(tmp,	name);
     	}
     }
     return 0;

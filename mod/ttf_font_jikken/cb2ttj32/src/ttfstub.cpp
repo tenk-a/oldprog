@@ -1,9 +1,9 @@
 /*
-	ct2ttj98 ‚Å”z•z‚³‚ê‚Ä‚¢‚½
-	ttfstubank.cpp ‚ğ˜M‚Á‚½‚à‚ÌB
+    ct2ttj98 ‚Å”z•z‚³‚ê‚Ä‚¢‚½
+    ttfstubank.cpp ‚ğ˜M‚Á‚½‚à‚ÌB
  */
-#define _DOS
-#ifndef NO_MFC
+#define	_DOS
+#ifndef	NO_MFC
 #  include <afx.h>
 #  include <afxcoll.h>
 #endif
@@ -14,18 +14,18 @@
 #include "ntuttf.h"
 #include "array.h"
 
-#define NFONT 2
+#define	NFONT 2
 #ifdef SJIS
-#  define RFONT 	0
-#  define CFONT 	8836
-# ifdef HANKANA		//”¼ŠpƒJƒi‚ğ’Ç‰Á(¸”s”Å)
-#  define EFONT 	(94+64)
+#  define RFONT	    0
+#  define CFONT	    8836
+# ifdef	HANKANA	    //”¼ŠpƒJƒi‚ğ’Ç‰Á(¸”s”Å)
+#  define EFONT	    (94+64)
 # else	// ‰p”‚Ì‚İ
-#  define EFONT		94
+#  define EFONT	    94
 # endif
-#  define EachFont 	188	//‘SŠp‚Ì‰ºˆÊƒoƒCƒg‚ÌØ‚ê–Ú
-#  define EachSeg  	189	//‘SŠp‚Ì‰ºˆÊƒoƒCƒg‚Ì‘±‚«
-#  define EachOff 	(EachSeg-EachFont)
+#  define EachFont  188	//‘SŠp‚Ì‰ºˆÊƒoƒCƒg‚ÌØ‚ê–Ú
+#  define EachSeg   189	//‘SŠp‚Ì‰ºˆÊƒoƒCƒg‚Ì‘±‚«
+#  define EachOff   (EachSeg-EachFont)
 #elif defined ANK
 # define RFONT 0
 # define CFONT 256
@@ -39,23 +39,23 @@
 # define EachFont 157
 # define EachSeg 191
 # define EachOff (EachSeg-EachFont)
-# define EFONT 94		/* Eng translate from ASCII 0x21 to 0x7E total 94 fonts*/
+# define EFONT 94   	/* Eng translate from ASCII 0x21 to 0x7E total 94 fonts*/
 #endif
 
-#define numTbl 13
-#define OS2  0
-#define CMAP 1
-#define GLYF 2
-#define HEAD 3
-#define HHEA 4
-#define HMTX 5
-#define LOCA 6
-#define MAXP 7
-#define NAME 8
-#define POST 9
-#define MORT 10
-#define PREP 11 /* Only set scan type , control and grid */
-#define LYJS 12
+#define	numTbl 13
+#define	OS2  0
+#define	CMAP 1
+#define	GLYF 2
+#define	HEAD 3
+#define	HHEA 4
+#define	HMTX 5
+#define	LOCA 6
+#define	MAXP 7
+#define	NAME 8
+#define	POST 9
+#define	MORT 10
+#define	PREP 11	/* Only	set scan type ,	control	and grid */
+#define	LYJS 12
 
 char *ttfTag[numTbl] = {
      "OS/2", "cmap", "glyf", "head", "hhea", "hmtx", "loca", "maxp", "name",
@@ -67,31 +67,31 @@ public:
      table(): bigfirst() { chk = off = len = 0L; }
      unsigned long chksum4();
      void write(FILE *fn);
-     unsigned long chk, off, len;
+     unsigned long chk,	off, len;
      };
 
 unsigned long table::chksum4()
      {
      int i, c;
      unsigned long l;
-     unsigned char __far *t = (unsigned char __far *)getbuf();
-     unsigned char __far *eot = t + getlen();
+     unsigned char __far *t = (unsigned	char __far *)getbuf();
+     unsigned char __far *eot =	t + getlen();
      chk = 0L;
-     while (t < eot) {
-         for (l = i = 0; i < 4; i++) {
-             c = (t < eot)? *t++ : 0;
-             l = (l >> 8) + (c << 24);
-         }
-         chk += l;
+     while (t <	eot) {
+    	 for (l	= i = 0; i < 4;	i++) {
+    	     c = (t < eot)? *t++ : 0;
+    	     l = (l >> 8) + (c << 24);
+    	 }
+    	 chk +=	l;
      }
      return chk;
      }
 
 void table::write(FILE *fn)
      {
-     for (unsigned short i = 0; i < getlen(); i++) putc((*this)[i],fn);
-     if ((unsigned long)getlen() < len) //LOCA and HMTX
-        for (unsigned long j = (unsigned long)getlen();j < len; j++) putc(0,fn);
+     for (unsigned short i = 0;	i < getlen(); i++) putc((*this)[i],fn);
+     if	((unsigned long)getlen() < len)	//LOCA and HMTX
+    	for (unsigned long j = (unsigned long)getlen();j < len;	j++) putc(0,fn);
      }
 
 extern "C"
@@ -104,21 +104,21 @@ extern "C"
      void gene_profile();
      void gene_name();
      void addstr(bigfirst &st, char *str);
-     void addstr2(bigfirst &st, char *str);
+     void addstr2(bigfirst &st,	char *str);
      void gene_result(FILE *fn);
      void make_gidx(bigfirst &gidx);
      }
 
 table ttfTbl[numTbl];
 
-/*Table OS/2 size 78*/
+/*Table	OS/2 size 78*/
 unsigned char os2_data[78] = {
    0,  0,  2,  0,  1,144,  0,  5,  0,  0,  2,  0,  2,  0,  0,  0,  0,  0, 2,  0,
    2,  0,  0,  0,  2,  0,  0, 51,  1,  4,  0,  5,  2,  1,  6,  9,  0,  1, 1,  1,
    1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0,'L','Y',
-  'J', 's',  0, 64,  0, 32,255,229,  3, 52,255, 52,  0,204,  3, 52,  0,204};
+  'J', 's',  0,	64,  0,	32,255,229,  3,	52,255,	52,  0,204,  3,	52,  0,204};
 
-/*Table mort size 116*/
+/*Table	mort size 116*/
 unsigned char mort_data[116] = {
    0,  1,  0,  0,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  0,108,  0,  3,  0,  1,
    0,  3,  0,  0,  0,  0,  0,  1,255,255,255,255,  0,  3,  0,  1,  0,  0,  0,  0,
@@ -127,23 +127,23 @@ unsigned char mort_data[116] = {
    2,169, 55, 82,  2,214, 55, 83,  2,215, 55, 84,  2,216, 55, 85,  2,217, 55, 86,
    2,218, 55, 87,  2,219, 55, 88,  2,220, 55, 89,  2,221, 55, 90};
 
-/* prep program */
+/* prep	program	*/
 unsigned char prep_prog[8] = {
-   0xb9, 1, 0xff, 0, 0, // push word 511, 0
-   0x8d, /* scan type */ 0x85, //  scan ctrl
+   0xb9, 1, 0xff, 0, 0,	// push	word 511, 0
+   0x8d, /* scan type */ 0x85, //  scan	ctrl
    0x18}; //round to grid
 
 /* Eng translate from ASCII 0x21 to 0x7E total 94 fonts*/
 #ifdef SJIS
-  #ifdef HANKANA		/* the following string is in SJIS! */
-unsigned char ptn_2byte[EFONT*2+2] = 
-	"Ih”“•fij–{C|D^‚O‚P‚Q‚R‚S‚T‚U‚V‚W‚XFGƒ„H"
-	"—‚`‚a‚b‚c‚d‚e‚f‚g‚h‚i‚j‚k‚l‚m‚n‚o‚p‚q‚r‚s‚t‚u‚v‚w‚x‚ym_nOQ"
-	"e‚‚‚‚ƒ‚„‚…‚†‚‡‚ˆ‚‰‚Š‚‹‚Œ‚‚‚‚‚‘‚’‚“‚”‚•‚–‚—‚˜‚™‚šobpP"
-	"@BuvAEƒ’ƒ@ƒBƒDƒFƒHƒƒƒ…ƒ‡ƒb[ƒAƒCƒEƒGƒIƒJƒLƒNƒPƒRƒTƒVƒXƒZƒ\"
-	"ƒ^ƒ`ƒcƒeƒgƒiƒjƒkƒlƒmƒnƒqƒtƒwƒzƒ}ƒ~ƒ€ƒƒ‚ƒ„ƒ†ƒˆƒ‰ƒŠƒ‹ƒŒƒƒƒ“JK";
-  #else					/* the following string is in EUC! */
-//unsigned char ptn_2byte[189] =
+  #ifdef HANKANA    	/* the following string	is in SJIS! */
+unsigned char ptn_2byte[EFONT*2+2] =
+    "Ih”“•fij–{C|D^‚O‚P‚Q‚R‚S‚T‚U‚V‚W‚XFGƒ„H"
+    "—‚`‚a‚b‚c‚d‚e‚f‚g‚h‚i‚j‚k‚l‚m‚n‚o‚p‚q‚r‚s‚t‚u‚v‚w‚x‚ym_nOQ"
+    "e‚‚‚‚ƒ‚„‚…‚†‚‡‚ˆ‚‰‚Š‚‹‚Œ‚‚‚‚‚‘‚’‚“‚”‚•‚–‚—‚˜‚™‚šobpP"
+    "@BuvAEƒ’ƒ@ƒBƒDƒFƒHƒƒƒ…ƒ‡ƒb[ƒAƒCƒEƒGƒIƒJƒLƒNƒPƒRƒTƒVƒXƒZƒ\"
+    "ƒ^ƒ`ƒcƒeƒgƒiƒjƒkƒlƒmƒnƒqƒtƒwƒzƒ}ƒ~ƒ€ƒƒ‚ƒ„ƒ†ƒˆƒ‰ƒŠƒ‹ƒŒƒƒƒ“JK";
+  #else	    	    	/* the following string	is in EUC! */
+//unsigned char	ptn_2byte[189] =
 //"¡ª¡É¡ô¡ğ¡ó¡õ¡Ç¡Ê¡Ë¡ö¡Ü¡¤¡İ¡¥¡¿£°£±£²£³£´£µ£¶£·£¸£¹¡§¡¨¡ã¡á¡ä¡©¡÷£Á£Â£Ã£Ä£Å£Æ£Ç£È£É£Ê£Ë£Ì£Í£Î£Ï£Ğ£Ñ£Ò£Ó£Ô£Õ£Ö£×£Ø£Ù£Ú¡Î¡ï¡Ï¡°¡²¡¡£á£â£ã£ä£å£æ£ç£è£é£ê£ë£ì£í£î£ï£ğ£ñ£ò£ó£ô£õ£ö£÷£ø£ù£ú¡Ğ¡Ã¡Ñ¡±";
 unsigned char ptn_2byte[189] =
 "Ih”“•fij–{C|D^‚O‚P‚Q‚R‚S‚T‚U‚V‚W‚XFGƒ„H—‚`‚a‚b‚c‚d‚e‚f‚g‚h‚i‚j‚k‚l‚m‚n‚o‚p‚q‚r‚s‚t‚u‚v‚w‚x‚ymnOQ@‚‚‚‚ƒ‚„‚…‚†‚‡‚ˆ‚‰‚Š‚‹‚Œ‚‚‚‚‚‘‚’‚“‚”‚•‚–‚—‚˜‚™‚šobpP";
@@ -226,9 +226,9 @@ void gene_result(FILE *fn)
      fwrite(&sum,1,4,fn);
      }
 
-char *cprite = "National Taiwan University CS&IE", *style = "Regular";
+char *cprite = "National Taiwan	University CS&IE", *style = "Regular";
 char *version = "FAX(8862)7601847";
-char *trade = "Lin, Yaw Jen (LYR) at TPE TW";
+char *trade = "Lin, Yaw	Jen (LYR) at TPE TW";
 
 void gene_name()
      {
