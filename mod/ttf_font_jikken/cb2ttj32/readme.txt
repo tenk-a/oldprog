@@ -15,6 +15,9 @@ doc/cb2tt.txt.sjis	cb2tt の元配布物と一緒に置かれているテキス�
 
 doc/update.doc.sjis	元配布の cb2tt.zip に入っているドキュメントの和訳
 
-src\			ソース。
+src/			ソース。
 
-bin\			win32コンソールコマンド化した exe 群
+bin/			win32コンソールコマンド化した exe 群
+
+
+※ライセンス的にちょっと微妙かもしれない
