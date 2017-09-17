@@ -1,0 +1,93 @@
+http://input.cpatch.org/font/font_tool/ に cb2tt.zip, cb2ttsrc.zip と
+共に置かれている cb2tt.txt を翻訳ソフトに食わして適当に弄ったもの。
+
+- 元 --------------------------------------------------------------------
+
+Conversion from Bitmap files to Chinese TrueType
+===========================
+Date: Fri 20 May 94 10:18:18 CST
+From: Lin YawJen <f1506015@csman.csie.ntu.edu.tw>
+
+HISTORY
+======
+These tools is used for creating NTU ttf files.
+
+REGISTRATION
+============
+There is no registration process.
+See below for contact info.
+
+INSTALLATION
+============
+pkunzip cb2tt.zip
+Please read the USAGE.DOC first.
+
+COPYRIGHT
+=========
+These programs are created by  Mr. Lin Yaw-Jen
+All Right reserved.
+Fonts created by these program must not be used for any commercial activities.
+Fonts created by these program must be publiced.
+Copyright of bitmap fonts belong to the original.
+
+       Lab of OA Network		Home: 4F, No. 12-2 Alley 2 Lane 250
+Department of Computer Science and	      Sec 5 Nanking East Rd.
+      Information Engineering		      Taipei Taiwan R.O.C
+    National Taiwan University		 Tel: 886-2-7641236
+      Taipei Taiwan R.O.C		 Fax: 886-2-760184  
+ Email: f1506015@csman.csie.ntu.edu.tw
+
+						
+If you have any question about these program, please e-mail to:
+
+Lin Y.J.:	f1506015@csman.csie.ntu.edu.tw
+
+
+
+- 和 --------------------------------------------------------------------
+
+ビットマップ・ファイルから中国語TrueTypeへの転換
+===========================
+Date: 94年 5月 20日(金) 10:18:18 CST
+From: Lin YawJen <f1506015@csman.csie.ntu.edu.tw>
+
+履歴
+======
+これらのツールは NTU ttfファイルの作成に使用されます。
+
+登録
+============
+登録手続はありません。
+連絡情報に関しては、下記を見てください。
+
+インストール
+============
+pkunzip cb2tt.zip
+を実行し、USAGE.DOCを最初に読んでください。
+
+著作権
+=========
+これらのプログラムは Lin Yaw-Jen 氏が作成し、全ての
+著作権を保持します。
+
+これらのプログラムから作成されたフォントは、
+どのような商業活動にも利用してはいけません。
+
+これらのプログラムから作成されたフォントは、
+パブリックにならないといけません。
+
+(変換元の)ビットマップフォントの著作権は、
+元作者に属します。
+
+
+       Lab of OA Network		Home: 4F, No. 12-2 Alley 2 Lane 250
+Department of Computer Science and	      Sec 5 Nanking East Rd.
+      Information Engineering		      Taipei Taiwan R.O.C
+    National Taiwan University		 Tel: 886-2-7641236
+      Taipei Taiwan R.O.C		 Fax: 886-2-760184  
+ Email: f1506015@csman.csie.ntu.edu.tw
+
+
+これらのプログラムについて何か質問があるときは、e-mailをください。
+
+Lin Y.J.:	f1506015@csman.csie.ntu.edu.tw
