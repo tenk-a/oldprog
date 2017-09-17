@@ -1,0 +1,43 @@
+module SegVarTst
+	c_name "","_"
+	start main
+
+proc exit0()
+macro
+	ax = 0x4c00
+	intr 0x21
+endproc
+
+proc puts(dx)
+	//in    ds
+	//out   ax,dx
+	//break fx
+macro
+	ah = 0x09
+	intr  0x21
+endproc
+
+segment FARVAR:es word,public,"FAR_DATA"
+
+proc main()
+begin
+	var		msg:byte()	= {"seg:_DATA\N",'$'}
+	cvar	msg1:b() 	= {"seg:_TEXT\r\n",'$'}
+	FARVAR	msg2:b()	= {"   :FARVAR\N",'$'}
+	
+	ds = ax = %var
+	puts(&msg)
+
+	ds = cs;	assume ds:cvar
+	puts &msg1
+
+	es = ax = %FARVAR;	assume es:FARVAR
+	msg2(0) = al = msg1(0)
+	word[es:%msg2 + 1] = 'e' + 'g' * 0x100
+	ds = es;	assume ds:FARVAR
+	puts(&msg2)
+
+	exit0
+endproc
+
+endmodule

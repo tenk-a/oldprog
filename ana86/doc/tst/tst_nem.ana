@@ -1,0 +1,450 @@
+module CHK
+	model SMALL
+
+	@set P86 = 1
+
+proc GLBL()
+begin
+//□  代入／コピー
+	//MRbw = MRIbw		mov MRbw,MRIbw
+	al = 0xff
+	bh = bl
+	ah = b[si]
+	cx = 0x300
+	dx = ax
+	dx = w[bx+si]
+
+	//MRw = RS			mov MRw,RS
+	ax = es
+	w[bp-5] = ds
+
+	//RS = MRw			mov RS,MRw
+	es = bx
+	ds = w[bx+di+3]
+	
+	//ds.Rw = Md		lds Rw,Md
+	ds.dx = d[di]
+	
+	//es.Rw =	Md		les Rw,Md
+	es.si = d[bx]
+
+	//Rw = &M			lea Rw,M	    (M:ﾒﾓﾘで、型は無関係）
+	bx = &w[si]
+	
+	//Rw = RI + Ibw		lea Rw,[RI+Ibw]
+	ax = si + 10
+	bx = di - 4
+	//Rw = RB + Ibw		lea Rw,[RB+Ibw]
+	cx = bx + 30
+	dx = bp - 6
+	//Rw = RB + RI		lea Rw,[RB+RI]
+	ax = bx + si
+	ax = bx + di
+	ax = bp + si
+	ax = bp + di
+	//Rw = RB + RI + Ibw	lea Rw,[RB+RI+Ibw]
+	ax = bx + si + 10
+	ax = bx + di - 10
+	ax = bp + si + 10
+	ax = bp + di - 10
+	
+	//特殊
+	al = b[bx+al]		//xlat
+	ah = fl				//lahf
+	fl = ah				//sahf
+
+  //合成
+	//R = R				---	(左右が同じばあい消滅)
+	bh = bh
+	ax = ax
+	dx.ax = dx.ax
+
+	//Rbw = 0			xor Rbw,Rbw
+	al = 0
+	bx = 0
+  @if 0
+	//Rw = MRb			Rw.l = MRb; Rw.h = 0
+	ax = al
+	ax = bh
+	ax = b[si]
+  @fi
+	//RS1 = RS2			push RS2;pop RS1
+	es = ds
+
+	//RS = Iw			(186以降)
+	es = 0xA000
+
+	//MRw = fx			push MRw;popf
+	ax = fx
+	w[si] = fx
+	//fx = MRw			pushf;pop MRw
+	fx = ax
+	fx = w[si]
+	//fx = Iw			(186以降)
+	fx = 0x0000
+
+	//MRd = MRId		MRd.l = MRId.l; MRd.h = MRId.h
+	bx.ax = dx.cx
+	dx.ax = d[si]
+	d[bx] = bx.ax
+	d[si] = 0x40006000
+
+	//RSd1 = RSd2		RSw1.l = RSw2.l; RSw1.h = RSw2.h
+	es.ax = ds.dx
+
+	//Rd = 0			Rd.l = 0; Rd.h = 0
+	dx.ax = 0
+	//Rd = Id	(High==0)	Rd.h = 0; Rd.l = Id.l
+	dx.ax = 0x1000
+	//Rd = Id	(Low==0)	Rd.l = 0; Rd.h = Id.h
+	dx.ax = 0x11110000
+	//Rd = Id	(High==Low)	Rd.l = Id.l; Rd.h = Rd.l
+	dx.ax = 0x00410041
+  @if 0
+	//Rd = Rw			Rd.l = Rw; Rd.h = 0
+	dx.ax = ax
+	dx.ax = bx
+	dx.ax = w[si]
+
+	//Rd = Rb			RbLL = Rb; RbLH	= 0; Rd.h = 0
+	dx.ax = al
+	dx.ax = bh
+	dx.ax = b[si]
+  @fi
+
+//□  符号拡張コピー
+	ax .=. al			//cbw
+	dx.ax .=. ax		//cwd
+ //合成
+	//ax .=. MRIb		al = MRIb;cbw
+	ax .=. 100
+	ax .=. bl
+	ax .=. b[si]
+	//dx.ax .=. MRIw	ax = MRIw;cwd
+	dx.ax .=. 300
+	dx.ax .=. bx
+	dx.ax .=. w[di]
+	//dx.ax .=. MRIb	al = MRIb;cbw;cwd
+	dx.ax .=. al		//cbw;cwd
+	dx.ax .=. bl
+	dx.ax .=. 0xff
+	dx.ax .=. b[bx]
+
+//□  交換
+	//MRbw1 <=> MRbw2	xchg MRbw1,MRbw2
+	ah <=> al
+	ax <=> bx
+	ax <=> w[bx]
+  //合成
+	//Rd1 <=> Rd2
+	bx.ax <=> dx.ax
+
+/*
+　３２ビット合成レジスタは別のファイル( +=,-,&=,|=,^=)
+*/
+//□  加算
+	//MRbw += MRIbw		add MRbw,MRIbw
+	al += 20
+	bl += bh
+	cl += b[si]
+	b[bx] += 30
+	b[bp] += dl
+	ax += 40
+	bx += bx
+	cx += w[si]
+	w[di] += 50
+	w[si] += dx
+  //合成
+	ax += ax			//合成していないかもしれない
+	//MRbw += 0			---
+	ah += 0
+	ax += 0
+	b[si] += 0
+	w[si] += 0
+	//MRbw += 1			inc MRbw
+	bh += 1
+	dx += 1
+	b[bx] += 1
+	w[bx] += 1
+	//MRbw += -1		dec MRbw
+	bh += -1
+	dx += -1
+	b[bx] += -1
+	w[bx] += -1
+	//Rw += 2			inc Rw;inc Rw
+	bx += 2
+	//Rw += -2			dec Rw;dec Rw
+	bx -= 2
+
+/*
+	以降は+=以上に手抜き.... たぶん += と同様なので...
+*/
+//□  減算
+	//MRbw -= MRIbw		sub MRbw,MRIbw
+ 	ax -= bx
+ 	bx -= 50
+ 	bx -= word[si]
+ //合成
+	//MRbw -= 0			---
+	//MRbw -= 1			dec MRbw
+	//MRbw -= -1		inc MRbw
+	//Rw -= 2			dec Rw;dec Rw
+	//Rw -= -2			inc Rw;inc Rw
+	//Rbw -= Rbw		--- (両辺が同じのばあい)
+	bx -= bx
+
+//□  論理積
+	//MRbw &= MRIbw		and MRbw,MRIbw
+ 	ax &= 0x1f2f
+ 	ax &= ax
+ 	ah &= b[si]
+ 	b[si] &= al
+ 	w[bx] &= 0xfefc
+ //合成
+	//MRbw &= 0			MRbw = 0
+	ax &= 0
+	//MRb  &= 0xff		---
+	b[bx] &= 0xff
+	//MRw  &= 0xff		MRw.h =	0
+	ax &= 0xff
+	//MRw  &= 0xff00	MRw.l =	0
+	ax &= 0xff00
+	//MRbw &= MRbw		---
+	ax &= ax
+
+//□  排他的論理和
+	//MRbw ^= MRIbw		xor MRbw,MRIbw
+	dh ^= 0x20
+
+//□  論理和
+	//MRbw |= MRIbw		or  MRbw,MRIbw
+  //合成
+	//MRbw |= 0			---
+	ax |= 0
+	//MRb  |= 0xff		MRb = 0xff
+	ch |= 0xff
+	//MRw  |= 0xff		MRw.l =	0xff
+	cx |= 0xff
+	//MRw  |= 0xff00	MRw.h =	0xff
+	cx |= 0xff00
+	//MRw  |= 0xffff	MRbw = 0xffff
+	cx |= 0xffff
+	//Rbw |= Rbw		---
+	
+	//Rd   |= MRId
+
+//□  比較
+	//MRbw - MRIbw		cmp MRbw,MRIbw
+    |ax - bx
+    |bx - 0
+  //合成
+	//Rbw - 0			or  Rbw,Rbw
+	go(bx - 0) J1
+J1:
+
+//□  ビット・テスト
+	//MRbw &  MRIbw		test MRbw,MRIbw
+	|ax & 0xfefe
+
+//□  MRbw = MRbw + MRIbw + cf
+	//adc(MRbw,MRIbw)		adc MRbw,MRIbw
+    adc(ax,bx)
+    adc ax,bx
+
+//□  MRbw = MRbw - MRIbw - cf
+    //sbc(MRbw,MRIbw)		sbb MRbw,MRIbw
+	sbc(b[si],0x00)
+
+//□  インクリメント
+	//++MRbw			inc MRbw
+	++bx
+
+//□  デクリメント
+	//--MRbw			dec MRbw
+	--w[bx]
+
+//□  ビット反転
+	//com(MRbw)		not MRbw
+	com (ax)
+	com w[bx]
+	
+//□  符号反転
+	//neg(MRbw)		neg MRbw
+	neg (bx)
+	neg w[bx]
+
+/* シフト関係は別のファイル*/
+
+//□  符号無掛算
+	//ax = al * MRb			mul MRb
+	ax = al * ah
+	ax = al * b[di]
+	//dx.ax = ax * MRw		mul MRw
+	dx.ax = ax * cx
+	dx.ax = ax * w[si]
+	//Rw = MRw * Iw			imul Rw,MRw,Iw		    (8086不可)
+  	ax = ax * 20
+  	ax = 30 * bx
+  	bx = w[si] * 17
+
+  //合成
+	ax = al * 0				//ax = 0
+	ax = al * 1				//ah = 0
+	dx.ax = ax * 0			//手を抜いているので dx.ax = 0 になりません(^^;
+    dx.ax = ax * 1			//手を抜いているので dx = 0	になりません(^^;
+	//ax = al * Ib			ah = Ib;mul ah
+	ax = al * 0xff
+	ax = 0xff * al
+	//dx.ax = ax * Iw		dx = Iw; mul dx
+	dx.ax = ax * 1000
+	//ax = MRb * MRIb		ah = MRb; al =	MRIb; mul ah
+	ax = ch * b[si]
+	ax = bh * 0xff
+	ax = b[si] * b[di]
+	//dx.ax = MRw * MRIw	ax = MRw; dx =	MRIw; mul dx
+	dx.ax = cx * bx
+	dx.ax = cx * w[si]
+	dx.ax = cx * 0xff
+	dx.ax = w[bx] * w[si]
+
+//□  符号付掛算  (imul)
+	// 符号無と同様なので省略
+	//ax = al .*. MRb		imul MRb
+	//dx.ax = ax .*. MRw	imul MRw
+	//Rw = MRw .*. Iw		imul Rw,MRIw,Iw		    (8086不可)
+  //合成
+	//ax = al	.*. 0		ax = 0
+	//ax = al	.*. 1		ah = 0
+	//ax = al	.*. Ib		ah = Ib;imul ah
+	//ax = MRb .*. MRIb	ah = MRb; al =	MRIb; imul ah
+	//dx.ax =	ax .*. 0	dx.ax =	0
+	//dx.ax =	ax .*. 1	dx = 0
+	//dx.ax =	ax .*. Iw	dx = Iw; imul dx
+	//dx.ax =	MRw .*. MRIw	ax = MRw; dx =	MRIw; imul dx
+
+//□  割算(余算)  (div,idiv)
+	//div(ax,MRb)		div  MRb
+	div ax,cl
+	div(ax,b[si])
+	//div(dx.ax,MRw)	div  MRw
+	div (dx.ax,cx)
+	div dx.ax,w[bx]
+	//idiv(ax,MRb)		idiv MRb
+	//idiv(dx.ax,MRw)	idiv MRw
+
+//□  cfフラグ関係
+	|cf = 1				//stc
+	|cf = 0				//clc
+	|com(cf)			//cmc
+
+//□  パック演算
+	aaadd				//aaa
+	aasub				//aas
+	aamul				//aam
+	aadiv				//aad
+	daadd				//daa
+	dasub				//das
+
+//□  I/Oポート・アクセス
+	//al = port(Ib)		in  al,Ib
+	al = port(0xff)
+	//ax = port(Ib)		in  ax,Ib
+	ax = port(0x00)
+	//port(Ib) = al		out Ib,al
+	port(0x3f) = al
+	//port(Ib) = ax		out Ib,ax
+	port(0x34) = ax
+	al = port(dx)		//in  al,dx
+	ax = port(dx)		//in  ax,dx
+	port(dx) = al		//out dx,al
+	port(dx) = ax		//out dx,ax
+
+
+//□  スタック操作命令
+	//push MRw			push MRw
+	push ax
+	push w[bx]
+	//push RS			push RS
+	push es
+	//push fx			pushf
+	push fx
+	//push Iw			push Iw		(8086は不可)
+	push  0x100
+	//pop  MRw			pop  MRw
+	pop bx
+	//pop  RS			pop  RS
+	pop ds
+	//pop  fx			popf
+	pop fx
+	//pusha				pusha		(8086は合成)
+	pusha
+	//popa				popa		(8086は合成)
+	popa
+	//enter Iw,Ib		enter Iw,Ib	(8086は一部合成で可)
+	enter 8,4
+	enter 4,0
+	enter 0,0
+	//leave				leave		(8086は合成)
+  	leave
+  //合成
+	//pusha				push ax,cx,bx,dx,si,di	(8086のみ)
+	//popa				pop  di,si,dx,bx,cx,ax	(8086のみ)
+	//enter Iw,0		push bp;sub sp,Iw	(8086のみ)
+	//leave				mov sp,bp;pop bp	(8086のみ)
+	//save				(手続き入口専用のpush)
+	//load				(save 命令で push したものを復活)
+	//push  ﾚｼﾞｽﾀ群		push ﾚ1; push ﾚ2...	(積む順番は後から)
+	//pop   ﾚｼﾞｽﾀ群		pop  ﾚ1; pop ﾚ2...	(戻す順番は前から)
+
+//□  ストリング命令
+	//rep					rep
+	//repe					repe/repz
+	//repn					repne/repnz
+
+	rep.inc					//cld
+	rep.dec					//std
+
+	rep.load(al, si)		//lods RA
+	rep.load.w(ax, si, cx)	//rep lods RA
+
+	rep.set.w(di, ax)		//stos RA
+	rep.set(di, al, cx)		//rep stos RA
+
+	rep.cpy(di,si)			//movsb
+	rep.cpy di,si,cx 		//rep movsb		別に丸括弧を外してもいい...
+	rep.cpy.w di,si 		//movsw
+	rep.cpy.w(di,si,cx)		//rep movsw
+
+	repe.scan(di,al)		//scas RA
+	repe.scan.w(di,ax,cx)	//repe scas RA
+
+	repe.cmp(di,si)			//cmpsb
+	repe.cmp(di,si,cx)		//repe cmpsb
+	repe.cmp.w(di,si)		//cmpsw
+	repe.cmp.w(di,si,cx)	//repe cmpsw
+
+	rep.inp(di,dx)			//insb		(8086不可)
+	rep.inp(di,dx,cx)		//rep insb	"
+	rep.inp.w(di,dx)		//insw		"
+	rep.inp.w(di,dx,cx)		//rep insw	"
+	rep.outp(dx,si)			//outsb		"
+	rep.outp(dx,si,cx)		//rep outsb	"
+	rep.outp.w(dx,si)		//outsw		"
+	rep.outp.w(dx,si,cx)	//rep outsw	"
+
+
+//□  割り込み関係
+	intr.on					//sti
+	intr.off				//cli
+	intr 0x21				//(Ib:0～255)	int  Ib
+	intr.ovf				//into
+	iret					//iret
+	wait					//wait
+	esc 4,bx				//esc Ib,MR
+	hlt						//hlt
+	//lock 命令		lock; 命令
+	|lock b[bx] = 0
+
+endproc
+
+endmodule
