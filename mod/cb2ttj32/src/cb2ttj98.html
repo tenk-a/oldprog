@@ -1,0 +1,85 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html;  CHARSET=euc-jp">
+<TITLE> How to make a TrueType font from ROM of PC-98x1 using cb2tt,cb2ttj </TITLE>
+</HEAD>
+
+<BODY>
+<CENTER><H2>cb2tt、cb2ttj を使って日本語 TrueType font を作る</H2></CENTER>
+
+<A HREF="http://oanet1.csie.ntu.edu.tw/EWelcome.html">Lin YawJen</A>
+氏の cb2tt (Conversion from Bitmap files to Chinese TrueType)
+と、松田＠理科大<matsuda@itohws01.ee.noda.sut.ac.jp>氏の
+<A HREF="http://itohws03.ee.noda.sut.ac.jp/~matsuda/cb2ttj/">
+cb2ttj</A>を利用して、PC-98x1のROM fontからTrueType fontを作れるようにしてみました。
+<BR><BR>
+PC-98x1のROM fontを取り出す手順
+<OL>
+<LI>cb2ttj98.zipの中のmkcg.comをPC-98x1上で実行する。ank.cg、kanji.cg、quarter.cgの3つのファイルができるが、ank.cgとkanji.cgの2つを使用する。
+</OL>
+<BR>
+TrueType fontへの変換の手順
+<UL>
+<LI>on Windows
+<OL>
+<LI>cb2tt.zipとcb2ttj.zipとcb2ttj98.zipを展開する。
+<LI>cb2ttj/とcb2ttj98/の中のファイルをcb2tt/にコピーする。
+<LI>ank.cgとkanji.cgをcb2tt/にコピーする。
+<LI>cb2tt/に移り、makettf98.batを実行する。ttfstub.exeはbfc40.dllを必要とするので、bfc40.dllを探してくるか、または、VC5でコンパイルした<A HREF="ttfstub.zip">ttfstub.zip</A>の中のttfstub.exeと置きかえる。
+<LI>98ank.ttfと98kanji.ttfができる。
+</OL>
+<LI>on UNIX
+<OL>
+<LI>cb2ttsrc.zipとcb2tt-unix.tar.gzを展開し、パッチを当てた後、makefile.98.unixを使ってコンパイルする（GNU patch 2.5ではエラーが出たので、Windows上で<A HREF="http://www.cygnus.com">CYGNUS</A>のpatchを使った）。もしくは、<A HREF="binary_for_glibc2.tgz">binary_for_glibc2.tgz</A>を使う。<br>
+<LI>cb2ttj98.zipを展開し、cb2ttj98/の中のファイルをcb2ttsrc/にコピーする。
+<LI>ank.cgとkanji.cgをcb2ttsrc/にコピーする。
+<LI>cb2ttsrc/に移り、sh makettf98。
+<LI>98ank.ttfと98kanji.ttfができる。
+</OL>
+</UL>
+変換には、K6-2/300 & egcs -O6で、Linux上では1時間掛かりました。Windows上ではおそらく3時間以上掛かると思います（試していません）。
+<BR>
+また、mkbdf.ccを使うと、cgファイルからXのフォントファイル（BDF）ができます。
+
+<BR>
+<BR>
+<BR>
+
+ダウンロード
+<UL>
+<LI><A HREF="cb2ttj98.zip">cb2ttj98.zip</A>
+<LI>(Optional) cb2tt-unix.tar.gzのパッチを適用した後のttfstub.cppをVC5でコンパイルした<A HREF="ttfstub.zip">ttfstub.exe</A>
+<LI>(Optional) Linux(glibc2)用のbinary only<A HREF="binary_for_glibc2.tgz">binary_for_glibc2.tgz</A>
+</UL>
+
+関連リンク
+<UL>
+<LI>
+<A HREF="ftp://ftp.ifcss.org/pub/software/fonts/utils/">
+cb2tt.zip, cb2ttsrc.zipの入手先</A>,
+(<A HREF="ftp://ftp.fedu.uec.ac.jp/pub/china/software/IFCSS/fonts/utils">
+国内のミラー</A>)
+<LI>
+<A HREF="http://itohws03.ee.noda.sut.ac.jp/~matsuda/cb2ttj/">
+cb2ttj.zip, cb2tt-unix.tar.gzの入手先</A>
+</UL>
+
+<BR>
+<BR>
+<A HREF="mailto:noto@geocities.com">noto@geocities.com</A><BR>
+T.Okano<BR>
+
+<hr>
+<center>
+<b>
+This page hosted by
+<a href="/"><img src="/pictures/gc_icon.gif" border=0
+align=middle></a>                                                                             
+Get your own <a href="/">Free Home Page</a></b></center>
+
+
+</BODY>
+
+</HTML>
