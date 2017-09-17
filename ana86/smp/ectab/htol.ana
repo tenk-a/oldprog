@@ -1,50 +1,50 @@
 module HTOL
-	//	1992	writen by M.Kitamura
-	c_name "Str"
+    //	1992	writen by M.Kitamura
+    c_name "Str"
 
 *proc HtoL(si)
-//	16進文字列の値を dx.ax に入れて返す。オーバーフローチェックなし。
-//	arg si	文字列
-//	in	ds
-//	out si	読み込んだ文字の次のアドレス
-//	out dx.ax
+//  16進文字列の値を dx.ax に入れて返す。オーバーフローチェックなし。
+//  arg si  文字列
+//  in	ds
+//  out si  読み込んだ文字の次のアドレス
+//  out dx.ax
 begin
-	save bx,cx
+    save bx,cx
 
-	rep.inc
-	//loop
-	//	rep.load al,si
-	//	go (al == 0) RTS
-	//endloop (al <= ' ')
-	//--si
-	dx.bx = 0
-	cx = bx
-	al = bl
-	if (b[si] == '-')
-		++si
-		cx = 1
-	elsif (b[si] == '+')
-		++si
-	fi
-	loop
-		rep.load al,si
-		exit ((al -= '0') < 0)
-		if (al > 9)
-			exit ((al -= 'A' - '0') < 0)
-			if (al > 5)
-				al -= 'a' - 'A'
-				exit (al < 0 || al > 5)
-			fi
-			al += 10
-		fi
-		dx.bx <<= 4
-		dx.bx += ww(0,ax)
-	endloop
-	ax = bx
-	if (cx)
-		neg dx.ax
-	fi
-	return
+    rep.inc
+    //loop
+    //	rep.load al,si
+    //	go (al == 0) RTS
+    //endloop (al <= ' ')
+    //--si
+    dx.bx = 0
+    cx = bx
+    al = bl
+    if (b[si] == '-')
+    	++si
+    	cx = 1
+    elsif (b[si] == '+')
+    	++si
+    fi
+    loop
+    	rep.load al,si
+    	exit ((al -= '0') < 0)
+    	if (al > 9)
+    	    exit ((al -= 'A' - '0') < 0)
+    	    if (al > 5)
+    	    	al -= 'a' - 'A'
+    	    	exit (al < 0 || al > 5)
+    	    fi
+    	    al += 10
+    	fi
+    	dx.bx <<= 4
+    	dx.bx += ww(0,ax)
+    endloop
+    ax = bx
+    if (cx)
+    	neg dx.ax
+    fi
+    return
 endproc
 
 endmodule

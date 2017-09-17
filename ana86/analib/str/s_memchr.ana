@@ -1,22 +1,21 @@
 module S
-	c_name "str","_",1
+    c_name "str","_",1
 
 *proc memchr(dst:d,chr:w,sz:w);cdecl;FC
 enter
-	save cx,di,es
-	
-	es.di = dst
-	al = chr.l
-	cx = sz
-	|repn.scan di,al,cx
-	|ax = 0
-	|dx = ax
-	if (==)
-		dx.ax = es.di
-		--ax
-	fi
-	return
+    save cx,di,es
+
+    es.di = dst
+    al = chr.l
+    cx = sz
+    |repn.scan di,al,cx
+    |ax = 0
+    |dx = ax
+    if (==)
+    	dx.ax = es.di
+    	--ax
+    fi
+    return
 endproc
 
 endmodule
-

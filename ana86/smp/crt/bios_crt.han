@@ -1,75 +1,75 @@
 module Bios98Crt
-	model MODEL
+    model MODEL
 
 *proc CrtModeSet(al)
-//	arg al	b0 画面行数     0:25  1:20
-//			b1 行文字数     0:80  1:40
-//			b2 ｱﾄﾋﾞｭﾚｰﾄ     0:垂線表示  1:簡易グラフ
-//			b3 K-CGｱｸｾｽﾓｰﾄﾞ 0:ｺｰﾄﾞｱｸｾｽ  1:ﾄﾞｯﾄｱｸｾｽ
+//  arg al  b0 画面行数     0:25  1:20
+//  	    b1 行文字数     0:80  1:40
+//  	    b2 ｱﾄﾋﾞｭﾚｰﾄ     0:垂線表示	1:簡易グラフ
+//  	    b3 K-CGｱｸｾｽﾓｰﾄﾞ 0:ｺｰﾄﾞｱｸｾｽ	1:ﾄﾞｯﾄｱｸｾｽ
 macro
-	ah = 0x0A
-	intr 0x18
+    ah = 0x0A
+    intr 0x18
 endproc
 
 *proc CrtModeGet()
-//	out al	b0 画面行数     0:25  1:20
-//  		b1 行文字数     0:80  1:40
-//			b2 ｱﾄﾋﾞｭﾚｰﾄ     0:垂線表示  1:簡易グラフ
-//			b3 K-CGｱｸｾｽﾓｰﾄﾞ 0:ｺｰﾄﾞｱｸｾｽ  1:ﾄﾞｯﾄｱｸｾｽ
-//			b7 CRTの種別    0:標準CRT   1:高解像度CRT
+//  out al  b0 画面行数     0:25  1:20
+//  	    b1 行文字数     0:80  1:40
+//  	    b2 ｱﾄﾋﾞｭﾚｰﾄ     0:垂線表示	1:簡易グラフ
+//  	    b3 K-CGｱｸｾｽﾓｰﾄﾞ 0:ｺｰﾄﾞｱｸｾｽ	1:ﾄﾞｯﾄｱｸｾｽ
+//  	    b7 CRTの種別    0:標準CRT	1:高解像度CRT
 macro
-	ah = 0x0B
-	intr 0x18
+    ah = 0x0B
+    intr 0x18
 endproc
 
 *proc TextOn()
 macro
-	ah = 0x0C
-	intr 0x18
+    ah = 0x0C
+    intr 0x18
 endproc
 
 *proc TextOff()
 macro
-	ah = 0x0D
-	intr 0x18
+    ah = 0x0D
+    intr 0x18
 endproc
 
 *proc CurOn()
 macro
-	ah = 0x11
-	intr 0x18
+    ah = 0x11
+    intr 0x18
 endproc
 
 *proc CurOff()
 macro
-	ah = 0x12
-	intr 0x18
+    ah = 0x12
+    intr 0x18
 endproc
 
 *proc CurBlnkSw(al)
-//	al  0:on  1:off
+//  al	0:on  1:off
 macro
-	ah = 0x10
-	intr 0x18
+    ah = 0x10
+    intr 0x18
 endproc
 
 *proc CurBlnkOn()
 macro
-	ax = 0x1000
-	intr 0x18
+    ax = 0x1000
+    intr 0x18
 endproc
 
 *proc CurBlnkOff()
 macro
-	ax = 0x1001
-	intr 0x18
+    ax = 0x1001
+    intr 0x18
 endproc
 
 *proc CurAddr(dx)
-//	arg dx	表示位置 (T-VRAM の CPU ｱﾄﾞﾚｽ)
+//  arg dx  表示位置 (T-VRAM の CPU ｱﾄﾞﾚｽ)
 macro
-	ah = 0x13
-	intr 0x18
+    ah = 0x13
+    intr 0x18
 endproc
 
 endmodule

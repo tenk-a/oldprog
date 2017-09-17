@@ -1,51 +1,50 @@
 module S
-	c_name "str","_",1
+    c_name "str","_",1
 
 *proc incmp(s1:d, s2:d,sz2:w);cdecl;FC
 enter
-	save cx,si,di,es,ds
-	es.di = s2
-	al = 0
-	cx = sz2
-	|repn.scan di,al,cx
-	|cx = sz2
-	if (==)
-		cx = di
-		//--cx
-		cx -= s2.l
-	fi
-	es.di = s1
-	ds.si = s2
-	loop
-		rep.load al,si
-		if (al >= 'a' && al <= 'z')
-			al -= 0x20
-		fi
-		ah = b[es:di];++di
-		if (ah >= 'a' && ah <= 'z')
-			ah -= 0x20
-		fi
-		|ah - al
-		if (>)
-			ax = 1
-			go RET
-		elsif (<)
-			ax = -1
-			go RET
-		fi
-	endloop (--cx)
-	ax = 0
+    save cx,si,di,es,ds
+    es.di = s2
+    al = 0
+    cx = sz2
+    |repn.scan di,al,cx
+    |cx = sz2
+    if (==)
+    	cx = di
+    	//--cx
+    	cx -= s2.l
+    fi
+    es.di = s1
+    ds.si = s2
+    loop
+    	rep.load al,si
+    	if (al >= 'a' && al <= 'z')
+    	    al -= 0x20
+    	fi
+    	ah = b[es:di];++di
+    	if (ah >= 'a' && ah <= 'z')
+    	    ah -= 0x20
+    	fi
+    	|ah - al
+    	if (>)
+    	    ax = 1
+    	    go RET
+    	elsif (<)
+    	    ax = -1
+    	    go RET
+    	fi
+    endloop (--cx)
+    ax = 0
   RET:
-	return
+    return
 endproc
 
 *proc icmp(s1:d, s2:d);cdecl;FC
 enter
-	ax = 0xffff
-	incmp s1,s2,ax
-	return
+    ax = 0xffff
+    incmp s1,s2,ax
+    return
 endproc
 
 
 endmodule
-

@@ -1,51 +1,51 @@
 module TstCmdl
-	// CmdLineA ,(MoveOpt) のチェック・プログラム
-	// コマンド・ラインに指定されたトークンを、オプション文字列を先に
-	// 表示し、次に他の文字列を表示する
-	// tstcmdl.ana cmdlinea.ana moveopt.ana sepline.ana putstr.anaが必要
-	// ヘッダとして str.ana fname.han std.han dos.han も必要
-	// link tstcmdl cmdlinea movopt sepline putstr
-	//	1992	writen by M.Kitamura
-	model SMALL
-	stack 0x1000
-	start Main
+    // CmdLineA ,(MoveOpt) のチェック・プログラム
+    // コマンド・ラインに指定されたトークンを、オプション文字列を先に
+    // 表示し、次に他の文字列を表示する
+    // tstcmdl.ana cmdlinea.ana moveopt.ana sepline.ana putstr.anaが必要
+    // ヘッダとして str.ana fname.han std.han dos.han も必要
+    // link tstcmdl cmdlinea movopt sepline putstr
+    //	1992	writen by M.Kitamura
+    model SMALL
+    stack 0x1000
+    start Main
 
-	import Dos:".han"
-	import CmdLineA
-	import PUTSTR
-	type   Ps:PUTSTR
+    import Dos:".han"
+    import CmdLineA
+    import PUTSTR
+    type   Ps:PUTSTR
 
 proc Main()
-//	in es
+//  in es
 enter
-	var msg:b() = "file name"
-	var name:b(300)
+    var msg:b() = "file name"
+    var name:b(300)
 
-	rep.inc
-	dx = ds
-	ds = ax = %var
-	es = ax
-	CmdLineA.Init dx
-	CmdLineA.MoveOpt
-	push ax,di
-	if (cx)
-		loop
-			di = w[si]
-			Ps.PutStrCr  Dos.STDOUT, ds.di
-			si+=2
-		endloop (--cx)
-	fi
-	Ps.PutStrCr Dos.STDOUT, ww(ds,&msg)
-	pop  cx,si
-	if (cx)
-		loop
-			di = w[si]
-			Ps.PutStrCr  Dos.STDOUT, ds.di
-			si+=2
-		endloop (--cx)
-	fi
+    rep.inc
+    dx = ds
+    ds = ax = %var
+    es = ax
+    CmdLineA.Init dx
+    CmdLineA.MoveOpt
+    push ax,di
+    if (cx)
+    	loop
+    	    di = w[si]
+    	    Ps.PutStrCr  Dos.STDOUT, ds.di
+    	    si+=2
+    	endloop (--cx)
+    fi
+    Ps.PutStrCr Dos.STDOUT, ww(ds,&msg)
+    pop  cx,si
+    if (cx)
+    	loop
+    	    di = w[si]
+    	    Ps.PutStrCr  Dos.STDOUT, ds.di
+    	    si+=2
+    	endloop (--cx)
+    fi
 
-	Dos.Exit(0)
+    Dos.Exit(0)
 endproc
 
 endmodule

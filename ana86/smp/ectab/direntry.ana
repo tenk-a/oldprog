@@ -1,24 +1,24 @@
 module DirEntry
-	//	1992	writen by M.Kitamura
-	c_name "DirEntry","", defined(TURBO_C) + defined(LSI_C)*2
-	model SMALL
-	stack 0x200
+    //	1992	writen by M.Kitamura
+    c_name "DirEntry","", defined(TURBO_C) + defined(LSI_C)*2
+    model SMALL
+    stack 0x200
 
-	import Std
-	import WILDCMP
-	type WC:WILDCMP
+    import Std
+    import WILDCMP
+    type WC:WILDCMP
 
 *struct DTA_T
-	attr_in:byte
-	drv:byte
-	name:byte(8)
-	ext:byte(3)
-	rsv:byte(8)
-	attr:byte
-	time:word
-	date:word
-	size:dword
-	pname:byte(13)
+    attr_in:byte
+    drv:byte
+    name:byte(8)
+    ext:byte(3)
+    rsv:byte(8)
+    attr:byte
+    time:word
+    date:word
+    size:dword
+    pname:byte(13)
 endstruct
 
 *var dta:DTA_T
@@ -26,251 +26,251 @@ endstruct
 *var dir:byte(200)
 
 proc DtaGet()
-//	DTA のアドレスを得る
-//	out   es.bx
-//	break ah
+//  DTA のアドレスを得る
+//  out   es.bx
+//  break ah
 macro
-	ah = 0x2f
-	intr 0x21
+    ah = 0x2f
+    intr 0x21
 endproc
 
 proc DtaSet(dx)
-//	DTA のアドレスを変更する
-//	in	ds
-//	break ah
+//  DTA のアドレスを変更する
+//  in	ds
+//  break ah
 macro
-	ah = 0x1a
-	intr 0x21
+    ah = 0x1a
+    intr 0x21
 endproc
 
 proc DirEntryFirst(dx,cx)
-//	in	ds
-//	out dx,cx,ax,cf
+//  in	ds
+//  out dx,cx,ax,cf
 macro
-	ah = 0x4e
-	intr 0x21
+    ah = 0x4e
+    intr 0x21
 endproc
 
 proc DirEntryNext(dx,cx)
-//	in	ds
-//	out dx,cx,ax,cf
+//  in	ds
+//  out dx,cx,ax,cf
 macro
-	ah = 0x4f
-	intr 0x21
+    ah = 0x4f
+    intr 0x21
 endproc
 
 *proc Get
   @if defined(TURBO_C)
-	//(pRslt:d,pKey:d,pFlg:w)
-	(pRslt_l:w,pRslt_h:w,pKey_l:w,pKey_h:w,pFlg:w)
-	cdecl
+    //(pRslt:d,pKey:d,pFlg:w)
+    (pRslt_l:w,pRslt_h:w,pKey_l:w,pKey_h:w,pFlg:w)
+    cdecl
   @else
-	(bx.ax,dx.cx,pFlg:w)
-	@if defined(LSI_C)
-		cdecl
-	@fi
+    (bx.ax,dx.cx,pFlg:w)
+    @if defined(LSI_C)
+    	cdecl
+    @fi
   @fi
-//	ワイルド・カード機能付ファイル名のディレクトリ・エントリを得る
-//	ワイルド・カード指定で継続のファイル名を得るときは dx.cx（pKey）= NULL
-//	で呼び出す
-//	arg pRslt:bx.ax 見つかったパス名を格納する場所 要128バイト以上
-//	arg pKey:dx.cx	ワイルドカード機能付パス名 128バイト以内
-//	arg pFlg		ディレクトリ・エントリ検索で対象とするファイル属性
-//						0x01(bit 0) 読出専用ファイル
-//						0x02(bit 1) 不可視属性
-//						0x04(bit 2) システム・ファイル
-//						0x08(bit 3) ボリュームラベル
-//						0x10(bit 4) ディレクトリ
-//						0x20(bit 5) 保存ビット
-//	out ax			0:エラー無	-1:設定誤り 1:これ以上ファイルがない
-//					2:ファイルが無い
-//	out dx.cx		そのまま
-//	break bx
+//  ワイルド・カード機能付ファイル名のディレクトリ・エントリを得る
+//  ワイルド・カード指定で継続のファイル名を得るときは dx.cx（pKey）= NULL
+//  で呼び出す
+//  arg pRslt:bx.ax 見つかったパス名を格納する場所 要128バイト以上
+//  arg pKey:dx.cx  ワイルドカード機能付パス名 128バイト以内
+//  arg pFlg	    ディレクトリ・エントリ検索で対象とするファイル属性
+//  	    	    	0x01(bit 0) 読出専用ファイル
+//  	    	    	0x02(bit 1) 不可視属性
+//  	    	    	0x04(bit 2) システム・ファイル
+//  	    	    	0x08(bit 3) ボリュームラベル
+//  	    	    	0x10(bit 4) ディレクトリ
+//  	    	    	0x20(bit 5) 保存ビット
+//  out ax  	    0:エラー無	-1:設定誤り 1:これ以上ファイルがない
+//  	    	    2:ファイルが無い
+//  out dx.cx	    そのまま
+//  break bx
 enter
-	local dtaSave:d, aPirFlg:b
-	var   aWdCdFlg:b = 0,aNextFlg:b = 0
+    local dtaSave:d, aPirFlg:b
+    var   aWdCdFlg:b = 0,aNextFlg:b = 0
   @if !defined(TURBO_C)
-	save pusha,pRslt_h:bx,pRslt_l:ax, pKey_h:dx, pKey_l:cx, si,di,es,ds
+    save pusha,pRslt_h:bx,pRslt_l:ax, pKey_h:dx, pKey_l:cx, si,di,es,ds
   @else
-	save pusha,pRet:ax,bx,cx,dx,si,di,es,ds
+    save pusha,pRet:ax,bx,cx,dx,si,di,es,ds
   @fi
 
-	// DTA を設定
-	DtaGet
-	dtaSave = es.bx
-	ds = si = %var
-	dx = &dta
-	DtaSet dx
-	dx = pKey_h; cx = pKey_l
-	bx = pRslt_h;ax = pRslt_l
-	go.w (bx == 0 && ax == 0) ERR		// 結果を入れる pRslt が NULL とき
-	if (dx == 0 && cx == 0) 			// pKey が NULL のとき
-		go.w (aWdCdFlg) SRCH_NEXT
-		ax = 1
-		go.w RTS
-	fi
-	aNextFlg = 0
-	aWdCdFlg = 0
-	// es.si = dx.cx ポインタの正規化
-	si = cx
-	si &= 0x0f
-	cx >>= 4
-	dx += cx
-	es = dx
-	bx = si
-	// pKey の ディレクトリ名を dir にコピー
-	di = dx = &dir
-	loop
-		al = b[es:si]
-		++si
-		if (Std.IsKanji(al))
-			b[di] = al
-			++di
-			al = b[es:si]
-			++si
-			go.w (al == 0) ERR
-		elsif (al >= 'a' && al <= 'z')	//	半角小文字の大文字化
-			al -= 0x20
-		else
-			if (al == '/')	//	'/'を'\'に変える
-				al = '\\'
-			fi
-			if (al == '\\' || al == ':')
-				b[es:si-1] = al
-				dx = di
-				++dx
-				bx = si
-			fi
-		fi
-		b[di] = al
-		++di
-	endloop (al)
-	// 取り出したﾃﾞｨﾚｸﾄﾘ名 dir に *.* をつける。
-	di = dx
-	b[di] = '*'
-	++di
-	b[di] = '.'
-	++di
-	b[di] = '*'
-	++di
-	b[di] = '\0'
-	// pKeyより検索するファイル名を key にコピー
-	++di
-	key = di
-	aPirFlg = 0
-	loop
-		al = b[es:bx]
-		++bx
-		if (Std.IsKanji(al))
-			b[di] = al
-			++di
-			al = b[es:bx]
-			++bx
-			go.w (al == 0) ERR
-		elsif (al >= 'a' && al <= 'z')
-			al -= 0x20
-		elsif (al == '*' || al == '?' || al == '[' || al == '^')
-			aWdCdFlg = 1
-		elsif (al == '.' && b[es:bx] == '\0')
-			aPirFlg = 1
-		fi
-		b[di] = al
-		++di
-	endloop (al)
+    // DTA を設定
+    DtaGet
+    dtaSave = es.bx
+    ds = si = %var
+    dx = &dta
+    DtaSet dx
+    dx = pKey_h; cx = pKey_l
+    bx = pRslt_h;ax = pRslt_l
+    go.w (bx == 0 && ax == 0) ERR   	// 結果を入れる pRslt が NULL とき
+    if (dx == 0 && cx == 0) 	    	// pKey が NULL のとき
+    	go.w (aWdCdFlg) SRCH_NEXT
+    	ax = 1
+    	go.w RTS
+    fi
+    aNextFlg = 0
+    aWdCdFlg = 0
+    // es.si = dx.cx ポインタの正規化
+    si = cx
+    si &= 0x0f
+    cx >>= 4
+    dx += cx
+    es = dx
+    bx = si
+    // pKey の ディレクトリ名を dir にコピー
+    di = dx = &dir
+    loop
+    	al = b[es:si]
+    	++si
+    	if (Std.IsKanji(al))
+    	    b[di] = al
+    	    ++di
+    	    al = b[es:si]
+    	    ++si
+    	    go.w (al == 0) ERR
+    	elsif (al >= 'a' && al <= 'z')	//  半角小文字の大文字化
+    	    al -= 0x20
+    	else
+    	    if (al == '/')  //	'/'を'\'に変える
+    	    	al = '\\'
+    	    fi
+    	    if (al == '\\' || al == ':')
+    	    	b[es:si-1] = al
+    	    	dx = di
+    	    	++dx
+    	    	bx = si
+    	    fi
+    	fi
+    	b[di] = al
+    	++di
+    endloop (al)
+    // 取り出したﾃﾞｨﾚｸﾄﾘ名 dir に *.* をつける。
+    di = dx
+    b[di] = '*'
+    ++di
+    b[di] = '.'
+    ++di
+    b[di] = '*'
+    ++di
+    b[di] = '\0'
+    // pKeyより検索するファイル名を key にコピー
+    ++di
+    key = di
+    aPirFlg = 0
+    loop
+    	al = b[es:bx]
+    	++bx
+    	if (Std.IsKanji(al))
+    	    b[di] = al
+    	    ++di
+    	    al = b[es:bx]
+    	    ++bx
+    	    go.w (al == 0) ERR
+    	elsif (al >= 'a' && al <= 'z')
+    	    al -= 0x20
+    	elsif (al == '*' || al == '?' || al == '[' || al == '^')
+    	    aWdCdFlg = 1
+    	elsif (al == '.' && b[es:bx] == '\0')
+    	    aPirFlg = 1
+    	fi
+    	b[di] = al
+    	++di
+    endloop (al)
 
   //pusha;Ps.PutStrCr 1,ww(ds,&dir);popa
   //pusha;Ps.PutStrCr 1,ww(ds,key);popa
-	dx = &dir
-	cx = pFlg
-	DirEntryFirst dx,cx
-	if (cf)
-		//if (ax == 0x12)
-		//	ax = 2
-		//fi
-		go.w FIN
-	fi
+    dx = &dir
+    cx = pFlg
+    DirEntryFirst dx,cx
+    if (cf)
+    	//if (ax == 0x12)
+    	//  ax = 2
+    	//fi
+    	go.w FIN
+    fi
 
-	loop
-	  //push bx,dx.ax;Ps.PutStrCr 1,ww(ds,&dta.pname);pop bx,dx.ax
-		si = &dta.pname
-		di = 0
-		loop
-			rep.load  al, si
-			if (al == '\0')
-				di = si
-				--di
-				b[si] = '\0'
-				exit (aPirFlg == 0)
-				b[di] = '.'
-				exit
-			fi
-		endloop (al != '.')
-	  //push bx,dx.ax;Ps.PutStrCr 1,ww(ds,&dta.pname);pop bx,dx.ax
-	  @if defined(TURBO_C)
-		cx = &dta.pname
-		WC.WildCmp ww(ds,key),ds.cx
-	  @else
-		bx.ax = ww(ds,key)
-		dx.cx = ww(ds,&dta.pname)
-		WC.WildCmp bx.ax, dx.cx
-	  @fi
-		if (di)
-			b[di] = '\0'
-		fi
-		exit (ax == 0)
+    loop
+      //push bx,dx.ax;Ps.PutStrCr 1,ww(ds,&dta.pname);pop bx,dx.ax
+    	si = &dta.pname
+    	di = 0
+    	loop
+    	    rep.load  al, si
+    	    if (al == '\0')
+    	    	di = si
+    	    	--di
+    	    	b[si] = '\0'
+    	    	exit (aPirFlg == 0)
+    	    	b[di] = '.'
+    	    	exit
+    	    fi
+    	endloop (al != '.')
+      //push bx,dx.ax;Ps.PutStrCr 1,ww(ds,&dta.pname);pop bx,dx.ax
+      @if defined(TURBO_C)
+    	cx = &dta.pname
+    	WC.WildCmp ww(ds,key),ds.cx
+      @else
+    	bx.ax = ww(ds,key)
+    	dx.cx = ww(ds,&dta.pname)
+    	WC.WildCmp bx.ax, dx.cx
+      @fi
+    	if (di)
+    	    b[di] = '\0'
+    	fi
+    	exit (ax == 0)
   SRCH_NEXT:
-		dx = &dir
-		cx = pFlg
-		DirEntryNext dx,cx
-		go (cf) FIN
-	endloop
+    	dx = &dir
+    	cx = pFlg
+    	DirEntryNext dx,cx
+    	go (cf) FIN
+    endloop
 
-	// pRslt に dir をコピー
-	bx = pRslt_h
-	ax = pRslt_l
-	di = ax
-	ax >>= 4
-	bx += ax
-	es = bx
-	di &= 0x0f
-	si = &dir
-	loop
-		rep.load al,si
-		rep.set  di,al
-	endloop (al)
-	// pRslt の後に見つかったファイル名をコピー
-	di -= 4
-	si = &dta.pname
-	loop
-		rep.load al,si
-		rep.set  di,al
-	endloop (al)
-	ax = 0
-	b[es:di] = al
-	aNextFlg = 1
-	go	RTS
+    // pRslt に dir をコピー
+    bx = pRslt_h
+    ax = pRslt_l
+    di = ax
+    ax >>= 4
+    bx += ax
+    es = bx
+    di &= 0x0f
+    si = &dir
+    loop
+    	rep.load al,si
+    	rep.set  di,al
+    endloop (al)
+    // pRslt の後に見つかったファイル名をコピー
+    di -= 4
+    si = &dta.pname
+    loop
+    	rep.load al,si
+    	rep.set  di,al
+    endloop (al)
+    ax = 0
+    b[es:di] = al
+    aNextFlg = 1
+    go	RTS
   ERR:
-	ax = -1
-	go	RTS
+    ax = -1
+    go	RTS
   FIN:
-	//pusha;dx = ax;dx += '0';ah = 0x02;intr 0x21;popa
-	if (ax == 0x12)
-		ax = 2
-		if (aNextFlg)
-			--ax
-		fi
-	fi
+    //pusha;dx = ax;dx += '0';ah = 0x02;intr 0x21;popa
+    if (ax == 0x12)
+    	ax = 2
+    	if (aNextFlg)
+    	    --ax
+    	fi
+    fi
   RTS:
   @if defined(TURBO_C)
-	pRet = ax
+    pRet = ax
   @else
-	dx.ax .=. ax
-	pRslt_l = ax
-	pRslt_h = dx
+    dx.ax .=. ax
+    pRslt_l = ax
+    pRslt_h = dx
   @fi
-	ds.dx = dtaSave
-	DtaSet dx
-	return
+    ds.dx = dtaSave
+    DtaSet dx
+    return
 endproc
 
 endmodule

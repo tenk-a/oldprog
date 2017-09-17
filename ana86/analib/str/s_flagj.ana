@@ -1,19 +1,18 @@
 module S
-	c_name "str","_",1
-	import str
+    c_name "str","_",1
+    import str
 
 *proc setflagj(flg:w);cdecl;FC
 enter
-	save ax
-	w[cs:%str.flagj] = ax = flg
-	return
+    save ax
+    w[cs:%str.flagj] = ax = flg
+    return
 endproc
 
 *proc getflagj();cdecl;FC
 enter
-	ax = w[cs:%str.flagj]
-	return
+    ax = w[cs:%str.flagj]
+    return
 endproc
 
 endmodule
-

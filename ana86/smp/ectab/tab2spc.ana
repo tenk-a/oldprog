@@ -1,54 +1,54 @@
 module STRDETAB
-	//	1992	writen by M.Kitamura
-	c_name "Str"
-	model SMALL
-	//stack 0x20
+    //	1992	writen by M.Kitamura
+    c_name "Str"
+    model SMALL
+    //stack 0x20
 
-	//import	s:STR
+    //import	s:STR
 
 *proc Tab2Spc(es.di,si,ax,cx)
-//	TAB を間隔 cx で空白に変換しながら文字列を複写
-//	arg   es.di 転送先アドレス
-//	arg   si	変換元文字列のアドレス
-//	arg   ax	タブ間隔 1～16
-//	arg   cx	転送先のサイズ(byte). (cx > 2)
-//	in	  ds
-//	out   ax	そのまま. ただし、エラーなら ax = 0
+//  TAB を間隔 cx で空白に変換しながら文字列を複写
+//  arg   es.di 転送先アドレス
+//  arg   si	変換元文字列のアドレス
+//  arg   ax	タブ間隔 1～16
+//  arg   cx	転送先のサイズ(byte). (cx > 2)
+//  in	  ds
+//  out   ax	そのまま. ただし、エラーなら ax = 0
 enter
-	save pusha,ret_ax:ax,es
-	local cnt:w = cx
+    save pusha,ret_ax:ax,es
+    local cnt:w = cx
 
-	go.w (ax == 0 || cx < 2 || ax > 16) ERR2
-	bx = ax
-	cx = 0
-	loop (b[si])
-		if (b[si] != '\t')
-			rep.cpy(di,si)
-			++cx
-			go (--cnt == 0) ERR
-		else
-			++si
-			dx.ax = ww(0,cx)
-			div dx.ax, bx
-			ax = bx
-			ax -= dx
-			cx += ax
-			loop (ax)
-				--ax
-				b[es:di] = ' '
-				++di
-				go (--cnt == 0) ERR
-			endloop
-		fi
-	endloop
-	b[es:di] = '\0'
-	go RTS
+    go.w (ax == 0 || cx < 2 || ax > 16) ERR2
+    bx = ax
+    cx = 0
+    loop (b[si])
+    	if (b[si] != '\t')
+    	    rep.cpy(di,si)
+    	    ++cx
+    	    go (--cnt == 0) ERR
+    	else
+    	    ++si
+    	    dx.ax = ww(0,cx)
+    	    div dx.ax, bx
+    	    ax = bx
+    	    ax -= dx
+    	    cx += ax
+    	    loop (ax)
+    	    	--ax
+    	    	b[es:di] = ' '
+    	    	++di
+    	    	go (--cnt == 0) ERR
+    	    endloop
+    	fi
+    endloop
+    b[es:di] = '\0'
+    go RTS
  ERR:
-	b[es:di - 1] = '\0'
+    b[es:di - 1] = '\0'
  ERR2:
-	ret_ax = 0
+    ret_ax = 0
  RTS:
-	return
+    return
 endproc
 
 endmodule

@@ -1,21 +1,20 @@
 module H
-	c_name "fil","_",1
-	import fil
+    c_name "fil","_",1
+    import fil
 
 *proc getattr(fname:d);cdecl
-	//ret ax : ファイル属性
+    //ret ax : ファイル属性
 enter
-	save dx,ds
-	ax = 0x4300
-	ds.dx = fname
-	intr 0x21
-	if (cf == 0)
-		ax = cx
-	else
-		neg ax
-	fi
-	return
+    save dx,ds
+    ax = 0x4300
+    ds.dx = fname
+    intr 0x21
+    if (cf == 0)
+    	ax = cx
+    else
+    	neg ax
+    fi
+    return
 endproc
 
 endmodule
-

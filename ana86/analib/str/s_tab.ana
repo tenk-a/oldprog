@@ -1,82 +1,81 @@
 module S
-	c_name "str","_",1
+    c_name "str","_",1
 
 *proc tab(s0:d,tabsz:w,mn:w,flg:w);cdecl;FC
 //　文字列中の空白(0x20)をタブ間隔 bx でタブに変換する。文字列を直接書き換える.
-//	arg   s0	文字列へのﾎﾟｲﾝﾀ
-//	arg   tabsz	タブ間隔 1～255
-//	arg   mn	変換しようとした空白数が mn 以下のときは変換しない.mn<tabsz必要
-//	arg   flg	1: ' か " で囲まれた範囲で変換を行なわない  0:行なう
-//				 ' か " で囲まれた範囲の \' \" は範囲の終りとして扱わない
-//	out   dx.ax	s0=ok  0=error
-//	break fx
+//  arg   s0	文字列へのﾎﾟｲﾝﾀ
+//  arg   tabsz タブ間隔 1～255
+//  arg   mn	変換しようとした空白数が mn 以下のときは変換しない.mn<tabsz必要
+//  arg   flg	1: ' か " で囲まれた範囲で変換を行なわない  0:行なう
+//  	    	 ' か " で囲まれた範囲の \' \" は範囲の終りとして扱わない
+//  out   dx.ax s0=ok  0=error
+//  break fx
 enter
-	save bx,cx,si,di,es,ds
-	local fff:b
+    save bx,cx,si,di,es,ds
+    local fff:b
 
-	ds.si = s0
-	ax = tabsz
-	cx = mn
-	dx = flg
-	if (ax == 0 || ah != 0 || cx >= ax || dx > 1)
-		dx.ax = 0
-		go.w RET
-	fi
-	es = ds
-	di = si
-	bx = ax
-	cx = 0
-	fff = ch
-	loop.w
-		al = b[si]
-		exit.w (al == 0)
-		if (flg.l)
-			if (fff && al == '\\')
-				rep.cpy(di,si)
-				++cx
-				al = b[si]
-				exit (al == 0)
-			elsif (fff == 0 && (al == '"' || al == '\''))
-				fff = al
-			elsif (fff && al == fff)
-				fff = 0
-			fi
-		fi
-		if (al != ' ' || fff)
-			rep.cpy(di,si)
-			++cx
-		else
-			++si
-			dx.ax = ww(0,cx)
-			div dx.ax, bx	// bx は 255以下なので余りのdxも255以下
-			ax = bx
-			ax -= dx
-			dx = ax
-			loop (--ax && b[si] == ' ')
-				++si
-			endloop
-			dx -= ax
-			cx += dx
-			if (ax == 0 && dx > mn)
-				al = '\t'
-				rep.set di,al
-			else
-				al = ' '
-				push cx
-				cx = dx
-				if (cx)
-					rep.set di,al,cx
-				fi
-				pop  cx
-			fi
-		fi
-	endloop
-	ax = 0
-	rep.set di,al
-	dx.ax = s0
+    ds.si = s0
+    ax = tabsz
+    cx = mn
+    dx = flg
+    if (ax == 0 || ah != 0 || cx >= ax || dx > 1)
+    	dx.ax = 0
+    	go.w RET
+    fi
+    es = ds
+    di = si
+    bx = ax
+    cx = 0
+    fff = ch
+    loop.w
+    	al = b[si]
+    	exit.w (al == 0)
+    	if (flg.l)
+    	    if (fff && al == '\\')
+    	    	rep.cpy(di,si)
+    	    	++cx
+    	    	al = b[si]
+    	    	exit (al == 0)
+    	    elsif (fff == 0 && (al == '"' || al == '\''))
+    	    	fff = al
+    	    elsif (fff && al == fff)
+    	    	fff = 0
+    	    fi
+    	fi
+    	if (al != ' ' || fff)
+    	    rep.cpy(di,si)
+    	    ++cx
+    	else
+    	    ++si
+    	    dx.ax = ww(0,cx)
+    	    div dx.ax, bx   // bx は 255以下なので余りのdxも255以下
+    	    ax = bx
+    	    ax -= dx
+    	    dx = ax
+    	    loop (--ax && b[si] == ' ')
+    	    	++si
+    	    endloop
+    	    dx -= ax
+    	    cx += dx
+    	    if (ax == 0 && dx > mn)
+    	    	al = '\t'
+    	    	rep.set di,al
+    	    else
+    	    	al = ' '
+    	    	push cx
+    	    	cx = dx
+    	    	if (cx)
+    	    	    rep.set di,al,cx
+    	    	fi
+    	    	pop  cx
+    	    fi
+    	fi
+    endloop
+    ax = 0
+    rep.set di,al
+    dx.ax = s0
   RET:
-	return
+    return
 endproc
 
 endmodule
-

@@ -1,20 +1,20 @@
 module Fname
-	//	1992	writen by M.Kitamura
+    //	1992	writen by M.Kitamura
 
 *proc ChgExt(es.di,si)
-//	es.diで示されるファイル名の拡張子をsiで示されるものに変更
-//	arg es.di	ファイル名
-//	arg si		拡張子名
-//	in	ds		データ・セグメント
+//  es.diで示されるファイル名の拡張子をsiで示されるものに変更
+//  arg es.di	ファイル名
+//  arg si  	拡張子名
+//  in	ds  	データ・セグメント
 endproc
 
 *proc MoveOpt(si,cx)
-//	Str.SepLineで分割したトークンのテーブルを'-'ではじまる文字列を前に
-//	移動する
-//	arg si	トークンへのポインタのテーブル
-//	arg cx	トークンの数
-//	out ax	オプションの数
-//	out cx	トークンの数
+//  Str.SepLineで分割したトークンのテーブルを'-'ではじまる文字列を前に
+//  移動する
+//  arg si  トークンへのポインタのテーブル
+//  arg cx  トークンの数
+//  out ax  オプションの数
+//  out cx  トークンの数
 endproc
 
 endmodule

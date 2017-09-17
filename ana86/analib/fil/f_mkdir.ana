@@ -1,19 +1,18 @@
 module H
-	c_name "fil","_",1
-	import fil
+    c_name "fil","_",1
+    import fil
 
 *proc mkdir(dir:d);cdecl
 enter
-	save dx,ds
-	ds.dx = dir
-	ah = 0x39
-	intr 0x21
-	if (cf == 0)
-		ax = 0
-	fi
-	neg ax
-	return
+    save dx,ds
+    ds.dx = dir
+    ah = 0x39
+    intr 0x21
+    if (cf == 0)
+    	ax = 0
+    fi
+    neg ax
+    return
 endproc
 
 endmodule
-

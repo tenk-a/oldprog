@@ -1,21 +1,20 @@
 module H
-	c_name "fil","_",1
-	import fil
+    c_name "fil","_",1
+    import fil
 
 *proc creat(fname:d,attr:w);cdecl
-	//ret ax : hdl
+    //ret ax : hdl
 enter
-	save cx,dx,ds
-	
-	cx = attr
-	ah = 0x3C
-	ds.dx = fname
-	intr 0x21
-	if (cf)
-		neg ax
-	fi
-	return
+    save cx,dx,ds
+
+    cx = attr
+    ah = 0x3C
+    ds.dx = fname
+    intr 0x21
+    if (cf)
+    	neg ax
+    fi
+    return
 endproc
 
 endmodule
-

@@ -1,22 +1,22 @@
 module Hello
-	stack 0x1000
-	start main
+    stack 0x1000
+    start main
 
-@define EXIT(er)	ax = 0x4c00+er;intr 0x21
+@define EXIT(er)    ax = 0x4c00+er;intr 0x21
 
 proc allocmem(bx)
 macro
-	ah = 0x48
-	intr 0x21
+    ah = 0x48
+    intr 0x21
 endproc
 
 proc main()
 begin
-	ds = ax = %var
-	bx = 0x400
-	allocmem bx
-	intr 0xf0
-	EXIT (0)
+    ds = ax = %var
+    bx = 0x400
+    allocmem bx
+    intr 0xf0
+    EXIT (0)
 endproc
 
 endmodule

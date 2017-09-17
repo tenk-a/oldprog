@@ -1,60 +1,60 @@
 module MOVEOPT
-	//	1992	writen by M.Kitamura
-	c_name "Fname"
+    //	1992	writen by M.Kitamura
+    c_name "Fname"
 
 *proc MoveOpt(si,cx)
-//	Str.SepLineで分割したトークンのテーブルを'-'ではじまる文字列を前に
-//	移動する
-//	arg si	トークンへのポインタのテーブル
-//	arg cx	トークンの数
-//	out ax	オプションの数
-//	out cx	トークンの数
+//  Str.SepLineで分割したトークンのテーブルを'-'ではじまる文字列を前に
+//  移動する
+//  arg si  トークンへのポインタのテーブル
+//  arg cx  トークンの数
+//  out ax  オプションの数
+//  out cx  トークンの数
 enter
-	save bx,dx,si,di,es
-	local cntmax:w = cx,cnt:w,flg:b,cntmax0:w = cx
+    save bx,dx,si,di,es
+    local cntmax:w = cx,cnt:w,flg:b,cntmax0:w = cx
 
-	rep.inc
-	es = ax = ds
-	cnt = dx = 0
-	flg = dl
-	if (cx)
-		loop
-			bx = w[si]
-			ax = w[bx]
-			if (al != '-'||flg)
-				cx = cntmax
-				ax = cnt
-				++ax
-				if ((cx -= ax) .>. 0)
-					push si
-					di = si
-					si += 2
-					rep.cpy.w di,si,cx
-					w[di] = bx
-					pop  si
-				fi
-			elsif (ah == '-' && b[bx+3] <= ' ')
-				cx = cntmax
-				ax = cnt
-				++ax
-				if ((cx -= ax) .>. 0)
-					push si
-					di = si
-					si += 2
-					rep.cpy.w di,si,cx
-					pop  si
-				fi
-				flg = 1
-				--cntmax
-			else
-				++cnt
-				si += 2
-			fi
-			++dx
-		endloop (dx < cntmax0)
-	fi
-	cx = cntmax
-	ax = cnt
-	return
+    rep.inc
+    es = ax = ds
+    cnt = dx = 0
+    flg = dl
+    if (cx)
+    	loop
+    	    bx = w[si]
+    	    ax = w[bx]
+    	    if (al != '-'||flg)
+    	    	cx = cntmax
+    	    	ax = cnt
+    	    	++ax
+    	    	if ((cx -= ax) .>. 0)
+    	    	    push si
+    	    	    di = si
+    	    	    si += 2
+    	    	    rep.cpy.w di,si,cx
+    	    	    w[di] = bx
+    	    	    pop  si
+    	    	fi
+    	    elsif (ah == '-' && b[bx+3] <= ' ')
+    	    	cx = cntmax
+    	    	ax = cnt
+    	    	++ax
+    	    	if ((cx -= ax) .>. 0)
+    	    	    push si
+    	    	    di = si
+    	    	    si += 2
+    	    	    rep.cpy.w di,si,cx
+    	    	    pop  si
+    	    	fi
+    	    	flg = 1
+    	    	--cntmax
+    	    else
+    	    	++cnt
+    	    	si += 2
+    	    fi
+    	    ++dx
+    	endloop (dx < cntmax0)
+    fi
+    cx = cntmax
+    ax = cnt
+    return
 endproc
 endmodule

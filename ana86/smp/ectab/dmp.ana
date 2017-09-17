@@ -1,44 +1,44 @@
 module DMP
-	//	1992	writen by M.Kitamura
-	model SMALL
-	stack 0x2000
-	start Main
-	import Std
-	import Dos
-	import CmdLineA
-	import READLN
-	import Str
-	import PUTSTR
+    //	1992	writen by M.Kitamura
+    model SMALL
+    stack 0x2000
+    start Main
+    import Std
+    import Dos
+    import CmdLineA
+    import READLN
+    import Str
+    import PUTSTR
 
-	type   Txt:READLN
-	type   Ps:PUTSTR
+    type   Txt:READLN
+    type   Ps:PUTSTR
 
 proc Usage()
 begin
-	var msg:b() = data
-		b "dmp ファイル名...\N"
-		b "  指定されたファイルをダンプする\N"
-		b "  -lN   ファイルの先頭 N バイト目から表示する\N"
-	enddata
+    var msg:b() = data
+    	b "dmp ファイル名...\N"
+    	b "  指定されたファイルをダンプする\N"
+    	b "  -lN   ファイルの先頭 N バイト目から表示する\N"
+    enddata
 
-	Dos.Write Dos.STDOUT, &msg, sizeof(msg)
-	Dos.EXIT 0
+    Dos.Write Dos.STDOUT, &msg, sizeof(msg)
+    Dos.EXIT 0
 endproc
 
 proc ErrFile(bx.ax,cx,dx)
 enter
-	save aSav_ds:ds,hh:bx,ll:ax,msg:cx,msg_siz:dx
-	var msgFil:b()	= {"'"}
+    save aSav_ds:ds,hh:bx,ll:ax,msg:cx,msg_siz:dx
+    var msgFil:b()  = {"'"}
 
-	Dos.Write 1,&msgFil, sizeof(msgFil)
-	ds = hh
-	si = di = ll
-	Str.Len si
-	dx = ll
-	Dos.Write 1, dx, cx
-	ds = aSav_ds
-	Dos.Write 1,msg, msg_siz
-	Dos.EXIT 0
+    Dos.Write 1,&msgFil, sizeof(msgFil)
+    ds = hh
+    si = di = ll
+    Str.Len si
+    dx = ll
+    Dos.Write 1, dx, cx
+    ds = aSav_ds
+    Dos.Write 1,msg, msg_siz
+    Dos.EXIT 0
 endproc
 
 var msgOpen:b() = {"'をオープンできません"}
@@ -46,33 +46,33 @@ var msgOpen:b() = {"'をオープンできません"}
 proc Open(dx,al)
 begin
 
-	Dos.Open(dx,al)
-	if (cf)
-		bx.ax = ds.dx
-		cx = &msgOpen
-		dx = sizeof(msgOpen)
-		ErrFile(bx.ax,cx,dx)
-	fi
-	return
+    Dos.Open(dx,al)
+    if (cf)
+    	bx.ax = ds.dx
+    	cx = &msgOpen
+    	dx = sizeof(msgOpen)
+    	ErrFile(bx.ax,cx,dx)
+    fi
+    return
 endproc
 
 proc ErrOpts()
-//	in	ds
+//  in	ds
 begin
-	var msg:b() = {"指定されたオプションがおかしい(-? でｵﾌﾟｼｮﾝ表示)\N"}
+    var msg:b() = {"指定されたオプションがおかしい(-? でｵﾌﾟｼｮﾝ表示)\N"}
 
-	Dos.Write Dos.STDOUT,&msg,sizeof(msg)
-	Dos.EXIT 1
+    Dos.Write Dos.STDOUT,&msg,sizeof(msg)
+    Dos.EXIT 1
 endproc
 
 proc ErrFNF(ax)
 enter
-	var msgFNF:b()	= {"'が見つからない\N"}
+    var msgFNF:b()  = {"'が見つからない\N"}
 
-	bx = ds
-	cx = &msgFNF
-	dx = sizeof(msgFNF)
-	ErrFile(bx.ax, cx, dx)
+    bx = ds
+    cx = &msgFNF
+    dx = sizeof(msgFNF)
+    ErrFile(bx.ax, cx, dx)
 endproc
 
 
@@ -82,118 +82,118 @@ var seekFlg:b = 0
 
 proc Foo(ax)
 enter
-	save pusha
-	var  buf:b(1024)
-	var  lbuf:b(1024)
-	local ph:w,siz:w,cnt:b
-	local fcnt:d,lcnt:w
+    save pusha
+    var  buf:b(1024)
+    var  lbuf:b(1024)
+    local ph:w,siz:w,cnt:b
+    local fcnt:d,lcnt:w
 
-	ph = ax
-	if (seekFlg)
-		bx = ax
-		Dos.Lseek bx, seekSiz, 0
-	fi
-	fcnt = dx.ax = seekSiz
-	loop.w
-		al = 0
-		di = &buf
-		rep.set di,al,1024
-		Dos.Read ph,&buf,1024
-		exit (cf)
-		exit (ax == 0)
-		siz = ax
-		if (ax & 0x0f)
-			ax += 16
-		fi
-		ax >>= 4
-		lcnt = ax
-		si = &buf
-		loop
-			di = &lbuf
-			Str.LtoH es.di,fcnt,8,8, Str.LTOH_ZERO
-			cnt = 16
-			loop
-				al = ' '
-				rep.set  di,al
-				dx.ax = 0
-				rep.load al,si
-				Str.LtoH es.di,dx.ax,2,2, Str.LTOH_ZERO
-			endloop (--siz && --cnt)
-			ax = '\N'
-			rep.set.w di,ax
-			al = 0
-			rep.set di,al
-			Ps.PutStr Dos.STDOUT, ww(es,&lbuf)
-			dx.ax = fcnt
-			dx.ax += 16
-			fcnt = dx.ax
-		endloop (--lcnt)
-	endloop
-	return
+    ph = ax
+    if (seekFlg)
+    	bx = ax
+    	Dos.Lseek bx, seekSiz, 0
+    fi
+    fcnt = dx.ax = seekSiz
+    loop.w
+    	al = 0
+    	di = &buf
+    	rep.set di,al,1024
+    	Dos.Read ph,&buf,1024
+    	exit (cf)
+    	exit (ax == 0)
+    	siz = ax
+    	if (ax & 0x0f)
+    	    ax += 16
+    	fi
+    	ax >>= 4
+    	lcnt = ax
+    	si = &buf
+    	loop
+    	    di = &lbuf
+    	    Str.LtoH es.di,fcnt,8,8, Str.LTOH_ZERO
+    	    cnt = 16
+    	    loop
+    	    	al = ' '
+    	    	rep.set  di,al
+    	    	dx.ax = 0
+    	    	rep.load al,si
+    	    	Str.LtoH es.di,dx.ax,2,2, Str.LTOH_ZERO
+    	    endloop (--siz && --cnt)
+    	    ax = '\N'
+    	    rep.set.w di,ax
+    	    al = 0
+    	    rep.set di,al
+    	    Ps.PutStr Dos.STDOUT, ww(es,&lbuf)
+    	    dx.ax = fcnt
+    	    dx.ax += 16
+    	    fcnt = dx.ax
+    	endloop (--lcnt)
+    endloop
+    return
 endproc
 ///////////////////////////////////////////////////////////////////////////////
 
 proc Main()
-//	in es
+//  in es
 enter
-	const STDIN,STDOUT,STDERR
-	const BUFSIZ = 0x800
-	var lcnt:d,scnt:d
-	var opt_sum:w
-	var txtIn:Txt.T
-	var name:b(300)
-	var buf:b(BUFSIZ)
+    const STDIN,STDOUT,STDERR
+    const BUFSIZ = 0x800
+    var lcnt:d,scnt:d
+    var opt_sum:w
+    var txtIn:Txt.T
+    var name:b(300)
+    var buf:b(BUFSIZ)
 
-	rep.inc
-	dx = es
-	ds = ax = %var
-	es = ax
-	ax = 0
-	opt_sum = ax
-	CmdLineA.Init dx 		// コマンドライン解析の初期化
-	// コマンドラインのオプションの処理
-	CmdLineA.MoveOpt
-	di = si
-	if (cx)
-		loop
-			si = w[di]
-			di+=2
-			++si
-			rep.load al,si
-			Std.ToUpper(al)
-			if (al == 'L')
-				Str.HtoL si
-				seekFlg = 1
-				seekSiz = dx.ax
-			elsif (al == '?')
-				jmp Usage
-			else
-				ErrOpts
-			fi
-		endloop (--cx)
-	fi
+    rep.inc
+    dx = es
+    ds = ax = %var
+    es = ax
+    ax = 0
+    opt_sum = ax
+    CmdLineA.Init dx	    // コマンドライン解析の初期化
+    // コマンドラインのオプションの処理
+    CmdLineA.MoveOpt
+    di = si
+    if (cx)
+    	loop
+    	    si = w[di]
+    	    di+=2
+    	    ++si
+    	    rep.load al,si
+    	    Std.ToUpper(al)
+    	    if (al == 'L')
+    	    	Str.HtoL si
+    	    	seekFlg = 1
+    	    	seekSiz = dx.ax
+    	    elsif (al == '?')
+    	    	jmp Usage
+    	    else
+    	    	ErrOpts
+    	    fi
+    	endloop (--cx)
+    fi
 
-	// 各ファイルの処理
-	CmdLineA.Top
-	CmdLineA.GetFname ww(es,&name),0x01
-	if (ax == 1)
-		ax = STDIN
-		Foo ax
-	elsif (ax == 0)
-		loop
-		//Ps.PutStrCr STDOUT,ww(ds,&name)
-			Open &name,0x00
-			Txt.ReadLnInit ax,&txtIn			// 行入力のための準備
-			Foo ax
-			Dos.Close ax
-			CmdLineA.GetFname ww(es,&name),0x01
-		endloop (ax == 0)
-		go (ax != 1) J1
-	else
-	  J1:
-		ErrFNF CmdLineA.fname
-	fi
-	Dos.EXIT(0)
+    // 各ファイルの処理
+    CmdLineA.Top
+    CmdLineA.GetFname ww(es,&name),0x01
+    if (ax == 1)
+    	ax = STDIN
+    	Foo ax
+    elsif (ax == 0)
+    	loop
+    	//Ps.PutStrCr STDOUT,ww(ds,&name)
+    	    Open &name,0x00
+    	    Txt.ReadLnInit ax,&txtIn	    	// 行入力のための準備
+    	    Foo ax
+    	    Dos.Close ax
+    	    CmdLineA.GetFname ww(es,&name),0x01
+    	endloop (ax == 0)
+    	go (ax != 1) J1
+    else
+      J1:
+    	ErrFNF CmdLineA.fname
+    fi
+    Dos.EXIT(0)
 endproc
 
 endmodule

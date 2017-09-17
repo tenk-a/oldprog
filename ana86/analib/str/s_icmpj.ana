@@ -1,73 +1,72 @@
 module S
-	c_name "str","_",1
-	import str
-	import Std
+    c_name "str","_",1
+    import str
+    import Std
 
 *proc incmpj(s1:d, s2:d,sz2:w);cdecl;FC
 enter
-	if (str.FLAGJ == 0)
-		str.incmp s1,s2,sz2
-		return
-	fi
-	push cx,dx,si,di,es,ds
-	es.di = s2
-	al = 0
-	cx = sz2
-	|repn.scan di,al,cx
-	|cx = sz2
-	if (==)
-		cx = di
-		//--cx
-		cx -= s2.l
-	fi
-	es.di = s1
-	ds.si = s2
-	loop
-		ah = 0
-		rep.load al,si
-		if (al >= 'a' && al <= 'z')
-			al -= 0x20
-		elsif(Std.IsKanji(al))
-			ah = al
-			rep.load al,si
-			if (al == 0)
-				al = ah
-				ah = 0
-			fi
-		fi
-		dh = 0
-		dl = b[es:di];++di
-		if (dl >= 'a' && dl <= 'z')
-			dl -= 0x20
-		elsif(Std.IsKanji(dl))
-			dh = dl
-			dl = b[es:di];++di
-			if (dl == 0)
-				dl = dh
-				dh = 0
-			fi
-		fi
-		|dx - ax
-		if (>)
-			ax = 1
-			go RET
-		elsif (<)
-			ax = -1
-			go RET
-		fi
-	endloop (--cx)
-	ax = 0
+    if (str.FLAGJ == 0)
+    	str.incmp s1,s2,sz2
+    	return
+    fi
+    push cx,dx,si,di,es,ds
+    es.di = s2
+    al = 0
+    cx = sz2
+    |repn.scan di,al,cx
+    |cx = sz2
+    if (==)
+    	cx = di
+    	//--cx
+    	cx -= s2.l
+    fi
+    es.di = s1
+    ds.si = s2
+    loop
+    	ah = 0
+    	rep.load al,si
+    	if (al >= 'a' && al <= 'z')
+    	    al -= 0x20
+    	elsif(Std.IsKanji(al))
+    	    ah = al
+    	    rep.load al,si
+    	    if (al == 0)
+    	    	al = ah
+    	    	ah = 0
+    	    fi
+    	fi
+    	dh = 0
+    	dl = b[es:di];++di
+    	if (dl >= 'a' && dl <= 'z')
+    	    dl -= 0x20
+    	elsif(Std.IsKanji(dl))
+    	    dh = dl
+    	    dl = b[es:di];++di
+    	    if (dl == 0)
+    	    	dl = dh
+    	    	dh = 0
+    	    fi
+    	fi
+    	|dx - ax
+    	if (>)
+    	    ax = 1
+    	    go RET
+    	elsif (<)
+    	    ax = -1
+    	    go RET
+    	fi
+    endloop (--cx)
+    ax = 0
   RET:
-	pop  cx,dx,si,di,es,ds
-	return
+    pop  cx,dx,si,di,es,ds
+    return
 endproc
 
 *proc icmpj(s1:d, s2:d);cdecl;FC
 enter
-	ax = 0xffff
-	incmpj s1,s2,ax
-	return
+    ax = 0xffff
+    incmpj s1,s2,ax
+    return
 endproc
 
 endmodule
-

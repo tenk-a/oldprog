@@ -1,6 +1,6 @@
 /*------------------------------------------------------*/
 /*スモール・モデルで farメモリ使用を目的としたライブラリ*/
-/*                                                      */
+/*  	    	    	    	    	    	    	*/
 /*------------------------------------------------------*/
 
 #ifndef _FAR_H_
@@ -14,10 +14,10 @@
 #define D   unsigned long
 #define F   far
 #define N   near
-#define FC				/*farコール関数なら far を設定*/
+#define FC  	    	/*farコール関数なら far を設定*/
 
 /*------------------------------------------------------*/
-/* メモリ・文字列                                       */
+/* メモリ・文字列   	    	    	    	    	*/
 /*------------------------------------------------------*/
 /* ポインタ関係 */
 
@@ -48,7 +48,7 @@ L     FC str_atol(B F *cs);
 L     FC str_htol(B F *cs);
 B F * FC str_printfN(B F *buf, B N *fmt, ...);
 B F * FC str_printfF(B F *buf, B F *fmt, ...);
-#undef  str_printf
+#undef	str_printf
 #define str_printf str_printfN
 B F * FC str_nprintfN(B F *buf, W sz, B N *fmt, ...);
 B F * FC str_nprintfF(B F *buf, W sz, B F *fmt, ...);
@@ -59,10 +59,10 @@ B F * FC str_lwr(B F *s);
 //B F * FC str_str(B F *cs, B F *ct);
 //B F * FC str_tok(B F *s, B F *ct);
 //B F * FC str_pbrk(B F *cs1, B F *cs2);
-//I     FC str_htoi(B F *cs);
-//I     FC str_atoi(B F *cs);
-//L     FC str_tol(B F *cs, B F* F* p, I n);
-//D     FC str_toul(B F *cs, B F* F* p, I n);
+//I 	FC str_htoi(B F *cs);
+//I 	FC str_atoi(B F *cs);
+//L 	FC str_tol(B F *cs, B F* F* p, I n);
+//D 	FC str_toul(B F *cs, B F* F* p, I n);
 //B F * FC str_rev(B F *s);
 //B F * FC str_scanfN(B F *buf, B N *fmt, ...);
 //B F * FC str_scanfF(B F *buf, B F *fmt, ...);
@@ -85,13 +85,13 @@ I     FC str_incmpj(B F *cs1, B F *cs2, W sz);
 //B F * FC str_npbrkj(B F *cs1, B F *cs2);
 
 I     FC str_chknilj(B F *s, W sz);
-		/*ｻｲｽﾞszの行中に\0か不正全角があるかを調べる*/
+    	/*ｻｲｽﾞszの行中に\0か不正全角があるかを調べる*/
 W     FC str_delnilj(B F *s, W sz);
-	/*ｻｲｽﾞszの行中の\0,不正全角を削除*/
-		/*ret 変換後のｻｲｽﾞ*/
+    /*ｻｲｽﾞszの行中の\0,不正全角を削除*/
+    	/*ret 変換後のｻｲｽﾞ*/
 B F * FC str_linetrimj(B F *s);
-		/*文字列末の空白(ｺﾝﾄﾛｰﾙ･全白含)を削除.*/
-		/*もし'\n'が'\0'の直前にあれば空白削除後付加し直す*/
+    	/*文字列末の空白(ｺﾝﾄﾛｰﾙ･全白含)を削除.*/
+    	/*もし'\n'が'\0'の直前にあれば空白削除後付加し直す*/
 B F * FC str_linencut(B F *s, W sz);
     	/*行頭szﾊﾞｲﾄを削除。文字列自体を書き換える. \n考慮 */
 
@@ -101,11 +101,11 @@ B F * FC str_linencut(B F *s, W sz);
 //B F * FC str_zenhan(B F *s, B F *cs, W mode);
 
 /*------------------------------------------------------*/
-/* メモリ・アロケート関係                               */
+/* メモリ・アロケート関係   	    	    	    	*/
 /*------------------------------------------------------*/
 I     FC alc_pfree(W pseg);
 W     FC alc_palloc(W psz);
-//W     FC alc_prealloc(W pseg, W psz);
+//W 	FC alc_prealloc(W pseg, W psz);
 I     FC alc_free(V F *m);/*alc_(m|c|z)alloc(z)で確保したメモリを解放*/
 V F * FC alc_malloc(L sz);
 V F * FC alc_mallocz(L sz);
@@ -114,19 +114,19 @@ V F * FC alc_mallocz(L sz);
 //V F * FC alc_calloc(L n, W sz);
 //V F * FC alc_callocz(L n, W sz);
 //V F * FC alc_strdup(B F *s);
-//W     FC alc_dosmaxfree(V);
-		/*DOSの最大空き領域のサイズを得る*/
+//W 	FC alc_dosmaxfree(V);
+    	/*DOSの最大空き領域のサイズを得る*/
 
-//W     FC alc_resizemax(W psz);/*szは最大空paraｻｲｽﾞ*/
-	/*alc_が管理する空ﾒﾓﾘをszに近付くようにDOSより得る */
-//W     FC alc_resizemin(W psz);/*szは最小空paraｻｲｽﾞ*/
-	/*alc_が管理している空ﾒﾓﾘを最低szだけ残してDOSに返す*/
+//W 	FC alc_resizemax(W psz);/*szは最大空paraｻｲｽﾞ*/
+    /*alc_が管理する空ﾒﾓﾘをszに近付くようにDOSより得る */
+//W 	FC alc_resizemin(W psz);/*szは最小空paraｻｲｽﾞ*/
+    /*alc_が管理している空ﾒﾓﾘを最低szだけ残してDOSに返す*/
 
 /* exec */
-//I     FC commandcom(B F *s);
+//I 	FC commandcom(B F *s);
 
 /*------------------------------------------------------*/
-/* ファイル関係                                         */
+/* ファイル関係     	    	    	    	    	*/
 /*------------------------------------------------------*/
 /*  ファイル・ハンドル系 */
 I     FC fil_open(B F* fname, W acs);
@@ -135,14 +135,14 @@ I     FC fil_creatnew(B F*fname, W attr);
 I     FC fil_close(I hdl);
 W     FC fil_read(I hdl, B F*buf, W sz);
 W     FC fil_write(I hdl, B F*buf, W sz);
-//L     FC fil_lread(I hdl, B F*buf, L sz);
-//L     FC fil_lwrite(I hdl, B F*buf, L sz);
+//L 	FC fil_lread(I hdl, B F*buf, L sz);
+//L 	FC fil_lwrite(I hdl, B F*buf, L sz);
 I     FC fil_seek(I hdl, D ofs, I pos);
 I     FC fil_dup(I hdl);
 I     FC fil_dup2(I hdl1, I hdl2);
-//I     FC fil_tmpopen(B F *path, W attr);
-//I     FC fil_settime(I hdl, D datetime);
-//D     FC fil_gettime(I hdl);
+//I 	FC fil_tmpopen(B F *path, W attr);
+//I 	FC fil_settime(I hdl, D datetime);
+//D 	FC fil_gettime(I hdl);
 W     FC fil_printfN(I hdl, B N *fmt, ...);
 W     FC fil_printfF(I hdl, B F *fmt, ...);
 #define fil_printf fil_printfN
@@ -152,8 +152,8 @@ I     FC fil_delete(B F *fname);
 I     FC fil_rename(B F *oldname, B F *newname);
 I     FC fil_getattr(B F *fname);
 I     FC fil_setattr(B F *fname, W attr);
-//I     FC fil_settime(B F *fname, D datetime);
-//D     FC fil_gettime(B F *fname);
+//I 	FC fil_settime(B F *fname, D datetime);
+//D 	FC fil_gettime(B F *fname);
 
 /* ファイル名文字列系 */
 B F * FC fil_fullpath(B F *path, B F *fullpath);
@@ -175,7 +175,7 @@ I     FC fil_rmdir(B F *dir);
 I     FC fil_setcdir(B F *dir);
 I     FC fil_getcdir(I drv, B F *dir);
 I     FC fil_setcwd(B F *dir);
-#define fil_chdir(x)    fil_setcwd(x)
+#define fil_chdir(x)	fil_setcwd(x)
 B F * FC fil_getcwd(B F *dir);
 
 /* ディレクトリ・エントリ */
@@ -201,12 +201,12 @@ typedef struct fil_dir_t {
     W work;
 } fil_dir_t;
 
-//I     FC fil_findfirst(B F *srchname, W atr, fil_find_t F *fndbuf);
-//I     FC fil_findnext (fil_find_t F *findbuf);
-//I     FC fil_readdir(B F *srchname, W attr,fil_dir_t F *buf,
-//            W bufcnt,fil_find_t fndbuf);
-//I     FC fil_readdir2(B F* F* srchnames, W srchnamecnt, W attr,
-//             fil_dir_t F *buf,W bufcnt,fil_find_t fndbuf);
+//I 	FC fil_findfirst(B F *srchname, W atr, fil_find_t F *fndbuf);
+//I 	FC fil_findnext (fil_find_t F *findbuf);
+//I 	FC fil_readdir(B F *srchname, W attr,fil_dir_t F *buf,
+//  	      W bufcnt,fil_find_t fndbuf);
+//I 	FC fil_readdir2(B F* F* srchnames, W srchnamecnt, W attr,
+//  	       fil_dir_t F *buf,W bufcnt,fil_find_t fndbuf);
 //B F * FC fil_de2fname(B F *dename, B F *fname);
 //B F * FC fil_f2dename(B F *fname, B F *dename);
 
@@ -219,7 +219,7 @@ typedef struct filb_t {
     D size;
     -----*/
     I hundle;
-    W flags;    /*0:R 1:W  7:B|T*/
+    W flags;	/*0:R 1:W  7:B|T*/
     D curpos;
     D buffer;
     W bufpos;
@@ -237,25 +237,25 @@ typedef struct filb_t {
 //filb_t F * FC filb_tcreatnew(B F*fname, W attr, B F *buf, W sz);
 //filb_t F * FC filb_dup(filb_t F *fp, filb_t F *fp2);
 //filb_t F * FC filb_dup2(filb_t F *fp, filb_t F *fp);
-//I     FC filb_close(filb_t F *fp);
-//I     FC filb_seek(filb_t F *fp, D ofs, I pos);
-//W     FC filb_read(filb_t hdl, B F *buf, W sz);
-//W     FC filb_readln(filb_t F *fp, B F *buf, W sz);
-//I     FC filb_readc(filb_t F *fp);
-//W     FC filb_reads(filb_t F *fp, B F *buf, W sz);
-//W     FC filb_scanfN(filb_t F *fp, B F *fmt, ...);
-//W     FC filb_scanfF(filb_t F *fp, B F *fmt, ...);
-//W     FC filb_write(filb_t F *fp, B F *buf, W sz);
-//W     FC filb_writln(filb_t F *fp, B F *buf, W sz);
-//I     FC filb_writec(filb_t F *fp, I c);
-//W     FC filb_writes(filb_t F *fp, B F *buf);
-//W     FC filb_printfN(filb_t F *fp, B N *fmt, ...);
-//W     FC filb_printfF(filb_t F *fp, B F *fmt, ...);
+//I 	FC filb_close(filb_t F *fp);
+//I 	FC filb_seek(filb_t F *fp, D ofs, I pos);
+//W 	FC filb_read(filb_t hdl, B F *buf, W sz);
+//W 	FC filb_readln(filb_t F *fp, B F *buf, W sz);
+//I 	FC filb_readc(filb_t F *fp);
+//W 	FC filb_reads(filb_t F *fp, B F *buf, W sz);
+//W 	FC filb_scanfN(filb_t F *fp, B F *fmt, ...);
+//W 	FC filb_scanfF(filb_t F *fp, B F *fmt, ...);
+//W 	FC filb_write(filb_t F *fp, B F *buf, W sz);
+//W 	FC filb_writln(filb_t F *fp, B F *buf, W sz);
+//I 	FC filb_writec(filb_t F *fp, I c);
+//W 	FC filb_writes(filb_t F *fp, B F *buf);
+//W 	FC filb_printfN(filb_t F *fp, B N *fmt, ...);
+//W 	FC filb_printfF(filb_t F *fp, B F *fmt, ...);
 //#define filb_printf filb_printfN
-//W     FC filb_flush(filb_t F *fp);
+//W 	FC filb_flush(filb_t F *fp);
 
 /*------------------------------------------------------*/
-/*                                                      */
+/*  	    	    	    	    	    	    	*/
 /*------------------------------------------------------*/
 #undef N
 #undef F
@@ -266,4 +266,3 @@ typedef struct filb_t {
 #undef I
 #undef V
 #endif
-

@@ -1,22 +1,21 @@
 module H
-	c_name "fil","_",1
-	import fil
+    c_name "fil","_",1
+    import fil
 
 *proc write(hdl:w,buf:d,siz:w);cdecl
-	//ret ax : 書き込んだサイズ
+    //ret ax : 書き込んだサイズ
 enter
-	save bx,cx,dx,ds
-	
-	bx = hdl
-	ds.dx = buf
-	cx = siz
-	ah = 0x40
-	intr 0x21
-	if (cf)
-		neg ax
-	fi
-	return
+    save bx,cx,dx,ds
+
+    bx = hdl
+    ds.dx = buf
+    cx = siz
+    ah = 0x40
+    intr 0x21
+    if (cf)
+    	neg ax
+    fi
+    return
 endproc
 
 endmodule
-

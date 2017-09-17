@@ -1,48 +1,47 @@
 module S
-	c_name "str","_",1
+    c_name "str","_",1
 
-	import Std
+    import Std
 
 *proc memcpyl(dst:d, src:d, sz:d);cdecl;FC
 enter
-	save cx,si,di,es,ds
-	
-	rep.inc
-	bx.si = src
-	Std.FpToHp bx,si,ax
-	ds = bx
-	dx.di = dst
-	Std.FpToHp dx,di,ax
-	es = dx
-	ax.cx = sz
-	if (ax == 0)
-		go (cx == 0) RET
-	else
-		push cx
-			dx = di
-			bx = si
-			loop
-				rep.cpy.w di,si,0x4000
-				di = dx
-				si = bx
-				cx = ds; cx += 0x800; ds = cx
-				cx = es; cx += 0x800; es = cx
-				rep.cpy.w di,si,0x4000
-				di = dx
-				si = bx
-				cx = ds; cx += 0x800; ds = cx
-				cx = es; cx += 0x800; es = cx
-			endloop (--ax)
-		pop  cx
-	fi
-	if ((cx >>= 1) .cf. 1)
-		rep.cpy di,si
-	fi
-	rep.cpy.w di,si,cx
+    save cx,si,di,es,ds
+
+    rep.inc
+    bx.si = src
+    Std.FpToHp bx,si,ax
+    ds = bx
+    dx.di = dst
+    Std.FpToHp dx,di,ax
+    es = dx
+    ax.cx = sz
+    if (ax == 0)
+    	go (cx == 0) RET
+    else
+    	push cx
+    	    dx = di
+    	    bx = si
+    	    loop
+    	    	rep.cpy.w di,si,0x4000
+    	    	di = dx
+    	    	si = bx
+    	    	cx = ds; cx += 0x800; ds = cx
+    	    	cx = es; cx += 0x800; es = cx
+    	    	rep.cpy.w di,si,0x4000
+    	    	di = dx
+    	    	si = bx
+    	    	cx = ds; cx += 0x800; ds = cx
+    	    	cx = es; cx += 0x800; es = cx
+    	    endloop (--ax)
+    	pop  cx
+    fi
+    if ((cx >>= 1) .cf. 1)
+    	rep.cpy di,si
+    fi
+    rep.cpy.w di,si,cx
   RET:
-	ds.ax = dst
-	return
+    ds.ax = dst
+    return
 endproc
 
 endmodule
-

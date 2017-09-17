@@ -1,30 +1,29 @@
 module S
-	c_name "str","_",1
+    c_name "str","_",1
 
 *proc ncmp(s1:d, s2:d, sz:w);cdecl;FC
 enter
-	save cx,si,di,es,ds
-	es.di = s2
-	al = 0
-	cx = sz
-	|repn.scan di,al,cx
-	|cx = sz
-	if (==)
-		cx = di
-		//--cx
-		cx -= s2.l
-	fi
-	es.di = s1
-	ds.si = s2
-	ax = 0
-	|repe.cmp di,si,cx
-	if (>)		// s1В™Пђ
-		--ax
-	elsif(<)	// s2В™Се
-		++ax
-	fi
-	return
+    save cx,si,di,es,ds
+    es.di = s2
+    al = 0
+    cx = sz
+    |repn.scan di,al,cx
+    |cx = sz
+    if (==)
+    	cx = di
+    	//--cx
+    	cx -= s2.l
+    fi
+    es.di = s1
+    ds.si = s2
+    ax = 0
+    |repe.cmp di,si,cx
+    if (>)  	// s1В™Пђ
+    	--ax
+    elsif(<)	// s2В™Се
+    	++ax
+    fi
+    return
 endproc
 
 endmodule
-

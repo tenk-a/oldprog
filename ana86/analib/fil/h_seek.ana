@@ -1,23 +1,22 @@
 module H
-	c_name "fil","_",1
-	import fil
+    c_name "fil","_",1
+    import fil
 
 *proc seek(hdl:w, ofs:d, mode:w);cdecl
-	//ret dx.ax
+    //ret dx.ax
 enter
-	save bx,cx,ds
-	
-	bx = hdl
-	cx.dx = ofs
-	ax = mode
-	ah = 0x42
-	intr 0x21
-	if (cf)
-		ax = 0xffff
-		dx = ax
-	fi
-	return
+    save bx,cx,ds
+
+    bx = hdl
+    cx.dx = ofs
+    ax = mode
+    ah = 0x42
+    intr 0x21
+    if (cf)
+    	ax = 0xffff
+    	dx = ax
+    fi
+    return
 endproc
 
 endmodule
-

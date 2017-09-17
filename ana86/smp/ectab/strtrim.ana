@@ -1,65 +1,65 @@
 module STRTRIM
-	//	1992	writen by M.Kitamura
-	c_name "Str"
+    //	1992	writen by M.Kitamura
+    c_name "Str"
 
-	import Std
-	import Str
+    import Std
+    import Str
 
 *proc Trim(si)
-//	行末の余分な空白、ｺﾝﾄﾛｰﾙ･ｺｰﾄﾞを削除. ただし、行末に'\n'がある場合は
-//	空白等削除後、付加しなおす.
-//	arg   si 文字列へのポインタ
-//	in	  ds
+//  行末の余分な空白、ｺﾝﾄﾛｰﾙ･ｺｰﾄﾞを削除. ただし、行末に'\n'がある場合は
+//  空白等削除後、付加しなおす.
+//  arg   si 文字列へのポインタ
+//  in	  ds
 begin
-	save ax,bx,si,dx
+    save ax,bx,si,dx
 
-	bx = si
-	dx = ax = 0
-	if (Str.sjisFlg == 0) // FF, 全角空白、不正全角に未対応
-		loop
-			ah = al
-			al = b[si]
-			++si
-			exit (al == '\0')
-			next (al <= ' ' || al == 0x7f)
-			bx = si
-		endloop
-		if (ah == '\n')
-			b[bx] = ah
-			++bx
-		fi
-	else // FF,全角空白、不正全角に対応
-		loop
-			al = b[si]; ++si
-			exit (al == '\0')
-			if (al <= ' ')
-				if (al == '\n' || al == '\f')
-					if (dl == 0)
-						dl = al
-					else
-						dh = al
-					fi
-				fi
-				next
-			fi
-			next (al == 0x7f || al == 0x80 || al > 0xfc)
-			if (Std.IsKanji(al))
-				ah = al
-				al = b[si]; ++si
-				exit (al == '\0')
-				next !(Std.IsKanji2(al))
-				next (ax == 0x8140)
-			fi
-			bx = si
-			dx = 0
-		endloop
-		if (dx)
-			w[bx] = dx
-			bx += 2
-		fi
-	fi
-	b[bx] = '\0'
-	return
+    bx = si
+    dx = ax = 0
+    if (Str.sjisFlg == 0) // FF, 全角空白、不正全角に未対応
+    	loop
+    	    ah = al
+    	    al = b[si]
+    	    ++si
+    	    exit (al == '\0')
+    	    next (al <= ' ' || al == 0x7f)
+    	    bx = si
+    	endloop
+    	if (ah == '\n')
+    	    b[bx] = ah
+    	    ++bx
+    	fi
+    else // FF,全角空白、不正全角に対応
+    	loop
+    	    al = b[si]; ++si
+    	    exit (al == '\0')
+    	    if (al <= ' ')
+    	    	if (al == '\n' || al == '\f')
+    	    	    if (dl == 0)
+    	    	    	dl = al
+    	    	    else
+    	    	    	dh = al
+    	    	    fi
+    	    	fi
+    	    	next
+    	    fi
+    	    next (al == 0x7f || al == 0x80 || al > 0xfc)
+    	    if (Std.IsKanji(al))
+    	    	ah = al
+    	    	al = b[si]; ++si
+    	    	exit (al == '\0')
+    	    	next !(Std.IsKanji2(al))
+    	    	next (ax == 0x8140)
+    	    fi
+    	    bx = si
+    	    dx = 0
+    	endloop
+    	if (dx)
+    	    w[bx] = dx
+    	    bx += 2
+    	fi
+    fi
+    b[bx] = '\0'
+    return
 endproc
 
 endmodule

@@ -1,44 +1,44 @@
 module STRUPLOW
-	//	1992	writen by M.Kitamura
-	c_name "Str"
+    //	1992	writen by M.Kitamura
+    c_name "Str"
 
-	import Std
-	import Str
+    import Std
+    import Str
 
 *proc UpLow(si,ax)
-//	•¶Žš—ñ si ‚Ì”¼Šp‰pŽš‚ð ax = 0 ‚È‚ç¬•¶Žš‰», ax != 0 ‚È‚ç‘å•¶Žš‰»
-//	•¶Žš—ñ‚Í’¼Ú‘‚«Š·‚¦‚é
-//	arg si	•¶Žš—ñ(asciiz)
-//	arg ax	0:lower 1:upper
-//	in	ds
+//  •¶Žš—ñ si ‚Ì”¼Šp‰pŽš‚ð ax = 0 ‚È‚ç¬•¶Žš‰», ax != 0 ‚È‚ç‘å•¶Žš‰»
+//  •¶Žš—ñ‚Í’¼Ú‘‚«Š·‚¦‚é
+//  arg si  •¶Žš—ñ(asciiz)
+//  arg ax  0:lower 1:upper
+//  in	ds
 begin
-	save ax,cx,si
+    save ax,cx,si
 
-	cx = ax
-	if (si)
-		loop
-			al = b[si]
-			exit (al == 0)
-			if (Str.sjisFlg && Std.IsKanji(al))
-				++si
-				al = b[si]
-				++si
-				exit (al == 0)
-				next
-			fi
-			if (cx != 0)
-				if (al >= 'a' && al <= 'z')
-					al -= 0x20
-					b[si] = al
-				fi
-			elsif (al >= 'A' && al <= 'Z')
-				al += 0x20
-				b[si] = al
-			fi
-			++si
-		endloop
-	fi
-	return
+    cx = ax
+    if (si)
+    	loop
+    	    al = b[si]
+    	    exit (al == 0)
+    	    if (Str.sjisFlg && Std.IsKanji(al))
+    	    	++si
+    	    	al = b[si]
+    	    	++si
+    	    	exit (al == 0)
+    	    	next
+    	    fi
+    	    if (cx != 0)
+    	    	if (al >= 'a' && al <= 'z')
+    	    	    al -= 0x20
+    	    	    b[si] = al
+    	    	fi
+    	    elsif (al >= 'A' && al <= 'Z')
+    	    	al += 0x20
+    	    	b[si] = al
+    	    fi
+    	    ++si
+    	endloop
+    fi
+    return
 endproc
 
 endmodule

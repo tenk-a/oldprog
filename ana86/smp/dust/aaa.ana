@@ -1,18 +1,18 @@
 module tst
 
-	segment var para
+    segment var para
 
-	@include "a2.han"
+    @include "a2.han"
 
-	org 0x100
+    org 0x100
 
 even
 *proc Tst()
 begin
-	ax = ttt
-	even
-	tt2 = 0
-	return
+    ax = ttt
+    even
+    tt2 = 0
+    return
 endproc
 endmodule
 

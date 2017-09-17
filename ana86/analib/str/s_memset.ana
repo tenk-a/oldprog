@@ -1,20 +1,19 @@
 module S
-	c_name "str","_",1
+    c_name "str","_",1
 
 *proc memset(dst:d, chr:w, sz:w);cdecl;FC
 enter
-	save cx,si,di,es,ds
-	
-	dx.ax = es.di = dst
-	ax = chr
-	ah = al
-	cx = sz
-	if ((cx >>= 1) .cf. 1)
-		rep.set di,al
-	fi
-	rep.set.w di,ax,cx
-	return
+    save cx,si,di,es,ds
+
+    dx.ax = es.di = dst
+    ax = chr
+    ah = al
+    cx = sz
+    if ((cx >>= 1) .cf. 1)
+    	rep.set di,al
+    fi
+    rep.set.w di,ax,cx
+    return
 endproc
 
 endmodule
-

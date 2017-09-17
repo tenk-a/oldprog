@@ -1,7 +1,7 @@
 module mem
-	c_name "mem","_",1
+    c_name "mem","_",1
 
-	import Pri
+    import Pri
 
 cvar initFlg:w = 0
 cvar heapbase:w,heapend:w,heaptop:w,heap:w
@@ -9,9 +9,9 @@ cvar heapbase:w,heapend:w,heaptop:w,heap:w
 const I_USED=0xffff
 
 struct T
-	link:w		//リスト
-	size:w		//パラグラフ・サイズ
-	dummy:b(0)
+    link:w  	//リスト
+    size:w  	//パラグラフ・サイズ
+    dummy:b(0)
 endstruct
 @define DT()	T[ds:0]
 @define ET()	T[es:0]
@@ -19,277 +19,276 @@ endstruct
 
 *proc error(eno:w);cdecl
 enter
-	save ax
-	ax = eno
-	if (ax == 8)
-		ax = "メモリがたんない\N"
-	else
-		ax = "mem_関係でエラー\N"
-	fi
-	Pri.Fmt ax
-	Dos.Exit(1)
-	//return
+    save ax
+    ax = eno
+    if (ax == 8)
+    	ax = "メモリがたんない\N"
+    else
+    	ax = "mem_関係でエラー\N"
+    fi
+    Pri.Fmt ax
+    Dos.Exit(1)
+    //return
 endproc
 
 *proc start(bufSeg:w, szs:w);cdecl
 enter
-	save ax,bx,ds
-	
-	go (initFlg) RET0
-	
-	if (bufSeg == 0)
-		if (szs == 0)
-			szs = 0xffff
-		fi
-		Dos.AllocMem szs
-		go (cf == 0) ERR
-		go (ax != 8 || bx < 4) ERR2
-		Dos.AllocMem bx
-		go (cf) ERR2
-		heapbase = ax
-		heapend  = ax
-		heapend += bx
-		ds = ax
-		DT.link  = ax
-		DT.size = 0
-		++ax
-		heaptop  = ax
-		initFlg = -1
-	else
-		go (szs < 4) ERR2
-		heapbase = dx = ax = bufSeg
-		dx += szs
-		heapend = dx
-		ds = ax
-		DT.link = ax
-		DT.size = 0
-		++ax
-		heaptop = ax
-		initFlg = 1
-	fi
+    save ax,bx,ds
+
+    go (initFlg) RET0
+
+    if (bufSeg == 0)
+    	if (szs == 0)
+    	    szs = 0xffff
+    	fi
+    	Dos.AllocMem szs
+    	go (cf == 0) ERR
+    	go (ax != 8 || bx < 4) ERR2
+    	Dos.AllocMem bx
+    	go (cf) ERR2
+    	heapbase = ax
+    	heapend  = ax
+    	heapend += bx
+    	ds = ax
+    	DT.link  = ax
+    	DT.size = 0
+    	++ax
+    	heaptop  = ax
+    	initFlg = -1
+    else
+    	go (szs < 4) ERR2
+    	heapbase = dx = ax = bufSeg
+    	dx += szs
+    	heapend = dx
+    	ds = ax
+    	DT.link = ax
+    	DT.size = 0
+    	++ax
+    	heaptop = ax
+    	initFlg = 1
+    fi
  RET0:
-	//ax = 0
+    //ax = 0
  RET
-	return
+    return
  ERR:
- 	ax = 1
+    ax = 1
  ERR2:
- 	error ax
- 	//go RET
+    error ax
+    //go RET
 endproc
 
 *proc _allocate(ax)
-	//arg ax パラグラフ・サイズ（管理用のヘッダを含むサイズ）
-	//ret ax 見つかったセグメント
+    //arg ax パラグラフ・サイズ（管理用のヘッダを含むサイズ）
+    //ret ax 見つかったセグメント
 begin
-	save bx,cx,dx,si,di,es,ds
+    save bx,cx,dx,si,di,es,ds
 
-	if (initFlg == 0)
-		start
-	fi
-	go (ax == 0) RET
-	//heapリストの、heaptopより低位のメモリから適当な空きをさがす
-	cx = ax				//見つけるサイズ
-	di = 0				//見つかった空き領域
-	dx = di//=0			//見つかった空き領域のサイズ
-	ds = si = heapbase
-	ds = ax = DT.link
-	loop (ax != heapbase)
-		go.w (ax < heapbase || ax > heaptop) ERR
-		bx = DT.size
-		|cx - bx
-		|if (<=)	//確保できる領域があったとき
-			if (==)	//ちょうどの空きがあればそこを使うのでループアウト
-				di = si
-				dx = bx
-				exit
-			fi
-			//初めてか、必要よりも広い場所が見つかったとき
-			//　既に見つかったところよりも狭いなら狭いほうを選ぶ
-			if (di == 0 || bx < dx)
-				di = si
-				dx = bx
-			fi
-		fi
-		si = ds
-		ds = ax = DT.link
-	endloop
-	if (di == 0)	//空き領域が見つかっていないときは、heaptopを調整して確保
-					//なおFREEリストは変化しない
-		si = ax = heaptop
-		ax += cx
-		go (ax > heapend) ERRMEM	//heapendを越えたらメモリが足りないぞ
-		heaptop = ax
-		ds = si
-		//DT.link = I_USED
-		DT.size = dx = cx
-	else
-		//di = 見つかった領域の前のリストのセグメント
-		//dx = 見つかった領域のサイズ
-		//cx = 要求するサイズ
-		ds = di
-		es = si = DT.link
-		if (cx == dx)
-			DT.link = ax = ET.link
-		else
-			ax = dx
-			ax -= cx
-			si += ax
-			DT.link = si
-			dx = ET.link
-			ds = si
-			DT.size = ax
-			DT.link = dx
-		fi
-	fi
-	//si = 見つかったセグメント
-	ds = ax = si
-	DT.link = I_USED
+    if (initFlg == 0)
+    	start
+    fi
+    go (ax == 0) RET
+    //heapリストの、heaptopより低位のメモリから適当な空きをさがす
+    cx = ax 	    	//見つけるサイズ
+    di = 0  	    	//見つかった空き領域
+    dx = di//=0     	//見つかった空き領域のサイズ
+    ds = si = heapbase
+    ds = ax = DT.link
+    loop (ax != heapbase)
+    	go.w (ax < heapbase || ax > heaptop) ERR
+    	bx = DT.size
+    	|cx - bx
+    	|if (<=)    //確保できる領域があったとき
+    	    if (==) //ちょうどの空きがあればそこを使うのでループアウト
+    	    	di = si
+    	    	dx = bx
+    	    	exit
+    	    fi
+    	    //初めてか、必要よりも広い場所が見つかったとき
+    	    //　既に見つかったところよりも狭いなら狭いほうを選ぶ
+    	    if (di == 0 || bx < dx)
+    	    	di = si
+    	    	dx = bx
+    	    fi
+    	fi
+    	si = ds
+    	ds = ax = DT.link
+    endloop
+    if (di == 0)    //空き領域が見つかっていないときは、heaptopを調整して確保
+    	    	    //なおFREEリストは変化しない
+    	si = ax = heaptop
+    	ax += cx
+    	go (ax > heapend) ERRMEM    //heapendを越えたらメモリが足りないぞ
+    	heaptop = ax
+    	ds = si
+    	//DT.link = I_USED
+    	DT.size = dx = cx
+    else
+    	//di = 見つかった領域の前のリストのセグメント
+    	//dx = 見つかった領域のサイズ
+    	//cx = 要求するサイズ
+    	ds = di
+    	es = si = DT.link
+    	if (cx == dx)
+    	    DT.link = ax = ET.link
+    	else
+    	    ax = dx
+    	    ax -= cx
+    	    si += ax
+    	    DT.link = si
+    	    dx = ET.link
+    	    ds = si
+    	    DT.size = ax
+    	    DT.link = dx
+    	fi
+    fi
+    //si = 見つかったセグメント
+    ds = ax = si
+    DT.link = I_USED
   RET:
-  	return
+    return
   ERRMEM:
-  	ax = 0
-  	go RET
+    ax = 0
+    go RET
   ERR:
-  	ax = 1
+    ax = 1
   ERR0:
-  	error ax
-  	goto RET
+    error ax
+    goto RET
 endproc
 
 
 *proc _free(ax)
 begin
-	save bx,cx,dx,si,di,es,ds
+    save bx,cx,dx,si,di,es,ds
 
-	go.w (ax == 0) RET
-	go.w (ax < heapbase || ax >= heaptop) ERR
-	es = ax
-	go (ET.link != I_USED) ERR
-	ds = di = heapbase
-	bx = DT.link
-	loop
-		ds = bx
-		dx = DT.link
-		exit(bx < ax  && ax < dx)
-		exit ( dx <= ax && (bx < ax || ax < dx)
-		di = bx
-		bx = dx
-	endloop
-	cx = ax
-	ax += ET.size
-	if (ax == dx)
-		ds = dx
-		ax = DT.size
-		ET.size += ax
-		ET.link = ax = DT.link
-	else
-		ET.link = dx
-	fi
-	ds = ax = bx
-	ax += DT.size
-	if (ax == cx)
-		ax = ET.size
-		DT.size += ax
-		DT.link = ax = ET.link
-		es = cx = bx
-		bx = di
-	else
-		DT.link = cx
-	fi
-	ax = ET.size
-	ax += cx
-	if (ax == heaptop)
-		ds = cx
-		DT.link = ax = ET.link
-		heaptop = cx
-	fi
-	ax = 0
+    go.w (ax == 0) RET
+    go.w (ax < heapbase || ax >= heaptop) ERR
+    es = ax
+    go (ET.link != I_USED) ERR
+    ds = di = heapbase
+    bx = DT.link
+    loop
+    	ds = bx
+    	dx = DT.link
+    	exit(bx < ax  && ax < dx)
+    	exit ( dx <= ax && (bx < ax || ax < dx)
+    	di = bx
+    	bx = dx
+    endloop
+    cx = ax
+    ax += ET.size
+    if (ax == dx)
+    	ds = dx
+    	ax = DT.size
+    	ET.size += ax
+    	ET.link = ax = DT.link
+    else
+    	ET.link = dx
+    fi
+    ds = ax = bx
+    ax += DT.size
+    if (ax == cx)
+    	ax = ET.size
+    	DT.size += ax
+    	DT.link = ax = ET.link
+    	es = cx = bx
+    	bx = di
+    else
+    	DT.link = cx
+    fi
+    ax = ET.size
+    ax += cx
+    if (ax == heaptop)
+    	ds = cx
+    	DT.link = ax = ET.link
+    	heaptop = cx
+    fi
+    ax = 0
   RET:
-	return
+    return
   ERR:
-  	ax = 1
-  	error ax
-  	go RET
+    ax = 1
+    error ax
+    go RET
 endproc
 
 
 *proc palloc(psize:w);cdecl
 enter
-	ax = psize
-	if (ax)
-		++ax
-		_allocate ax
-		++ax
-	fi
-	return
+    ax = psize
+    if (ax)
+    	++ax
+    	_allocate ax
+    	++ax
+    fi
+    return
 endproc
 
 *proc pfree(mseg:w);cdecl
 enter
-	ax = mseg
-	if (ax)
-		--ax
-		_free ax
-	fi
-	return
+    ax = mseg
+    if (ax)
+    	--ax
+    	_free ax
+    fi
+    return
 endproc
 
 *proc allocz(sz:l);cdecl
-	//ret dx.ax  (ax = 0)
+    //ret dx.ax  (ax = 0)
 enter
-	save cx
-	ax.dx = sz
-	Std.DwToHp ax,dx,cx
-	if (dx)
-		++ax
-	fi
-	if (ax)
-		++ax
-		_allocate ax
-		++ax
-		dx = ax
-		ax = 0
-	fi
-	return
+    save cx
+    ax.dx = sz
+    Std.DwToHp ax,dx,cx
+    if (dx)
+    	++ax
+    fi
+    if (ax)
+    	++ax
+    	_allocate ax
+    	++ax
+    	dx = ax
+    	ax = 0
+    fi
+    return
 endproc
 
 *proc alloc(sz:l);cdecl
-	//ret dx.ax  (ax = 4)
+    //ret dx.ax  (ax = 4)
 enter
-	save cx
-	ax.dx = sz
-	if (ax || dx)
-		|dx += sizeof(T)
-		|adc ax,0
-		Std.DwToHp ax,dx,cx
-		if (dx)
-			++ax
-		fi
-		_allocate ax
-		dx = ax
-		ax = sizeof(T)
-	fi
-	return
+    save cx
+    ax.dx = sz
+    if (ax || dx)
+    	|dx += sizeof(T)
+    	|adc ax,0
+    	Std.DwToHp ax,dx,cx
+    	if (dx)
+    	    ++ax
+    	fi
+    	_allocate ax
+    	dx = ax
+    	ax = sizeof(T)
+    fi
+    return
 endproc
 
 *proc free(mptr:w);cdecl
 enter
-	save cx
-	ax.cx = mptr
-	if (ax)
-		if (cx == 0)
-			--ax
-		elsif (cx != sizeof(T))
-			ax = 1
-			error ax
-			go RET
-		fi
-		_free ax
-	fi
+    save cx
+    ax.cx = mptr
+    if (ax)
+    	if (cx == 0)
+    	    --ax
+    	elsif (cx != sizeof(T))
+    	    ax = 1
+    	    error ax
+    	    go RET
+    	fi
+    	_free ax
+    fi
   RET:
-	return
+    return
 endproc
 
 endmodule
-

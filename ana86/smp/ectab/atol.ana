@@ -1,41 +1,41 @@
 module ATOL
-	//	1992	writen by M.Kitamura
-	c_name "Str"
+    //	1992	writen by M.Kitamura
+    c_name "Str"
 
 *proc AtoL(si)
-//	si からの符号付１０進整数文字列の値を dx.ax にいれて返す.
-//	桁溢れはﾁｪｯｸしない. セグメント境界のチェック無
-//	arg si		文字列
-//	in	ds		data segment
-//	out si		下１桁の文字の次の位置
-//	out dx.ax	値
+//  si からの符号付１０進整数文字列の値を dx.ax にいれて返す.
+//  桁溢れはﾁｪｯｸしない. セグメント境界のチェック無
+//  arg si  	文字列
+//  in	ds  	data segment
+//  out si  	下１桁の文字の次の位置
+//  out dx.ax	値
 enter
-	save cx,bx,di
-	local sflg:b
+    save cx,bx,di
+    local sflg:b
 
-	dx.ax = 0
-	bh = al
-	sflg = al
-	if (b[si] == '-')
-		++si
-		sflg = 1
-	elsif (b[si] == '+')
-		++si
-	fi
-	loop
-		bl = b[si]
-		exit ((bl -= '0') < 0 || bl > 9)
-		dx.ax <<= 1
-		di.cx = dx.ax
-		dx.ax <<= 2
-		dx.ax += di.cx
-		dx.ax += ww(0,bx)
-		++si
-	endloop
-	if (sflg)
-		neg dx.ax
-	fi
-	return
+    dx.ax = 0
+    bh = al
+    sflg = al
+    if (b[si] == '-')
+    	++si
+    	sflg = 1
+    elsif (b[si] == '+')
+    	++si
+    fi
+    loop
+    	bl = b[si]
+    	exit ((bl -= '0') < 0 || bl > 9)
+    	dx.ax <<= 1
+    	di.cx = dx.ax
+    	dx.ax <<= 2
+    	dx.ax += di.cx
+    	dx.ax += ww(0,bx)
+    	++si
+    endloop
+    if (sflg)
+    	neg dx.ax
+    fi
+    return
 endproc
 
 endmodule

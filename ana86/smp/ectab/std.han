@@ -1,32 +1,32 @@
 module Std
-	//	1992	writen by M.Kitamura
+    //	1992	writen by M.Kitamura
 
-*@define FpToHp(rh,rl,wk)	(wk = rl);wk >>= 4;rh += wk;rl &= 0x0f
-	// FARポインタrh.rlをHUGEポインタに変換. wk破壊.  rh,rl,wk:wordレジスタ
-*@define DwToHp(rh,rl,wk)	(rh <<= 12);wk = rl;wk >>= 4;rh |= wk;rl &= 0x0f
-	// DWORDの値rh.rlをHUGEポインタに変換. wk破壊.	rh,rl,wk:wordレジスタ
+*@define FpToHp(rh,rl,wk)   (wk = rl);wk >>= 4;rh += wk;rl &= 0x0f
+    // FARポインタrh.rlをHUGEポインタに変換. wk破壊.  rh,rl,wk:wordレジスタ
+*@define DwToHp(rh,rl,wk)   (rh <<= 12);wk = rl;wk >>= 4;rh |= wk;rl &= 0x0f
+    // DWORDの値rh.rlをHUGEポインタに変換. wk破壊.  rh,rl,wk:wordレジスタ
 
 *@define IsDigit(c)  (c >= '0' && c <= '9')
 *@define IsUpper(c)  (c >= 'A' && c <= 'Z')
 *@define IsLower(c)  (c >= 'a' && c <= 'z')
 *@define IsKanji(c)  ((c >= 0x81) && (c <= 0x9f) || (c >= 0xE0 && c <= 0xFC))
 *@define IsKanji2(c) (c >= 0x40 && c <= 0xFC && c != 0x7f)
-*@define IsKana(c)	 (c >= 0xA0 && c <= 0xDF)
+*@define IsKana(c)   (c >= 0xA0 && c <= 0xDF)
 
 *@define ToUpper(r)\
-	if(r >= 'a' && r <= 'z');\
-		r -= 0x20;\
-	fi;
+    if(r >= 'a' && r <= 'z');\
+    	r -= 0x20;\
+    fi;
 
 *@define ToLower(r)\
-	if(r >= 'A' && r <= 'Z');\
-		r += 0x20;\
-	fi;
+    if(r >= 'A' && r <= 'Z');\
+    	r += 0x20;\
+    fi;
 
 *@define SkipSpc(rp)\
-	--rp;\
-	loop;\
-		++rp;\
-	endloop (b[rp] == ' ' || b[rp] == '\t')
+    --rp;\
+    loop;\
+    	++rp;\
+    endloop (b[rp] == ' ' || b[rp] == '\t')
 
 endmodule

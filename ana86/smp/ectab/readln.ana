@@ -1,48 +1,48 @@
 // （near コール, near ポインタ）
 module READLN
-	//	1992	writen by M.Kitamura
-	model SMALL
-	stack 0x100
-	import Dos
-	//import Str
+    //	1992	writen by M.Kitamura
+    model SMALL
+    stack 0x100
+    import Dos
+    //import Str
 
 @if !defined(BUFSIZ)
-	const BUFSIZ = 0x5000	//1024
+    const BUFSIZ = 0x5000   //1024
 @fi
 
 *struct T
-	handle:word 	// DOSのファイル・ハンドル
-	pos:word		// buf 中の現在位置(アドレス)
-	size:word		// 入力したデータのサイズ
-	eof:byte		// 0以外:EOF
-	cr:byte 		// 0:行の終わりにcr がない	1:ある
-	bufsiz:w		// buffer size
-	buf:b(BUFSIZ)	// バッファ
-	dmy:w
+    handle:word     // DOSのファイル・ハンドル
+    pos:word	    // buf 中の現在位置(アドレス)
+    size:word	    // 入力したデータのサイズ
+    eof:byte	    // 0以外:EOF
+    cr:byte 	    // 0:行の終わりにcr がない	1:ある
+    bufsiz:w	    // buffer size
+    buf:b(BUFSIZ)   // バッファ
+    dmy:w
 endstruct
 
 *proc ReadLnInit(ax,bx)
-//	テキストファイルの行入力手続き ReadLnの初期化
-//	arg   ax	DOS ファイル・ハンドル
-//	arg   bx	行入力用に OPEN した FILE の情報のテーブル（バッファ）
-//	in	  ds	data segment
-//	out   cf	0:no error	1:error
-//	break fx
+//  テキストファイルの行入力手続き ReadLnの初期化
+//  arg   ax	DOS ファイル・ハンドル
+//  arg   bx	行入力用に OPEN した FILE の情報のテーブル（バッファ）
+//  in	  ds	data segment
+//  out   cf	0:no error  1:error
+//  break fx
 enter
-	save pusha,es
+    save pusha,es
 
-	// bx の指す READLN.T 型変数を初期化
-	es	= ds
-	di = bx
-	dx = ax
-	ax = 0
-	cx = sizeof(READLN.T) - 2 - %T.buf
-	push cx
-	rep.set di,al,cx
-	pop  cx
-	T[bx].handle = dx
-	T[bx].bufsiz = cx
-	return
+    // bx の指す READLN.T 型変数を初期化
+    es	= ds
+    di = bx
+    dx = ax
+    ax = 0
+    cx = sizeof(READLN.T) - 2 - %T.buf
+    push cx
+    rep.set di,al,cx
+    pop  cx
+    T[bx].handle = dx
+    T[bx].bufsiz = cx
+    return
 endproc
 
 @if 0
@@ -50,92 +50,92 @@ var work:b(200)
 @fi
 
 *proc ReadLn(bx,dx,cx)
-//	1 行入力. '\r','\n','\r\n'を改行とみなし、改行かバッファサイズまで
-//	入力する。また、改行は'\n'に置き換える。
-//	arg   bx	READLN.T ポインタ
-//	arg   dx	入力したテキストを格納するバッファ
-//	arg   cx	バッファの大きさ. cx > 2.  行末の後に付加する'\0'のｻｲｽﾞも含む
-//	in	  ds	data segment
-//	out   ax	エラーコード　0:エラー無
-//	out   dx	入力したデータに付加した'\0'のアドレス error時：不定
-//	out   cx	実際に入力したサイズ（byte） 0:EOF　 エラー時:不定
-//	out   cf	0:エラー無　　1:エラー有
-//	out   df	df = 0
-//	break fx
+//  1 行入力. '\r','\n','\r\n'を改行とみなし、改行かバッファサイズまで
+//  入力する。また、改行は'\n'に置き換える。
+//  arg   bx	READLN.T ポインタ
+//  arg   dx	入力したテキストを格納するバッファ
+//  arg   cx	バッファの大きさ. cx > 2.  行末の後に付加する'\0'のｻｲｽﾞも含む
+//  in	  ds	data segment
+//  out   ax	エラーコード　0:エラー無
+//  out   dx	入力したデータに付加した'\0'のアドレス error時：不定
+//  out   cx	実際に入力したサイズ（byte） 0:EOF　 エラー時:不定
+//  out   cf	0:エラー無　　1:エラー有
+//  out   df	df = 0
+//  break fx
 enter
-	save dx,bx,di,si,es
-	local cnt:w,tbl:w
+    save dx,bx,di,si,es
+    local cnt:w,tbl:w
 
-	es = ax = ds
-	rep.inc
-	di = dx 			//di=転送先ﾊﾞｯﾌｧ
-	b[di] = '\0'
-	tbl = bx
-	T[bx].cr = 0
-	--cx				//転送先の最後には必ず'\0'を付けるので
-	go.w (cx < 2) ERR
-	cx += di			//cx=転送先ﾊﾞｯﾌｧの終わり
-	si = bx + %T.buf	// ﾃﾝﾎﾟﾗﾘ
-	cnt = 0
-	dx = T[bx].size
-	loop.w LLL
-		dx += si		//ﾃﾝﾎﾟﾗﾘの終わり
-		if (si < dx)
-			si = T[bx].pos
-			loop (si < dx)
-				al = b[si]
-				rep.cpy(di,si)
-				++cnt
-				if (al == '\r')
-					if (b[si] == '\n')
-						++si
-					fi
-					al = '\n'
-					b[di - 1] = al
-				fi
-				if (al == '\n')
-					T[bx].cr = 1
-					exit LLL
-				fi
-				exit (di == cx) LLL
-			endloop
-		fi
-		si = dx = bx + %T.buf
-		T[bx].pos = si
-		T[bx].size = 0
-		exit (T[bx].eof)
-		push cx
-		cx = T[bx].bufsiz
-		bx = T[bx].handle
-		Dos.Read bx, dx, cx
-		go (cf == 1) ERR
-		pop  cx
-		dx += ax
-		bx = dx
-		b[bx] = '\0'
-		dx = ax
-		if (dx > 0 && b[bx - 1] == 0x1a)
-			b[bx - 1] = '\0'
-			--dx
-		fi
-		bx = tbl
-		T[bx].size = dx
-		if (dx == 0)
-			T[bx].eof = 1
-			exit
-		fi
-	endloop
-	b[di] = '\0'
-	T[bx].pos = si
-	bx = di
+    es = ax = ds
+    rep.inc
+    di = dx 	    	//di=転送先ﾊﾞｯﾌｧ
+    b[di] = '\0'
+    tbl = bx
+    T[bx].cr = 0
+    --cx    	    	//転送先の最後には必ず'\0'を付けるので
+    go.w (cx < 2) ERR
+    cx += di	    	//cx=転送先ﾊﾞｯﾌｧの終わり
+    si = bx + %T.buf	// ﾃﾝﾎﾟﾗﾘ
+    cnt = 0
+    dx = T[bx].size
+    loop.w LLL
+    	dx += si    	//ﾃﾝﾎﾟﾗﾘの終わり
+    	if (si < dx)
+    	    si = T[bx].pos
+    	    loop (si < dx)
+    	    	al = b[si]
+    	    	rep.cpy(di,si)
+    	    	++cnt
+    	    	if (al == '\r')
+    	    	    if (b[si] == '\n')
+    	    	    	++si
+    	    	    fi
+    	    	    al = '\n'
+    	    	    b[di - 1] = al
+    	    	fi
+    	    	if (al == '\n')
+    	    	    T[bx].cr = 1
+    	    	    exit LLL
+    	    	fi
+    	    	exit (di == cx) LLL
+    	    endloop
+    	fi
+    	si = dx = bx + %T.buf
+    	T[bx].pos = si
+    	T[bx].size = 0
+    	exit (T[bx].eof)
+    	push cx
+    	cx = T[bx].bufsiz
+    	bx = T[bx].handle
+    	Dos.Read bx, dx, cx
+    	go (cf == 1) ERR
+    	pop  cx
+    	dx += ax
+    	bx = dx
+    	b[bx] = '\0'
+    	dx = ax
+    	if (dx > 0 && b[bx - 1] == 0x1a)
+    	    b[bx - 1] = '\0'
+    	    --dx
+    	fi
+    	bx = tbl
+    	T[bx].size = dx
+    	if (dx == 0)
+    	    T[bx].eof = 1
+    	    exit
+    	fi
+    endloop
+    b[di] = '\0'
+    T[bx].pos = si
+    bx = di
    |ax ^= ax //ax = 0; cf = 0
    |go RTS
   ERR:
-	T[bx].eof = 1
+    T[bx].eof = 1
    |cf = 1
   RTS:
    |cx = cnt
-	return
+    return
 endproc
 
 endmodule

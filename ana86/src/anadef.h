@@ -5,428 +5,428 @@
 #define MACR
 
 
-#define ERR_VAL  	(0x80000000L)
-#define strend(p)	((p)+strlen(p))
+#define ERR_VAL     (0x80000000L)
+#define strend(p)   ((p)+strlen(p))
 
 
 /*--------------- symbol ---------------*/
 
 enum {
-	MD_EXPO,MD_RSV,MD_MODULE,MD_PROC,MD_STRUCT
+    MD_EXPO,MD_RSV,MD_MODULE,MD_PROC,MD_STRUCT
 };
 
 enum {
-	GS_CODE, GS_DATA, GS_BSS, GS_STACK
+    GS_CODE, GS_DATA, GS_BSS, GS_STACK
 };
 
 enum {
-	FL_EXPO = 0x01, FL_FAR = 0x02, FL_CPROC = 0x04, FL_EXTERN = 0x08,
-	FL_INPO = 0x10, FL_USE = 0x20
+    FL_EXPO = 0x01, FL_FAR = 0x02, FL_CPROC = 0x04, FL_EXTERN = 0x08,
+    FL_INPO = 0x10, FL_USE = 0x20
 };
 
 enum {
-	I_EOF=0,	/* "EOF" */
-	I_BYTE, 	/* "byte" */
-	I_WORD, 	/* "word" */
-	I_PTR,  	/* "pointer" */
-	I_DWORD,	/* "dword" */
-	I_FPTR, 	/* "fptr" */
-	I_SEGPTR,	/* "segptr" */
-	I_NEAR, 	/* "near" */
-	I_QWORD,	/* "qword" */
-	I_FAR,  	/* "far" */
-	I_TBYTE,	/* "tbyte" */
+    I_EOF=0,	/* "EOF" */
+    I_BYTE, 	/* "byte" */
+    I_WORD, 	/* "word" */
+    I_PTR,  	/* "pointer" */
+    I_DWORD,	/* "dword" */
+    I_FPTR, 	/* "fptr" */
+    I_SEGPTR,	/* "segptr" */
+    I_NEAR, 	/* "near" */
+    I_QWORD,	/* "qword" */
+    I_FAR,  	/* "far" */
+    I_TBYTE,	/* "tbyte" */
 
-	/* reg */
-	I_AH,		/* "ah" */
-	I_CH,		/* "ch" */
-	I_DH,		/* "dh" */
-	I_BH,		/* "bh" */
+    /* reg */
+    I_AH,   	/* "ah" */
+    I_CH,   	/* "ch" */
+    I_DH,   	/* "dh" */
+    I_BH,   	/* "bh" */
 
-	I_AL,		/* "al" */
-	I_CL,		/* "cl" */
-	I_DL,		/* "dl" */
-	I_BL,		/* "bl" */
+    I_AL,   	/* "al" */
+    I_CL,   	/* "cl" */
+    I_DL,   	/* "dl" */
+    I_BL,   	/* "bl" */
 
-	I_AX,		/* "ax" */
-	I_CX,		/* "cx" */
-	I_DX,		/* "dx" */
-	I_BX,		/* "bx" */
+    I_AX,   	/* "ax" */
+    I_CX,   	/* "cx" */
+    I_DX,   	/* "dx" */
+    I_BX,   	/* "bx" */
 
-	I_DI,		/* "di" */
-	I_SI,		/* "si" */
-	I_BP,		/* "bp" */
+    I_DI,   	/* "di" */
+    I_SI,   	/* "si" */
+    I_BP,   	/* "bp" */
 
-	I_SP,		/* "sp" */
-	I_IP,		/* "ip" */
+    I_SP,   	/* "sp" */
+    I_IP,   	/* "ip" */
 
-	I_CS,		/* "cs" */
-	I_DS,		/* "ds" */
-	I_ES,		/* "es" */
-	I_SS,		/* "ss" */
+    I_CS,   	/* "cs" */
+    I_DS,   	/* "ds" */
+    I_ES,   	/* "es" */
+    I_SS,   	/* "ss" */
 
-	I_FH,		/* "fh" */
-	I_FL,		/* "fl" */
-	I_FX,		/* "fx" */
+    I_FH,   	/* "fh" */
+    I_FL,   	/* "fl" */
+    I_FX,   	/* "fx" */
 
-	/* flag */
-	I_CF,		/* "cf" */
-	I_AF,		/* "af" */
-	I_PF,		/* "pf" */
-	I_SF,		/* "sf" */
-	I_ZF,		/* "zf" */
-	I_IIF,  	/* "iif" */
-	I_TF,		/* "tf" */
-	I_DF,		/* "df" */
-	I_OVF,  	/* "ovf" */
+    /* flag */
+    I_CF,   	/* "cf" */
+    I_AF,   	/* "af" */
+    I_PF,   	/* "pf" */
+    I_SF,   	/* "sf" */
+    I_ZF,   	/* "zf" */
+    I_IIF,  	/* "iif" */
+    I_TF,   	/* "tf" */
+    I_DF,   	/* "df" */
+    I_OVF,  	/* "ovf" */
 
-	/* 二項演算 */
-	I_EXG,  	/* "<=>" */
-	I_LEA,  	/* "(lea)" */
-	I_SIEQ, 	/* ".=." */
-	I_LDS,  	/* "(lds)" */
-	I_LES,  	/* "(les)" */
-	I_EQU,  	/* "=" */
+    /* 二項演算 */
+    I_EXG,  	/* "<=>" */
+    I_LEA,  	/* "(lea)" */
+    I_SIEQ, 	/* ".=." */
+    I_LDS,  	/* "(lds)" */
+    I_LES,  	/* "(les)" */
+    I_EQU,  	/* "=" */
 
-	I_EQEQ, 	/* "==" */
-	I_NEQ,  	/* "!=" */
-	I_ADCEQ,	/* "+=." */
-	I_SBCEQ,	/* "-=." */
-	I_ADD,  	/* "+" */
-	I_ADDEQ,	/* "+=" */
-	I_SUB,  	/* "-" */
-	I_SUBEQ,	/* "-=" */
-	I_AND,  	/* "&" */
-	I_ANDEQ,	/* "&=" */
-	I_LAND, 	/* "&&" */
-	I_OR,		/* "|" */
-	I_OREQ, 	/* "|=" */
-	I_LOR,  	/* "||" */
-	I_XOR,  	/* "^" */
-	I_EOREQ,	/* "^=" */
-	I_LT,		/* "<" */
-	I_LE,		/* "<=" */
-	I_SHL,  	/* "<<" */
-	I_GT,		/* ">" */
-	I_GE,		/* ">=" */
-	I_SHR,  	/* ">>" */
-	I_ILT,  	/* ".<." */
-	I_ILE,  	/* ".<=." */
-	I_IGT,  	/* ".>." */
-	I_IGE,  	/* ".>=." */
-	I_SAR,  	/* ".>>." */
+    I_EQEQ, 	/* "==" */
+    I_NEQ,  	/* "!=" */
+    I_ADCEQ,	/* "+=." */
+    I_SBCEQ,	/* "-=." */
+    I_ADD,  	/* "+" */
+    I_ADDEQ,	/* "+=" */
+    I_SUB,  	/* "-" */
+    I_SUBEQ,	/* "-=" */
+    I_AND,  	/* "&" */
+    I_ANDEQ,	/* "&=" */
+    I_LAND, 	/* "&&" */
+    I_OR,   	/* "|" */
+    I_OREQ, 	/* "|=" */
+    I_LOR,  	/* "||" */
+    I_XOR,  	/* "^" */
+    I_EOREQ,	/* "^=" */
+    I_LT,   	/* "<" */
+    I_LE,   	/* "<=" */
+    I_SHL,  	/* "<<" */
+    I_GT,   	/* ">" */
+    I_GE,   	/* ">=" */
+    I_SHR,  	/* ">>" */
+    I_ILT,  	/* ".<." */
+    I_ILE,  	/* ".<=." */
+    I_IGT,  	/* ".>." */
+    I_IGE,  	/* ".>=." */
+    I_SAR,  	/* ".>>." */
 
-	I_SHLEQ,	/* "<<=" */
-	I_SHREQ,	/* ">>=" */
-	I_RCLEQ,	/* "<<=." */
-	I_RCREQ,	/* ">>=." */
-	I_ROLEQ,	/* "<<<=" */
-	I_ROREQ,	/* ">>>=" */
-	I_SAREQ,	/* ".>>=" */
+    I_SHLEQ,	/* "<<=" */
+    I_SHREQ,	/* ">>=" */
+    I_RCLEQ,	/* "<<=." */
+    I_RCREQ,	/* ">>=." */
+    I_ROLEQ,	/* "<<<=" */
+    I_ROREQ,	/* ">>>=" */
+    I_SAREQ,	/* ".>>=" */
 
-	I_ROL,		/* "<<<" */
-	I_ROR,		/* ">>>" */
+    I_ROL,  	/* "<<<" */
+    I_ROR,  	/* ">>>" */
 
-	I_SHLS, 	/* "shl" */
-	I_SHRS, 	/* "shr" */
-	I_RCLS,		/* "rcl" */
-	I_RCRS,		/* "rcr" */
-	I_ROLS,		/* "rol" */
-	I_RORS,		/* "ror" */
-	I_SARS, 	/* "sar" */
+    I_SHLS, 	/* "shl" */
+    I_SHRS, 	/* "shr" */
+    I_RCLS, 	/* "rcl" */
+    I_RCRS, 	/* "rcr" */
+    I_ROLS, 	/* "rol" */
+    I_RORS, 	/* "ror" */
+    I_SARS, 	/* "sar" */
 
-	I_ADCS,		/* "adc" */
-	I_SBCS,		/* "sbc" */
+    I_ADCS, 	/* "adc" */
+    I_SBCS, 	/* "sbc" */
 
-	I_MUL,  	/* "*" */
-	I_MULEQ,	/* "*=" */
-	I_IMUL, 	/* ".*." */
-	I_DIV,  	/* "/" */
-	I_DIVEQ,	/* "/=" */
-	I_IDIV, 	/* "./." */
-	I_MOD,  	/* "%" */
-	I_MODEQ,	/* "%=" */
-	I_GLOBAL,	/* "%%" */
-	I_IMOD, 	/* ".%." */
-	I_DIVS, 	/* "div" */
-	I_IDIVS,	/* "idiv" */
+    I_MUL,  	/* "*" */
+    I_MULEQ,	/* "*=" */
+    I_IMUL, 	/* ".*." */
+    I_DIV,  	/* "/" */
+    I_DIVEQ,	/* "/=" */
+    I_IDIV, 	/* "./." */
+    I_MOD,  	/* "%" */
+    I_MODEQ,	/* "%=" */
+    I_GLOBAL,	/* "%%" */
+    I_IMOD, 	/* ".%." */
+    I_DIVS, 	/* "div" */
+    I_IDIVS,	/* "idiv" */
 
-	/* 特別のｼﾝﾎﾞﾙ */
-	I_CLN,  	/* ":" */
-	I_CLNEQ,	/* ":=" */
-	I_CR,		/* "\n" */
-	I_SHARP,	/* "#" */
-	I_DOLL, 	/* "$" */
-	I_ATMARK,	/* "@" */
-	I_YEN,  	/* "\\" */
-	I_DQUOT,	/* "\"" */
-	I_APO,  	/* "'" */
-	I_PERIOD,	/* "." */
-	I_PP,		/* ".." */
-	I_PPP,  	/* "..." */
-	I_QUESTION, /* "?" */
-	I_COMMA,	/* "," */
-	I_SMCLN,	/* ";" */
-	I_LP,		/* "(" */
-	I_RP,		/* ")" */
-	I_LB,		/* "[" */
-	I_RB,		/* "]" */
-	I_LC,		/* "{" */
-	I_RC,		/* "}" */
+    /* 特別のｼﾝﾎﾞﾙ */
+    I_CLN,  	/* ":" */
+    I_CLNEQ,	/* ":=" */
+    I_CR,   	/* "\n" */
+    I_SHARP,	/* "#" */
+    I_DOLL, 	/* "$" */
+    I_ATMARK,	/* "@" */
+    I_YEN,  	/* "\\" */
+    I_DQUOT,	/* "\"" */
+    I_APO,  	/* "'" */
+    I_PERIOD,	/* "." */
+    I_PP,   	/* ".." */
+    I_PPP,  	/* "..." */
+    I_QUESTION, /* "?" */
+    I_COMMA,	/* "," */
+    I_SMCLN,	/* ";" */
+    I_LP,   	/* "(" */
+    I_RP,   	/* ")" */
+    I_LB,   	/* "[" */
+    I_RB,   	/* "]" */
+    I_LC,   	/* "{" */
+    I_RC,   	/* "}" */
 
-	/* 単項演算 */
-	I_COM,  	/* "~" */
-	I_NOT,  	/* "!" */
-	I_INC,  	/* "++" */
-	I_NEG,  	/* "単項-" */
-	I_DEC,  	/* "--" */
-	I_NEGS, 	/* "neg" */
-	I_COMS, 	/* "com" */
+    /* 単項演算 */
+    I_COM,  	/* "~" */
+    I_NOT,  	/* "!" */
+    I_INC,  	/* "++" */
+    I_NEG,  	/* "単項-" */
+    I_DEC,  	/* "--" */
+    I_NEGS, 	/* "neg" */
+    I_COMS, 	/* "com" */
 
-	/* statement */
-	I_AAADD,	/* "aaadd" */
-	I_AADIV,	/* "aadiv" */
-	I_AAMUL,	/* "aamul" */
-	I_AASUB,	/* "aasub" */
-	I_DAADD,	/* "daadd" */
-	I_DASUB,	/* "dasub" */
-	I_LEAVE,	/* "leave" */
-	I_LOCK, 	/* "lock" */
-	I_HLT,  	/* "hlt" */
-	I_NOP,  	/* "nop" */
-	I_INTO, 	/* "into" */
-	I_IRET, 	/* "iret" */
-	I_POPA, 	/* "popa" */
-	I_PUSHA,	/* "pusha" */
-	I_SEG_ES,	/* "seg_es" */
-	I_SEG_CS,	/* "seg_cs" */
-	I_SEG_SS,	/* "seg_ss" */
-	I_SEG_DS,	/* "seg_ds" */
-	I_WAIT, 	/* "wait" */
+    /* statement */
+    I_AAADD,	/* "aaadd" */
+    I_AADIV,	/* "aadiv" */
+    I_AAMUL,	/* "aamul" */
+    I_AASUB,	/* "aasub" */
+    I_DAADD,	/* "daadd" */
+    I_DASUB,	/* "dasub" */
+    I_LEAVE,	/* "leave" */
+    I_LOCK, 	/* "lock" */
+    I_HLT,  	/* "hlt" */
+    I_NOP,  	/* "nop" */
+    I_INTO, 	/* "into" */
+    I_IRET, 	/* "iret" */
+    I_POPA, 	/* "popa" */
+    I_PUSHA,	/* "pusha" */
+    I_SEG_ES,	/* "seg_es" */
+    I_SEG_CS,	/* "seg_cs" */
+    I_SEG_SS,	/* "seg_ss" */
+    I_SEG_DS,	/* "seg_ds" */
+    I_WAIT, 	/* "wait" */
 
-	I_CLRC, 	/* "clrc" */
-	I_SETC, 	/* "setc" */
-	I_CLRI, 	/* "clri" */
-	I_SETI, 	/* "seti" */
-	I_CLRD, 	/* "clrd" */
-	I_SETD, 	/* "setd" */
-	I_COMC, 	/* "comc" */
-	I_XLAT, 	/* "xlat" */
-	I_SEXT1,	/* "cbw" */
-	I_SEXT2,	/* "cwd" */
-	I_LAHF, 	/* "lahf" */
-	I_SAHF, 	/* "sahf" */
-	I_PUSHF,	/* "pushf" */
-	I_POPF, 	/* "popf" */
+    I_CLRC, 	/* "clrc" */
+    I_SETC, 	/* "setc" */
+    I_CLRI, 	/* "clri" */
+    I_SETI, 	/* "seti" */
+    I_CLRD, 	/* "clrd" */
+    I_SETD, 	/* "setd" */
+    I_COMC, 	/* "comc" */
+    I_XLAT, 	/* "xlat" */
+    I_SEXT1,	/* "cbw" */
+    I_SEXT2,	/* "cwd" */
+    I_LAHF, 	/* "lahf" */
+    I_SAHF, 	/* "sahf" */
+    I_PUSHF,	/* "pushf" */
+    I_POPF, 	/* "popf" */
 
-	I_ESC,  	/* "esc" */
+    I_ESC,  	/* "esc" */
 
-	I_REP,  	/* "rep" */
-	I_REPE, 	/* "repe" */
-	I_REPN, 	/* "repn" */
-	I_POP,  	/* "pop" */
-	I_PUSH, 	/* "push" */
+    I_REP,  	/* "rep" */
+    I_REPE, 	/* "repe" */
+    I_REPN, 	/* "repn" */
+    I_POP,  	/* "pop" */
+    I_PUSH, 	/* "push" */
 
-	I_INTR, 	/* "intr" */
-	I_ENTER,	/* "enter" */
-	I_BOUND,	/* "bound" */
-	I_BEGIN,	/* "begin" */
+    I_INTR, 	/* "intr" */
+    I_ENTER,	/* "enter" */
+    I_BOUND,	/* "bound" */
+    I_BEGIN,	/* "begin" */
 
-	I_GO,		/* "go" */
-	I_GOTO, 	/* "goto" */
-	I_GOSUB,	/* "gosub" */
-	I_RETURN,	/* "return" */
-	I_RETN, 	/* "retn" */
-	I_RET,  	/* "ret" */
-	I_RETF, 	/* "retf" */
-	I_JMPS, 	/* "jmp short" */
-	I_JMP,  	/* "jmp" */
-	I_JMPF, 	/* "jmpf" */
-	I_CALLN,	/* "calln" */
-	I_CALL, 	/* "call" */
-	I_CALLF,	/* "callf" */
+    I_GO,   	/* "go" */
+    I_GOTO, 	/* "goto" */
+    I_GOSUB,	/* "gosub" */
+    I_RETURN,	/* "return" */
+    I_RETN, 	/* "retn" */
+    I_RET,  	/* "ret" */
+    I_RETF, 	/* "retf" */
+    I_JMPS, 	/* "jmp short" */
+    I_JMP,  	/* "jmp" */
+    I_JMPF, 	/* "jmpf" */
+    I_CALLN,	/* "calln" */
+    I_CALL, 	/* "call" */
+    I_CALLF,	/* "callf" */
 
-	I_IF,		/* "if" */
-	I_ELSIF,	/* "elsif" */
-	I_ELSE, 	/* "else" */
-	I_FI,		/* "fi" */
-	I_EXIT, 	/* "exit" */
-	I_NEXT, 	/* "next" */
-	I_LOOP, 	/* "loop" */
-	I_ENDLOOP,  /* "pool" */
-	I_DO,		/* "do" */
-	I_ENDDO,	/* "od" */
+    I_IF,   	/* "if" */
+    I_ELSIF,	/* "elsif" */
+    I_ELSE, 	/* "else" */
+    I_FI,   	/* "fi" */
+    I_EXIT, 	/* "exit" */
+    I_NEXT, 	/* "next" */
+    I_LOOP, 	/* "loop" */
+    I_ENDLOOP,	/* "pool" */
+    I_DO,   	/* "do" */
+    I_ENDDO,	/* "od" */
 
-	I_VAR,  	/* "var" */
-	I_CVAR, 	/* "code" */
-	I_MVAR, 	/* "mvar" */
-	I_LOCAL,	/* "auto" */
-	I_CONST,	/* "const" */
-	I_TYPE, 	/* "type" */
-	I_DATA, 	/* "data" */
-	I_ATAD, 	/* "enddata" */
-	I_STRUCT,	/* "struct" */
-	I_ENDSTRUCT,/* "endstruct" */
+    I_VAR,  	/* "var" */
+    I_CVAR, 	/* "code" */
+    I_MVAR, 	/* "mvar" */
+    I_LOCAL,	/* "auto" */
+    I_CONST,	/* "const" */
+    I_TYPE, 	/* "type" */
+    I_DATA, 	/* "data" */
+    I_ATAD, 	/* "enddata" */
+    I_STRUCT,	/* "struct" */
+    I_ENDSTRUCT,/* "endstruct" */
 
-	I_PROC, 	/* "proc" */
-	/*I_CPROC,*/	/* "c_proc" */
-	I_ENDP, 	/* "corp" */
-	I_EXTERN,	/* "extern" */
-	I_FORWORD,  /* "forword" */
-	I_MACRO,	/* "macro" */
-	I_BEFORE,	/* "macro" */
-	I_CDECL,   /* "c_decl" */
-	I_SAVE, 	/* "save" */
-	I_LOAD, 	/* "load" */
-	I_IN,		/* "in" */
-	I_OUT,  	/* "out" */
-	I_BREAK,	/* "break" */
+    I_PROC, 	/* "proc" */
+    /*I_CPROC,*/    /* "c_proc" */
+    I_ENDP, 	/* "corp" */
+    I_EXTERN,	/* "extern" */
+    I_FORWORD,	/* "forword" */
+    I_MACRO,	/* "macro" */
+    I_BEFORE,	/* "macro" */
+    I_CDECL,   /* "c_decl" */
+    I_SAVE, 	/* "save" */
+    I_LOAD, 	/* "load" */
+    I_IN,   	/* "in" */
+    I_OUT,  	/* "out" */
+    I_BREAK,	/* "break" */
 
-	I_MODULE,	/* "module" */
-	I_ENDMODULE,/* "endmodule" */
-	I_PART, 	/* "part" */
-	I_MODEL,	/* "model" */
-	I_IMPORT,	/* "import" */
-	I_CNAME,	/* "c_name" */
-	I_STACK,	/* "stack" */
-	I_START,	/* "start" */
-	I_ASSUME,	/* "assume" */
-	I_SEG,  	/* "seg" */
-	I_SEGMENT,  /* "segment" */
-	I_EVEN, 	/* "even" */
-	I_PARA, 	/* "para" */
-	I_PAGE, 	/* "page" */
-	I_PUBLIC,	/* "public" */
-	I_PRIVATE,  /* "private */
-	I_COMMON,	/* "common" */
-	I_NOTHING,  /* "nothing" */
-	I_ORG,  	/* "org" */
+    I_MODULE,	/* "module" */
+    I_ENDMODULE,/* "endmodule" */
+    I_PART, 	/* "part" */
+    I_MODEL,	/* "model" */
+    I_IMPORT,	/* "import" */
+    I_CNAME,	/* "c_name" */
+    I_STACK,	/* "stack" */
+    I_START,	/* "start" */
+    I_ASSUME,	/* "assume" */
+    I_SEG,  	/* "seg" */
+    I_SEGMENT,	/* "segment" */
+    I_EVEN, 	/* "even" */
+    I_PARA, 	/* "para" */
+    I_PAGE, 	/* "page" */
+    I_PUBLIC,	/* "public" */
+    I_PRIVATE,	/* "private */
+    I_COMMON,	/* "common" */
+    I_NOTHING,	/* "nothing" */
+    I_ORG,  	/* "org" */
 
-	I_CFCM, 	/* ".cf." */
-	/*I_AFCM,*/ /* ".af." */
-	I_PFCM, 	/* ".pf." */
-	I_SFCM, 	/* ".sf." */
-	I_ZFCM, 	/* ".zf." */
-	I_OVFCM,	/* ".ovf." */
+    I_CFCM, 	/* ".cf." */
+    /*I_AFCM,*/ /* ".af." */
+    I_PFCM, 	/* ".pf." */
+    I_SFCM, 	/* ".sf." */
+    I_ZFCM, 	/* ".zf." */
+    I_OVFCM,	/* ".ovf." */
 
-	I_NCFCM, 	/* ".cf." */
-	I_NPFCM, 	/* ".pf." */
-	I_NSFCM, 	/* ".sf." */
-	I_NZFCM, 	/* ".zf." */
-	I_NOVFCM,	/* ".ovf." */
+    I_NCFCM,	/* ".cf." */
+    I_NPFCM,	/* ".pf." */
+    I_NSFCM,	/* ".sf." */
+    I_NZFCM,	/* ".zf." */
+    I_NOVFCM,	/* ".ovf." */
 
-	I_ORIG, 	/* "orig" */
-	I_DEFINED,  /* "defined" */
-	I_SIZEOF,	/* "size" */
-	I_W2D,  	/* "ww" */
-	I_PORT, 	/* "port" */
-	I_BXAL, 	/* "BYTE[bx+al]" */
-	I_ERR,  	/* "(err)" */
-	I_TYPEOF,	/* "(typeof)" */
+    I_ORIG, 	/* "orig" */
+    I_DEFINED,	/* "defined" */
+    I_SIZEOF,	/* "size" */
+    I_W2D,  	/* "ww" */
+    I_PORT, 	/* "port" */
+    I_BXAL, 	/* "BYTE[bx+al]" */
+    I_ERR,  	/* "(err)" */
+    I_TYPEOF,	/* "(typeof)" */
 
-	/* term の位置にくるｼﾝﾎﾞﾙ */
-	T_CNST, 	/* "(定数)" */
-	T_EXTCNST,  /* "(ﾗﾍﾞﾙの値)" */
-	T_CNSTEXPR, /* "(ﾗﾍﾞﾙ名の交ざった定数式)" */
-	T_OFS,  	/* "(%ﾗﾍﾞﾙ)" */
-	T_EXTCONST, /* "(external const)" */
-	T_R1,		/* "(reg1)" */
-	T_R2,		/* "(reg2)" */
-	T_R4,		/* "(reg4)" */
-	T_SEG2, 	/* "(seg)" */
-	T_SEG4, 	/* "(seg)" */
-	T_M1,		/* "(mem1)" */
-	T_M2,		/* "(mem2)" */
-	T_M4,		/* "(mem4)" */
-	T_ADDR, 	/* "(addr)" */
-	T_JMPLBL,	/* "(jmplbl)" */
-	T_SEG,  	/* "(seg)" */
-	T_ONE,  	/* "(one)" */
+    /* term の位置にくるｼﾝﾎﾞﾙ */
+    T_CNST, 	/* "(定数)" */
+    T_EXTCNST,	/* "(ﾗﾍﾞﾙの値)" */
+    T_CNSTEXPR, /* "(ﾗﾍﾞﾙ名の交ざった定数式)" */
+    T_OFS,  	/* "(%ﾗﾍﾞﾙ)" */
+    T_EXTCONST, /* "(external const)" */
+    T_R1,   	/* "(reg1)" */
+    T_R2,   	/* "(reg2)" */
+    T_R4,   	/* "(reg4)" */
+    T_SEG2, 	/* "(seg)" */
+    T_SEG4, 	/* "(seg)" */
+    T_M1,   	/* "(mem1)" */
+    T_M2,   	/* "(mem2)" */
+    T_M4,   	/* "(mem4)" */
+    T_ADDR, 	/* "(addr)" */
+    T_JMPLBL,	/* "(jmplbl)" */
+    T_SEG,  	/* "(seg)" */
+    T_ONE,  	/* "(one)" */
 
-	/**/
-	T_COND, 	/* "(比較)" */
-	T_LBL,  	/* "(LBL)" */
-	T_BLKLBL,	/* "(BLKLBL)" */
-	T_IDENT,	/* "(ident)" */
-	T_STRING,	/* "(文字列)" */
-	T_CONST,	/* "(const)" */
-	T_TYPE, 	/* "(type)" */
-	T_STRUCT,	/* "(strict)" */
-	T_ARRAY,	/* "(array)" */
-	T_MEMB, 	/* "(member)" */
-	#define T_MVAR  T_MEMB
-	T_CLASS,	/* "(class)" */
-	T_VAR,  	/* "(var)" */
-	/*T_CVAR,*/ /* "(code)" */
-	T_LOCAL,	/* "(ﾛｰｶﾙ変数)" */
-	T_ARGLOCAL, /* "(引数変数)" */
-	T_STARTLBL, /* "(export)" */
-	T_PROC, 	/* "(proc)" */
-	T_INTRPROC, /* "(proc)" */
-	T_PROC_DECL,/* "(proc_decl)" */
-	T_MACPROC,  /* "(macro) */
-	T_GROUP,	/* "(group)" */
-	T_MODULE,	/* "module" */
-	T_MODULEVAR,/* "(modulevar) */
-	T_MACROSTR, /* "(macrostr) */
+    /**/
+    T_COND, 	/* "(比較)" */
+    T_LBL,  	/* "(LBL)" */
+    T_BLKLBL,	/* "(BLKLBL)" */
+    T_IDENT,	/* "(ident)" */
+    T_STRING,	/* "(文字列)" */
+    T_CONST,	/* "(const)" */
+    T_TYPE, 	/* "(type)" */
+    T_STRUCT,	/* "(strict)" */
+    T_ARRAY,	/* "(array)" */
+    T_MEMB, 	/* "(member)" */
+    #define T_MVAR  T_MEMB
+    T_CLASS,	/* "(class)" */
+    T_VAR,  	/* "(var)" */
+    /*T_CVAR,*/ /* "(code)" */
+    T_LOCAL,	/* "(ﾛｰｶﾙ変数)" */
+    T_ARGLOCAL, /* "(引数変数)" */
+    T_STARTLBL, /* "(export)" */
+    T_PROC, 	/* "(proc)" */
+    T_INTRPROC, /* "(proc)" */
+    T_PROC_DECL,/* "(proc_decl)" */
+    T_MACPROC,	/* "(macro) */
+    T_GROUP,	/* "(group)" */
+    T_MODULE,	/* "module" */
+    T_MODULEVAR,/* "(modulevar) */
+    T_MACROSTR, /* "(macrostr) */
 
-	I_TO,		/* "to" */
-	I_DB,		/* "db" */
-	I_DD,		/* "dd" */
-	I_DW,		/* "dw" */
-	I_LABEL,	/* "label" */
-	I_SWITCH,	/* "switch" */
-	I_DEFAULT,  /* "default" */
-	I_CASE, 	/* "case" */
-	I_ESAC, 	/* "esac" */
-	I_CMP,  	/* "comp" */
-	I_STATIC,	/* "static" */
-	I_CLASS,	/* "class" */
-	I_ENDCLASS, /* "endclass" */
-	I_ARG,  	/* "arg" */
-	I_ARRAY,	/* "array" */
-	I_OF,		/* "of" */
-	I_GROUP,	/* "group" */
-	I_INP,  	/* "inp" */
-	I_OUTP, 	/* "outp" */
-	I_CODE, 	/* "code" */
-	I_DECL, 	/* "decl"	*/
-	I_SUBMODULE,/* "submodule" */
-	/*I_EXPORT,*/	/* "export" */
-	#define I_EXPORT  I_MUL
+    I_TO,   	/* "to" */
+    I_DB,   	/* "db" */
+    I_DD,   	/* "dd" */
+    I_DW,   	/* "dw" */
+    I_LABEL,	/* "label" */
+    I_SWITCH,	/* "switch" */
+    I_DEFAULT,	/* "default" */
+    I_CASE, 	/* "case" */
+    I_ESAC, 	/* "esac" */
+    I_CMP,  	/* "comp" */
+    I_STATIC,	/* "static" */
+    I_CLASS,	/* "class" */
+    I_ENDCLASS, /* "endclass" */
+    I_ARG,  	/* "arg" */
+    I_ARRAY,	/* "array" */
+    I_OF,   	/* "of" */
+    I_GROUP,	/* "group" */
+    I_INP,  	/* "inp" */
+    I_OUTP, 	/* "outp" */
+    I_CODE, 	/* "code" */
+    I_DECL, 	/* "decl"   */
+    I_SUBMODULE,/* "submodule" */
+    /*I_EXPORT,*/   /* "export" */
+    #define I_EXPORT  I_MUL
 
-	I_EQUS,
-	I_SET,
-	I_ENDMACRO,
-	I_REPT,
-	I_ENDREPT,
+    I_EQUS,
+    I_SET,
+    I_ENDMACRO,
+    I_REPT,
+    I_ENDREPT,
 
-	M_IF,		/* "@if" */
-	M_ELSIF,	/* "@elsif" */
-	M_ELSE, 	/* "@else" */
-	M_ENDIF,	/* "@fi" */
-	M_SET,  	/* "@set" */
-	M_MSG,  	/* "@msg" */
-	M_DEFINE,	/* "@define" */
-	M_INCLUDE,  /* "@include" */
-	M_MACRO,	/* "@macro" */
-	M_ENDMACRO,	/* "@endmacro" */
-	M_REPT,		/* "@rept" */
-	M_ENDREPT,	/* "@endrept" */
-	M_FOR,		/* "@for" */
-	M_ENDFOR,	/* "@endfor" */
-	M_LOCAL,	/* "@local" */
-	T_SYMEND,	/* "(static)" */
+    M_IF,   	/* "@if" */
+    M_ELSIF,	/* "@elsif" */
+    M_ELSE, 	/* "@else" */
+    M_ENDIF,	/* "@fi" */
+    M_SET,  	/* "@set" */
+    M_MSG,  	/* "@msg" */
+    M_DEFINE,	/* "@define" */
+    M_INCLUDE,	/* "@include" */
+    M_MACRO,	/* "@macro" */
+    M_ENDMACRO, /* "@endmacro" */
+    M_REPT, 	/* "@rept" */
+    M_ENDREPT,	/* "@endrept" */
+    M_FOR,  	/* "@for" */
+    M_ENDFOR,	/* "@endfor" */
+    M_LOCAL,	/* "@local" */
+    T_SYMEND,	/* "(static)" */
 
 };
 
 
-#define I_DXAX  	(I_DX*0x100+I_AX)	/* "dx.ax" */
+#define I_DXAX	    (I_DX*0x100+I_AX)	/* "dx.ax" */
 
 
 typedef struct {
-	word 			lbl[2];
-	byte 			flg[2];
+    word    	    lbl[2];
+    byte    	    flg[2];
 } BrkCont_t;
 
 
@@ -435,124 +435,124 @@ typedef struct {
 #define LBL_NAME_SIZ (25+16)
 
 struct ST_T_VAR {
-	/* union ST_T far *next; */
-	union ST_T far *lnk[2];
-	byte			flg;
-	byte			flg2;				/* bit0: 0=module内 1=export */
-										/* bit1: 0=near 	1=far	 */
-										/* bit2: 0=proc 	1=c_proc */
-										/* bit3: 0=module内 1=external */
-	word			tok;				/* T_TYPE,T_VAR,T_LOCAL */
-	char			name[LBL_NAME_SIZ]; /* 名前 */
-	union ST_T far *grp;				/* module,class へのﾎﾟｲﾝﾀ */
-	union ST_T far *st; 				/* NULLのとき、基本型(1,2,4) */
-	int16 			ofs;				/* T_LOCAL,T_TYPE:ｵﾌｾｯﾄ */
-										/* T_VAR,T_STATIC:内部ﾗﾍﾞﾙ番号 */
-	word			siz;				/* ｻｲｽﾞ(1:BYTE,2:WORD,4:DWORD,3:CWORD etc) */
-										/* NULL以外, T_STRUCT,T_ARRAY */
-	word			seg;				/* segment */
+    /* union ST_T far *next; */
+    union ST_T far *lnk[2];
+    byte    	    flg;
+    byte    	    flg2;   	    	/* bit0: 0=module内 1=export */
+    	    	    	    	    	/* bit1: 0=near     1=far    */
+    	    	    	    	    	/* bit2: 0=proc     1=c_proc */
+    	    	    	    	    	/* bit3: 0=module内 1=external */
+    word    	    tok;    	    	/* T_TYPE,T_VAR,T_LOCAL */
+    char    	    name[LBL_NAME_SIZ]; /* 名前 */
+    union ST_T far *grp;    	    	/* module,class へのﾎﾟｲﾝﾀ */
+    union ST_T far *st;     	    	/* NULLのとき、基本型(1,2,4) */
+    int16   	    ofs;    	    	/* T_LOCAL,T_TYPE:ｵﾌｾｯﾄ */
+    	    	    	    	    	/* T_VAR,T_STATIC:内部ﾗﾍﾞﾙ番号 */
+    word    	    siz;    	    	/* ｻｲｽﾞ(1:BYTE,2:WORD,4:DWORD,3:CWORD etc) */
+    	    	    	    	    	/* NULL以外, T_STRUCT,T_ARRAY */
+    word    	    seg;    	    	/* segment */
 };
 
 struct ST_T_PROC {
-	/* union ST_T far *next; */
-	union ST_T far *lnk[2];
-	byte			flg;
-	byte			flg2;				/* 0:module内変数 1:export */
-	word			tok;				/* T_PROC */
-	char			name[LBL_NAME_SIZ];
-	union ST_T far *grp;
-	union ET_T far *et; 				/* 引き数ﾘｽﾄ */
-	int16 			ofs;				/* 内部ﾗﾍﾞﾙ番号 */
-	word			argc;				/* 引き数の数 */
-	word			argsiz; 			/* 引数ｽﾀｯｸのおおきさ */
-	union ET_T far *et2;				/* reg情報 */
+    /* union ST_T far *next; */
+    union ST_T far *lnk[2];
+    byte    	    flg;
+    byte    	    flg2;   	    	/* 0:module内変数 1:export */
+    word    	    tok;    	    	/* T_PROC */
+    char    	    name[LBL_NAME_SIZ];
+    union ST_T far *grp;
+    union ET_T far *et;     	    	/* 引き数ﾘｽﾄ */
+    int16   	    ofs;    	    	/* 内部ﾗﾍﾞﾙ番号 */
+    word    	    argc;   	    	/* 引き数の数 */
+    word    	    argsiz; 	    	/* 引数ｽﾀｯｸのおおきさ */
+    union ET_T far *et2;    	    	/* reg情報 */
 };
 
 struct ST_T_GRP {
-	/* union ST_T far *next; */
-	union ST_T far *lnk[2];
-	byte			flg;
-	byte			flg2;				/* 0:ﾀｲﾆｰ 1:ｽﾓｰﾙ 2:ｺﾝﾊﾟｸﾄ 3:ﾐﾃﾞｨｱﾑ 4:ﾗｰｼﾞ */
-	word			tok;				/* T_GROUP  */
-	char			name[LBL_NAME_SIZ];
-	union ST_T far *grp;
-	union ST_T far *st; 				/* メンバ名の木 */
-	byte_fp 		modname;			/* 生成するモジュール名 */
-	byte			sep[3]; 			/* 生成するモジュール名のセパレータ */
-	byte			ccflg;  			/* 1:'_'を前に付加 2:'_'を後に付加 */
-	word			mvarSize;			/* クラス型の変数部 */
+    /* union ST_T far *next; */
+    union ST_T far *lnk[2];
+    byte    	    flg;
+    byte    	    flg2;   	    	/* 0:ﾀｲﾆｰ 1:ｽﾓｰﾙ 2:ｺﾝﾊﾟｸﾄ 3:ﾐﾃﾞｨｱﾑ 4:ﾗｰｼﾞ */
+    word    	    tok;    	    	/* T_GROUP  */
+    char    	    name[LBL_NAME_SIZ];
+    union ST_T far *grp;
+    union ST_T far *st;     	    	/* メンバ名の木 */
+    byte_fp 	    modname;	    	/* 生成するモジュール名 */
+    byte    	    sep[3]; 	    	/* 生成するモジュール名のセパレータ */
+    byte    	    ccflg;  	    	/* 1:'_'を前に付加 2:'_'を後に付加 */
+    word    	    mvarSize;	    	/* クラス型の変数部 */
 };
 
 struct ST_T_MACFUNC {
-	union ST_T far *lnk[2];
-	byte			flg;
-	byte			flg2;
-	word			tok;
-	char			name[LBL_NAME_SIZ];
-	union ST_T far *grp;
-	byte_fp 		macbufp;
-	word			macArgCnt;
+    union ST_T far *lnk[2];
+    byte    	    flg;
+    byte    	    flg2;
+    word    	    tok;
+    char    	    name[LBL_NAME_SIZ];
+    union ST_T far *grp;
+    byte_fp 	    macbufp;
+    word    	    macArgCnt;
 };
 
 struct ST_T_CONST {
-	union ST_T far *next;
-	union ST_T far *back;
-	/* union ST_T far *lnk[2];*/
-	byte			flg;
-	byte			flg2;
-	word			tok;				/* T_CONST , T_SEG */
-	char			name[LBL_NAME_SIZ];
-	union ST_T far *grp;
-	union ET_T far *et;
-	long			val;				/* 定数値 */
-	word			seg;
-	byte			align;
-	byte			combi;
-	byte			l_flg;  			/* setで定義された定数のとき0以外 */
+    union ST_T far *next;
+    union ST_T far *back;
+    /* union ST_T far *lnk[2];*/
+    byte    	    flg;
+    byte    	    flg2;
+    word    	    tok;    	    	/* T_CONST , T_SEG */
+    char    	    name[LBL_NAME_SIZ];
+    union ST_T far *grp;
+    union ET_T far *et;
+    long    	    val;    	    	/* 定数値 */
+    word    	    seg;
+    byte    	    align;
+    byte    	    combi;
+    byte    	    l_flg;  	    	/* setで定義された定数のとき0以外 */
 };
 
 struct ST_T_LBL {
-	/* union ST_T far *next; */
-	union ST_T far *lnk[2];
-	byte			flg;
-	byte			flg2;
-	word			tok;				/* T_LBL */
-	char			name[LBL_NAME_SIZ];
-	union ST_T far *grp;
-	union ST_T far *st;
-	int16 			ofs;				/* 内部ﾗﾍﾞﾙ番号 */
+    /* union ST_T far *next; */
+    union ST_T far *lnk[2];
+    byte    	    flg;
+    byte    	    flg2;
+    word    	    tok;    	    	/* T_LBL */
+    char    	    name[LBL_NAME_SIZ];
+    union ST_T far *grp;
+    union ST_T far *st;
+    int16   	    ofs;    	    	/* 内部ﾗﾍﾞﾙ番号 */
 };
 
 struct ST_T_BLKLBL {
-	/* union ST_T far *next; */
-	union ST_T far *lnk[2];
-	byte			flg;
-	byte			flg2;
-	word			tok;				/* T_BLKLBL */
-	char			name[LBL_NAME_SIZ];
-	union ST_T far *grp;
-	BrkCont_t far  *blklblp;
+    /* union ST_T far *next; */
+    union ST_T far *lnk[2];
+    byte    	    flg;
+    byte    	    flg2;
+    word    	    tok;    	    	/* T_BLKLBL */
+    char    	    name[LBL_NAME_SIZ];
+    union ST_T far *grp;
+    BrkCont_t far  *blklblp;
 
 };
 
 struct ST_T_NODE {
-	/* union ST_T far *next; */
-	union ST_T far *lnk[2];
-	byte			flg;
+    /* union ST_T far *next; */
+    union ST_T far *lnk[2];
+    byte    	    flg;
 };
 
 typedef union ST_T {
-	struct ST_T_PROC    p;
-	struct ST_T_VAR     v;
-	struct ST_T_CONST   c;
-	struct ST_T_LBL     l;
-	struct ST_T_GRP     g;
-	struct ST_T_NODE    n;
-	struct ST_T_BLKLBL  b;
-	struct ST_T_MACFUNC m;
+    struct ST_T_PROC	p;
+    struct ST_T_VAR 	v;
+    struct ST_T_CONST	c;
+    struct ST_T_LBL 	l;
+    struct ST_T_GRP 	g;
+    struct ST_T_NODE	n;
+    struct ST_T_BLKLBL	b;
+    struct ST_T_MACFUNC m;
 } St_t;
 
-typedef St_t far* 	St_t_fp;
+typedef St_t far*   St_t_fp;
 
 
 int 	St_Init(void);
@@ -565,81 +565,81 @@ St_t_fp St_Sav(void);
 
 /*---------------- Et ---------------- "tbl.c" */
 struct ET_T_EP {
-	union ET_T far *next;
-	word 		    op;
-	union ET_T far *lep;
-	union ET_T far *rep;
+    union ET_T far *next;
+    word    	    op;
+    union ET_T far *lep;
+    union ET_T far *rep;
 
 };
 
 struct ET_T_ST {
-	union ET_T far *next;
-	word 		    op;
-	union ST_T far *st;
-	union ST_T far *st2;
+    union ET_T far *next;
+    word    	    op;
+    union ST_T far *st;
+    union ST_T far *st2;
 };
 
 struct ET_T_MEM {
-	union ET_T far *next;
-	word 		    op;
-	union ET_T far *lep;
-	int16  			ofs;
-	byte 			typ;
-	byte 			seg;
-	word 			siz;
+    union ET_T far *next;
+    word    	    op;
+    union ET_T far *lep;
+    int16   	    ofs;
+    byte    	    typ;
+    byte    	    seg;
+    word    	    siz;
 };
 
 struct ET_T_CNSTNT {
-	union ET_T far *next;
-	word 			op;
-	long 			val;
-	//union ET_T far *rep;
-	word 			reg;
+    union ET_T far *next;
+    word    	    op;
+    long    	    val;
+    //union ET_T far *rep;
+    word    	    reg;
 };
 
 struct ET_T_JMP {
-	union ET_T far *next;
-	word 			op;			/* T_COND */
-	union ET_T far *lep;
-	word 			cond;  		/* 0:et 1～  GO_CF,GO_NEQ... */
-	byte 			mode;  		/* 0:成立すればJMP 1:成立しなけせばJMP */
-	byte 			nf;			/* 0:そのまま 1:条件反転 */
+    union ET_T far *next;
+    word    	    op;     	/* T_COND */
+    union ET_T far *lep;
+    word    	    cond;   	/* 0:et 1～  GO_CF,GO_NEQ... */
+    byte    	    mode;   	/* 0:成立すればJMP 1:成立しなけせばJMP */
+    byte    	    nf;     	/* 0:そのまま 1:条件反転 */
 };
 
 struct ET_T_FUNC_EX {
-	union ET_T far *next;
-	word			intr_no;	/* intr proc での割込番号 */
-	union ET_T far *lep;		/* さらに拡張 */
-	word			in; 		/* ah,al,bh,bl,ch,cl,dh,dl,si,di,es,ds,fx,cf,df,arg*/
-	word			out;
-	word			brk;
+    union ET_T far *next;
+    word    	    intr_no;	/* intr proc での割込番号 */
+    union ET_T far *lep;    	/* さらに拡張 */
+    word    	    in;     	/* ah,al,bh,bl,ch,cl,dh,dl,si,di,es,ds,fx,cf,df,arg*/
+    word    	    out;
+    word    	    brk;
 };
 
 struct ET_T_CLSTR {
-	union ET_T far *next;
-	byte  			buf[12];
+    union ET_T far *next;
+    byte    	    buf[12];
 };
 
 #if 0
 struct ET_T_STR {
-	union ET_T far *next;
-	word op;
-	byte seg;
-	byte typ;
-	byte_fp str;
-	word len;
+    union ET_T far *next;
+    word op;
+    byte seg;
+    byte typ;
+    byte_fp str;
+    word len;
 };
 #endif
 
 typedef union ET_T {
-	struct ET_T_EP  	e;
+    struct ET_T_EP  	e;
 
-	struct ET_T_CNSTNT  c;
-	struct ET_T_ST  	v;
-	struct ET_T_MEM 	m;
-	struct ET_T_JMP 	j;
-	struct ET_T_FUNC_EX f;
-	struct ET_T_CLSTR	b;
+    struct ET_T_CNSTNT	c;
+    struct ET_T_ST  	v;
+    struct ET_T_MEM 	m;
+    struct ET_T_JMP 	j;
+    struct ET_T_FUNC_EX f;
+    struct ET_T_CLSTR	b;
  /* struct ET_T_STR 	s; */
 } Et_t;
 typedef Et_t far* Et_t_fp;
@@ -655,32 +655,32 @@ int 	Et_Init(void);
 
 /*---------------- Expr & Gen ----------------*/
 static enum {
-	GO_EQU=2,	GO_NEQ,
-	GO_GT,  	GO_LE,
-	GO_LT,  	GO_GE,
-	GO_IGT, 	GO_ILE,
-	GO_ILT, 	GO_IGE,
-	GO_C,		GO_NC,
-	GO_Z,		GO_NZ,
-	GO_S,		GO_NS,
-	GO_O,		GO_NO,
-	GO_P,		GO_NP,
-	GO_CX,  	GO_NCX,
-	GO_DECX,	GO_NDECX,
-	GO_DECX_Z,  GO_NDECX_Z,
-	GO_DECX_NZ, GO_NDECX_NZ,
-	GO_JMP, 	GO_NJMP
+    GO_EQU=2,	GO_NEQ,
+    GO_GT,  	GO_LE,
+    GO_LT,  	GO_GE,
+    GO_IGT, 	GO_ILE,
+    GO_ILT, 	GO_IGE,
+    GO_C,   	GO_NC,
+    GO_Z,   	GO_NZ,
+    GO_S,   	GO_NS,
+    GO_O,   	GO_NO,
+    GO_P,   	GO_NP,
+    GO_CX,  	GO_NCX,
+    GO_DECX,	GO_NDECX,
+    GO_DECX_Z,	GO_NDECX_Z,
+    GO_DECX_NZ, GO_NDECX_NZ,
+    GO_JMP, 	GO_NJMP
 };
 
 #define Op_ShiftEq(c)	((c) >= I_SHLEQ && (c) <= I_SAREQ))
-#define Op_Bin(c)		((c) >= I_EXG	&& (c) <= I_IDIVS))
-#define Op_Bin2(c)  	((c) >= I_EQEQ  && (c) <= I_SAR))
-#define Op_One(c)		((c) >= I_AAADD && (c) <= I_WAIT)
-#define Op_Reg(c)		((c) >= I_AH	&& (c) <= I_SS)
+#define Op_Bin(c)   	((c) >= I_EXG	&& (c) <= I_IDIVS))
+#define Op_Bin2(c)  	((c) >= I_EQEQ	&& (c) <= I_SAR))
+#define Op_One(c)   	((c) >= I_AAADD && (c) <= I_WAIT)
+#define Op_Reg(c)   	((c) >= I_AH	&& (c) <= I_SS)
 #define Op_Reg1(c)  	((c) >= I_AH	&& (c) <= I_BL)
 #define Op_Reg1h(c) 	((c) >= I_AH	&& (c) <= I_BH)
 #define Op_Reg1l(c) 	((c) >= I_AL	&& (c) <= I_BL)
-/*#define	Op_Regs(c)  ((c) >= I_AX	&& (c) <= I_SS)*/
+/*#define   Op_Regs(c)	((c) >= I_AX	&& (c) <= I_SS)*/
 #define Op_Seg2(c)  	((c) >= I_CS	&& (c) <= I_SS)
 #define Op_RegI(c)  	((c) >= I_BX	&& (c) <= I_BP)
 #define Op_Reg2(c)  	((c) >= I_AX	&& (c) <= I_SP)
@@ -759,9 +759,9 @@ Et_t_fp Ev_Cnst(long);
 Et_t_fp Ev_Cnst2(long);
 
 /*--------------- Ch --------------- "sym.c" */
-EXTERN  byte	*Ch_srcName;		/* 現在入力しているファイル */
-EXTERN  FILE	*Ch_file;			/* 入力ファイルのファイル・ポインタ */
-EXTERN  word	Ch_line;			/* 入力している行番号 */
+EXTERN	byte	*Ch_srcName;	    /* 現在入力しているファイル */
+EXTERN	FILE	*Ch_file;   	    /* 入力ファイルのファイル・ポインタ */
+EXTERN	word	Ch_line;    	    /* 入力している行番号 */
 
 word	Ch_GetLine(byte *,word);
 word	Ch_Get(void);
@@ -777,17 +777,17 @@ void	Sym_MacInclude(void);
 #define PAR_CR_INC()	do {if (Opt_parCr) Sym_crMode++;} while(0)
 #define PAR_CR_DEC()	do {if (Opt_parCr) Sym_crMode--;} while(0)
 
-EXTERN  int 	Sym_crMode;
-EXTERN  byte	Sym_name[LBL_NAME_SIZ+256];
-EXTERN  word	Sym_tok;
-EXTERN  word	Sym_typ;
-EXTERN  word	Sym_reg;
-EXTERN  word	Sym_flg;
-EXTERN  long	Sym_val;
-EXTERN  int 	Sym_rsvflg;
-EXTERN  int 	Sym_strLen;
-EXTERN  byte_fp Sym_str;
-EXTERN  St_t_fp Sym_sp;
+EXTERN	int 	Sym_crMode;
+EXTERN	byte	Sym_name[LBL_NAME_SIZ+256];
+EXTERN	word	Sym_tok;
+EXTERN	word	Sym_typ;
+EXTERN	word	Sym_reg;
+EXTERN	word	Sym_flg;
+EXTERN	long	Sym_val;
+EXTERN	int 	Sym_rsvflg;
+EXTERN	int 	Sym_strLen;
+EXTERN	byte_fp Sym_str;
+EXTERN	St_t_fp Sym_sp;
 
 word	Ch_Init(void);
 word	Sym_Get(void);
@@ -796,13 +796,13 @@ word	Sym_GetRsvOff2(void);
 int 	Sym_NameGet(word);
 
 #ifdef DEBUG
-EXTERN  byte_fp Deba_fname;
-EXTERN  int 	Deba_line;
+EXTERN	byte_fp Deba_fname;
+EXTERN	int 	Deba_line;
 #define Sym_ChkEol() do\
-	{Deba_fname = __FILE__;Deba_line = __LINE__;_Sym_ChkEol();} while(0)
+    {Deba_fname = __FILE__;Deba_line = __LINE__;_Sym_ChkEol();} while(0)
 void	_Sym_ChkEol(void);
 #define Sym_GetChkEol() do\
-	{Deba_fname=__FILE__;Deba_line=__LINE__;_Sym_GetChkEol();} while(0)
+    {Deba_fname=__FILE__;Deba_line=__LINE__;_Sym_GetChkEol();} while(0)
 void	_Sym_GetChkEol(void);
 #else
 void	Sym_ChkEol(void);
@@ -820,7 +820,7 @@ int 	Sym_ChkRB(void);
 void	Sym_MacDef(void);
 
 /*---------------- Out ---------------- "out.c" */
-EXTERN  FILE	*Out_file;  		/* 出力ファイルのファイル・ポインタ */
+EXTERN	FILE	*Out_file;  	    /* 出力ファイルのファイル・ポインタ */
 
 void	Out_PubLblStr(const byte_fp);
 void	Out_LblStr(const byte_fp);
@@ -842,8 +842,8 @@ void	Out_ShiftReg12Cnst(word t,word reg,int n);
 byte_fp Str_StName(const St_t_fp);
 
 /*--------------- Err --------------- "out.c" */
-EXTERN  FILE *Err_File;
-EXTERN  int   Err_cnt;
+EXTERN	FILE *Err_File;
+EXTERN	int   Err_cnt;
 
 #ifdef DEBUG
 #define Msg_Err(s)  Msg_Err_(s,__FILE__,__LINE__)
@@ -859,68 +859,68 @@ void	Msg_PrgErr_(byte_fp);
 
 /*---------------- ETC ---------------*/
 enum {ANAERR_EOF = 1,ANAERR_MEM,ANAERR_MIF,ANAERR_ENDP,ANAERR_MMOD};
-EXTERN  St_t_fp Mod_sp;
-EXTERN  byte_fp Mod_grps[3];
-EXTERN  FILE*	Rsp_file;
-EXTERN  FILE*	Ana_partLstFile;
-EXTERN  St_t_fp Ana_modelsp;
-EXTERN  byte_fp Ana_incDir;
-EXTERN  int16	Ana_model;  		/* TINY,SMALL,MEDIUM */
-EXTERN  byte	Ana_mode;			/* MD_??? */
-EXTERN  byte	Ana_err;			/* 1ならEOF 2ならﾒﾓﾘ･ﾌﾙ */
-EXTERN  byte	Ana_saveOfs;		/* saveによるﾚｼﾞｽﾀ保存でのｵﾌｾｯﾄ */
-EXTERN  byte	Opt_comment;		/* ｿｰｽをｺﾒﾝﾄにして出力 */
-EXTERN  byte	Opt_cpu;			/* cpuﾀｲﾌﾟ 0:8086 1:186 2:286 3:396 */
-EXTERN  byte	Opt_r86;			/* LSI R86 */
-EXTERN  byte	Opt_partFlg;		/* @part を行うかどうか */
-EXTERN  byte	Opt_auto;			/* 引数の暗黙のﾚｼﾞｽﾀ代入 */
-EXTERN  byte	Opt_namePub;		/* 生成するローカルな名前を publicに */
-EXTERN  byte	Opt_procFlg;		/* 出力にproc～endp を使う1,使わない 0 */
-EXTERN  byte	Opt_zeroBSS;		/* var 変数で 0 初期化するものを BSSに */
-EXTERN  byte	Opt_parCr;  		/* (..) 内の改行を空白扱いにする */
-EXTERN  byte	Opt_procAssumeFlg;  /* */
-EXTERN  byte_fp Ana_dirName;		/* 出力先ディレクトリ */
-#define NAM_SIZE MAX_PATH		//85
-EXTERN  byte	Ana_outName[NAM_SIZE];
-EXTERN  byte	Ana_partIncName[NAM_SIZE];
-EXTERN  int 	Ana_align;
-EXTERN  int 	Ana_mmodFlg;		/* import ｼﾀ file ﾃﾞ module ｶﾞ ﾌｸｽｳ ｱﾙ ｶ?*/
-EXTERN	int		Ana_moduleMode;		/* module 文が必要かどうかのフラグ */
-EXTERN	int		Ana_oldver;			/* v0.17-v0.20の文法を許す */
+EXTERN	St_t_fp Mod_sp;
+EXTERN	byte_fp Mod_grps[3];
+EXTERN	FILE*	Rsp_file;
+EXTERN	FILE*	Ana_partLstFile;
+EXTERN	St_t_fp Ana_modelsp;
+EXTERN	byte_fp Ana_incDir;
+EXTERN	int16	Ana_model;  	    /* TINY,SMALL,MEDIUM */
+EXTERN	byte	Ana_mode;   	    /* MD_??? */
+EXTERN	byte	Ana_err;    	    /* 1ならEOF 2ならﾒﾓﾘ･ﾌﾙ */
+EXTERN	byte	Ana_saveOfs;	    /* saveによるﾚｼﾞｽﾀ保存でのｵﾌｾｯﾄ */
+EXTERN	byte	Opt_comment;	    /* ｿｰｽをｺﾒﾝﾄにして出力 */
+EXTERN	byte	Opt_cpu;    	    /* cpuﾀｲﾌﾟ 0:8086 1:186 2:286 3:396 */
+EXTERN	byte	Opt_r86;    	    /* LSI R86 */
+EXTERN	byte	Opt_partFlg;	    /* @part を行うかどうか */
+EXTERN	byte	Opt_auto;   	    /* 引数の暗黙のﾚｼﾞｽﾀ代入 */
+EXTERN	byte	Opt_namePub;	    /* 生成するローカルな名前を publicに */
+EXTERN	byte	Opt_procFlg;	    /* 出力にproc～endp を使う1,使わない 0 */
+EXTERN	byte	Opt_zeroBSS;	    /* var 変数で 0 初期化するものを BSSに */
+EXTERN	byte	Opt_parCr;  	    /* (..) 内の改行を空白扱いにする */
+EXTERN	byte	Opt_procAssumeFlg;  /* */
+EXTERN	byte_fp Ana_dirName;	    /* 出力先ディレクトリ */
+#define NAM_SIZE MAX_PATH   	//85
+EXTERN	byte	Ana_outName[NAM_SIZE];
+EXTERN	byte	Ana_partIncName[NAM_SIZE];
+EXTERN	int 	Ana_align;
+EXTERN	int 	Ana_mmodFlg;	    /* import ｼﾀ file ﾃﾞ module ｶﾞ ﾌｸｽｳ ｱﾙ ｶ?*/
+EXTERN	int 	Ana_moduleMode;     /* module 文が必要かどうかのフラグ */
+EXTERN	int 	Ana_oldver; 	    /* v0.17-v0.20の文法を許す */
 #ifdef EXT
-	byte_fp Ana_ext    = "ANA";
-	byte_fp Ana_hdrext = "HAN";
+    byte_fp Ana_ext    = "ANA";
+    byte_fp Ana_hdrext = "HAN";
 #else
-	extern byte_fp Ana_ext;
-	extern byte_fp Ana_hdrext;
+    extern byte_fp Ana_ext;
+    extern byte_fp Ana_hdrext;
 #endif
 FILE*	fopen_e(char *,char *);
 
 /* stat.c */
-int  	Stat(void);
-word 	Sym_Get(void);
+int 	Stat(void);
+word	Sym_Get(void);
 //void	SkipSym(word t);
 St_t_fp GoLbl_New(byte_fp name);
 St_t_fp Sym_NameNew(byte far *name,word t,word flg);
 
-extern  BrkCont_t *gStatBrkCont_p;
+extern	BrkCont_t *gStatBrkCont_p;
 
 /* decl.c */
 #ifdef EXT
-	byte_fp gJmps[2]  = {"jmp short"   ,"jmp"  };
-	byte_fp gJmpf[2]  = {"jmp far ptr" ,"jmpf" };
-	byte_fp gCallf[2] = {"call far ptr","callf"};
+    byte_fp gJmps[2]  = {"jmp short"   ,"jmp"  };
+    byte_fp gJmpf[2]  = {"jmp far ptr" ,"jmpf" };
+    byte_fp gCallf[2] = {"call far ptr","callf"};
 #else
-	extern byte_fp gJmps[2];
-	extern byte_fp gJmpf[2];
-	extern byte_fp gCallf[2];
+    extern byte_fp gJmps[2];
+    extern byte_fp gJmpf[2];
+    extern byte_fp gCallf[2];
 #endif
-EXTERN  St_t_fp 	St_inpRoot; 		/* module名の管理用ﾎﾟｲﾝﾀ */
-EXTERN  St_t_fp 	St_expoRoot;		/* export ﾗﾍﾞﾙの管理用ﾎﾟｲﾝﾀ */
-EXTERN  St_t_fp 	St_rsvRoot; 		/* -Dで設定されたﾗﾍﾞﾙの管理用ﾎﾟｲﾝﾀ */
-EXTERN  St_t_fp 	St_root;			/* module内ｸﾞﾛｰﾊﾞﾙ･ﾗﾍﾞﾙの管理用ﾎﾟｲﾝﾀ */
-EXTERN  St_t_fp 	St_localRoot;		/* ﾛｰｶﾙ･ﾗﾍﾞﾙの管理用ﾎﾟｲﾝﾀ */
-EXTERN  byte 		Decl_defFlg;
+EXTERN	St_t_fp     St_inpRoot;     	/* module名の管理用ﾎﾟｲﾝﾀ */
+EXTERN	St_t_fp     St_expoRoot;    	/* export ﾗﾍﾞﾙの管理用ﾎﾟｲﾝﾀ */
+EXTERN	St_t_fp     St_rsvRoot;     	/* -Dで設定されたﾗﾍﾞﾙの管理用ﾎﾟｲﾝﾀ */
+EXTERN	St_t_fp     St_root;	    	/* module内ｸﾞﾛｰﾊﾞﾙ･ﾗﾍﾞﾙの管理用ﾎﾟｲﾝﾀ */
+EXTERN	St_t_fp     St_localRoot;   	/* ﾛｰｶﾙ･ﾗﾍﾞﾙの管理用ﾎﾟｲﾝﾀ */
+EXTERN	byte	    Decl_defFlg;
 
 int 	Decl_Module(int);
 void	Decl_Return(void);
@@ -934,47 +934,47 @@ void	Decl_Const(void);
 void	Decl_Align(void);
 void	Out_DAssume(void);
 void	Out_Seg(St_t_fp sp);
-EXTERN  St_t_fp gSeg_sp[4];
+EXTERN	St_t_fp gSeg_sp[4];
 #ifdef MVAR
-EXTERN  word gMvarOfs;
+EXTERN	word gMvarOfs;
 void	Decl_Mvar(void);
 #endif
 
 /* "gen.c" */
 #define GoLbl_SIZ 12
-EXTERN  word 	GoLbl_no;  		/* 内部ラベルの番号 */
-EXTERN  byte 	Gen_condMode;  	/* 0:符号変化無視 1:在り 2:在り(基本命令のみ)*/
+EXTERN	word	GoLbl_no;   	/* 内部ラベルの番号 */
+EXTERN	byte	Gen_condMode;	/* 0:符号変化無視 1:在り 2:在り(基本命令のみ)*/
 
 byte_fp GoLbl_Strs(word n);
 word	GoLbl_NewNo(void);
 void	Gen_PushPop(word t,Et_t_fp lp);
 
 /* "mem.c" */
-void 	Mac_Init(void);
-void 	Mac_Putc(unsigned);
+void	Mac_Init(void);
+void	Mac_Putc(unsigned);
 byte_fp Mac_Pos(void);
 
 /* "deb.c" */
 #ifdef DEBUG
- #define EXPMSG(n,p) 		Deb_EtMsg(n,p)
- void		Deb_EtMsg(byte *,Et_t_fp);
- byte_fp	Deb_ChkOp(word);
- void 		Deb_SymNam(word t);
+ #define EXPMSG(n,p)	    Deb_EtMsg(n,p)
+ void	    Deb_EtMsg(byte *,Et_t_fp);
+ byte_fp    Deb_ChkOp(word);
+ void	    Deb_SymNam(word t);
 #else
- #define	EXPMSG(n,p)
+ #define    EXPMSG(n,p)
 #endif
 EXTERN byte Deb_macFlg;
 
 //
 typedef struct Sss_t {
-	struct Sss_t	*next;
-	byte far 		*str;
-	int 			no;
+    struct Sss_t    *next;
+    byte far	    *str;
+    int     	    no;
 } Sss_t;
 #ifdef EXT
-	Sss_t *Expr_strl    = NULL;
-	Sss_t *Expr_strlTop = NULL;
+    Sss_t *Expr_strl	= NULL;
+    Sss_t *Expr_strlTop = NULL;
 #else
-	extern Sss_t *Expr_strl;
-	extern Sss_t *Expr_strlTop;
+    extern Sss_t *Expr_strl;
+    extern Sss_t *Expr_strlTop;
 #endif

@@ -1,14 +1,13 @@
 module H
-	c_name "fil","_",1
-	import fil
+    c_name "fil","_",1
+    import fil
 
 *proc getdrive();cdecl
 enter
-	ah = 0x19
-	intr 0x21
-	ah = 0
-	return
+    ah = 0x19
+    intr 0x21
+    ah = 0
+    return
 endproc
 
 endmodule
-

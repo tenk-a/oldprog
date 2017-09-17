@@ -1,22 +1,21 @@
 module H
-	c_name "fil","_",1
-	import fil
+    c_name "fil","_",1
+    import fil
 
 *proc dup2(hdl1:w, hdl2:w);cdecl
 enter
-	save bx,dx,ds
+    save bx,dx,ds
 
-	bx = hdl1
-	cx = hdl2
-	ah = 0x46
-	intr 0x21
-	if (cf)
-		neg ax
-	else
-		ax = cx
-	fi
-	return
+    bx = hdl1
+    cx = hdl2
+    ah = 0x46
+    intr 0x21
+    if (cf)
+    	neg ax
+    else
+    	ax = cx
+    fi
+    return
 endproc
 
 endmodule
-

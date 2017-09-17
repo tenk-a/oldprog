@@ -1,26 +1,26 @@
 /*
-	コマンドライン解析
-	ファイル名をそのつどDOSコールで探す
-	（ファイル読み込みのみのプログラム用）
-	1992	writen by M.Kitamura
+    コマンドライン解析
+    ファイル名をそのつどDOSコールで探す
+    （ファイル読み込みのみのプログラム用）
+    1992    writen by M.Kitamura
 */
 module CmdLineA
-	model SMALL
-	//stack 0x400
+    model SMALL
+    //stack 0x400
 
-	import DirEntry
-	import Fname
-	//import PUTSTR
-	import Str
+    import DirEntry
+    import Fname
+    //import PUTSTR
+    import Str
 
 /////////////////
-*var fname:w				// 検索に用いたファイル名(ﾜｲﾙﾄﾞｶｰﾄﾞ有).
-*var fnameOptCnt:w			// トークンの数
-*var fnameOptTbl:w			// コマンドラインより得たトークン表のアドレス
-*var optTbl:w				// オプション表のアドレス
-*var optCnt:w				// オプションの数
-*var fnameTbl:w 			// ファイル名表のアドレス
-*var fnameCnt:w 			// ファイル名の数
+*var fname:w	    	    // 検索に用いたファイル名(ﾜｲﾙﾄﾞｶｰﾄﾞ有).
+*var fnameOptCnt:w  	    // トークンの数
+*var fnameOptTbl:w  	    // コマンドラインより得たトークン表のアドレス
+*var optTbl:w	    	    // オプション表のアドレス
+*var optCnt:w	    	    // オプションの数
+*var fnameTbl:w     	    // ファイル名表のアドレス
+*var fnameCnt:w     	    // ファイル名の数
 var fnameTbl2:w
 var fnameCnt2:w
 const FILCNT=63
@@ -28,141 +28,141 @@ var fnameOptTbls:w(FILCNT)
 var cbuf:b(130)
 
 *proc Init(dx)
-//	コマンドライン解析。PSPよりコマンドラインを自前のバッファにコピーし、
-//	トークンに分割する
-//	arg dx		psp のセグメント
-//	out si		fnameOptTblの先頭アドレス
-//	out cx		fnameOptCnt
+//  コマンドライン解析。PSPよりコマンドラインを自前のバッファにコピーし、
+//  トークンに分割する
+//  arg dx  	psp のセグメント
+//  out si  	fnameOptTblの先頭アドレス
+//  out cx  	fnameOptCnt
 enter
-	save ax,bx,dx,di,es,ds,fx
-	local flg:w = ax
+    save ax,bx,dx,di,es,ds,fx
+    local flg:w = ax
 
-	ds = si = %var
-	rep.inc
-	es = si
-	si = 0x81
-	di = &cbuf
-	ds = dx
-	loop
-		rep.load al,si
-		exit (al == 0x0d)
-		rep.set  di,al
-	endloop (si < 0x100)
-	al = 0
-	rep.set di,al
-	ds = es
-	si = &cbuf
-	di = &fnameOptTbls
-	fnameTbl = di
-	fnameOptTbl = di
-	cx = FILCNT
-	Str.SepLine es.di,si,cx
-	fnameOptCnt = cx
-	fnameCnt = cx
-	fnameCnt2 = cx
-	ax = 0
-	optCnt	= ax
-	optTbl = ax
-	fname = ax
-	si = di
-	return
+    ds = si = %var
+    rep.inc
+    es = si
+    si = 0x81
+    di = &cbuf
+    ds = dx
+    loop
+    	rep.load al,si
+    	exit (al == 0x0d)
+    	rep.set  di,al
+    endloop (si < 0x100)
+    al = 0
+    rep.set di,al
+    ds = es
+    si = &cbuf
+    di = &fnameOptTbls
+    fnameTbl = di
+    fnameOptTbl = di
+    cx = FILCNT
+    Str.SepLine es.di,si,cx
+    fnameOptCnt = cx
+    fnameCnt = cx
+    fnameCnt2 = cx
+    ax = 0
+    optCnt  = ax
+    optTbl = ax
+    fname = ax
+    si = di
+    return
 endproc
 
 
 *proc MoveOpt()
-//	Initで取得したトークンのテーブルで、オプションを前に移動
-//	out si		optTbl
-//	out cx		optCnt
-//	out di		fnameTbl
-//	out ax		fnameCnt
+//  Initで取得したトークンのテーブルで、オプションを前に移動
+//  out si  	optTbl
+//  out cx  	optCnt
+//  out di  	fnameTbl
+//  out ax  	fnameCnt
 begin
-	save bx,dx,ds
-	ds = ax = %var
-	ax = 0
-	cx = fnameOptCnt
-	si = fnameOptTbl
-	optTbl = si
-	Fname.MoveOpt si,cx
-	di = si
-	fnameOptCnt = cx
-	optCnt	= ax
-	cx -= ax
-	fnameCnt2 = cx
-	fnameCnt = cx
-	push ax
-	  ax <<= 1
-	  di += ax
-	pop  ax
-	ax <=> cx
-	fnameTbl2 = di
-	fnameTbl = di
-	return
+    save bx,dx,ds
+    ds = ax = %var
+    ax = 0
+    cx = fnameOptCnt
+    si = fnameOptTbl
+    optTbl = si
+    Fname.MoveOpt si,cx
+    di = si
+    fnameOptCnt = cx
+    optCnt  = ax
+    cx -= ax
+    fnameCnt2 = cx
+    fnameCnt = cx
+    push ax
+      ax <<= 1
+      di += ax
+    pop  ax
+    ax <=> cx
+    fnameTbl2 = di
+    fnameTbl = di
+    return
 endproc
 
 *proc Top()
-//	ファイル名の取得を最初からにする
+//  ファイル名の取得を最初からにする
 begin
-	save ds,cx
-	ds = cx = %var
-	fnameTbl2 = cx = fnameTbl
-	fnameCnt2 = cx = fnameCnt
-	return
+    save ds,cx
+    ds = cx = %var
+    fnameTbl2 = cx = fnameTbl
+    fnameCnt2 = cx = fnameCnt
+    return
 endproc
 
 *proc GetFname(es.di,ax)
-//	コマンドライン・パラメータよりファイル名を一つとりだす。
-//	ファイル名は'-'以外で始まる名前で、ワイルド・カード文字対応、ディレクト
-//	リ・エントリより一致する名前を返す。ワイルド・カードのルールは WildCmp
-//	を参照. ただし、拡張子のないファイルに一致させる方法は、MS-DOS本来の指定
-//	と同じ（例 A*B.  Aで始まりBで終わる拡張子無しのファイルに一致）
-//	arg es.di	見つかった名前を格納するアドレス（領域 128byte以上）
-//	arg ax		ディレクトリ・エントリ検索で対象とするファイル属性
-//				（値は DirEntry.Get を参照）
-//	out ax		0:エラー無し  -1:設定がおかしい 1:これ以上ファイルがない
-//				2:ファイルが無い
-//	break fx
+//  コマンドライン・パラメータよりファイル名を一つとりだす。
+//  ファイル名は'-'以外で始まる名前で、ワイルド・カード文字対応、ディレクト
+//  リ・エントリより一致する名前を返す。ワイルド・カードのルールは WildCmp
+//  を参照. ただし、拡張子のないファイルに一致させる方法は、MS-DOS本来の指定
+//  と同じ（例 A*B.  Aで始まりBで終わる拡張子無しのファイルに一致）
+//  arg es.di	見つかった名前を格納するアドレス（領域 128byte以上）
+//  arg ax  	ディレクトリ・エントリ検索で対象とするファイル属性
+//  	    	（値は DirEntry.Get を参照）
+//  out ax  	0:エラー無し  -1:設定がおかしい 1:これ以上ファイルがない
+//  	    	2:ファイルが無い
+//  break fx
 enter
-	save cx,bx,dx,si,ds,pStr_h:es,pStr_l:di
-	var  flg:b = 0
+    save cx,bx,dx,si,ds,pStr_h:es,pStr_l:di
+    var  flg:b = 0
 
-	di = ax
-	ds = ax = %var
-	cx = fnameCnt2
-	if (cx == 0 && flg == 0)
-		ax = 1
-		go RET
-	fi
-	loop.w
-		dx.si = 0
+    di = ax
+    ds = ax = %var
+    cx = fnameCnt2
+    if (cx == 0 && flg == 0)
+    	ax = 1
+    	go RET
+    fi
+    loop.w
+    	dx.si = 0
  //intr 0xf0
-		if (flg == 0)
-			if (fnameCnt2 == 0)
-				ax = 1
-				exit.w
-			fi
-			--fnameCnt2
-			bx = fnameTbl2
-			si = w[bx]
-			bx += 2
-			fnameTbl2 = bx
-			dx = ds
-			fname = si
-			//pusha;PUTSTR.PutStrCr 1,dx.si;popa
-		fi
-		bx = pStr_h; ax = pStr_l
+    	if (flg == 0)
+    	    if (fnameCnt2 == 0)
+    	    	ax = 1
+    	    	exit.w
+    	    fi
+    	    --fnameCnt2
+    	    bx = fnameTbl2
+    	    si = w[bx]
+    	    bx += 2
+    	    fnameTbl2 = bx
+    	    dx = ds
+    	    fname = si
+    	    //pusha;PUTSTR.PutStrCr 1,dx.si;popa
+    	fi
+    	bx = pStr_h; ax = pStr_l
  //intr 0xf1
-		cx = si
-		DirEntry.Get bx.ax, dx.cx, di
+    	cx = si
+    	DirEntry.Get bx.ax, dx.cx, di
  //intr 0xf2
-		flg = 0
-	endloop (ax == 1)
-	//pusha;dx = pStr_h;ax = pStr_l;PUTSTR.PutStrCr 1,dx.ax;popa
-	if (ax == 0)
-		flg = 1
-	fi
+    	flg = 0
+    endloop (ax == 1)
+    //pusha;dx = pStr_h;ax = pStr_l;PUTSTR.PutStrCr 1,dx.ax;popa
+    if (ax == 0)
+    	flg = 1
+    fi
   RET:
  //intr 0xf3
-	return
+    return
 endproc
 
 

@@ -1,5 +1,5 @@
 module CHK
-	/* •Ï”‚Ì‰Šú‰» */
+    /* •Ï”‚Ì‰Šú‰» */
 
 seg vramseg word,0xa000,"VRAM"
 
@@ -11,9 +11,9 @@ var vab1:byte(20) = { 1,2,3,4,5,6,7,8,9,10}
 var vaw1:word(12) = { 1,2,3,4,5,6,7,8,9,10}
 var vaw2:word(20) = { "01234",'5','6',"789",'\0'}
 var vaw3:word(10) = data
-			b(10)	0,1,2,3,4,5,6,7,8
-			w(3)	'a','b'
-		enddata
+    	    b(10)   0,1,2,3,4,5,6,7,8
+    	    w(3)    'a','b'
+    	enddata
 
 proc tst()
 begin

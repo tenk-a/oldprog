@@ -1,21 +1,21 @@
 module RPAL
-	//	1992-4	writen by M.Kitamura
-	c_name "RPAL","_",1
-	//import Pri
-	import Dos
+    //	1992-4	writen by M.Kitamura
+    c_name "RPAL","_",1
+    //import Pri
+    import Dos
 
 *struct T
-	id:b(10)	//ID
-	tone:b		//トーン
-	rsv:b(5)	//予約
-	grb:b(48)	//パレット G R B * 16
+    id:b(10)	//ID
+    tone:b  	//トーン
+    rsv:b(5)	//予約
+    grb:b(48)	//パレット G R B * 16
 endstruct
 
 struct mcb_t
-	flg:b
-	owner:w
-	blksiz:w
-	reserve:b(11)
+    flg:b
+    owner:w
+    blksiz:w
+    reserve:b(11)
 endstruct
 
 @if 1
@@ -30,271 +30,271 @@ var dfltRpal:b(96)
 
 @if 0
 *proc Search()
-//	out dx.ax : pointer to T
+//  out dx.ax : pointer to T
 begin
-	save bx,cx,si,di,es,ds
-	cvar rpalID:b() = "pal98 grb"
+    save bx,cx,si,di,es,ds
+    cvar rpalID:b() = "pal98 grb"
 
-	rep.inc
-	//DOS-version
-	ax = 0x3000
-	intr 0x21
-	dl = al
+    rep.inc
+    //DOS-version
+    ax = 0x3000
+    intr 0x21
+    dl = al
 
-	//MCB
-	ah = 0x52
-	intr 0x21
-	ds = w[es:bx-2]
+    //MCB
+    ah = 0x52
+    intr 0x21
+    ds = w[es:bx-2]
 
-	//UMB(DOS5のみ)
-	if (dl >= 5)
-		ah = 0x52;intr 0x21
-		bx = w[es:bx+0x66]
-	else
-		bx = 0xffff
-	fi
-	//
-	es = cx
+    //UMB(DOS5のみ)
+    if (dl >= 5)
+    	ah = 0x52;intr 0x21
+    	bx = w[es:bx+0x66]
+    else
+    	bx = 0xffff
+    fi
+    //
+    es = cx
   J:
-	loop
-		ax = ds
-		ax += mcb_t[ds:0].blksiz
-		++ax
-		ds = ax
-		al = mcb_t[ds:0].flg
-		go (al != 'M' && al != 'Z') NOT_FOUND
-		if (mcb_t[ds:0].owner != 0)
-			rep.cmp &rpalID,0x10,10
-			go (==) FIND
-		fi
-	endloop(al != 'Z')
-	if (bx != 0xffff)
-		ds = bx
-		bx = 0xffff
-		go J
-	fi
+    loop
+    	ax = ds
+    	ax += mcb_t[ds:0].blksiz
+    	++ax
+    	ds = ax
+    	al = mcb_t[ds:0].flg
+    	go (al != 'M' && al != 'Z') NOT_FOUND
+    	if (mcb_t[ds:0].owner != 0)
+    	    rep.cmp &rpalID,0x10,10
+    	    go (==) FIND
+    	fi
+    endloop(al != 'Z')
+    if (bx != 0xffff)
+    	ds = bx
+    	bx = 0xffff
+    	go J
+    fi
  NOT_FOUND:
-	dx = &dfltRpal
-	dx >>= 4
-	ax = %var	//cs
-	dx += ax
-	ds = dx
+    dx = &dfltRpal
+    dx >>= 4
+    ax = %var	//cs
+    dx += ax
+    ds = dx
 FIND:
-	dx = ds
-	ax = 0
-	ptr = dx.ax
-	return
+    dx = ds
+    ax = 0
+    ptr = dx.ax
+    return
 endproc
 
 @else
 
 *proc Search()
-//	out dx.ax : pointer to T
+//  out dx.ax : pointer to T
 begin
-	save bx,cx,si,di,es,ds
-	cvar rpalID:b() = "pal98 grb"
+    save bx,cx,si,di,es,ds
+    cvar rpalID:b() = "pal98 grb"
 
-	rep.inc
-	//DOS-version
-	ax = 0x3000
-	intr 0x21
-	cl = al
+    rep.inc
+    //DOS-version
+    ax = 0x3000
+    intr 0x21
+    cl = al
 
-	ds = cs
-	ah = 0x52
-	intr 0x21
-	dx = w[es:bx-2]
+    ds = cs
+    ah = 0x52
+    intr 0x21
+    dx = w[es:bx-2]
 
-	//UMB(DOS5のみ)
-	if (cl >= 5)
-		ah = 0x52;intr 0x21
-		bx = w[es:bx+0x66]
-	else
-		bx = 0xffff
-	fi
+    //UMB(DOS5のみ)
+    if (cl >= 5)
+    	ah = 0x52;intr 0x21
+    	bx = w[es:bx+0x66]
+    else
+    	bx = 0xffff
+    fi
   JJJ:
-	loop
-		exit (dx == 0 || dx == 0xFFFF)
-		es = dx
-		al = mcb_t[es:0].flg
-		go (al != 'M' && al != 'Z') NOT_FOUND
-		++dx
-		if (mcb_t[es:0].owner != 0)
-			rep.cmp 0x10,&rpalID,10
-			go (==) FIND
-		fi
-		dx += mcb_t[es:0].blksiz
-	endloop (al == 'M')
-	if (bx != 0xffff)
-		dx = bx
-		bx = 0xffff
-		go JJJ
-	fi
+    loop
+    	exit (dx == 0 || dx == 0xFFFF)
+    	es = dx
+    	al = mcb_t[es:0].flg
+    	go (al != 'M' && al != 'Z') NOT_FOUND
+    	++dx
+    	if (mcb_t[es:0].owner != 0)
+    	    rep.cmp 0x10,&rpalID,10
+    	    go (==) FIND
+    	fi
+    	dx += mcb_t[es:0].blksiz
+    endloop (al == 'M')
+    if (bx != 0xffff)
+    	dx = bx
+    	bx = 0xffff
+    	go JJJ
+    fi
   NOT_FOUND:
   @if 1
-	dx = &dfltRpal
-	dx >>= 4
-	ax = %var	//ds
-	dx += ax
+    dx = &dfltRpal
+    dx >>= 4
+    ax = %var	//ds
+    dx += ax
   @else
-	//Pri.Fmt "not found ResPal\N"
-	//Dos.Exit 0
-	dx = 0
+    //Pri.Fmt "not found ResPal\N"
+    //Dos.Exit 0
+    dx = 0
   @fi
 FIND:
-	ax = 0
-	ptr = dx.ax
-	return
+    ax = 0
+    ptr = dx.ax
+    return
 endproc
 
 @fi
 
 *proc Forget()
 begin
-	ptr = 0
-	return
+    ptr = 0
+    return
 endproc
 
 /////////////////////////////////////////////////////////////////////////
 *proc GetRGB(pal:d);cdecl
-//	arg bx	rgb buf
-//	in	ds
-//	out ax	tone	ax=-1:error(常駐パレットが見つからない)
+//  arg bx  rgb buf
+//  in	ds
+//  out ax  tone    ax=-1:error(常駐パレットが見つからない)
 enter
-	save bx,cx,dx,si,di,ds,es
+    save bx,cx,dx,si,di,ds,es
 
-	dx.ax = ptr
-	if (dx == 0)
-		RPAL.Search
-		if (dx == 0)
-			ax = -1
-			go RET
-		fi
-	fi
-	es.di = pal
-	ds = dx
-	si = %RPAL.T.grb
-	cx = 16
-	loop
-		rep.load.w ax,si
-		ah <=> al
-		rep.set.w  di,ax
-		rep.cpy di,si
-	endloop (--cx)
-	al = RPAL.T[ds:0].tone
-	ah = 0
+    dx.ax = ptr
+    if (dx == 0)
+    	RPAL.Search
+    	if (dx == 0)
+    	    ax = -1
+    	    go RET
+    	fi
+    fi
+    es.di = pal
+    ds = dx
+    si = %RPAL.T.grb
+    cx = 16
+    loop
+    	rep.load.w ax,si
+    	ah <=> al
+    	rep.set.w  di,ax
+    	rep.cpy di,si
+    endloop (--cx)
+    al = RPAL.T[ds:0].tone
+    ah = 0
   RET:
-	return
+    return
 endproc
 
 /////////////////////////////////////////////////////////////////////////
 
 *proc SetRGB(tone:w,pal:d);cdecl
-//	arg ax	tone
-//	arg bx	rgb buf
-//	in	ds
-//	out ax	0:ok -1:error(常駐パレットが見つからない)
+//  arg ax  tone
+//  arg bx  rgb buf
+//  in	ds
+//  out ax  0:ok -1:error(常駐パレットが見つからない)
 enter
-	save bx,cx,dx,si,di,ds,es
+    save bx,cx,dx,si,di,ds,es
 
-	dx.ax = RPAL.ptr
-	if (dx == 0)
-		RPAL.Search
-	fi
-	ds.si = pal
-		//ax.si = pal
-		//Std.FpToHp ax,si,cx
-		//pal = ax.si
-		//ds = ax
-	if (dx != 0)
-		es.di = ww(dx,%RPAL.T.grb)
-		cx = 16
-		loop
-			rep.load.w ax,si
-			ah <=> al
-			rep.set.w  di,ax
-			rep.cpy di,si
-		endloop (--cx)
-		RPAL.T[es:0].tone = al = tone.l
-		dx = 0
-	else
-		dx = -1
-	fi
-	si = pal.l
-	bl = tone.l
-	bh = 100
-	cx = 0
-	loop
-		port(0xa8) = al = cl
-		rep.load al,si
-		al &= 0x0f; ax = al * bl; div ax,bh;if (al > 15);al = 15;fi
-		port(0xac) = al //R
-		rep.load al,si
-		al &= 0x0f; ax = al * bl; div ax,bh;if (al > 15);al = 15;fi
-		port(0xaa) = al //G
-		rep.load al,si
-		al &= 0x0f; ax = al * bl; div ax,bh;if (al > 15);al = 15;fi
-		port(0xae) = al //B
-		++cx
-	endloop (cx < 16)
-	ax = dx
-	return
+    dx.ax = RPAL.ptr
+    if (dx == 0)
+    	RPAL.Search
+    fi
+    ds.si = pal
+    	//ax.si = pal
+    	//Std.FpToHp ax,si,cx
+    	//pal = ax.si
+    	//ds = ax
+    if (dx != 0)
+    	es.di = ww(dx,%RPAL.T.grb)
+    	cx = 16
+    	loop
+    	    rep.load.w ax,si
+    	    ah <=> al
+    	    rep.set.w  di,ax
+    	    rep.cpy di,si
+    	endloop (--cx)
+    	RPAL.T[es:0].tone = al = tone.l
+    	dx = 0
+    else
+    	dx = -1
+    fi
+    si = pal.l
+    bl = tone.l
+    bh = 100
+    cx = 0
+    loop
+    	port(0xa8) = al = cl
+    	rep.load al,si
+    	al &= 0x0f; ax = al * bl; div ax,bh;if (al > 15);al = 15;fi
+    	port(0xac) = al //R
+    	rep.load al,si
+    	al &= 0x0f; ax = al * bl; div ax,bh;if (al > 15);al = 15;fi
+    	port(0xaa) = al //G
+    	rep.load al,si
+    	al &= 0x0f; ax = al * bl; div ax,bh;if (al > 15);al = 15;fi
+    	port(0xae) = al //B
+    	++cx
+    endloop (cx < 16)
+    ax = dx
+    return
 endproc
 
 *proc GetTone()
 begin
-	save dx
-	dx = RPAL.ptr.h
-	if (dx == 0)
-		RPAL.Search
-		if (dx == 0)
-			ax = -1
-			go RET
-		fi
-	fi
-	ds = dx
-	al = RPAL.T[ds:0].tone
-	ah = 0
+    save dx
+    dx = RPAL.ptr.h
+    if (dx == 0)
+    	RPAL.Search
+    	if (dx == 0)
+    	    ax = -1
+    	    go RET
+    	fi
+    fi
+    ds = dx
+    al = RPAL.T[ds:0].tone
+    ah = 0
   RET:
-	return
+    return
 endproc
 
 *proc SetTone(tone:w);cdecl
-//	in	ds
-//	out ax	0:ok -1:error(常駐パレットが見つからない)
+//  in	ds
+//  out ax  0:ok -1:error(常駐パレットが見つからない)
 enter
-	save bx,cx,dx,si,di,ds,es
+    save bx,cx,dx,si,di,ds,es
 
-	dx.ax = RPAL.ptr
-	if (dx == 0)
-		RPAL.Search
-		if (dx == 0)
-			--dx
-			go ERR
-		fi
-	fi
-	ds.si = ww(dx,%RPAL.T.grb)
-	es = dx
-	RPAL.T[es:0].tone = bl = tone.l
-	bh = 100
-	cx = 0
-	loop
-		port(0xa8) = al = cl
-		rep.load al,si
-		al &= 0x0f; ax = al * bl; div ax,bh;if (al > 15);al = 15;fi
-		port(0xaa) = al //G
-		rep.load al,si
-		al &= 0x0f; ax = al * bl; div ax,bh;if (al > 15);al = 15;fi
-		port(0xac) = al //R
-		rep.load al,si
-		al &= 0x0f; ax = al * bl; div ax,bh;if (al > 15);al = 15;fi
-		port(0xae) = al //B
-		++cx
-	endloop (cx < 16)
-	dx = 0
+    dx.ax = RPAL.ptr
+    if (dx == 0)
+    	RPAL.Search
+    	if (dx == 0)
+    	    --dx
+    	    go ERR
+    	fi
+    fi
+    ds.si = ww(dx,%RPAL.T.grb)
+    es = dx
+    RPAL.T[es:0].tone = bl = tone.l
+    bh = 100
+    cx = 0
+    loop
+    	port(0xa8) = al = cl
+    	rep.load al,si
+    	al &= 0x0f; ax = al * bl; div ax,bh;if (al > 15);al = 15;fi
+    	port(0xaa) = al //G
+    	rep.load al,si
+    	al &= 0x0f; ax = al * bl; div ax,bh;if (al > 15);al = 15;fi
+    	port(0xac) = al //R
+    	rep.load al,si
+    	al &= 0x0f; ax = al * bl; div ax,bh;if (al > 15);al = 15;fi
+    	port(0xae) = al //B
+    	++cx
+    endloop (cx < 16)
+    dx = 0
  ERR:
-	ax = dx
-	return
+    ax = dx
+    return
 endproc
 
 endmodule

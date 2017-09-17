@@ -1,38 +1,38 @@
 module Chk086
-	stack 0x100
-	start main
+    stack 0x100
+    start main
 
-@define EXIT(er)	al = er;ah = 0x4c;intr 0x21
+@define EXIT(er)    al = er;ah = 0x4c;intr 0x21
 
 proc puts(dx)
 // ds.dxî‘ínÇ…Ç†ÇÈï∂éöóÒÇï\é¶. EOSÇÕ'$'.  ax = 0x07Ç…Ç»ÇÈÅB
 macro
-	ah = 0x09
-	intr  0x21
+    ah = 0x09
+    intr  0x21
 endproc
 
 proc chk86()
-//	CPUÇ™ 8086(V30)Ç»ÇÁ ax = 0(zf = 1), 186à»è„Ç»ÇÁ ax = 1(zf = 0)
+//  CPUÇ™ 8086(V30)Ç»ÇÁ ax = 0(zf = 1), 186à»è„Ç»ÇÁ ax = 1(zf = 0)
 begin
-	save cx
-	ax = 1
-	cl = 32
-	|shr ax,cl
-	return
+    save cx
+    ax = 1
+    cl = 32
+    |shr ax,cl
+    return
 endproc
 
 proc main()
-//	8086(V30) or 186^
+//  8086(V30) or 186^
 begin
-	ds = ax = %var
-	chk86
-	if (zf)
-		dx = "8086(V30)\N$"
-	else
-		dx = "186\N$"
-	fi
-	puts dx
-	EXIT(0)
+    ds = ax = %var
+    chk86
+    if (zf)
+    	dx = "8086(V30)\N$"
+    else
+    	dx = "186\N$"
+    fi
+    puts dx
+    EXIT(0)
 endproc
 
 endmodule

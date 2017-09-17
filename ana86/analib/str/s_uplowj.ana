@@ -1,43 +1,42 @@
 module S
-	c_name "str","_",1
+    c_name "str","_",1
 
-	import Std
-	import str
+    import Std
+    import str
 
 *proc uplowj(s0:d,flg:w);cdecl;FC
-//	•¶Žš—ñ s0 ‚Ì”¼Šp‰pŽš‚ð flg = 0 ‚È‚ç¬•¶Žš‰», flg != 0 ‚È‚ç‘å•¶Žš‰»
-//	•¶Žš—ñ‚Í’¼Ú‘‚«Š·‚¦‚é
-//	arg s0	•¶Žš—ñ(asciiz)
-//	arg flg	0:lower 1:upper
+//  •¶Žš—ñ s0 ‚Ì”¼Šp‰pŽš‚ð flg = 0 ‚È‚ç¬•¶Žš‰», flg != 0 ‚È‚ç‘å•¶Žš‰»
+//  •¶Žš—ñ‚Í’¼Ú‘‚«Š·‚¦‚é
+//  arg s0  •¶Žš—ñ(asciiz)
+//  arg flg 0:lower 1:upper
 enter
-	save cx,si,ds
+    save cx,si,ds
 
-	ds.si = s0
-	cx = flg
-	loop
-		al = b[si]
-		exit (al == 0)
-		if (str.FLAGJ && Std.IsKanji(al))
-			++si
-			al = b[si]
-			++si
-			exit (al == 0)
-			next
-		fi
-		if (cx != 0)
-			if (al >= 'a' && al <= 'z')
-				al -= 0x20
-				b[si] = al
-			fi
-		elsif (al >= 'A' && al <= 'Z')
-			al += 0x20
-			b[si] = al
-		fi
-		++si
-	endloop
-	dx.ax = s0
-	return
+    ds.si = s0
+    cx = flg
+    loop
+    	al = b[si]
+    	exit (al == 0)
+    	if (str.FLAGJ && Std.IsKanji(al))
+    	    ++si
+    	    al = b[si]
+    	    ++si
+    	    exit (al == 0)
+    	    next
+    	fi
+    	if (cx != 0)
+    	    if (al >= 'a' && al <= 'z')
+    	    	al -= 0x20
+    	    	b[si] = al
+    	    fi
+    	elsif (al >= 'A' && al <= 'Z')
+    	    al += 0x20
+    	    b[si] = al
+    	fi
+    	++si
+    endloop
+    dx.ax = s0
+    return
 endproc
 
 endmodule
-

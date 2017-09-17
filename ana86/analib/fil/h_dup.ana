@@ -1,18 +1,17 @@
 module H
-	c_name "fil","_",1
+    c_name "fil","_",1
 
 *proc dup(hdl:w);cdecl
 enter
-	save bx,ds
+    save bx,ds
 
-	bx = hdl
-	ah = 0x45
-	intr 0x21
-	if (cf)
-		neg ax
-	fi
-	return
+    bx = hdl
+    ah = 0x45
+    intr 0x21
+    if (cf)
+    	neg ax
+    fi
+    return
 endproc
 
 endmodule
-

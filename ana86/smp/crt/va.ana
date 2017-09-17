@@ -1,8 +1,8 @@
 module Va
-	/* PC88VA MSE 操作関数　　writen by M.Kitamura */
-	c_name "Va","_",1
-	model  MODEL
-	import MdlChk
+    /* PC88VA MSE 操作関数　　writen by M.Kitamura */
+    c_name "Va","_",1
+    model  MODEL
+    import MdlChk
 
 *const PC9801=-2, NOMSE, NATIVE, STD, TEXT, TEXTK, MONO, GRPH
 
@@ -11,82 +11,82 @@ module Va
 
 *proc ChkVA()
 begin
-	save es
+    save es
 
-	es = ax = 0xffff
-	++ax
-	if (b[es:0x000f] == 0xff)
-		++ax
-	fi
-	return
+    es = ax = 0xffff
+    ++ax
+    if (b[es:0x000f] == 0xff)
+    	++ax
+    fi
+    return
 endproc
 
 @part VAPUTSTR
 
 *proc PutStr(pp:d);c_decl
-//	in ds = %var
+//  in ds = %var
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	ah = 0x02
-	dx = 0x8000
-	ds.si = pp
-	intr 0x83
-	return
+    ah = 0x02
+    dx = 0x8000
+    ds.si = pp
+    intr 0x83
+    return
 endproc
 
 
 @part GETMSEMD
 
 *proc GetMseMode()
-//	out ax
+//  out ax
 begin
-	save bx,cx,dx
+    save bx,cx,dx
 
-	ChkVA
-	if (ax == 0)
-		ax = Va.PC9801
-		go RTS
-	fi
-	cx = -1
-	ax = 0x44e5
-	dl = 0xff
-	intr 0x21
-	if (cx != -1)
-		|dh - 0x80
-		|if (==)
-			ax = Va.MONO
-			go RTS
-		fi
-		if (>)
-			ax = Va.GRPH
-			go RTS
-		fi
-		if (dh < 0x40)
-			ax = Va.STD
-			go RTS
-		fi
-		ax = Va.TEXT
-		if (dh & 0x10)
-			ax = Va.TEXTK
-		fi
-		go RTS
-	fi
-	ax = 0x7f00
-	intr 0x21
-	cx = -1
-	ax = 0x44e5
-	dl = 0xff
-	intr 0x21
-	if (cx == -1)
-		ax = Va.NOMSE
-	else
-		ax = 0x7f01
-		intr 0x21
-		ax = Va.NATIVE
- 	fi
+    ChkVA
+    if (ax == 0)
+    	ax = Va.PC9801
+    	go RTS
+    fi
+    cx = -1
+    ax = 0x44e5
+    dl = 0xff
+    intr 0x21
+    if (cx != -1)
+    	|dh - 0x80
+    	|if (==)
+    	    ax = Va.MONO
+    	    go RTS
+    	fi
+    	if (>)
+    	    ax = Va.GRPH
+    	    go RTS
+    	fi
+    	if (dh < 0x40)
+    	    ax = Va.STD
+    	    go RTS
+    	fi
+    	ax = Va.TEXT
+    	if (dh & 0x10)
+    	    ax = Va.TEXTK
+    	fi
+    	go RTS
+    fi
+    ax = 0x7f00
+    intr 0x21
+    cx = -1
+    ax = 0x44e5
+    dl = 0xff
+    intr 0x21
+    if (cx == -1)
+    	ax = Va.NOMSE
+    else
+    	ax = 0x7f01
+    	intr 0x21
+    	ax = Va.NATIVE
+    fi
  RTS:
-	return
+    return
 endproc
 
 
@@ -94,54 +94,54 @@ endproc
 
 *proc SetMseMode(mode:w);c_decl
 enter
-	save pusha,ax,bx,cx,dx,si,di
+    save pusha,ax,bx,cx,dx,si,di
 
-	ChkVA
-	go (ax == 0) RTS
-	ax = 0x7f00
-	if (mode == Va.NATIVE || mode == Va.NOMSE)
-		++ax
-		intr 0x21
-		go RTS
-	fi
-	intr 0x21
-	dl = mode.l
-	if (dl == Va.GRPH)
-		dh = 0x85
-	elsif (dl == Va.MONO)
-		dh = 0x80
-	elsif (dl == Va.TEXT)
-		dh = 0x45
-	elsif (dl == Va.TEXTK)
-		dh = 0x45 | 0x10
-	else //elsif (dl == Va.STD)
-		dh = 0x00
-	fi
-	cx = 0
-	dl = cl
-	ax = 0x44e5
-	intr 0x21
+    ChkVA
+    go (ax == 0) RTS
+    ax = 0x7f00
+    if (mode == Va.NATIVE || mode == Va.NOMSE)
+    	++ax
+    	intr 0x21
+    	go RTS
+    fi
+    intr 0x21
+    dl = mode.l
+    if (dl == Va.GRPH)
+    	dh = 0x85
+    elsif (dl == Va.MONO)
+    	dh = 0x80
+    elsif (dl == Va.TEXT)
+    	dh = 0x45
+    elsif (dl == Va.TEXTK)
+    	dh = 0x45 | 0x10
+    else //elsif (dl == Va.STD)
+    	dh = 0x00
+    fi
+    cx = 0
+    dl = cl
+    ax = 0x44e5
+    intr 0x21
  RTS:
-	return
+    return
 endproc
 
 @part VATEXTRAMM
 *proc TextRamMode()
-//	in    ds
-//	break ax
+//  in	  ds
+//  break ax
 begin
-	Mdl.DS_DGROUP_BGN(ax)
-	dx = 0x153
-	al = port(dx)
-	al &= 0xF0
-	++al
-	port(dx) = al
-	//dx = 0x124
-	//al = 0
-	//port(dx) = al
-	pop dx
-	Mdl.DS_DGROUP_END
-	return
+    Mdl.DS_DGROUP_BGN(ax)
+    dx = 0x153
+    al = port(dx)
+    al &= 0xF0
+    ++al
+    port(dx) = al
+    //dx = 0x124
+    //al = 0
+    //port(dx) = al
+    pop dx
+    Mdl.DS_DGROUP_END
+    return
 endproc
 
 endmodule

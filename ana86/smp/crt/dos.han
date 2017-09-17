@@ -4,143 +4,143 @@ module Dos
 *const STDIN,STDOUT,STDERR
 
 *proc Open(dx,al)
-//	in  ds
-//	out ax,cf
+//  in	ds
+//  out ax,cf
 macro
-	ah = 0x3d
-	intr 0x21
+    ah = 0x3d
+    intr 0x21
 endproc
 
 *proc Close(bx)
-//	out ax,cf
+//  out ax,cf
 macro
-	ah = 0x3e
-	intr 0x21
+    ah = 0x3e
+    intr 0x21
 endproc
 
 *proc Create0(dx,cx)
-//	in  ds
-//	out dx,cx,ax,cf
+//  in	ds
+//  out dx,cx,ax,cf
 macro
-	ah = 0x3c
-	intr 0x21
+    ah = 0x3c
+    intr 0x21
 endproc
 
 *proc Create(dx,cx)
-//	in  ds
-//	out dx,cx,ax,cf
+//  in	ds
+//  out dx,cx,ax,cf
 macro
-	ah = 0x5b
-	intr 0x21
+    ah = 0x5b
+    intr 0x21
 endproc
 
 *proc Write(bx,dx,cx)
-//	in  ds
-//	out bx,dx,cx
-//	break ax
+//  in	ds
+//  out bx,dx,cx
+//  break ax
 macro
-	ah = 0x40
-	intr 0x21
+    ah = 0x40
+    intr 0x21
 endproc
 
 *proc Read(bx,dx,cx)
-//	in    ds
-//	out   bx,dx,cx
-//	break ax
+//  in	  ds
+//  out   bx,dx,cx
+//  break ax
 macro
-	ah = 0x3f
-	intr 0x21
+    ah = 0x3f
+    intr 0x21
 endproc
 
 *proc Rename(dx,di)
-//	in ds,es
+//  in ds,es
 macro
-	ah = 0x56
-	intr 0x21
+    ah = 0x56
+    intr 0x21
 endproc
 
 *proc Delete(dx)
-//	in ds
+//  in ds
 macro
-	ah = 0x41
-	intr 0x21
+    ah = 0x41
+    intr 0x21
 endproc
 
 //////////////////////////////////////
 *proc MemAlloc(bx)
-//	arg bx	パラグラフサイズ
-//	out ax	先頭パラグラフ
-//	out cf	0:ok 1:err  ax=7:MCB破壊 ax=8:ﾒﾓﾘ不足
+//  arg bx  パラグラフサイズ
+//  out ax  先頭パラグラフ
+//  out cf  0:ok 1:err	ax=7:MCB破壊 ax=8:ﾒﾓﾘ不足
 macro
-	ah = 0x48
-	intr 0x21
+    ah = 0x48
+    intr 0x21
 endproc
 
 *proc MemFree(es)
-//	arg es	開放するパラグラフの先頭
-//	out cf	0:ok 1:err ax=7:MCB破壊 ax=9:es不正(MemAllocされたものでない)
+//  arg es  開放するパラグラフの先頭
+//  out cf  0:ok 1:err ax=7:MCB破壊 ax=9:es不正(MemAllocされたものでない)
 macro
-	ah = 0x49
-	intr 0x21
+    ah = 0x49
+    intr 0x21
 endproc
 
 *proc MemReSize(es,bx)
-//	arg es
-//	arg bx
-//	out cf	0:ok 1:err ax=7:MCB破壊 ax=8:ﾒﾓﾘ不足 ax=9:es 不正
+//  arg es
+//  arg bx
+//  out cf  0:ok 1:err ax=7:MCB破壊 ax=8:ﾒﾓﾘ不足 ax=9:es 不正
 macro
-	ah = 0x4a
-	intr 0x21
+    ah = 0x4a
+    intr 0x21
 endproc
 
 //////////////////////////////////////
-*@define EXIT(cnst)	ax = (0x4c00 | (cnst));intr 0x21;
+*@define EXIT(cnst) ax = (0x4c00 | (cnst));intr 0x21;
 
 *proc Exit(al)
 macro
-	ah = 0x4c
-	intr 0x21
+    ah = 0x4c
+    intr 0x21
 endproc
 
 *proc Vertion()
-//	out ax,bx
+//  out ax,bx
 macro
-	ah = 0x30
-	intr 0x21
+    ah = 0x30
+    intr 0x21
 endproc
 
 //////////////////////////////////////
 *proc CPutChr(dl)
-//	in	ds
-//	break ah,dl
+//  in	ds
+//  break ah,dl
 begin
-	ah = 0x06
-	intr 0x21
+    ah = 0x06
+    intr 0x21
 endproc
 
 *proc CGetChr()
-//	in	ds
-//	out al
-//	break dl,ah
+//  in	ds
+//  out al
+//  break dl,ah
 begin
-	dl = 0xff
-	ah = 0x06
-	intr 0x21
+    dl = 0xff
+    ah = 0x06
+    intr 0x21
 endproc
 
 *proc CClrKeyBuf()
-//	break	ax
+//  break   ax
 begin
-	ax = 0x0cff
-	intr 0x21
+    ax = 0x0cff
+    intr 0x21
 endproc
 
 *proc CChkKeyBuf()
-//	out   al
-//	break ah
+//  out   al
+//  break ah
 begin
-	ah = 0x0b
-	intr 0x21
+    ah = 0x0b
+    intr 0x21
 endproc
 
 

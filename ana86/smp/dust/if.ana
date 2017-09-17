@@ -2,60 +2,60 @@ module CHK
 
 proc iftst()
 begin
-	if (ax == 0)
-		bx = 0
-	fi
+    if (ax == 0)
+    	bx = 0
+    fi
 
-	if (bx .<. 0)
-		cx = 100
-	else
-		cx = 20
-	fi
+    if (bx .<. 0)
+    	cx = 100
+    else
+    	cx = 20
+    fi
 
-	if (ax > 1)
-		bx = 1
-	elsif (ax <	0)
-		bx = 2
-	elsif (ax == 0)
-		bx = 3
-	fi
+    if (ax > 1)
+    	bx = 1
+    elsif (ax < 0)
+    	bx = 2
+    elsif (ax == 0)
+    	bx = 3
+    fi
 
-	if (ax > 1)
-		bx = 1
-	elsif (ax <	0)
-		bx = 2
-	elsif (ax == 0)
-		bx = 3
-	else
-		bx = 4
-	fi
+    if (ax > 1)
+    	bx = 1
+    elsif (ax < 0)
+    	bx = 2
+    elsif (ax == 0)
+    	bx = 3
+    else
+    	bx = 4
+    fi
 
-	// loop
-	loop
-		++ax
-	endloop (--cx)
+    // loop
+    loop
+    	++ax
+    endloop (--cx)
 
-	loop (--cx)
-		++bx
-	endloop
+    loop (--cx)
+    	++bx
+    endloop
 
-	loop
-		++bx
-		next (ax == cx)
-		--ax
-		exit (ax == 0)
-	endloop (--cx)
+    loop
+    	++bx
+    	next (ax == cx)
+    	--ax
+    	exit (ax == 0)
+    endloop (--cx)
 
 
-	loop L1
-		ax = 0
-		bx = 0
-		dx = 0
-		loop
-			exit (>) L1
-			bx = cx
-		endloop (--cx)
-	endloop
+    loop L1
+    	ax = 0
+    	bx = 0
+    	dx = 0
+    	loop
+    	    exit (>) L1
+    	    bx = cx
+    	endloop (--cx)
+    endloop
 endproc
 
 endmodule

@@ -1,5 +1,5 @@
 module fil
-	c_name "fil","_",1
+    c_name "fil","_",1
 
  // dosｺｰﾙそのままの場合は基本的にエラーコードaxは負に反転して返す
 
@@ -8,81 +8,80 @@ module fil
  */
 *const STDIN,STDOUT,STDERR
 *proc open(fname:d, mode:w);cdecl
-	//ret ax:ﾌｧｲﾙ･ﾊﾝﾄﾞﾙ  負値(-1～-100位^^;):dosｴﾗｰｺｰﾄﾞ
-	endproc
+    //ret ax:ﾌｧｲﾙ･ﾊﾝﾄﾞﾙ  負値(-1～-100位^^;):dosｴﾗｰｺｰﾄﾞ
+    endproc
 *proc close(hdl:w);cdecl
-	//ret ax 0:ok  負値:dosｴﾗｰｺｰﾄﾞ
-	endproc
+    //ret ax 0:ok  負値:dosｴﾗｰｺｰﾄﾞ
+    endproc
 *proc creat(fname:d,fattr:w);cdecl
-	//ret ax:ﾌｧｲﾙ･ﾊﾝﾄﾞﾙ  負値:dosｴﾗｰｺｰﾄﾞ
-	endproc
+    //ret ax:ﾌｧｲﾙ･ﾊﾝﾄﾞﾙ  負値:dosｴﾗｰｺｰﾄﾞ
+    endproc
 *proc creatnew(fname:d,fattr:w);cdecl
-	//ret ax:ﾌｧｲﾙ･ﾊﾝﾄﾞﾙ  負値:dosｴﾗｰｺｰﾄﾞ
-	endproc
+    //ret ax:ﾌｧｲﾙ･ﾊﾝﾄﾞﾙ  負値:dosｴﾗｰｺｰﾄﾞ
+    endproc
 *proc read(hdl:w,buf:d,siz:w);cdecl
-	//ret ax:実際に読み込んだサイズ（又はdosエラーコード）
-	//       -1～-100位:dosエラーコード. だから siz は 63K位までにしとこう
-	endproc
+    //ret ax:実際に読み込んだサイズ（又はdosエラーコード）
+    //	     -1～-100位:dosエラーコード. だから siz は 63K位までにしとこう
+    endproc
 *proc write(hdl:w,buf:d,siz:w);cdecl
-	//ret ax:実際に書き込んだサイズ（又はdosエラーコード）
-	endproc
+    //ret ax:実際に書き込んだサイズ（又はdosエラーコード）
+    endproc
 *proc seek(hdl:w, ofs:d, posmode:w);cdecl
-	//arg posmode  0:ﾌｧｲﾙ先頭  1:ｶﾚﾝﾄ位置  2:ﾌｧｲﾙ末
-	//ret dx.ax  ﾌｧｲﾙ先頭からのｵﾌｾｯﾄ. -1=エラーがあった
-	endproc
+    //arg posmode  0:ﾌｧｲﾙ先頭  1:ｶﾚﾝﾄ位置  2:ﾌｧｲﾙ末
+    //ret dx.ax  ﾌｧｲﾙ先頭からのｵﾌｾｯﾄ. -1=エラーがあった
+    endproc
 *proc dup(hdl:w);cdecl
-	//ret ax:新しいﾊﾝﾄﾞﾙ  負値:dosエラーコード
-	endproc
+    //ret ax:新しいﾊﾝﾄﾞﾙ  負値:dosエラーコード
+    endproc
 *proc dup2(hdl1:w, hdl2:w);cdecl
-	//ret ax:新しいﾊﾝﾄﾞﾙ(hdl2)  負値:dosエラーコード
-	endproc
+    //ret ax:新しいﾊﾝﾄﾞﾙ(hdl2)	負値:dosエラーコード
+    endproc
 
 /*
  * ディスク(ﾃﾞｨﾚｸﾄﾘ(ｴﾝﾄﾘ))関係
  */
 *proc delete(fname:d);cdecl
-	//ret ax:0=ok  負値:dosエラーコード
-	endproc
+    //ret ax:0=ok  負値:dosエラーコード
+    endproc
 *proc getattr(fname:d);cdecl
-	//ret ax:ﾌｧｲﾙ属性   負値:dosｴﾗｰｺｰﾄﾞ
-	endproc
+    //ret ax:ﾌｧｲﾙ属性	負値:dosｴﾗｰｺｰﾄﾞ
+    endproc
 *proc setattr(fname:d, attr:w);cdecl
-	//ret ax:0=ok   負値:dosｴﾗｰｺｰﾄﾞ
-	endproc
+    //ret ax:0=ok   負値:dosｴﾗｰｺｰﾄﾞ
+    endproc
 *proc getdrive();cdecl
-	//	ret ax:0=A: 1=B: ...
-	endproc
+    //	ret ax:0=A: 1=B: ...
+    endproc
 *proc setdrive(drv:w);cdecl
-	//	drv 1=A:  2=B: ...
-	//	ret ax:設定された最大ドライブ番号(0=A: 1=B: ...)
-	endproc
+    //	drv 1=A:  2=B: ...
+    //	ret ax:設定された最大ドライブ番号(0=A: 1=B: ...)
+    endproc
 *proc mkdir(dir:d);cdecl
-	//	ret ax:0=ok	負値:dosエラーコード
-	endproc
+    //	ret ax:0=ok 負値:dosエラーコード
+    endproc
 *proc rmdir(dir:d);cdecl
-	//	ret ax:0=ok	負値:dosエラーコード
-	endproc
+    //	ret ax:0=ok 負値:dosエラーコード
+    endproc
 *proc setcdir(dir:d);cdecl
-	//ｶﾚﾝﾄ･ﾃﾞｨﾚｸﾄﾘの指定(ﾄﾞﾗｲﾌﾞ変更なし)
-	//	ret ax:0=ok	負値:dosエラーコード
-	endproc
+    //ｶﾚﾝﾄ･ﾃﾞｨﾚｸﾄﾘの指定(ﾄﾞﾗｲﾌﾞ変更なし)
+    //	ret ax:0=ok 負値:dosエラーコード
+    endproc
 *proc setcwd(dir:d);cdecl
-	//ｶﾚﾝﾄ･ﾃﾞｨﾚｸﾄﾘの指定(ﾄﾞﾗｲﾌﾞ変更有り)
-	//	ret ax:0=ok	負値:dosエラーコード
-	endproc
+    //ｶﾚﾝﾄ･ﾃﾞｨﾚｸﾄﾘの指定(ﾄﾞﾗｲﾌﾞ変更有り)
+    //	ret ax:0=ok 負値:dosエラーコード
+    endproc
 *proc getcdir(drv:w,dir:d);cdecl
-	// 指定ﾄﾞﾗｲﾌﾞのカレント・ディレクトリの取得
-	//	drv 0=ｶﾚﾝﾄ  1=A:  2=B: ...
-	//	ret ax:0=ok	負値:dosエラーコード
-	endproc
+    // 指定ﾄﾞﾗｲﾌﾞのカレント・ディレクトリの取得
+    //	drv 0=ｶﾚﾝﾄ  1=A:  2=B: ...
+    //	ret ax:0=ok 負値:dosエラーコード
+    endproc
 *proc getcwd(dir:d);cdecl
-	// カレントドライブのカレント・ディレクトリの取得
-	//	ret ax:0=ok	負値:dosエラーコード
-	endproc
+    // カレントドライブのカレント・ディレクトリの取得
+    //	ret ax:0=ok 負値:dosエラーコード
+    endproc
 
 /*
  * ファイル名文字列関係
  */
 
 endmodule
-

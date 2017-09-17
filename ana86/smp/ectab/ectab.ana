@@ -1,80 +1,80 @@
 module ECTAB
-	/*
-		EcTab v1.25
-			タブ空白変換,行末空白削除, CR,LF,CRLF変換等を行なう
-		1992	writen by M.Kitamura
-	 */
-	model SMALL
-	stack 0x2000
-	start Main
+    /*
+    	EcTab v1.25
+    	    タブ空白変換,行末空白削除, CR,LF,CRLF変換等を行なう
+    	1992	writen by M.Kitamura
+     */
+    model SMALL
+    stack 0x2000
+    start Main
 
-	import Std
-	import Dos
-	import CmdLineB
-	import Str
-	import Fname
-	import READLN
-	import WRITLN
-	import PUTSTR
+    import Std
+    import Dos
+    import CmdLineB
+    import Str
+    import Fname
+    import READLN
+    import WRITLN
+    import PUTSTR
 
-	type   Ps:PUTSTR
-	type   Tr:READLN
-	type   Tw:WRITLN
+    type   Ps:PUTSTR
+    type   Tr:READLN
+    type   Tw:WRITLN
 
-	// 特に指定がなければ各手続き呼び出しは df = 0, ds = %var でないといけない
-	// また、復帰に際し、演算関係のフラグは破壊される
+    // 特に指定がなければ各手続き呼び出しは df = 0, ds = %var でないといけない
+    // また、復帰に際し、演算関係のフラグは破壊される
 
 
 ///////////////////////////////////////////////////////////////////////////////
 
 proc Usage()
 begin
-	var msg:b() = data
-	 b "use: ectab [-opts] ファイル名... ／ ｅｃｔａｂ v1.25\N"
-	 b "  -tN         タブ間隔 N でタブを空白に置換(N:1～16  省略 8)\N"
-	 b "  -sN         タブ間隔 N で空白をタブに置換(N:1～255 省略 8)\N"
-	 b "  -zN         -sで変換する空白が N以下のとき変換しない(N: -sの指定より小)\N"
-	 b "  -rN         出力の改行を N=1ならLF, N=2ならCR, N=3ならCRLFにする\N"
-	 b "  -m          行末の不要な空白・コントロールコードを削除\N"
-	 b "  -u          半角小文字を大文字化\t\t  -l  半角大文字を小文字化\N"
-	 b "  -dN         行頭 Nバイトを削除(全角対応)\t  -a  最後に 0x1a を出力\N"
-	 b "  -b          ' か \" で囲まれた範囲では空白をタブに置き換えない\N"
-	 b "  -c          TAB,CR,LF,FF,ESC,BEL以外のコントロールコードと不正全角を削除\N"
-	 b "  -nN,M,L,STR 行番号を付ける. N:桁 M:スキップ数 L:0行目の行番号 STR:文字列\N"
-	 b "  -k-         全角を考慮しない\N"
-	 b "  -v          -o のとき、処理中のファイル名を表示\N"
-	 b "  -o          指定された元のファイルを.bakにし、そのファイル名で出力\N"
-	 b "  -oPATH      出力を PATH にする\N"
-	 b "\N"
-	 b "入力では CR($0d), LF($0a),CRLF を同じ改行として扱う.\N"
-	 b "ファイル名、オプションは複数指定可能で、オプションは起動時に設定.\N"
-	 b "同じまたは同種のオプションが複数指定されたときは後のものが有効(同種 u|l).\N"
-	 b "オプションは -t4s4m のように一度に指定可能(-o,-nの後は不可)\N"
-	 b "-s は -t 実行後に行う. -s が指定されたのに -t の指定がないときは -t8 が指定\N"
-	 b "されたことになる.\N"
-	enddata
+    var msg:b() = data
+     b "use: ectab [-opts] ファイル名... ／ ｅｃｔａｂ v1.25\N"
+     b "  -tN         タブ間隔 N でタブを空白に置換(N:1～16  省略 8)\N"
+     b "  -sN         タブ間隔 N で空白をタブに置換(N:1～255 省略 8)\N"
+     b "  -zN         -sで変換する空白が N以下のとき変換しない(N: -sの指定より小)\N"
+     b "  -rN         出力の改行を N=1ならLF, N=2ならCR, N=3ならCRLFにする\N"
+     b "  -m          行末の不要な空白・コントロールコードを削除\N"
+     b "  -u          半角小文字を大文字化\t\t  -l  半角大文字を小文字化\N"
+     b "  -dN         行頭 Nバイトを削除(全角対応)\t  -a  最後に 0x1a を出力\N"
+     b "  -b          ' か \" で囲まれた範囲では空白をタブに置き換えない\N"
+     b "  -c          TAB,CR,LF,FF,ESC,BEL以外のコントロールコードと不正全角を削除\N"
+     b "  -nN,M,L,STR 行番号を付ける. N:桁 M:スキップ数 L:0行目の行番号 STR:文字列\N"
+     b "  -k-         全角を考慮しない\N"
+     b "  -v          -o のとき、処理中のファイル名を表示\N"
+     b "  -o          指定された元のファイルを.bakにし、そのファイル名で出力\N"
+     b "  -oPATH      出力を PATH にする\N"
+     b "\N"
+     b "入力では CR($0d), LF($0a),CRLF を同じ改行として扱う.\N"
+     b "ファイル名、オプションは複数指定可能で、オプションは起動時に設定.\N"
+     b "同じまたは同種のオプションが複数指定されたときは後のものが有効(同種 u|l).\N"
+     b "オプションは -t4s4m のように一度に指定可能(-o,-nの後は不可)\N"
+     b "-s は -t 実行後に行う. -s が指定されたのに -t の指定がないときは -t8 が指定\N"
+     b "されたことになる.\N"
+    enddata
 
-	//ds = cs
-	Dos.Write Dos.STDOUT, &msg, sizeof(msg)
-	Dos.EXIT 0
+    //ds = cs
+    Dos.Write Dos.STDOUT, &msg, sizeof(msg)
+    Dos.EXIT 0
 endproc
 
 
 ///////////////////////////////////////////////////////////////////////////////
 proc ErrFile(bx.ax,cx,dx)
 enter
-	save aSav_ds:ds,hh:bx,ll:ax,msg:cx,msg_siz:dx
-	var msgFil:b()	= {"'"}
+    save aSav_ds:ds,hh:bx,ll:ax,msg:cx,msg_siz:dx
+    var msgFil:b()  = {"'"}
 
-	Dos.Write 1,&msgFil, sizeof(msgFil)
-	ds = hh
-	si = di = ll
-	Str.Len si
-	dx = ll
-	Dos.Write 1, dx, cx
-	ds = aSav_ds
-	Dos.Write 1,msg, msg_siz
-	Dos.EXIT 0
+    Dos.Write 1,&msgFil, sizeof(msgFil)
+    ds = hh
+    si = di = ll
+    Str.Len si
+    dx = ll
+    Dos.Write 1, dx, cx
+    ds = aSav_ds
+    Dos.Write 1,msg, msg_siz
+    Dos.EXIT 0
 endproc
 
 var msgOpen:b() = {"'をオープンできません"}
@@ -82,99 +82,99 @@ var msgOpen:b() = {"'をオープンできません"}
 proc Open(dx,al)
 begin
 
-	Dos.Open(dx,al)
-	if (cf)
-		bx.ax = ds.dx
-		cx = &msgOpen
-		dx = sizeof(msgOpen)
-		ErrFile(bx.ax,cx,dx)
-	fi
-	ret
+    Dos.Open(dx,al)
+    if (cf)
+    	bx.ax = ds.dx
+    	cx = &msgOpen
+    	dx = sizeof(msgOpen)
+    	ErrFile(bx.ax,cx,dx)
+    fi
+    ret
 endproc
 
 proc Create(dx,cx)
-//	新しいファイルを作成
-//	out ax	ファイル・ハンドル
+//  新しいファイルを作成
+//  out ax  ファイル・ハンドル
 begin
-	Dos.Create(dx,cx)
-	if (cf)
-		bx.ax = ds.dx
-		cx = &msgOpen
-		dx = sizeof(msgOpen)
-		ErrFile(bx.ax,cx,dx)
-	fi
-	ret
+    Dos.Create(dx,cx)
+    if (cf)
+    	bx.ax = ds.dx
+    	cx = &msgOpen
+    	dx = sizeof(msgOpen)
+    	ErrFile(bx.ax,cx,dx)
+    fi
+    ret
 endproc
 
 proc Delete(dx)
-//	ファイルを削除
-//	arg dx	ファイル名
+//  ファイルを削除
+//  arg dx  ファイル名
 begin
-	var msg:b() = {"'を削除できません"}
+    var msg:b() = {"'を削除できません"}
 
-	Dos.Delete(dx)
-	if (cf)
-		go (ax != 0x05) J1
-		bx.ax = ds.dx
-		cx = &msg
-		dx = sizeof(msg)
-		ErrFile(bx.ax,cx,dx)
-	fi
+    Dos.Delete(dx)
+    if (cf)
+    	go (ax != 0x05) J1
+    	bx.ax = ds.dx
+    	cx = &msg
+    	dx = sizeof(msg)
+    	ErrFile(bx.ax,cx,dx)
+    fi
  J1:
-	ret
+    ret
 endproc
 
 proc Rename(dx,di)
-//	dx を di に変名
-//	arg dx		旧ファイル名
-//	arg di		新ファイル名
+//  dx を di に変名
+//  arg dx  	旧ファイル名
+//  arg di  	新ファイル名
 begin
-	var msg:b() = {"'"},msg2:b() = {"'を'"},msg3:b() = {"'に変名できない\N"}
-	push ax,bx,cx,dx,di,si,es
-	es = ax = ds
-	ax = 0
-	Dos.Rename(dx,es.di)
-	if (cf)
-		si = dx
-		bx = Dos.STDOUT
-		Dos.Write bx,&msg,sizeof(msg)
-		Str.Len si
-		Dos.Write bx,si,cx
-		Dos.Write bx,&msg2,sizeof(msg2)
-		si = di
-		Str.Len si
-		Dos.Write bx,di,cx
-		Dos.Write bx,&msg3,sizeof(msg3)
-		Dos.EXIT 1
-	fi
-	pop  ax,bx,cx,dx,di,si,es
-	ret
+    var msg:b() = {"'"},msg2:b() = {"'を'"},msg3:b() = {"'に変名できない\N"}
+    push ax,bx,cx,dx,di,si,es
+    es = ax = ds
+    ax = 0
+    Dos.Rename(dx,es.di)
+    if (cf)
+    	si = dx
+    	bx = Dos.STDOUT
+    	Dos.Write bx,&msg,sizeof(msg)
+    	Str.Len si
+    	Dos.Write bx,si,cx
+    	Dos.Write bx,&msg2,sizeof(msg2)
+    	si = di
+    	Str.Len si
+    	Dos.Write bx,di,cx
+    	Dos.Write bx,&msg3,sizeof(msg3)
+    	Dos.EXIT 1
+    fi
+    pop  ax,bx,cx,dx,di,si,es
+    ret
 endproc
 
 proc ErrFNF(ax) ///////////////////////
 enter
-	var msgFNF:b()	= {"'が見つからない\N"}
+    var msgFNF:b()  = {"'が見つからない\N"}
 
-	cx = &msgFNF
-	dx = sizeof(msgFNF)
-	bx = ds
-	ErrFile(bx.ax, cx, dx)
+    cx = &msgFNF
+    dx = sizeof(msgFNF)
+    bx = ds
+    ErrFile(bx.ax, cx, dx)
 endproc
 
 proc GetAllFname(ax)
-//	out cx
+//  out cx
 begin
-	save ax
-	var msgFnTblFull:b() = {"指定されたファイル名が多すぎます"}
-	CmdLineB.GetAllFname ax
-	if (ax)
-		if (ax == 1)
-			ErrFNF CmdLineB.fname
-		else
-			Dos.Write Dos.STDOUT, &msgFnTblFull, sizeof(msgFnTblFull)
-		fi
-	fi
-	return
+    save ax
+    var msgFnTblFull:b() = {"指定されたファイル名が多すぎます"}
+    CmdLineB.GetAllFname ax
+    if (ax)
+    	if (ax == 1)
+    	    ErrFNF CmdLineB.fname
+    	else
+    	    Dos.Write Dos.STDOUT, &msgFnTblFull, sizeof(msgFnTblFull)
+    	fi
+    fi
+    return
 endproc
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -201,473 +201,473 @@ var _VAREND:b()
 
 proc FilLinMsg (bx)
 enter
-	save pusha,es,msg:bx
+    save pusha,es,msg:bx
 
-	es = ds
-	si = inName
-	di = &lbuf
-	loop
-		rep.load al,si
-		rep.set  di,al
-	endloop (al)
-	--di
-	b[di] = ' '; ++di
-	cx = 0x05
-	Str.LtoA es.di,linCnt,cl,ch,0
-	si = msg
-	al = ' '
-	rep.set di,al
-	b[di] = ':';++di
-	loop
-		rep.set di,al
-		rep.load al,si
-	endloop (al)
-	b[di] = '\a';++di
-	b[di] = '\n';++di
-	b[di] = 0
-	Tw.WritLn Dos.STDERR,&lbuf,LBUFSIZ
-	return
+    es = ds
+    si = inName
+    di = &lbuf
+    loop
+    	rep.load al,si
+    	rep.set  di,al
+    endloop (al)
+    --di
+    b[di] = ' '; ++di
+    cx = 0x05
+    Str.LtoA es.di,linCnt,cl,ch,0
+    si = msg
+    al = ' '
+    rep.set di,al
+    b[di] = ':';++di
+    loop
+    	rep.set di,al
+    	rep.load al,si
+    endloop (al)
+    b[di] = '\a';++di
+    b[di] = '\n';++di
+    b[di] = 0
+    Tw.WritLn Dos.STDERR,&lbuf,LBUFSIZ
+    return
 endproc
 
 proc NilChkMsg(bx,cx)
-//	サイズcx の文字列dx 中に'\0'があればエラーメッセージを表示
-//	out cf
+//  サイズcx の文字列dx 中に'\0'があればエラーメッセージを表示
+//  out cf
 begin
-	save ax,bx,cx,si
-	var  msg:b() = "行中に文字コード 0 がある"
-	var  msg2:b()= "行中に２バイト目が不正な全角がある"
+    save ax,bx,cx,si
+    var  msg:b() = "行中に文字コード 0 がある"
+    var  msg2:b()= "行中に２バイト目が不正な全角がある"
 
-	si = bx
-	Str.NilChk si, cx
-	if (cf)
-		bx = &msg
-		if (--ax)
-			bx = &msg2
-		fi
-		FilLinMsg bx
-		cf = 1
-	fi
-	return
+    si = bx
+    Str.NilChk si, cx
+    if (cf)
+    	bx = &msg
+    	if (--ax)
+    	    bx = &msg2
+    	fi
+    	FilLinMsg bx
+    	cf = 1
+    fi
+    return
 endproc
 
 proc bar(dx,ax)
 enter
-	save pusha, ph:ax, bx, cx, dx, di, si, es
-	var txtIn:Tr.T
-	var outHdl:w
-	var msgRdLn:b() = "行入力でエラー発生"
-	var StdInNam:b() = "<標準入力>"
+    save pusha, ph:ax, bx, cx, dx, di, si, es
+    var txtIn:Tr.T
+    var outHdl:w
+    var msgRdLn:b() = "行入力でエラー発生"
+    var StdInNam:b() = "<標準入力>"
 
-	if (dx == 0)
-		inName = ax = &StdInNam
-		ax = Dos.STDIN
-	else
-		inName = dx
-		Open dx,0x00
-	fi
-	Tr.ReadLnInit ax,&txtIn 			// 行入力のための準備
-	dx.ax = linCnt0
-	linCnt = dx.ax
-	es = ds
-	loop.w
-		dx.ax = linCnt
-		dx.ax += ww(0,opt_n_skip)
-		linCnt = dx.ax
-		di = &buf
-		if (opt_n_flg)
-			ch = cl = opt_n
-			bl = 0
-			Str.LtoA es.di,dx.ax,cl,ch,bl
-			si = &opt_n_str
-			loop
-				rep.load al,si
-				rep.set  di,al
-			endloop (al)
-			--di
-		fi
-		Tr.ReadLn &txtIn, di, BUFSIZ	// １行入力(asciiz)
-		go.w (cf) ERR
-		exit.w (cx == 0)
-		si = bx = di
-		if (opt_deCtrl)
+    if (dx == 0)
+    	inName = ax = &StdInNam
+    	ax = Dos.STDIN
+    else
+    	inName = dx
+    	Open dx,0x00
+    fi
+    Tr.ReadLnInit ax,&txtIn 	    	// 行入力のための準備
+    dx.ax = linCnt0
+    linCnt = dx.ax
+    es = ds
+    loop.w
+    	dx.ax = linCnt
+    	dx.ax += ww(0,opt_n_skip)
+    	linCnt = dx.ax
+    	di = &buf
+    	if (opt_n_flg)
+    	    ch = cl = opt_n
+    	    bl = 0
+    	    Str.LtoA es.di,dx.ax,cl,ch,bl
+    	    si = &opt_n_str
+    	    loop
+    	    	rep.load al,si
+    	    	rep.set  di,al
+    	    endloop (al)
+    	    --di
+    	fi
+    	Tr.ReadLn &txtIn, di, BUFSIZ	// １行入力(asciiz)
+    	go.w (cf) ERR
+    	exit.w (cx == 0)
+    	si = bx = di
+    	if (opt_deCtrl)
   BACK_JMP:
-			Str.DeCtrl si,cx
-		elsif (opt_opts)
-			NilChkMsg bx,cx
-			if (cf)
-				go (opt_n_flg) BACK_JMP
-				go J2
-			fi
-		fi
-		if (opt_cutlintop)
-			cx = opt_cutlintop
-			Str.NCut si,cx
-		fi
-		ax = opt_uplow
-		if (ax)
-			--ax
-			Str.UpLow si,ax
-		fi
-		if (opt_trim)
-			Str.Trim si
-		fi
-		si = &buf
-		cx = BUFSIZ
-		if (tab2spc_cnt)
-			di = &lbuf
-			ax = tab2spc_cnt
-			cx = LBUFSIZ
-			Str.Tab2Spc es.di,si,ax,cx
-			si = di
-			if (ax == 0)
-				si = &buf
-				cx = BUFSIZ
-				go J1
-			fi
-			if (spc2tab_cnt)
-				ax = spc2tab_cnt
-				cx = stmin
-				dx = opt_c_flg
-				Str.Spc2Tab si,ax,cx,dx
-			fi
-			cx = LBUFSIZ
-		fi
+    	    Str.DeCtrl si,cx
+    	elsif (opt_opts)
+    	    NilChkMsg bx,cx
+    	    if (cf)
+    	    	go (opt_n_flg) BACK_JMP
+    	    	go J2
+    	    fi
+    	fi
+    	if (opt_cutlintop)
+    	    cx = opt_cutlintop
+    	    Str.NCut si,cx
+    	fi
+    	ax = opt_uplow
+    	if (ax)
+    	    --ax
+    	    Str.UpLow si,ax
+    	fi
+    	if (opt_trim)
+    	    Str.Trim si
+    	fi
+    	si = &buf
+    	cx = BUFSIZ
+    	if (tab2spc_cnt)
+    	    di = &lbuf
+    	    ax = tab2spc_cnt
+    	    cx = LBUFSIZ
+    	    Str.Tab2Spc es.di,si,ax,cx
+    	    si = di
+    	    if (ax == 0)
+    	    	si = &buf
+    	    	cx = BUFSIZ
+    	    	go J1
+    	    fi
+    	    if (spc2tab_cnt)
+    	    	ax = spc2tab_cnt
+    	    	cx = stmin
+    	    	dx = opt_c_flg
+    	    	Str.Spc2Tab si,ax,cx,dx
+    	    fi
+    	    cx = LBUFSIZ
+    	fi
   J1:
-		if (txtIn.cr == 0)
-			Str.Len si
-		fi
-		bx = si
+    	if (txtIn.cr == 0)
+    	    Str.Len si
+    	fi
+    	bx = si
   J2:
-		dx = bx
-		bx = ph
-		Tw.WritLn bx, dx, cx		// 1行出力
-	endloop (cf == 0)
-	if (opt_1a)
-		Tw.WritLn ph, &s1A, 1
-	fi
-	ax = txtIn.handle
-	if (ax != Dos.STDIN)
-		Dos.Close ax
-	fi
-	return
+    	dx = bx
+    	bx = ph
+    	Tw.WritLn bx, dx, cx	    // 1行出力
+    endloop (cf == 0)
+    if (opt_1a)
+    	Tw.WritLn ph, &s1A, 1
+    fi
+    ax = txtIn.handle
+    if (ax != Dos.STDIN)
+    	Dos.Close ax
+    fi
+    return
  ERR:
-	push ax
-	FilLinMsg &msgRdLn
-	pop  ax
-	Dos.Exit al
+    push ax
+    FilLinMsg &msgRdLn
+    pop  ax
+    Dos.Exit al
 endproc
 
 /*
 proc SaveFat(ax)
 begin
-	push ax,bx
-	bx = ax
-	ah = 0x45
-	intr 0x21
-	if (cf == 0)
-		Dos.Close ax
-	fi
-	pop  ax,bx
-	ret
+    push ax,bx
+    bx = ax
+    ah = 0x45
+    intr 0x21
+    if (cf == 0)
+    	Dos.Close ax
+    fi
+    pop  ax,bx
+    ret
 endproc
 */
 
 proc DispFname(dx,ax)
 begin
-	save pusha
-	si = dx
-	di = ax
-	dx = ax
-	cx = 3
-	al = '['
-	rep.set di,al
-	loop
-		++cx
-		rep.load al,si
-		rep.set  di,al
-	endloop (al)
-	--di
-	ax = ']' + '\r'*0x100
-	rep.set.w di,ax
-	ax = '\n'
-	rep.set.w di,ax
-	Dos.Write Dos.STDOUT,dx,cx
-	return
+    save pusha
+    si = dx
+    di = ax
+    dx = ax
+    cx = 3
+    al = '['
+    rep.set di,al
+    loop
+    	++cx
+    	rep.load al,si
+    	rep.set  di,al
+    endloop (al)
+    --di
+    ax = ']' + '\r'*0x100
+    rep.set.w di,ax
+    ax = '\n'
+    rep.set.w di,ax
+    Dos.Write Dos.STDOUT,dx,cx
+    return
 endproc
 
 proc foo(dx)	// -o オプション時のファイルの処理
 enter
-	save pusha,name:dx
-	var extBak:b() = "bak"
-	var extOut:b() = "tmp"
-	var bakName:b(300)
+    save pusha,name:dx
+    var extBak:b() = "bak"
+    var extOut:b() = "tmp"
+    var bakName:b(300)
 
-	if (opt_dispfname)
-		DispFname dx,&outName
-	fi
-	rep.cpy.w &bakName,name,145
-	Fname.ChgExt ww(es,&bakName),&extBak
-	rep.cpy.w &outName,name,145
-	Fname.ChgExt ww(es,&outName),&extOut
+    if (opt_dispfname)
+    	DispFname dx,&outName
+    fi
+    rep.cpy.w &bakName,name,145
+    Fname.ChgExt ww(es,&bakName),&extBak
+    rep.cpy.w &outName,name,145
+    Fname.ChgExt ww(es,&outName),&extOut
 
-	Create &outName,0x00
-	dx = name
-	bar dx,ax
-	Dos.Close ax
-	Delete &bakName
-	Rename name,&bakName
-	Rename &outName,name
-	return
+    Create &outName,0x00
+    dx = name
+    bar dx,ax
+    Dos.Close ax
+    Delete &bakName
+    Rename name,&bakName
+    Rename &outName,name
+    return
 endproc
 
 ///////////////////////////////////////////////////////////////////////////////
 proc Option(si)
 begin
-	var msg:b()={"指定されたオプションがおかしい(-? または - でｵﾌﾟｼｮﾝ表示)\N"}
-	var msgOOR:b() = {"オプションで指定された値が範囲外\N"}
-	save ax,bx,cx,dx,si,di
+    var msg:b()={"指定されたオプションがおかしい(-? または - でｵﾌﾟｼｮﾝ表示)\N"}
+    var msgOOR:b() = {"オプションで指定された値が範囲外\N"}
+    save ax,bx,cx,dx,si,di
 
-	go (b[si] == 0) USAGE
-	loop.w
-		al = b[si]
-		++si
-		exit.w (al == 0)
-		Std.ToUpper al
-		if (al == '?')
- USAGE: 	jmp Usage
-		elsif (al == 'O')
-			opt_out = 1
-			if (b[si])
-				di = &outName
-				loop
-					b[di] = al = b[si]
-					++di
-					++si
-				endloop (al)
-				opt_out = -1
-			fi
-			exit.w
-		elsif (al == 'Z')
-			Str.AtoL si
-			if (ax == 0); ax = 8; fi
-			go.w (ah ||(spc2tab_cnt && ax >= spc2tab_cnt)) ERR_OOR
-			stmin = ax
-		elsif (al == 'S')
-			Str.AtoL si
-			if (ax == 0); ax = 8; fi
-			go.w (ah||(stmin && ax <= stmin)) ERR_OOR
-			spc2tab_cnt = ax
-			if (tab2spc_cnt == 0)
-				tab2spc_cnt = 8
-			fi
-		elsif.w (al == 'N')
-			opt_n_flg = 1
-			opt_n = 5
-			opt_n_skip = 1
-			al = b[si]
-			if (Std.IsDigit(al))
-				Str.AtoL si
-				go.w (ax > 16) ERR_OOR
-				opt_n = al
-			fi
-			if (b[si] == ',')
-				++si
-				Str.AtoL si
-				if (ax)
-					opt_n_skip = ax
-				fi
-				if (b[si] == ',')
-					++si
-					Str.AtoL si
-					linCnt0 = dx.ax
-					if (b[si] == ',')
-						++si
-						ah = b[si]
-						if (ah == '"' || ah == '\'')
-							++si
-						else
-							ah = 0
-						fi
-						di = &opt_n_str
-						cx = sizeof(opt_n_str) - 1
-						loop
-							al = b[si]
-							exit (al == ah || al == 0)
-							b[di] = al
-							++di
-							++si
-						endloop (--cx)
-						b[di] = 0
-					fi
-				fi
-			fi
-			exit.w
-		elsif (al == 'K')
-			Str.sjisFlg = 1
-			al = b[si]
-			if (al == '-')
-				Str.sjisFlg = 0
-				++si
-			fi
-		elsif (al == 'D')
-			Str.AtoL si
-			opt_cutlintop = ax
-		elsif (al == 'M')
-			opt_trim = 1
-		elsif (al == 'B')
-			opt_c_flg = 1
-		elsif (al == 'L')
-			opt_uplow = 1
-		elsif (al == 'U')
-			opt_uplow = 2
-		elsif (al == 'A')
-			opt_1a = 1
-		elsif (al == 'C')
-			opt_deCtrl = 1
-		elsif (al == 'V')
-			opt_dispfname = 1
-		elsif (al == 'T')
-			Str.AtoL si
-			if (ax == 0); ax = 8; fi
-			go (ax > 0x10) ERR_OOR
-			tab2spc_cnt = ax
-		elsif (al == 'R')
-			Str.AtoL si
-			go (ax > 3) ERR_OOR
-			opt_r = ax
-		elsif (al != 'E')
-			go ERR_OPTS
-		fi
-	endloop
-	opt_opts = 1
-	return
+    go (b[si] == 0) USAGE
+    loop.w
+    	al = b[si]
+    	++si
+    	exit.w (al == 0)
+    	Std.ToUpper al
+    	if (al == '?')
+ USAGE:     jmp Usage
+    	elsif (al == 'O')
+    	    opt_out = 1
+    	    if (b[si])
+    	    	di = &outName
+    	    	loop
+    	    	    b[di] = al = b[si]
+    	    	    ++di
+    	    	    ++si
+    	    	endloop (al)
+    	    	opt_out = -1
+    	    fi
+    	    exit.w
+    	elsif (al == 'Z')
+    	    Str.AtoL si
+    	    if (ax == 0); ax = 8; fi
+    	    go.w (ah ||(spc2tab_cnt && ax >= spc2tab_cnt)) ERR_OOR
+    	    stmin = ax
+    	elsif (al == 'S')
+    	    Str.AtoL si
+    	    if (ax == 0); ax = 8; fi
+    	    go.w (ah||(stmin && ax <= stmin)) ERR_OOR
+    	    spc2tab_cnt = ax
+    	    if (tab2spc_cnt == 0)
+    	    	tab2spc_cnt = 8
+    	    fi
+    	elsif.w (al == 'N')
+    	    opt_n_flg = 1
+    	    opt_n = 5
+    	    opt_n_skip = 1
+    	    al = b[si]
+    	    if (Std.IsDigit(al))
+    	    	Str.AtoL si
+    	    	go.w (ax > 16) ERR_OOR
+    	    	opt_n = al
+    	    fi
+    	    if (b[si] == ',')
+    	    	++si
+    	    	Str.AtoL si
+    	    	if (ax)
+    	    	    opt_n_skip = ax
+    	    	fi
+    	    	if (b[si] == ',')
+    	    	    ++si
+    	    	    Str.AtoL si
+    	    	    linCnt0 = dx.ax
+    	    	    if (b[si] == ',')
+    	    	    	++si
+    	    	    	ah = b[si]
+    	    	    	if (ah == '"' || ah == '\'')
+    	    	    	    ++si
+    	    	    	else
+    	    	    	    ah = 0
+    	    	    	fi
+    	    	    	di = &opt_n_str
+    	    	    	cx = sizeof(opt_n_str) - 1
+    	    	    	loop
+    	    	    	    al = b[si]
+    	    	    	    exit (al == ah || al == 0)
+    	    	    	    b[di] = al
+    	    	    	    ++di
+    	    	    	    ++si
+    	    	    	endloop (--cx)
+    	    	    	b[di] = 0
+    	    	    fi
+    	    	fi
+    	    fi
+    	    exit.w
+    	elsif (al == 'K')
+    	    Str.sjisFlg = 1
+    	    al = b[si]
+    	    if (al == '-')
+    	    	Str.sjisFlg = 0
+    	    	++si
+    	    fi
+    	elsif (al == 'D')
+    	    Str.AtoL si
+    	    opt_cutlintop = ax
+    	elsif (al == 'M')
+    	    opt_trim = 1
+    	elsif (al == 'B')
+    	    opt_c_flg = 1
+    	elsif (al == 'L')
+    	    opt_uplow = 1
+    	elsif (al == 'U')
+    	    opt_uplow = 2
+    	elsif (al == 'A')
+    	    opt_1a = 1
+    	elsif (al == 'C')
+    	    opt_deCtrl = 1
+    	elsif (al == 'V')
+    	    opt_dispfname = 1
+    	elsif (al == 'T')
+    	    Str.AtoL si
+    	    if (ax == 0); ax = 8; fi
+    	    go (ax > 0x10) ERR_OOR
+    	    tab2spc_cnt = ax
+    	elsif (al == 'R')
+    	    Str.AtoL si
+    	    go (ax > 3) ERR_OOR
+    	    opt_r = ax
+    	elsif (al != 'E')
+    	    go ERR_OPTS
+    	fi
+    endloop
+    opt_opts = 1
+    return
 
   ERR_OOR:
-	dx = &msgOOR
-	cx = sizeof(msgOOR)
-	go ERR
+    dx = &msgOOR
+    cx = sizeof(msgOOR)
+    go ERR
   ERR_OPTS:
-	dx = &msg
-	cx = sizeof(msg)
+    dx = &msg
+    cx = sizeof(msg)
 
   ERR:
-	//ds = cs
-	bx = Dos.STDOUT
-	Dos.Write bx,dx,cx
-	Dos.EXIT 1
+    //ds = cs
+    bx = Dos.STDOUT
+    Dos.Write bx,dx,cx
+    Dos.EXIT 1
 
 endproc
 
 
 proc Main()
-//	in	es
-//	out al
+//  in	es
+//  out al
 enter
-	var flg:b,outHdl:w
-	var fname:w,fnCnt:w
+    var flg:b,outHdl:w
+    var fname:w,fnCnt:w
 
-	dx = ds
-	rep.inc
-	es = ax = %var
-	ds = ax
-	di = &_VARBGN
-	cx = &_VAREND
-	cx -= di
-	al = 0
-	rep.set di,al,cx
+    dx = ds
+    rep.inc
+    es = ax = %var
+    ds = ax
+    di = &_VARBGN
+    cx = &_VAREND
+    cx -= di
+    al = 0
+    rep.set di,al,cx
 
-	opt_n_skip = 1
+    opt_n_skip = 1
 
-	di = &fnbuf
-	cx = FNBUFSIZ
-	CmdLineB.Init es.di,cx,dx			// コマンドライン解析の初期化
+    di = &fnbuf
+    cx = FNBUFSIZ
+    CmdLineB.Init es.di,cx,dx	    	// コマンドライン解析の初期化
 
   // コマンドラインのオプションの処理
-	CmdLineB.MoveOpt
-	di = si
-	if (cx)
-		loop
-			si = w[di]
-			++si
-			Option si
-			di+=2
-		endloop(--cx)
-	fi
+    CmdLineB.MoveOpt
+    di = si
+    if (cx)
+    	loop
+    	    si = w[di]
+    	    ++si
+    	    Option si
+    	    di+=2
+    	endloop(--cx)
+    fi
   // 各ファイルの処理
-	// 出力の改行をどれにするか設定
-	ax = opt_r
-	if (al == 1)
-		al = '\n'
-	elsif (al == 2)
-		al = '\r'
-	else
-		ax = '\r'+'\n' * 0x100
-	fi
-	Tw.SetCrLf ax  // WritLn での改行を ax で指定された文字コードにする
+    // 出力の改行をどれにするか設定
+    ax = opt_r
+    if (al == 1)
+    	al = '\n'
+    elsif (al == 2)
+    	al = '\r'
+    else
+    	ax = '\r'+'\n' * 0x100
+    fi
+    Tw.SetCrLf ax  // WritLn での改行を ax で指定された文字コードにする
 
-	outHdl = Dos.STDOUT
-	if (opt_out .<. 0)
-		Create &outName,0
-		outHdl = ax
-	fi
-	if (CmdLineB.fnameFlg)
-		GetAllFname 0x01			//result cx
-		CmdLineB.FirstFname 		//result es.di
-		loop
-			dx = di 	//es == ds
-			if (opt_out .>. 0)
-				foo dx
-			else
-				bar dx, outHdl
-			fi
-			CmdLineB.NextFname
-		endloop (--cx)
-	else
-		bar 0, outHdl			// 標準入力について行う
-	fi
-	if (opt_out .<. 0)
-		ax = outHdl
-		Dos.Close ax
-	fi
-	Dos.EXIT(0)
+    outHdl = Dos.STDOUT
+    if (opt_out .<. 0)
+    	Create &outName,0
+    	outHdl = ax
+    fi
+    if (CmdLineB.fnameFlg)
+    	GetAllFname 0x01    	    //result cx
+    	CmdLineB.FirstFname 	    //result es.di
+    	loop
+    	    dx = di 	//es == ds
+    	    if (opt_out .>. 0)
+    	    	foo dx
+    	    else
+    	    	bar dx, outHdl
+    	    fi
+    	    CmdLineB.NextFname
+    	endloop (--cx)
+    else
+    	bar 0, outHdl	    	// 標準入力について行う
+    fi
+    if (opt_out .<. 0)
+    	ax = outHdl
+    	Dos.Close ax
+    fi
+    Dos.EXIT(0)
 endproc
 
 endmodule
 
 /*
-	ECTABの歴史
+    ECTABの歴史
 
   ana版以前... os9/09版 trim   1988?-
-	FBASICのﾃｷｽﾄの変換のために汗で作ったもの(名前は忘れた)にGIGO師作のtrim
-	(TAB変換・行末空白削除)の機能を付加し, trimに変名.
-	タブ空白変換, 行番号付加, CR<=>CRLF変換, ｺﾝﾄﾛｰﾙ･ｺｰﾄﾞ削除, 0x1a付加が
-	できたが、漢字対応は不完全だった。
+    FBASICのﾃｷｽﾄの変換のために汗で作ったもの(名前は忘れた)にGIGO師作のtrim
+    (TAB変換・行末空白削除)の機能を付加し, trimに変名.
+    タブ空白変換, 行番号付加, CR<=>CRLF変換, ｺﾝﾄﾛｰﾙ･ｺｰﾄﾞ削除, 0x1a付加が
+    できたが、漢字対応は不完全だった。
 
-  C版:trim	1991
-	dos 環境を手に入れたとき、os9 のテキストを変換するために作成.
-	タブ空白変換,行末空白削除, CR,LF,CRLF変換,CTRLｺｰﾄﾞ削除,1a付加,漢字対応.
-	ﾃｷｽﾄ中に'\0'があると変換がおかしくなるので、ﾁｪｯｸし'\0'を削除.
-	現在の現在の-zｵﾌﾟｼｮﾝの機能はなかったが行頭の空白のみのﾀﾌﾞ化ができた。
+  C版:trim  1991
+    dos 環境を手に入れたとき、os9 のテキストを変換するために作成.
+    タブ空白変換,行末空白削除, CR,LF,CRLF変換,CTRLｺｰﾄﾞ削除,1a付加,漢字対応.
+    ﾃｷｽﾄ中に'\0'があると変換がおかしくなるので、ﾁｪｯｸし'\0'を削除.
+    現在の現在の-zｵﾌﾟｼｮﾝの機能はなかったが行頭の空白のみのﾀﾌﾞ化ができた。
 
-  ver.1.00	1992/03/?? ana版:trim
-	ana のサンプルとして作成
-	C 版の機能のほか、行番号付加（ただし2ﾊﾞｲﾄ整数で引数なし）, ｱﾙﾌｧﾍﾞｯﾄの
-	大小変換を付ける... ana で書いたﾙｰﾁﾝをﾁｪｯｸするために付けたのをはずすの
-	めんどうだからそのままにした
-	-zN でタブ間隔 Nでタブ位置の空白が N個のときのみ変換した
+  ver.1.00  1992/03/?? ana版:trim
+    ana のサンプルとして作成
+    C 版の機能のほか、行番号付加（ただし2ﾊﾞｲﾄ整数で引数なし）, ｱﾙﾌｧﾍﾞｯﾄの
+    大小変換を付ける... ana で書いたﾙｰﾁﾝをﾁｪｯｸするために付けたのをはずすの
+    めんどうだからそのままにした
+    -zN でタブ間隔 Nでタブ位置の空白が N個のときのみ変換した
 
-  ver.1.20	1992/11/27
-	一部ｵﾌﾟｼｮﾝ文字を変更.
-	-v,-d,-b追加.
-	-nを2byte整数から4ﾊﾞｲﾄ整数に変更し, 引数を増やた（os9版にできて dos 版
-	でできないのはシャクだから...使わんけど^^;）
-	名前を trim から ectab に変名（あるSF小説を読み返した影響^^;）
+  ver.1.20  1992/11/27
+    一部ｵﾌﾟｼｮﾝ文字を変更.
+    -v,-d,-b追加.
+    -nを2byte整数から4ﾊﾞｲﾄ整数に変更し, 引数を増やた（os9版にできて dos 版
+    でできないのはシャクだから...使わんけど^^;）
+    名前を trim から ectab に変名（あるSF小説を読み返した影響^^;）
 
-  ver.1.21	1992/11/30
-	-zNを変更:タブ間隔は-sの指定を用い、変換する空白がN個以下では変換しない.
-	ニフティサーブにアップ
+  ver.1.21  1992/11/30
+    -zNを変更:タブ間隔は-sの指定を用い、変換する空白がN個以下では変換しない.
+    ニフティサーブにアップ
 
-  ver.1.25	1992/12/05
-	 ｴﾗｰﾒｯｾｰｼﾞ出力で行番号が正しく表示されなかった
-	 '\0'だけでなく、不正全角のﾁｪｯｸも行なうようにした
+  ver.1.25  1992/12/05
+     ｴﾗｰﾒｯｾｰｼﾞ出力で行番号が正しく表示されなかった
+     '\0'だけでなく、不正全角のﾁｪｯｸも行なうようにした
 */

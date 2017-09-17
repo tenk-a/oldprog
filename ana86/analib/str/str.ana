@@ -1,5 +1,5 @@
 module str
-	c_name "str","_",1
+    c_name "str","_",1
 
 *proc memcpy(dst:d, src:d, sz:w);cdecl; FC; endproc
 *proc memcpyl(dst:d, src:d, sz:d);cdecl; FC; endproc
@@ -33,7 +33,7 @@ module str
 
 //‘SŠpŠÖŒW
 *cvar flagj:w = 1
-*@define FLAGJ()	b[cs:%str.flagj]
+*@define FLAGJ()    b[cs:%str.flagj]
 
 *proc setflagj(flg:w);cdecl; FC; endproc
 *proc getflagj();cdecl; FC; endproc
@@ -58,12 +58,12 @@ endmodule
 @if 0
 
 module S
-	c_name "str","_",1
+    c_name "str","_",1
 
 *proc ();cdecl; FC; endproc
 enter
-	save
-	return
+    save
+    return
 endproc
 
 endmodule

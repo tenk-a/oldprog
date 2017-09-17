@@ -1,49 +1,48 @@
 module str
-	c_name "str","_",1
+    c_name "str","_",1
 
-	import Std
+    import Std
 
 *proc memmove(dst:d,src:d,sz:w);cdecl;FC
 enter
-	save bx,cx,si,di,es,ds
+    save bx,cx,si,di,es,ds
 
-	bx.si = src
-	Std.FpToHp bx,si,ax
-	ds = bx
-	dx.di = dst
-	Std.FpToHp dx,di,ax
-	es = dx
-	cx = sz
-	go (cx == 0) RET
-	|dx - bx
-	go (>) J2
-	go (<) J1
-	|di -si
-	go (>) J2
-	go (==) RET
+    bx.si = src
+    Std.FpToHp bx,si,ax
+    ds = bx
+    dx.di = dst
+    Std.FpToHp dx,di,ax
+    es = dx
+    cx = sz
+    go (cx == 0) RET
+    |dx - bx
+    go (>) J2
+    go (<) J1
+    |di -si
+    go (>) J2
+    go (==) RET
   J1:
-	rep.inc
-	if ((cx >>= 1) .cf. 1)
-		rep.cpy di,si
-	fi
-	rep.cpy.w di,si,cx
-	go RET
+    rep.inc
+    if ((cx >>= 1) .cf. 1)
+    	rep.cpy di,si
+    fi
+    rep.cpy.w di,si,cx
+    go RET
   J2:
-	rep.dec
-	ax = cx
-	--ax
-	si += ax
-	di += ax
-	if ((cx >>= 1) .cf. 1)
-		rep.cpy di,si
-	fi
-	rep.cpy.w di,si,cx
-	rep.inc
+    rep.dec
+    ax = cx
+    --ax
+    si += ax
+    di += ax
+    if ((cx >>= 1) .cf. 1)
+    	rep.cpy di,si
+    fi
+    rep.cpy.w di,si,cx
+    rep.inc
   RET:
-	ds.ax = dst
-	return
+    ds.ax = dst
+    return
 
 endproc
 
 endmodule
-

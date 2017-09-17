@@ -1,27 +1,26 @@
 module S
-	c_name "str","_",1
+    c_name "str","_",1
 
-	import Std
-	import str
+    import Std
+    import str
 
 *proc upr(s0:d);cdecl;FC
-//	•¶Žš—ñ s0 ‚Ì”¼Šp‰pŽš‚ð‘å•¶Žš‰»
-//	•¶Žš—ñ‚Í’¼Ú‘‚«Š·‚¦‚é
+//  •¶Žš—ñ s0 ‚Ì”¼Šp‰pŽš‚ð‘å•¶Žš‰»
+//  •¶Žš—ñ‚Í’¼Ú‘‚«Š·‚¦‚é
 enter
-	save si,ds
+    save si,ds
 
-	ds.si = s0
-	loop
-		rep.load al,si
-		exit (al == 0)
-		if (al >= 'a' && al <= 'z')
-			al -= 0x20
-			b[si-1] = al
-		fi
-	endloop
-	dx.ax = s0
-	return
+    ds.si = s0
+    loop
+    	rep.load al,si
+    	exit (al == 0)
+    	if (al >= 'a' && al <= 'z')
+    	    al -= 0x20
+    	    b[si-1] = al
+    	fi
+    endloop
+    dx.ax = s0
+    return
 endproc
 
 endmodule
-

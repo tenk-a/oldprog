@@ -1,70 +1,70 @@
 module DIRLIST
-	//	1992	writen by M.Kitamura
-	model SMALL
-	stack 0x1010
-	start Main
+    //	1992	writen by M.Kitamura
+    model SMALL
+    stack 0x1010
+    start Main
 
-	import Dos:".han"
-	import CmdLineA
-	import PUTSTR:"putstr"
-	type   Ps:PUTSTR
+    import Dos:".han"
+    import CmdLineA
+    import PUTSTR:"putstr"
+    type   Ps:PUTSTR
 
 var usage:b() = data
-	b "use: dirlist ファイル名...\N"
-	b "指定されたファイル名で存在するものを表示。ファイル名は複数指定可能\N"
-	b "ファイル名に以下のワイルドカード文字が使える(Ｃは任意の一文字)\N"
-	b "  *     ０文字以上の文字に一致\N"
-	b "  ?     任意の１文字に一致\N"
-	b "  ^Ｃ   Ｃ以外の一文字に一致\N"
-	b "  [..]  括弧内の文字列のどれか一文字に一致\N"
-	b "  [^..] 括弧内の文字列以外の一文字に一致\N"
-	b "        括弧内ではワイルドカード文字は機能しない\N"
-	b "        括弧内では A-Z のようにすると A から Z までの文字に一致\N"
-	b "        -の両端には必ず文字を指定しないといけない。[ または [^ \N"
-	b "        の直後の - は一文字として扱う\N"
-	b "  拡張子のないファイル名の指定は、ファイル名の最後に'.'を付ける\N"
-	b "  ディレクトリ名部にワイルドカード文字は使えない\N"
-	b "  パスの区切りに / を使えるが、\\ に置き換える\N"
-	b 0
+    b "use: dirlist ファイル名...\N"
+    b "指定されたファイル名で存在するものを表示。ファイル名は複数指定可能\N"
+    b "ファイル名に以下のワイルドカード文字が使える(Ｃは任意の一文字)\N"
+    b "  *     ０文字以上の文字に一致\N"
+    b "  ?     任意の１文字に一致\N"
+    b "  ^Ｃ   Ｃ以外の一文字に一致\N"
+    b "  [..]  括弧内の文字列のどれか一文字に一致\N"
+    b "  [^..] 括弧内の文字列以外の一文字に一致\N"
+    b "        括弧内ではワイルドカード文字は機能しない\N"
+    b "        括弧内では A-Z のようにすると A から Z までの文字に一致\N"
+    b "        -の両端には必ず文字を指定しないといけない。[ または [^ \N"
+    b "        の直後の - は一文字として扱う\N"
+    b "  拡張子のないファイル名の指定は、ファイル名の最後に'.'を付ける\N"
+    b "  ディレクトリ名部にワイルドカード文字は使えない\N"
+    b "  パスの区切りに / を使えるが、\\ に置き換える\N"
+    b 0
 enddata
 
 proc Main()
-//	in es
+//  in es
 enter
-	var name:b(300)
+    var name:b(300)
 
-	rep.inc
-	dx = ds
-	ds = ax = %var
-	es = ax
-	CmdLineA.Init dx
+    rep.inc
+    dx = ds
+    ds = ax = %var
+    es = ax
+    CmdLineA.Init dx
 
   @if 0
-	if (cx)
-		loop
-			di = w[si]
-			//pusha
-			Ps.PutStrCr  Dos.STDOUT, ds.di
-			//popa
-			si+=2
-		endloop (--cx)
-	fi
+    if (cx)
+    	loop
+    	    di = w[si]
+    	    //pusha
+    	    Ps.PutStrCr  Dos.STDOUT, ds.di
+    	    //popa
+    	    si+=2
+    	endloop (--cx)
+    fi
   @fi
-	CmdLineA.Top
-	es.di = ww(ds,&name)
-	ax = 0x07
-	CmdLineA.GetFname es.di,ax			// result ax:error code (0:no error)
-	if (ax == 0)
-		loop
-			Ps.PutStrCr Dos.STDOUT, ww(ds,&name)
-			CmdLineA.GetFname ww(ds,&name), 0x07
-		endloop (ax == 0)
-	else
-		Ps.PutStr Dos.STDOUT,ww(ds,&usage)
-	fi
-	al = 0
+    CmdLineA.Top
+    es.di = ww(ds,&name)
+    ax = 0x07
+    CmdLineA.GetFname es.di,ax	    	// result ax:error code (0:no error)
+    if (ax == 0)
+    	loop
+    	    Ps.PutStrCr Dos.STDOUT, ww(ds,&name)
+    	    CmdLineA.GetFname ww(ds,&name), 0x07
+    	endloop (ax == 0)
+    else
+    	Ps.PutStr Dos.STDOUT,ww(ds,&usage)
+    fi
+    al = 0
  ERR:
-	Dos.Exit(al)
+    Dos.Exit(al)
 endproc
 
 endmodule

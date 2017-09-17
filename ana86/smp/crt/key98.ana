@@ -1,55 +1,55 @@
 module	Key98
 
-	// キー入力関係の関数
-	// 手続きは呼ばれるとき、tf = 0,df = 0,iif = 0 を前提。
-	// 手続きの復帰時, cf,sf,nf,pf,ovf は不定。
-	c_name "Cn","_",1
-	model MODEL  //SMALL～LARGE対応
+    // キー入力関係の関数
+    // 手続きは呼ばれるとき、tf = 0,df = 0,iif = 0 を前提。
+    // 手続きの復帰時, cf,sf,nf,pf,ovf は不定。
+    c_name "Cn","_",1
+    model MODEL  //SMALL～LARGE対応
 
-	import Bios98Key:"Bios_key"
+    import Bios98Key:"Bios_key"
 
 
 @part KEYINIT
 
 *proc KeyInit()
 begin
-	save ax
+    save ax
 
-	Bios98Key.Init
-	return
+    Bios98Key.Init
+    return
 endproc
 
 @part GETKEY
 
 *proc GetKey()
-	//out dx.ax   dx  0:ﾃﾞｰﾀ無効  1:ﾃﾞｰﾀ有効   ax:キーコード・データ
+    //out dx.ax   dx  0:ﾃﾞｰﾀ無効  1:ﾃﾞｰﾀ有効   ax:キーコード・データ
 begin
-	save bx
+    save bx
 
-	Bios98Key.Read
-	dl = bh
-	dh = 0
-	return
+    Bios98Key.Read
+    dl = bh
+    dh = 0
+    return
 endproc
 
 @part GETKEYWT
 
 *proc GetKeyWait()
-	//out ax	キーコード・データ
+    //out ax	キーコード・データ
 begin
-	Bios98Key.ReadWait
-	return
+    Bios98Key.ReadWait
+    return
 endproc
 
 
 @part GETSHIFT
 
 *proc GetShift()
-	//out ax	b0:ｼﾌﾄ  b1:CAPS  b2:ｶﾅ  b3:GRPH  b4:CTRL
+    //out ax	b0:ｼﾌﾄ	b1:CAPS  b2:ｶﾅ	b3:GRPH  b4:CTRL
 begin
-	Bios98Key.ShiftKeyRead
-	ah = 0
-	return
+    Bios98Key.ShiftKeyRead
+    ah = 0
+    return
 endproc
 
 endmodule

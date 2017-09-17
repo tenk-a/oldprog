@@ -3,521 +3,521 @@ module CHK
 proc shiftChk()
 begin
 //仩  嵍僔僼僩
-	//MRbw <<= 1			shl MRbw,1
-	//MRbw <<= cl			shl MRbw,cl
-	//MRbw <<= Ib (Ib > 0)	shl MRbw,Ib 		(8086影霓晄壜)
-	//MRbw <<= Ib (Ib < 0)	Ib2 = -Ib 偵偟偰丄shr MRbw,Ib2
-	al <<= cl
-	byte[bx] <<= 1
+    //MRbw <<= 1    	    shl MRbw,1
+    //MRbw <<= cl   	    shl MRbw,cl
+    //MRbw <<= Ib (Ib > 0)  shl MRbw,Ib     	(8086影霓晄壜)
+    //MRbw <<= Ib (Ib < 0)  Ib2 = -Ib 偵偟偰丄shr MRbw,Ib2
+    al <<= cl
+    byte[bx] <<= 1
   //崌惉
-	//MRbw <<= 0			---
-	//Rbw <<= Ib			偦偺夞悢暘丄shl Rbw,1傪惗惉 (8086影霓偺傒)
-	//Rw <<= 8				Rw.h = Rw.l; Rw.l = 0		(8086影霓偺傒)
-	//Rw <<= Ib (9乣15) 	Rw <<= 8; Rw.h <<= Ib-8 	(8086影霓偺傒)
-	//Rw <<= Ib (16乣)		Rw = 0
+    //MRbw <<= 0    	    ---
+    //Rbw <<= Ib    	    偦偺夞悢暘丄shl Rbw,1傪惗惉 (8086影霓偺傒)
+    //Rw <<= 8	    	    Rw.h = Rw.l; Rw.l = 0   	(8086影霓偺傒)
+    //Rw <<= Ib (9乣15)     Rw <<= 8; Rw.h <<= Ib-8 	(8086影霓偺傒)
+    //Rw <<= Ib (16乣)	    Rw = 0
 
-	al <<= 0
-	al <<= 1
-	al <<= 2
-	al <<= 3
-	al <<= 4
-	al <<= 5
-	al <<= 6
-	al <<= 7
-	al <<= 8
-	al <<= 9
-	al <<= 11
-	al <<= 12
+    al <<= 0
+    al <<= 1
+    al <<= 2
+    al <<= 3
+    al <<= 4
+    al <<= 5
+    al <<= 6
+    al <<= 7
+    al <<= 8
+    al <<= 9
+    al <<= 11
+    al <<= 12
 
-	ax <<= 0
-	ax <<= 1
-	ax <<= 2
-	ax <<= 3
-	ax <<= 4
-	ax <<= 5
-	ax <<= 6
-	ax <<= 7
-	ax <<= 8
-	ax <<= 9
-	ax <<= 11
-	ax <<= 12
-	ax <<= 13
-	ax <<= 15
-	ax <<= 16
-	ax <<= 17
-	ax <<= 18
-	ax <<= 19
+    ax <<= 0
+    ax <<= 1
+    ax <<= 2
+    ax <<= 3
+    ax <<= 4
+    ax <<= 5
+    ax <<= 6
+    ax <<= 7
+    ax <<= 8
+    ax <<= 9
+    ax <<= 11
+    ax <<= 12
+    ax <<= 13
+    ax <<= 15
+    ax <<= 16
+    ax <<= 17
+    ax <<= 18
+    ax <<= 19
 
-	ax <<= -1
-	ax <<= -2
-	ax <<= -3
-	ax <<= -4
-	ax <<= -5
-	ax <<= -6
-	ax <<= -7
-	ax <<= -8
-	ax <<= -9
-	ax <<= -10
-	ax <<= -11
-	ax <<= -12
-	ax <<= -13
-	ax <<= -14
-	ax <<= -15
-	ax <<= -16
-	ax <<= -17
+    ax <<= -1
+    ax <<= -2
+    ax <<= -3
+    ax <<= -4
+    ax <<= -5
+    ax <<= -6
+    ax <<= -7
+    ax <<= -8
+    ax <<= -9
+    ax <<= -10
+    ax <<= -11
+    ax <<= -12
+    ax <<= -13
+    ax <<= -14
+    ax <<= -15
+    ax <<= -16
+    ax <<= -17
 
-	dx.ax <<= 0
-	dx.ax <<= 1
-	dx.ax <<= 2
-	dx.ax <<= 3
-	dx.ax <<= 4
-	dx.ax <<= 5
-	dx.ax <<= 6
-	dx.ax <<= 7
-	dx.ax <<= 8
-	dx.ax <<= 9
-	dx.ax <<= 11
-	dx.ax <<= 12
-	dx.ax <<= 13
-	dx.ax <<= 15
-	dx.ax <<= 16
-	dx.ax <<= 17
-	dx.ax <<= 18
-	dx.ax <<= 19
-	dx.ax <<= 20
-	dx.ax <<= 21
-	dx.ax <<= 22
-	dx.ax <<= 23
-	dx.ax <<= 24
-	dx.ax <<= 25
-	dx.ax <<= 26
-	dx.ax <<= 27
-	dx.ax <<= 28
-	dx.ax <<= 29
-	dx.ax <<= 30
-	dx.ax <<= 31
-	dx.ax <<= 32
-	dx.ax <<= 33
+    dx.ax <<= 0
+    dx.ax <<= 1
+    dx.ax <<= 2
+    dx.ax <<= 3
+    dx.ax <<= 4
+    dx.ax <<= 5
+    dx.ax <<= 6
+    dx.ax <<= 7
+    dx.ax <<= 8
+    dx.ax <<= 9
+    dx.ax <<= 11
+    dx.ax <<= 12
+    dx.ax <<= 13
+    dx.ax <<= 15
+    dx.ax <<= 16
+    dx.ax <<= 17
+    dx.ax <<= 18
+    dx.ax <<= 19
+    dx.ax <<= 20
+    dx.ax <<= 21
+    dx.ax <<= 22
+    dx.ax <<= 23
+    dx.ax <<= 24
+    dx.ax <<= 25
+    dx.ax <<= 26
+    dx.ax <<= 27
+    dx.ax <<= 28
+    dx.ax <<= 29
+    dx.ax <<= 30
+    dx.ax <<= 31
+    dx.ax <<= 32
+    dx.ax <<= 33
 
 //仩  塃僔僼僩
-	//MRbw >>= 1			shr MRbw,1
-	//MRbw >>= cl			shr MRbw,cl
-	//MRbw >>= Ib (Ib > 0)	shr MRbw,Ib 		(8086影霓晄壜)
-	//MRbw >>= Ib (Ib < 0)	Ib2 = -Ib 偵偟偰丄shl MRbw,Ib2
+    //MRbw >>= 1    	    shr MRbw,1
+    //MRbw >>= cl   	    shr MRbw,cl
+    //MRbw >>= Ib (Ib > 0)  shr MRbw,Ib     	(8086影霓晄壜)
+    //MRbw >>= Ib (Ib < 0)  Ib2 = -Ib 偵偟偰丄shl MRbw,Ib2
   //崌惉
-	//MRbw >>= 0			---
-	//Rb >>= Ibw			偦偺夞悢暘丄shr Rbw,1傪惗惉 (8086影霓偺傒)
-	//Rw >>= 8				Rw.l = Rw.h; Rw.h = 0		(8086影霓偺傒)
-	//Rw >>= Ib (9乣15) 	Rw >>= 8; Rw.l >>= Ib-8 	(8086影霓偺傒)
-	//Rw >>= Ib (16乣)		Rw = 0
+    //MRbw >>= 0    	    ---
+    //Rb >>= Ibw    	    偦偺夞悢暘丄shr Rbw,1傪惗惉 (8086影霓偺傒)
+    //Rw >>= 8	    	    Rw.l = Rw.h; Rw.h = 0   	(8086影霓偺傒)
+    //Rw >>= Ib (9乣15)     Rw >>= 8; Rw.l >>= Ib-8 	(8086影霓偺傒)
+    //Rw >>= Ib (16乣)	    Rw = 0
 
-	bh >>= 0
-	bh >>= 1
-	bh >>= 2
-	bh >>= 3
-	bh >>= 4
-	bh >>= 5
-	bh >>= 6
-	bh >>= 7
-	bh >>= 8
-	bh >>= 9
-	bh >>= 11
-	bh >>= 12
+    bh >>= 0
+    bh >>= 1
+    bh >>= 2
+    bh >>= 3
+    bh >>= 4
+    bh >>= 5
+    bh >>= 6
+    bh >>= 7
+    bh >>= 8
+    bh >>= 9
+    bh >>= 11
+    bh >>= 12
 
-	bx >>= 0
-	bx >>= 1
-	bx >>= 2
-	bx >>= 3
-	bx >>= 4
-	bx >>= 5
-	bx >>= 6
-	bx >>= 7
-	bx >>= 8
-	bx >>= 9
-	bx >>= 11
-	bx >>= 12
-	bx >>= 13
-	bx >>= 15
-	bx >>= 16
-	bx >>= 17
-	bx >>= 18
-	bx >>= 19
+    bx >>= 0
+    bx >>= 1
+    bx >>= 2
+    bx >>= 3
+    bx >>= 4
+    bx >>= 5
+    bx >>= 6
+    bx >>= 7
+    bx >>= 8
+    bx >>= 9
+    bx >>= 11
+    bx >>= 12
+    bx >>= 13
+    bx >>= 15
+    bx >>= 16
+    bx >>= 17
+    bx >>= 18
+    bx >>= 19
 
-	dx.ax >>= 1
-	dx.ax >>= 2
-	dx.ax >>= 3
-	dx.ax >>= 4
-	dx.ax >>= 5
-	dx.ax >>= 6
-	dx.ax >>= 7
-	dx.ax >>= 8
-	dx.ax >>= 9
-	dx.ax >>= 10
-	dx.ax >>= 11
-	dx.ax >>= 12
-	dx.ax >>= 13
-	dx.ax >>= 14
-	dx.ax >>= 15
-	dx.ax >>= 16
-	dx.ax >>= 17
-	dx.ax >>= 18
-	dx.ax >>= 19
-	dx.ax >>= 20
-	dx.ax >>= 21
-	dx.ax >>= 22
-	dx.ax >>= 23
-	dx.ax >>= 24
-	dx.ax >>= 25
-	dx.ax >>= 26
-	dx.ax >>= 27
-	dx.ax >>= 28
-	dx.ax >>= 29
-	dx.ax >>= 30
-	dx.ax >>= 31
-	dx.ax >>= 32
-	dx.ax >>= 33
+    dx.ax >>= 1
+    dx.ax >>= 2
+    dx.ax >>= 3
+    dx.ax >>= 4
+    dx.ax >>= 5
+    dx.ax >>= 6
+    dx.ax >>= 7
+    dx.ax >>= 8
+    dx.ax >>= 9
+    dx.ax >>= 10
+    dx.ax >>= 11
+    dx.ax >>= 12
+    dx.ax >>= 13
+    dx.ax >>= 14
+    dx.ax >>= 15
+    dx.ax >>= 16
+    dx.ax >>= 17
+    dx.ax >>= 18
+    dx.ax >>= 19
+    dx.ax >>= 20
+    dx.ax >>= 21
+    dx.ax >>= 22
+    dx.ax >>= 23
+    dx.ax >>= 24
+    dx.ax >>= 25
+    dx.ax >>= 26
+    dx.ax >>= 27
+    dx.ax >>= 28
+    dx.ax >>= 29
+    dx.ax >>= 30
+    dx.ax >>= 31
+    dx.ax >>= 32
+    dx.ax >>= 33
 
 //仩  嶼弍塃僔僼僩
-	//MRbw .>>= 1			sar MRbw,1
-	//MRbw .>>= cl			sar MRbw,cl
-	//MRbw .>>= Ib (Ib > 0) sar MRbw,Ib 		(8086影霓晄壜)
-	//MRbw .>>= Ib (Ib < 0) Ib2 = -Ib 偵偟偰丄shl MRbw,Ib2
+    //MRbw .>>= 1   	    sar MRbw,1
+    //MRbw .>>= cl  	    sar MRbw,cl
+    //MRbw .>>= Ib (Ib > 0) sar MRbw,Ib     	(8086影霓晄壜)
+    //MRbw .>>= Ib (Ib < 0) Ib2 = -Ib 偵偟偰丄shl MRbw,Ib2
   //崌惉
-	//MRbw .>>= 0		---
-	//Rbw .>>= Ib (1乣7)	偦偺夞悢暘丄sar Rbw,1傪惗惉  (8086影霓偺傒)
-	//Rb .>>= Ib (7乣)		Rb >>= 7					 (8086影霓偺傒)
-	//Rw .>>= Ib (8乣14)	Rw.l .>>= 7;Rw .>>= Ib-8	 (8086影霓偺傒)
-	//Rw .>>= Ib (15乣) 	Rw.l .>>= 7;Rw.h = Rw.l 	 (8086影霓偺傒)
+    //MRbw .>>= 0   	---
+    //Rbw .>>= Ib (1乣7)    偦偺夞悢暘丄sar Rbw,1傪惗惉  (8086影霓偺傒)
+    //Rb .>>= Ib (7乣)	    Rb >>= 7	    	    	 (8086影霓偺傒)
+    //Rw .>>= Ib (8乣14)    Rw.l .>>= 7;Rw .>>= Ib-8	 (8086影霓偺傒)
+    //Rw .>>= Ib (15乣)     Rw.l .>>= 7;Rw.h = Rw.l 	 (8086影霓偺傒)
 
-	ch .>>= 0
-	ch .>>= 1
-	ch .>>= 2
-	ch .>>= 3
-	ch .>>= 4
-	ch .>>= 5
-	ch .>>= 6
-	ch .>>= 7
-	ch .>>= 8
-	ch .>>= 9
-	ch .>>= 11
-	ch .>>= 12
+    ch .>>= 0
+    ch .>>= 1
+    ch .>>= 2
+    ch .>>= 3
+    ch .>>= 4
+    ch .>>= 5
+    ch .>>= 6
+    ch .>>= 7
+    ch .>>= 8
+    ch .>>= 9
+    ch .>>= 11
+    ch .>>= 12
 
-	ax .>>= 0
-	ax .>>= 1
-	ax .>>= 2
-	ax .>>= 3
-	ax .>>= 4
-	ax .>>= 5
-	ax .>>= 6
-	ax .>>= 7
-	ax .>>= 8
-	ax .>>= 9
-	ax .>>= 11
-	ax .>>= 12
-	ax .>>= 13
-	ax .>>= 15
-	ax .>>= 16
-	ax .>>= 17
+    ax .>>= 0
+    ax .>>= 1
+    ax .>>= 2
+    ax .>>= 3
+    ax .>>= 4
+    ax .>>= 5
+    ax .>>= 6
+    ax .>>= 7
+    ax .>>= 8
+    ax .>>= 9
+    ax .>>= 11
+    ax .>>= 12
+    ax .>>= 13
+    ax .>>= 15
+    ax .>>= 16
+    ax .>>= 17
 
-	dx.ax .>>= 0
-	dx.ax .>>= 1
-	dx.ax .>>= 2
-	dx.ax .>>= 3
-	dx.ax .>>= 4
-	dx.ax .>>= 5
-	dx.ax .>>= 6
-	dx.ax .>>= 7
-	dx.ax .>>= 8
-	dx.ax .>>= 9
-	dx.ax .>>= 11
-	dx.ax .>>= 12
-	dx.ax .>>= 13
-	dx.ax .>>= 15
-	dx.ax .>>= 16
-	dx.ax .>>= 17
-	dx.ax .>>= 18
-	dx.ax .>>= 19
-	dx.ax .>>= 20
-	dx.ax .>>= 21
-	dx.ax .>>= 22
-	dx.ax .>>= 23
-	dx.ax .>>= 24
-	dx.ax .>>= 25
-	dx.ax .>>= 26
-	dx.ax .>>= 27
-	dx.ax .>>= 28
-	dx.ax .>>= 29
-	dx.ax .>>= 30
-	dx.ax .>>= 31
-	dx.ax .>>= 32
-	dx.ax .>>= 33
+    dx.ax .>>= 0
+    dx.ax .>>= 1
+    dx.ax .>>= 2
+    dx.ax .>>= 3
+    dx.ax .>>= 4
+    dx.ax .>>= 5
+    dx.ax .>>= 6
+    dx.ax .>>= 7
+    dx.ax .>>= 8
+    dx.ax .>>= 9
+    dx.ax .>>= 11
+    dx.ax .>>= 12
+    dx.ax .>>= 13
+    dx.ax .>>= 15
+    dx.ax .>>= 16
+    dx.ax .>>= 17
+    dx.ax .>>= 18
+    dx.ax .>>= 19
+    dx.ax .>>= 20
+    dx.ax .>>= 21
+    dx.ax .>>= 22
+    dx.ax .>>= 23
+    dx.ax .>>= 24
+    dx.ax .>>= 25
+    dx.ax .>>= 26
+    dx.ax .>>= 27
+    dx.ax .>>= 28
+    dx.ax .>>= 29
+    dx.ax .>>= 30
+    dx.ax .>>= 31
+    dx.ax .>>= 32
+    dx.ax .>>= 33
 
 //仩  嵍儘乕僥乕僩
-	//rol(MRbw,1)			rol MRbw,1
-	//rol(MRbw,cl)			rol MRbw,cl
-	//rol(MRbw,Ib) (Ib > 0) rol MRbw,Ib // 8086影霓偼晄壜
-	//rol(MRbw,Ib) (Ib < 0) Ib2 = -Ib 偵偟偰丄ror MRbw,Ib2
-	rol(bx,cl)
-	rol(word[si],1)
+    //rol(MRbw,1)   	    rol MRbw,1
+    //rol(MRbw,cl)  	    rol MRbw,cl
+    //rol(MRbw,Ib) (Ib > 0) rol MRbw,Ib // 8086影霓偼晄壜
+    //rol(MRbw,Ib) (Ib < 0) Ib2 = -Ib 偵偟偰丄ror MRbw,Ib2
+    rol(bx,cl)
+    rol(word[si],1)
   //崌惉
-	//rol(MRbw,0)			---
-	//rol(MRbw,Ib)			偦偺夞悢暘丄rol Rbw,1傪惗惉 (8086影霓偺傒)
-	//rol(Rb,Ib) (Ib:5乣7)	Ib2 = 8-Ib 偵偟偰, ror MRb,Ib2
-	//rol(Rw,Ib) (Ib:5乣7,12乣15)  Ib2 = 16-Ib 偵偟偰, ror MRw,Ib2
-	//rol(Rw,8) 			Rw.h <=> Rw.l
-	//rol(Rw,Ib) (Ib:9乣11) rol(Rw,8); rol(Rw,Ib-8) 	(8086影霓偺傒)
-	//rol(MRb,Ib) (Ib:8乣)	Ib傪 8 偱妱偭偨梋傝偵偟偰峴偆
-	//rol(MRw,Ib) (Ib:16乣) Ib傪16 偱妱偭偨梋傝偵偟偰峴偆
+    //rol(MRbw,0)   	    ---
+    //rol(MRbw,Ib)  	    偦偺夞悢暘丄rol Rbw,1傪惗惉 (8086影霓偺傒)
+    //rol(Rb,Ib) (Ib:5乣7)  Ib2 = 8-Ib 偵偟偰, ror MRb,Ib2
+    //rol(Rw,Ib) (Ib:5乣7,12乣15)  Ib2 = 16-Ib 偵偟偰, ror MRw,Ib2
+    //rol(Rw,8)     	    Rw.h <=> Rw.l
+    //rol(Rw,Ib) (Ib:9乣11) rol(Rw,8); rol(Rw,Ib-8) 	(8086影霓偺傒)
+    //rol(MRb,Ib) (Ib:8乣)  Ib傪 8 偱妱偭偨梋傝偵偟偰峴偆
+    //rol(MRw,Ib) (Ib:16乣) Ib傪16 偱妱偭偨梋傝偵偟偰峴偆
 
-	rol(bh,0)
-	rol(bh)
-	rol bh,2
-	rol bh,3
-	rol(bh,4)
-	rol(bh,5)
-	rol(bh,6)
-	rol(bh,7)
-	rol(bh,8)
-	rol(bh,9)
-	rol(bh,10)
+    rol(bh,0)
+    rol(bh)
+    rol bh,2
+    rol bh,3
+    rol(bh,4)
+    rol(bh,5)
+    rol(bh,6)
+    rol(bh,7)
+    rol(bh,8)
+    rol(bh,9)
+    rol(bh,10)
 
-	rol(bx,0)
-	rol bx
-	rol(bx,2)
-	rol(bx,3)
-	rol(bx,4)
-	rol(bx,5)
-	rol(bx,6)
-	rol(bx,7)
-	rol(bx,8)
-	rol(bx,9)
-	rol(bx,10)
-	rol(bx,11)
-	rol(bx,12)
-	rol(bx,13)
-	rol(bx,14)
-	rol(bx,15)
-	rol(bx,16)
-	rol(bx,17)
+    rol(bx,0)
+    rol bx
+    rol(bx,2)
+    rol(bx,3)
+    rol(bx,4)
+    rol(bx,5)
+    rol(bx,6)
+    rol(bx,7)
+    rol(bx,8)
+    rol(bx,9)
+    rol(bx,10)
+    rol(bx,11)
+    rol(bx,12)
+    rol(bx,13)
+    rol(bx,14)
+    rol(bx,15)
+    rol(bx,16)
+    rol(bx,17)
 
-	rol(dx.ax,1)	// error
-	rol(dx.ax,8)
-	rol(dx.ax,16)
-	rol(dx.ax,24)
-	rol(dx.ax,32)
+    rol(dx.ax,1)    // error
+    rol(dx.ax,8)
+    rol(dx.ax,16)
+    rol(dx.ax,24)
+    rol(dx.ax,32)
 
 //仩  塃儘乕僥乕僩
-	//ror(MRbw,1)			ror MRbw,1
-	//ror(MRbw,cl)			ror MRbw,cl
-	//ror(MRbw,Ib) (Ib > 0) ror MRbw,Ib // 8086影霓偼晄壜
-	//ror(MRbw,Ib) (Ib < 0) Ib2 = -Ib 偵偟偰丄rol MRbw,Ib2
+    //ror(MRbw,1)   	    ror MRbw,1
+    //ror(MRbw,cl)  	    ror MRbw,cl
+    //ror(MRbw,Ib) (Ib > 0) ror MRbw,Ib // 8086影霓偼晄壜
+    //ror(MRbw,Ib) (Ib < 0) Ib2 = -Ib 偵偟偰丄rol MRbw,Ib2
   //崌惉
-	//ror(MRbw,0)			---
-	//ror(Rbw,Ib)			偦偺夞悢暘丄ror Rbw,1傪惗惉 (8086影霓偺傒)
-	//ror(Rb,Ib) (Ib:5乣7)	Ib2 = 8-Ib 偵偟偰, rol MRb,Ib2
-	//ror(Rw,Ib) (Ib:5乣7,12乣15)  Ib2 = 16-Ib 偵偟偰, rol MRw,Ib2
-	//ror(Rw,8) 			Rw.h <=> Rw.l
-	//ror(Rw,Ib) (Ib:9乣11) ror(Rw,8); ror(Rw,Ib-8) 	(8086影霓偺傒)
-	//ror(Rb,Ib) (Ib:8乣)	Ib傪8偱妱偭偨梋傝偵偟偰峴偆
-	//ror(Rw,Ib) (Ib:16乣)	Ib傪16偱妱偭偨梋傝偵偟偰峴偆
-	//ror(Rd,Ib)
+    //ror(MRbw,0)   	    ---
+    //ror(Rbw,Ib)   	    偦偺夞悢暘丄ror Rbw,1傪惗惉 (8086影霓偺傒)
+    //ror(Rb,Ib) (Ib:5乣7)  Ib2 = 8-Ib 偵偟偰, rol MRb,Ib2
+    //ror(Rw,Ib) (Ib:5乣7,12乣15)  Ib2 = 16-Ib 偵偟偰, rol MRw,Ib2
+    //ror(Rw,8)     	    Rw.h <=> Rw.l
+    //ror(Rw,Ib) (Ib:9乣11) ror(Rw,8); ror(Rw,Ib-8) 	(8086影霓偺傒)
+    //ror(Rb,Ib) (Ib:8乣)   Ib傪8偱妱偭偨梋傝偵偟偰峴偆
+    //ror(Rw,Ib) (Ib:16乣)  Ib傪16偱妱偭偨梋傝偵偟偰峴偆
+    //ror(Rd,Ib)
 
-	ror(bl,0)
-	ror(bl,1)
-	ror(bl,2)
-	ror(bl,3)
-	ror(bl,4)
-	ror(bl,5)
-	ror(bl,6)
-	ror(bl,7)
-	ror(bl,8)
-	ror(bl,9)
-	ror(bl,10)
+    ror(bl,0)
+    ror(bl,1)
+    ror(bl,2)
+    ror(bl,3)
+    ror(bl,4)
+    ror(bl,5)
+    ror(bl,6)
+    ror(bl,7)
+    ror(bl,8)
+    ror(bl,9)
+    ror(bl,10)
 
-	ror(bx,0)
-	ror(bx,1)
-	ror(bx,2)
-	ror(bx,3)
-	ror(bx,4)
-	ror(bx,5)
-	ror(bx,6)
-	ror(bx,7)
-	ror(bx,8)
-	ror(bx,9)
-	ror(bx,10)
-	ror(bx,11)
-	ror(bx,12)
-	ror(bx,13)
-	ror(bx,14)
-	ror(bx,15)
-	ror(bx,16)
-	ror(bx,17)
+    ror(bx,0)
+    ror(bx,1)
+    ror(bx,2)
+    ror(bx,3)
+    ror(bx,4)
+    ror(bx,5)
+    ror(bx,6)
+    ror(bx,7)
+    ror(bx,8)
+    ror(bx,9)
+    ror(bx,10)
+    ror(bx,11)
+    ror(bx,12)
+    ror(bx,13)
+    ror(bx,14)
+    ror(bx,15)
+    ror(bx,16)
+    ror(bx,17)
 
-	ror(dx.ax,1)	// error
-	ror(dx.ax,8)
-	ror(dx.ax,16)
-	ror(dx.ax,24)
-	ror(dx.ax,32)
+    ror(dx.ax,1)    // error
+    ror(dx.ax,8)
+    ror(dx.ax,16)
+    ror(dx.ax,24)
+    ror(dx.ax,32)
 
 //仩  cf傪夘偟偨嵍儘乕僥乕僩
-	//rcl(MRbw,1)			rcl MRbw,1
-	//rcl(MRbw,cl)			rcl MRbw,cl
-	//rcl(MRbw,Ib) (Ib > 0) rcl MRbw,Ib // 8086影霓偼晄壜
-	//rcl(MRbw,Ib) (Ib < 0) Ib2 = -Ib 偵偟偰丄rcr MRbw,Ib2 傪峴偆
+    //rcl(MRbw,1)   	    rcl MRbw,1
+    //rcl(MRbw,cl)  	    rcl MRbw,cl
+    //rcl(MRbw,Ib) (Ib > 0) rcl MRbw,Ib // 8086影霓偼晄壜
+    //rcl(MRbw,Ib) (Ib < 0) Ib2 = -Ib 偵偟偰丄rcr MRbw,Ib2 傪峴偆
   //崌惉
-	//rcl(MRbw,0)			---
-	//rcl(Rbw,Ib)			偦偺夞悢暘丄rcl Rb,1傪惗惉 (8086影霓偺傒)
-	//rcl(Rb,Ib) (Ib:5乣8)	Ib2 = 9-Ib 偵偟偰丄rcr MRb,Ib2
-	//rcl(Rw,Ib) (Ib:9乣16) Ib2 = 17-Ib 偵偟偰丄rcr MRb,Ib2
-	//rcl(Rb,Ib) (Ib:9乣)	Ib 傪 9偱妱偭偨梋傝偵偟偰峴偆
-	//rcl(Rw,Ib) (Ib:17乣)	Ib 傪17偱妱偭偨梋傝偵偟偰峴偆
+    //rcl(MRbw,0)   	    ---
+    //rcl(Rbw,Ib)   	    偦偺夞悢暘丄rcl Rb,1傪惗惉 (8086影霓偺傒)
+    //rcl(Rb,Ib) (Ib:5乣8)  Ib2 = 9-Ib 偵偟偰丄rcr MRb,Ib2
+    //rcl(Rw,Ib) (Ib:9乣16) Ib2 = 17-Ib 偵偟偰丄rcr MRb,Ib2
+    //rcl(Rb,Ib) (Ib:9乣)   Ib 傪 9偱妱偭偨梋傝偵偟偰峴偆
+    //rcl(Rw,Ib) (Ib:17乣)  Ib 傪17偱妱偭偨梋傝偵偟偰峴偆
 
-	rcl(bh,0)
-	rcl(bh,1)
-	rcl(bh,2)
-	rcl(bh,3)
-	rcl(bh,4)
-	rcl(bh,5)
-	rcl(bh,6)
-	rcl(bh,7)
-	rcl(bh,8)
-	rcl(bh,9)
-	rcl(bh,10)
+    rcl(bh,0)
+    rcl(bh,1)
+    rcl(bh,2)
+    rcl(bh,3)
+    rcl(bh,4)
+    rcl(bh,5)
+    rcl(bh,6)
+    rcl(bh,7)
+    rcl(bh,8)
+    rcl(bh,9)
+    rcl(bh,10)
 
-	rcl(bx,0)
-	rcl(bx,1)
-	rcl(bx,2)
-	rcl(bx,3)
-	rcl(bx,4)
-	rcl(bx,5)
-	rcl(bx,6)
-	rcl(bx,7)
-	rcl(bx,8)
-	rcl(bx,9)
-	rcl(bx,10)
-	rcl(bx,11)
-	rcl(bx,12)
-	rcl(bx,13)
-	rcl(bx,14)
-	rcl(bx,15)
-	rcl(bx,16)
-	rcl(bx,17)
+    rcl(bx,0)
+    rcl(bx,1)
+    rcl(bx,2)
+    rcl(bx,3)
+    rcl(bx,4)
+    rcl(bx,5)
+    rcl(bx,6)
+    rcl(bx,7)
+    rcl(bx,8)
+    rcl(bx,9)
+    rcl(bx,10)
+    rcl(bx,11)
+    rcl(bx,12)
+    rcl(bx,13)
+    rcl(bx,14)
+    rcl(bx,15)
+    rcl(bx,16)
+    rcl(bx,17)
 
-	rcl(dx.ax,0)
-	rcl(dx.ax,1)
-	rcl(dx.ax,2)
-	rcl(dx.ax,3)
-	rcl(dx.ax,4)
-	rcl(dx.ax,5)
-	rcl(dx.ax,6)
-	rcl(dx.ax,7)
-	rcl(dx.ax,8)
-	rcl(dx.ax,9)
-	rcl(dx.ax,10)
-	rcl(dx.ax,11)
-	rcl(dx.ax,12)
-	rcl(dx.ax,13)
-	rcl(dx.ax,14)
-	rcl(dx.ax,15)
-	rcl(dx.ax,16)
-	rcl(dx.ax,17)
-	rcl(dx.ax,18)
-	rcl(dx.ax,19)
-	rcl(dx.ax,20)
-	rcl(dx.ax,21)
-	rcl(dx.ax,22)
-	rcl(dx.ax,23)
-	rcl(dx.ax,24)
-	rcl(dx.ax,25)
-	rcl(dx.ax,26)
-	rcl(dx.ax,27)
-	rcl(dx.ax,28)
-	rcl(dx.ax,29)
-	rcl(dx.ax,30)
-	rcl(dx.ax,31)
-	rcl(dx.ax,32)
-	rcl(dx.ax,33)
+    rcl(dx.ax,0)
+    rcl(dx.ax,1)
+    rcl(dx.ax,2)
+    rcl(dx.ax,3)
+    rcl(dx.ax,4)
+    rcl(dx.ax,5)
+    rcl(dx.ax,6)
+    rcl(dx.ax,7)
+    rcl(dx.ax,8)
+    rcl(dx.ax,9)
+    rcl(dx.ax,10)
+    rcl(dx.ax,11)
+    rcl(dx.ax,12)
+    rcl(dx.ax,13)
+    rcl(dx.ax,14)
+    rcl(dx.ax,15)
+    rcl(dx.ax,16)
+    rcl(dx.ax,17)
+    rcl(dx.ax,18)
+    rcl(dx.ax,19)
+    rcl(dx.ax,20)
+    rcl(dx.ax,21)
+    rcl(dx.ax,22)
+    rcl(dx.ax,23)
+    rcl(dx.ax,24)
+    rcl(dx.ax,25)
+    rcl(dx.ax,26)
+    rcl(dx.ax,27)
+    rcl(dx.ax,28)
+    rcl(dx.ax,29)
+    rcl(dx.ax,30)
+    rcl(dx.ax,31)
+    rcl(dx.ax,32)
+    rcl(dx.ax,33)
 
 //仩  cf傪夘偟偨塃儘乕僥乕僩
-	//rcr(MRbw,1)			rcr MRbw,1
-	//rcr(MRbw,cl)			rcr MRbw,cl
-	//rcr(MRbw,Ib) (Ib > 0) rcr MRbw,Ib // 8086影霓偼晄壜
-	//rcr(MRbw,Ib) (Ib < 0) Ib2 = -Ib 偵偟偰丄rcl MRbw,Ib2 傪峴偆
+    //rcr(MRbw,1)   	    rcr MRbw,1
+    //rcr(MRbw,cl)  	    rcr MRbw,cl
+    //rcr(MRbw,Ib) (Ib > 0) rcr MRbw,Ib // 8086影霓偼晄壜
+    //rcr(MRbw,Ib) (Ib < 0) Ib2 = -Ib 偵偟偰丄rcl MRbw,Ib2 傪峴偆
   //崌惉
-	//rcr(MRbw,0)			---
-	//rcr(Rbw,Ib)			偦偺夞悢暘丄rcr Rbw,1傪惗惉 (8086影霓偺傒)
-	//rcr(Rb,Ib) (Ib:5乣8)	Ib2 = 9-Ib 偵偟偰丄rcl MRb,Ib2
-	//rcr(Rw,Ib) (Ib:9乣16) Ib2 = 17-Ib 偵偟偰丄rcl MRb,Ib2
-	//rcr(Rb,Ib) (Ib:9乣)	Ib 傪 9偱妱偭偨梋傝偵偟偰峴偆
-	//rcr(Rw,Ib) (Ib:17乣)	Ib 傪17偱妱偭偨梋傝偵偟偰峴偆
+    //rcr(MRbw,0)   	    ---
+    //rcr(Rbw,Ib)   	    偦偺夞悢暘丄rcr Rbw,1傪惗惉 (8086影霓偺傒)
+    //rcr(Rb,Ib) (Ib:5乣8)  Ib2 = 9-Ib 偵偟偰丄rcl MRb,Ib2
+    //rcr(Rw,Ib) (Ib:9乣16) Ib2 = 17-Ib 偵偟偰丄rcl MRb,Ib2
+    //rcr(Rb,Ib) (Ib:9乣)   Ib 傪 9偱妱偭偨梋傝偵偟偰峴偆
+    //rcr(Rw,Ib) (Ib:17乣)  Ib 傪17偱妱偭偨梋傝偵偟偰峴偆
 
-	// shift柦椷偺僠僃僢僋
-	rcr(bl,0)
-	rcr(bl,1)
-	rcr(bl,2)
-	rcr(bl,3)
-	rcr(bl,4)
-	rcr(bl,5)
-	rcr(bl,6)
-	rcr(bl,7)
-	rcr(bl,8)
-	rcr(bl,9)
-	rcr(bl,10)
+    // shift柦椷偺僠僃僢僋
+    rcr(bl,0)
+    rcr(bl,1)
+    rcr(bl,2)
+    rcr(bl,3)
+    rcr(bl,4)
+    rcr(bl,5)
+    rcr(bl,6)
+    rcr(bl,7)
+    rcr(bl,8)
+    rcr(bl,9)
+    rcr(bl,10)
 
-	rcr(bx,0)
-	rcr(bx,1)
-	rcr(bx,2)
-	rcr(bx,3)
-	rcr(bx,4)
-	rcr(bx,5)
-	rcr(bx,6)
-	rcr(bx,7)
-	rcr(bx,8)
-	rcr(bx,9)
-	rcr(bx,10)
-	rcr(bx,11)
-	rcr(bx,12)
-	rcr(bx,13)
-	rcr(bx,14)
-	rcr(bx,15)
-	rcr(bx,16)
-	rcr(bx,17)
+    rcr(bx,0)
+    rcr(bx,1)
+    rcr(bx,2)
+    rcr(bx,3)
+    rcr(bx,4)
+    rcr(bx,5)
+    rcr(bx,6)
+    rcr(bx,7)
+    rcr(bx,8)
+    rcr(bx,9)
+    rcr(bx,10)
+    rcr(bx,11)
+    rcr(bx,12)
+    rcr(bx,13)
+    rcr(bx,14)
+    rcr(bx,15)
+    rcr(bx,16)
+    rcr(bx,17)
 
 
-	rcr(dx.ax,0)
-	rcr(dx.ax,1)
-	rcr(dx.ax,2)
-	rcr(dx.ax,3)
-	rcr(dx.ax,4)
-	rcr(dx.ax,5)
-	rcr(dx.ax,6)
-	rcr(dx.ax,7)
-	rcr(dx.ax,8)
-	rcr(dx.ax,9)
-	rcr(dx.ax,10)
-	rcr(dx.ax,11)
-	rcr(dx.ax,12)
-	rcr(dx.ax,13)
-	rcr(dx.ax,14)
-	rcr(dx.ax,15)
-	rcr(dx.ax,16)
-	rcr(dx.ax,17)
-	rcr(dx.ax,18)
-	rcr(dx.ax,19)
-	rcr(dx.ax,20)
-	rcr(dx.ax,21)
-	rcr(dx.ax,22)
-	rcr(dx.ax,23)
-	rcr(dx.ax,24)
-	rcr(dx.ax,25)
-	rcr(dx.ax,26)
-	rcr(dx.ax,27)
-	rcr(dx.ax,28)
-	rcr(dx.ax,29)
-	rcr(dx.ax,30)
-	rcr(dx.ax,31)
-	rcr(dx.ax,32)
-	rcr(dx.ax,33)
+    rcr(dx.ax,0)
+    rcr(dx.ax,1)
+    rcr(dx.ax,2)
+    rcr(dx.ax,3)
+    rcr(dx.ax,4)
+    rcr(dx.ax,5)
+    rcr(dx.ax,6)
+    rcr(dx.ax,7)
+    rcr(dx.ax,8)
+    rcr(dx.ax,9)
+    rcr(dx.ax,10)
+    rcr(dx.ax,11)
+    rcr(dx.ax,12)
+    rcr(dx.ax,13)
+    rcr(dx.ax,14)
+    rcr(dx.ax,15)
+    rcr(dx.ax,16)
+    rcr(dx.ax,17)
+    rcr(dx.ax,18)
+    rcr(dx.ax,19)
+    rcr(dx.ax,20)
+    rcr(dx.ax,21)
+    rcr(dx.ax,22)
+    rcr(dx.ax,23)
+    rcr(dx.ax,24)
+    rcr(dx.ax,25)
+    rcr(dx.ax,26)
+    rcr(dx.ax,27)
+    rcr(dx.ax,28)
+    rcr(dx.ax,29)
+    rcr(dx.ax,30)
+    rcr(dx.ax,31)
+    rcr(dx.ax,32)
+    rcr(dx.ax,33)
 endproc
 
 endmodule

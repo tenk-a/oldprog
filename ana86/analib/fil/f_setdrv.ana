@@ -1,22 +1,21 @@
 module H
-	c_name "fil","_",1
-	import fil
+    c_name "fil","_",1
+    import fil
 
 *proc setdrive(drv:w);cdecl
-	//arg drv  1=A 2=B...
-	//ret  ax  ドライブ番号
+    //arg drv  1=A 2=B...
+    //ret  ax  ドライブ番号
 enter
-	save dx,ds
+    save dx,ds
 
-	ah = 0x0e
-	dl = drv.l
-	if (dl)
-		--dl
-	fi
-	intr 0x21
-	ah = 0
-	return
+    ah = 0x0e
+    dl = drv.l
+    if (dl)
+    	--dl
+    fi
+    intr 0x21
+    ah = 0
+    return
 endproc
 
 endmodule
-

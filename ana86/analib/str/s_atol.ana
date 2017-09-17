@@ -1,38 +1,37 @@
 module S
-	c_name "str","_",1
+    c_name "str","_",1
 
 *proc atol(s0:d);cdecl;FC
-//	s0 からの符号付１０進整数文字列の値を dx.ax にいれて返す.
-//	桁溢れはﾁｪｯｸしない. セグメント境界のチェック無
+//  s0 からの符号付１０進整数文字列の値を dx.ax にいれて返す.
+//  桁溢れはﾁｪｯｸしない. セグメント境界のチェック無
 enter
-	save cx,bx,si,di,ds
-	local sflg:b
+    save cx,bx,si,di,ds
+    local sflg:b
 
-	ds.si = s0
-	dx.ax = 0
-	bh = al
-	sflg = al
-	if (b[si] == '-')
-		++si
-		sflg = 1
-	elsif (b[si] == '+')
-		++si
-	fi
-	loop
-		bl = b[si]
-		exit ((bl -= '0') < 0 || bl > 9)
-		dx.ax <<= 1
-		di.cx = dx.ax
-		dx.ax <<= 2
-		dx.ax += di.cx
-		dx.ax += ww(0,bx)
-		++si
-	endloop
-	if (sflg)
-		neg dx.ax
-	fi
-	return
+    ds.si = s0
+    dx.ax = 0
+    bh = al
+    sflg = al
+    if (b[si] == '-')
+    	++si
+    	sflg = 1
+    elsif (b[si] == '+')
+    	++si
+    fi
+    loop
+    	bl = b[si]
+    	exit ((bl -= '0') < 0 || bl > 9)
+    	dx.ax <<= 1
+    	di.cx = dx.ax
+    	dx.ax <<= 2
+    	dx.ax += di.cx
+    	dx.ax += ww(0,bx)
+    	++si
+    endloop
+    if (sflg)
+    	neg dx.ax
+    fi
+    return
 endproc
 
 endmodule
-

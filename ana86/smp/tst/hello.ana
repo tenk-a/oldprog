@@ -1,21 +1,21 @@
 module Hello
-	stack 0x1000
-	start main
+    stack 0x1000
+    start main
 
-@define EXIT(er)	al = er;ah = 0x4c;intr 0x21
+@define EXIT(er)    al = er;ah = 0x4c;intr 0x21
 
 proc puts(dx)
-	// ds.dx番地にある文字列を表示. EOSは'$'.  ax = 0x07になる。
+    // ds.dx番地にある文字列を表示. EOSは'$'.  ax = 0x07になる。
 macro
-	ah = 0x09
-	intr  0x21
+    ah = 0x09
+    intr  0x21
 endproc
 
 proc main()
 begin
-	ds = ax = %var			// ds セグメントを_DATAに設定
-	puts "Hello, world!\N$" // 文字列表示(サブルーチン・コール).
-	EXIT (0)				// プログラム終了(マクロ展開)
+    ds = ax = %var  	    // ds セグメントを_DATAに設定
+    puts "Hello, world!\N$" // 文字列表示(サブルーチン・コール).
+    EXIT (0)	    	    // プログラム終了(マクロ展開)
 endproc
 
 endmodule

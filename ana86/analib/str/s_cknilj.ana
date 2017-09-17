@@ -1,44 +1,43 @@
 module S
-	c_name "str","_",1
+    c_name "str","_",1
 
-	import Std
-	import str
+    import Std
+    import str
 
 *proc chknilj(s0:d,sz:w);cdecl;FC
-//	サイズsz の文字列s0 中に'\0'または不正全角があるかどうか
-//	out ax	1:'\0'があった 2:不正全角があった  0:不正文字なし
-//X	out cf	0:不正文字無し 1:不正文字有り
+//  サイズsz の文字列s0 中に'\0'または不正全角があるかどうか
+//  out ax  1:'\0'があった 2:不正全角があった  0:不正文字なし
+//X out cf  0:不正文字無し 1:不正文字有り
 enter
-	save cx,si,ds
+    save cx,si,ds
 
-	ds.si = s0
-	cx = sz
-	if (cx)
-		rep.inc
-		loop
-			rep.load al,si
-			go (al == '\0') ERR
-			if (str.FLAGJ && Std.IsKanji(al))
-				--cx
-				go (cx == 0) ERR2
-				rep.load al,si
-				go !(Std.IsKanji2(al)) ERR2
-			fi
-		endloop (--cx)
-	fi
-	ax = 0
-	//cf = 0
+    ds.si = s0
+    cx = sz
+    if (cx)
+    	rep.inc
+    	loop
+    	    rep.load al,si
+    	    go (al == '\0') ERR
+    	    if (str.FLAGJ && Std.IsKanji(al))
+    	    	--cx
+    	    	go (cx == 0) ERR2
+    	    	rep.load al,si
+    	    	go !(Std.IsKanji2(al)) ERR2
+    	    fi
+    	endloop (--cx)
+    fi
+    ax = 0
+    //cf = 0
   RTS:
-	return
+    return
   ERR2:
-	ax = 2
-	go ERR0
+    ax = 2
+    go ERR0
   ERR:
-	ax = 1
+    ax = 1
   ERR0:
-	//cf = 1
-	go RTS
+    //cf = 1
+    go RTS
 endproc
 
 endmodule
-

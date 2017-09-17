@@ -1,34 +1,34 @@
 module CHK
-	start main
+    start main
 
-	import Dos:<impo.han>
-	//import dos2:"b:impo_tst.han"
+    import Dos:<impo.han>
+    //import dos2:"b:impo_tst.han"
 
-	type ddd:Dos //dos2
+    type ddd:Dos //dos2
 
 Dos.FarVar fv1:word(0x1000)
 
 proc main()
 begin
-	var msg:byte() = "Hello!\N$"
+    var msg:byte() = "Hello!\N$"
 
-	intr.on
-	intr.off
-	intr.ovf
-	
-	intr 0
-	intr 255
+    intr.on
+    intr.off
+    intr.ovf
 
-	Dos.putstr(&msg)
-	Dos.puts(&msg)
-	Dos.Exit()
-	
-	ddd.putstr(&msg)
-	ddd.puts(&msg)
-	ddd.Exit()
+    intr 0
+    intr 255
 
-	fv1(1) = 0
-	
+    Dos.putstr(&msg)
+    Dos.puts(&msg)
+    Dos.Exit()
+
+    ddd.putstr(&msg)
+    ddd.puts(&msg)
+    ddd.Exit()
+
+    fv1(1) = 0
+
 endproc
 
 endmodule

@@ -1,46 +1,45 @@
 module S
-	c_name "str","_",1
+    c_name "str","_",1
 
-	import str
-	import Std
+    import str
+    import Std
 
 *proc rchrj(s0:d,chr:w);cdecl;FC
 enter
 
-	if (str.FLAGJ == 0)
-		str.rchr s0,chr
-		return
-	fi
-	rep.inc
-	push bx,si,ds
+    if (str.FLAGJ == 0)
+    	str.rchr s0,chr
+    	return
+    fi
+    rep.inc
+    push bx,si,ds
 
-	dx = chr
-	ds.si = s0
-	bx = 0
-	LOOP:
-		ah = 0
-		rep.load al,si
-		go (al == 0) ENDLOOP
-		if (Std.IsKanji(al))
-			ah = al
-			rep.load al,si
-			go (al == 0) ENDLOOP
-		fi
-		go (ax != dx) LOOP
-		bx = si
-		--bx
-		go (ah == 0) LOOP
-		--bx
-		go LOOP
-	ENDLOOP:
-	dx = ds
-	ax = bx
-	if (ax == 0)
-		dx = 0
-	fi
-	pop  bx,si,ds
-	return
+    dx = chr
+    ds.si = s0
+    bx = 0
+    LOOP:
+    	ah = 0
+    	rep.load al,si
+    	go (al == 0) ENDLOOP
+    	if (Std.IsKanji(al))
+    	    ah = al
+    	    rep.load al,si
+    	    go (al == 0) ENDLOOP
+    	fi
+    	go (ax != dx) LOOP
+    	bx = si
+    	--bx
+    	go (ah == 0) LOOP
+    	--bx
+    	go LOOP
+    ENDLOOP:
+    dx = ds
+    ax = bx
+    if (ax == 0)
+    	dx = 0
+    fi
+    pop  bx,si,ds
+    return
 endproc
 
 endmodule
-
