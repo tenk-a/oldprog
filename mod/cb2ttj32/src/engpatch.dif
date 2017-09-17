@@ -1,0 +1,17 @@
+2c2
+< #include <afx.h>
+---
+> //#include <afx.h>
+5a6
+> #include <string.h>
+26a28,30
+>   #ifdef HANKANA
+>      for (short i = 2; i < (96+64); i++) modify(i,fn);
+>   #else
+27a32
+>   #endif
+81c86,87
+<      for (short i = 0, lastCnt = 0; i < noCnt; i++) lastCnt = get16(fn);
+---
+>      short i, lastCnt;
+>      for (i = 0, lastCnt = 0; i < noCnt; i++) lastCnt = get16(fn);

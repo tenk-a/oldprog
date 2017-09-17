@@ -1,6 +1,16 @@
 #ifndef _INC_NTUTTF
 #define _INC_NTUTTF
 
+#include <stdio.h>
+
+//
+#define L(a)     ((unsigned char)(a))	//#define L(a)     (*((unsigned char *)(&(a))))
+#define H(a)     L((a)>>8)				//#define H(a)     (*(((unsigned char *)(&(a)))+1))
+#define LX(a)    ((unsigned short)(a))	//#define LX(a)     (*((unsigned short *)(&(a))))
+#define HX(a)    LX((a)>>16)			//#define HX(a)     (*(((unsigned short *)(&(a)))+1))
+#define XOR(a,b) (((a)?1:0)^((b)?1:0))
+
+// 16ƒrƒbƒgDOS‚ÈŠÖ”‚Ì’Òåë‡‚í‚¹
 #define __far
 #define __huge
 #define __near
@@ -13,31 +23,17 @@
 #define _hmemset	memset
 #define _fmemset	memset
 
-#if 0
-//#define L(a)     (*((unsigned char *)(&(a))))
-//#define H(a)     (*(((unsigned char *)(&(a)))+1))
-//#define HX(a)     (*(((unsigned short *)(&(a)))+1))
-//#define LX(a)     (*((unsigned short *)(&(a))))
-#else	// for 32bit-cpu
-#define L(a)     ((unsigned char)(a))
-#define H(a)     L((a)>>8)
-#define LX(a)    ((unsigned short)(a))
-#define HX(a)    LX((a)>>16)
 static __inline int __rotr(short m, int sh) {
-	int a = (unsigned short)m >>sh;
-	int b = (unsigned short)(m << (16-sh));
+	int a = (unsigned short)m >>sh, b = (unsigned short)(m << (16-sh));
 	return a|b;
 }
 #define _rotr(m,c)	__rotr(m,c)
 
-#include <stdio.h>
 static __inline void __putw(int a, FILE *fn)  {(fputc(L(a), (fn)), fputc(H(a), (fn)));}
 #define _putw(a, fn)  __putw(a, fn)
+
 static __inline int __getw(FILE *fn) {int a = (unsigned char)fgetc(fn); return a | (fgetc(fn)<<8);}
 #define _getw(fn)	__getw(fn)
-#endif
-
-#define XOR(a,b) (((a)?1:0)^((b)?1:0))
 
 #define XSIZE 		1024
 #define YSIZE 		1024
@@ -62,6 +58,7 @@ extern "C"
      unsigned long get32(FILE *fi);
      void put16(unsigned short s,FILE *fi);
      void put32(unsigned long s,FILE *fi);
+
   #ifdef SJIS
      int jis2sjis(int c);
      int sjis2jis(int c);

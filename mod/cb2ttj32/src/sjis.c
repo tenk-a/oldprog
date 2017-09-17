@@ -641,10 +641,10 @@ short big5(unsigned char a, unsigned char b)
      }
 
 
-int j2unicode(const char *sjis, char ucf16[], int len)
+int j2unicode(const char *sjis, char unic[], int len)
 {
 	const unsigned char *s = (const unsigned char *)sjis;
-	unsigned char *d = (unsigned char *)ucf16;
+	unsigned char *d = (unsigned char *)unic;
 	int n=0,c;
 	//
 	for (;;) {

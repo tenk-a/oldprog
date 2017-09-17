@@ -1,3 +1,7 @@
+/*
+	ct2ttj98 で配布されていた
+	ttfstubank.cpp を弄ったもの。
+ */
 #define _DOS
 #ifndef NO_MFC
 #  include <afx.h>
@@ -14,7 +18,7 @@
 #ifdef SJIS
 #  define RFONT 	0
 #  define CFONT 	8836
-# ifdef HANKANA		//半角カナを追加
+# ifdef HANKANA		//半角カナを追加(失敗版)
 #  define EFONT 	(94+64)
 # else	// 英数のみ
 #  define EFONT		94

@@ -1,0 +1,139 @@
+■ cb2tt/j を win32 コンソールプログラムとして再コンパイル
+
+　Lin YawJen氏作の cb2tt は、dos時代に作られ MC-C7 で
+コンパイルされたもののため dos プログラムです。
+　これらを NT 系のコマンドラインで使うと
+16ビットモードと32ビットモードを行ったり来たりして
+（ウィンドウがちらついて）、Win9x系で変換するよりも
+倍近く遅くなってしまって哀しいのでした。
+
+　で、ソースがあるので、再コンパイルしてみたのだけど、
+MS-Cの文法やライブラリのdos16ビット依存なところが
+ちょびっとあったのでその辻褄あわせが必要なのでした。
+(_farとか _fmallocとか _rotr とか _getw/_putw とか）。
+て、ことで、その、つじつまあわせ。
+
+・cb2ttsrc.zip を入手し、作業ディレクトリに展開します。
+　今回の再コンパイル対象のソースは
+	array.cpp
+	bf_file.c
+	freeman.cpp
+	vector.cpp
+	spline.cpp
+	toglyf.cpp
+	add.cpp
+	engpatch.cpp
+	dyna.h
+	array.h
+	get.cpp     ※つかってないけど一応
+	splx.cpp    ※〃
+	readttf.cpp ※〃
+
+　で、その他のdos画面表示関係なものは無視します^^;
+
+
+・そこに、cb2tt_32.lzh を展開したものを上書きします。
+
+	ntuttf.h	[上書] 各種辻褄合わせのマクロやルーチンを追加
+	ttfstub.cpp	[上書] cb2ttj98 の ttfstubank.cpp を弄ったもの
+	batch.c		[上書] ちょっとだけ?速いbatch.exe
+	sjis.c		[big5.cと交換] シフトJISコード変換用
+	makefile	[上書]
+
+
+・コンパイルは vc を用いて make したってください。
+　MFC を使われているので、基本的にvc用かな。
+　かっての市販ＣコンパイラならMFCバンドルされているものも
+　結構あるのでそれらでも可能と思われます・・・
+　てか、cb2ttj では borland-c v5で再コンパイルされてたようだし。
+
+・と、ttfstubでのMFCの使われ方を見ると、どうやら
+　実質MFCの機能を使っていないので、ダミーを用意して、
+　bcc32 だけで、再コンパイルできるようにしてみました。
+
+	mkstub.bat	bcc32 で ttfstub と engpatchをコンパイル
+	afx.h		bcc32 でttfstubをコンパイルするときの辻褄合わせ
+	afxcoll.h	bcc32 でttfstubをコンパイルするときの辻褄合わせ
+	engpatch.dif	bcc32 で engpatch.cpp をコンパイルするための修整差分
+			(patch -o engpatch.cpp orig\engpatch.cpp engpatch.dif等として。
+			 己が使用している diff/patch はWinCVS同梱のもの）
+
+
+
+■半角カナについて
+　cb2ttj は半角カナに対応していません。
+(まあ、Unixでなら不要てか邪魔やろし）
+
+　で、なんとかなるかなあ、と、ttfstub.c を弄ってたのですが
+結局、失敗におわりました^^;
+　一応、出ることはでたのですが、全部の文字の文字送り幅が
+壊れてしまって使いものにならない状態。
+　とりあえず、挫折です。
+　合成扱いで半角もつよりも、全角と同様に ビットマップ用意
+して変換したほうが良さそうにも思うのだけど、それはそれで
+どこを直せばいいのか調べんのが億劫なので、思うに止まる^^;
+
+　残骸を残しておくのも何かとも思いますが、元に戻すのも
+面倒なので、残っています。HANKANA をマクロ定義するとそれに
+なります。ただし、あと、engpatch.cpp のほうの 27行目付近の
+96を(96+64)にしたほうがいいかもしれません。
+
+
+■ttfstub
+　cb2ttj 配布のものはdiffのようなんですけど、
+己はよう復元できなかったので cb2ttj98の配布中にあった
+ttfstubank.cpp を元にしています... 
+よくよくみると cb2ttj98版は cb2ttj 版からさらに弄られて
+いるようですね（j2unicode()ってcb2ttj98版だけやん）。
+
+
+■配布や入手
+　己の改変については、辻褄あわせだけなので、主張なし。
+　元の配布物に依存します。
+　て、無作法なかって改造なんで、各自判断で^^;
+（なんか、すでに修整済のものがどっかにありそうな気も
+するが・・・）
+　営利目的でなく、かつ、元の配布制限を継続する限りは
+大丈夫だと思うのだけど・・・（cb2ttのreadmeを確認して）
+
+　ただ、現状のcb2tt,cb2ttsrcの配布状態がいまいちわかんないので
+とりあえず、cb2ttsrcのいじってしまったソースのみで
+弄っていないものは同梱していません。
+
+　cb2ttjの頁
+
+    http://itohws03.ee.noda.sut.ac.jp/~matsuda/cb2ttj/
+
+からの原作者やソースへのリンクは切れてるようで、
+（exe は vector の
+
+    http://www.vector.jp/soft/dos/writing/se014573.html
+
+から入手可能だけれど）、現在ソースが入手可能かは不明
+・・・と書いてたら、
+
+　　http://input.cpatch.org/font/font_tool/
+
+というところに、いろいろなフォントツールが置かれた中に、
+cb2tt.zip, cb2ttsrc.zip 共にありました^^;
+
+
+　cb2tt で変換したフォントについても、商利用不可、のようですが、
+
+  http://hawk.ise.chuo-u.ac.jp/student/person/tshiozak/X-TT/.xtt-ml/a804-1.html
+
+あたりや
+
+  http://www.gyve.org/gs-cjk/archive/msg00438.html
+
+あたりのやりとりを見る限り、元が商用フォントでなければ、って
+ことなんでしょうかね。
+
+
+
+
+2002-01 tenk*
+2002-02 cb2ttsrc.zip を配布しているサイトがあったので、そのことを追記.
+
+NBB00541@nifty.com
+http://homepage2.nifty.com/tenk/
