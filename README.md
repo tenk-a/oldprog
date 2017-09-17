@@ -1,3 +1,3 @@
-# tenk*'s 旧プログラム.
+# tenk*'s old programs
 
 昔作ったプログラムのソース関係
