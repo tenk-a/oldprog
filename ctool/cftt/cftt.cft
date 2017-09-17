@@ -1,0 +1,35 @@
+; <<< cfttのデモ >>>
+;
+;   このファイル(cftt.cft)と cfttのソースファイルのあるディレクトリで、
+;      cftt @cftt
+;   を実行してみてください.
+
+-eCFTT.ERR	;エラーメッセージや各種メッセージごとファイルに出力
+-oCFTT		; .t01 .t02 .t03 .t04 ファイルを生成
+
+@file	; 入力するファイル
+cftt.c
+
+@word	;無視する単語
+FILE
+far
+near
+size_t
+
+;--- グループ分けする ---;
+@group	単語取得関係
+SYM_GetInit
+SYM_Get
+
+@group	メイン
+main
+
+
+;--- 名前に説明をつける ---;
+@comment
+MakSmTree	定義された名前を取得
+;MakRefLst	参照関係を調べる
+;DispTreeFlow	ツリー表示
+;DispOyakoFlow	親子表示
+;DispNameList	名前一覧表示
+;DispFileSmList	ファイル毎の名前一覧表示
