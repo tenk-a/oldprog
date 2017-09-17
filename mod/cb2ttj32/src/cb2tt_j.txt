@@ -1,0 +1,424 @@
+------------------------------------------------------------------------------
+cb2tt 付属 usage.doc 英語/和訳(意訳)テキストもどき
+
+　このファイルは lyf氏作の、TureTypeFile 作成ツール(群)
+    cb2tt
+に付属の usage.doc と、それを「The 翻訳 インターネット V5.0」で翻訳させた
+結果を若干手を加えたものです。
+（英語苦手者ゆえ、よう分からずに類推で意訳してたりするので危険あり^^;）
+　自分用のメモをらしく整えただけなので、ちゃんとした内容は英語のほうを
+確認してください。
+　当然、無保証、無責任。無作法なシロモノなんで、とりあつかいは各自の判断で。
+
+
+
+-- 元 ------------------------------------------------------------------------
+
+TTFSTUB.EXE
+     TTFSTUB ttf_file English_id_string Chinese_id_string
+     Generate the stub (root) part of TrueType file, the two id strings must
+  independent for others. This file support following code seqence
+         0 to 1                 Map to null font
+         2 to 95(94)            Map to ASCII code, use ENGPATCH to set up it
+                                after the file done.
+         96 to 13597(13502)     Map to BIG5 code space, 13053 Chinese font
+                                first and graphical symbol second.
+         13598 to ..(5809)      Reserve for user define code, use ADD to append
+                                glyphs.
+
+BATCH.EXE
+     BATCH batch_file [start [end]]
+     Call the batch file with a serial parameter from start to end between
+  from 0 to 13052 like following:
+     batch_file 0
+     batch_file 1
+     batch_file 2
+     batch_file 3
+     ...
+
+DYNABMP.EXE
+     DYNABMP type font# bitmap_file
+     Get the 1024X1024 bitmap from DYNAFONT card, the DYNA driver must be
+  installed. The type is defined by DYNAFONT, the font# is the sequent number
+  of BIG5 code. The bitmap file is encoded as following:
+         Y Xstart Xend
+  for each raster segment. The header of the file is four chars 'DYNA'.
+
+FGBMP.EXE
+     FGBMP type font# bitmap_file
+     Get the 1024X1024 bitmap from ETan TuLon card, the FG driver must be
+  installed. The type is defined by ETan, the font# is the sequent number
+  of BIG5 code. The bitmap file is encoded as following:
+         Y count Xstart_1 Xend_1 ... Xstart_count Xend_count
+  for each raster scan line. The header of the file is four chars 'ETFG'. At
+  some case, it will save as the DYAN format.
+
+FREEMAN.EXE
+     FREEMAN bitmap_file freeman_file [(A|B)[D]]
+     Convert font from the bitmap file to the freeman coded. The flag of the
+  third parameter is A, AD, B(default), BD or D. The flag A means the program
+  considers the following corner only:
+               @@@@@@@@@@@@@@@@
+               @@@@@@@@@@@@@@@@
+               @@@@@+ This corner
+               @@@@@
+               @@@@@
+               @@@@@
+     The flag B means the program considers corner both above and following:
+               @@@@@@@@@@@@@@@@
+               @@@@@@@@@@@@@@@@
+               @@@@@+ This corner
+               @@@@@@
+               @@@@@@@
+               @@@@@@@@
+     The flag D means duplicating (bolding) the font ten dots, used in
+  NTU_TW.TTF.
+
+VECTOR.EXE
+     VECTOR freeman_file vector_file [threashold]
+     Fitting the freeman points to vectors, each vector is a small line
+  segment. The threashold is the length of trace over the direct distance,
+  default is 1.001.
+
+SPLINE.EXE
+     SPLINE vector_font spline_font [threashold]
+     Fitting the vector font as Q-splines, each spline has a control. The
+  threashold is the average distance after regression, default is 1.8 unit.
+
+SPLX.EXE
+     SPLINE vector_font spline_font [threashold]
+     Fitting the vector font as Q-splines, each spline has two controls. The
+  threashold is the average distance after regression, default is 1.8 unit.
+
+TOGLYF.EXE
+     TOGLYF spline_file glyph_file
+     Store the spline file as the glyph format that TrueType defined.
+
+ADD.EXE
+     ADD ttf_file glyph_file
+     Add a glyph to a ttf file. Notice that the TrueType glyphs
+  must be appended sequentially.
+
+ENGPATCH.EXE
+     ENGPATCH ttf_file
+     Patch the alphabet part of ASCII code from 32 to 127 after the TrueType
+  file done.
+
+DFM.EXE
+     DFM bitmap_file freeman_file
+     Display the freeman code data came from FREEMAN.EXE and match the original
+  bitmap. VESA driver must be installed.
+
+DPT.EXE
+     DPT bitmap_file points_file
+     Display the points data came from VECTOR.EXE, SPLINE.EXE or SPLX.EXE,
+  and match the original bitmap. VESA driver must be installed.
+
+DSP.EXE
+     DSP bitmap_file spline_file
+     Display the splines data came from SPLINE.EXE and match the original
+  bitmap. VESA driver must be installed.
+
+DSPX.EXE
+     DSPX bitmap_file spline_file
+     Display the splines data came from SPLX.EXE and match the original
+  bitmap. VESA driver must be installed.
+
+GET.EXE
+     GET ttf_file index glyph_file
+     Get the glyph of the index of the Chinese glyph within the ntu ttf.
+   Zero for first Chinese glyph (97th of all glyphs).
+
+READTTF.EXE
+     READTTF ttf_file
+     General purpose program for parsing the TrueType file data.
+
+TTFSTUB.CPP
+     Source for TTFSTUB.EXE. User who like to provide new code scheme must
+  modify the following:
+         unsigned char ptn_2byte[189]   Map ASCII codes to graphical symbols.
+         gene_name()                    Provide plateform information
+         gene_cmap()                    Encoding scheme.
+     Don't remove the table taged 'LYJs' though it look like dirty. It is
+  useful for ADD and GET glyphs.
+
+BIG5.C
+BF_FILE.C
+ARRAY.CPP
+     Subroutines files. All files complied under Microsoft C/C++ 7.0 and
+  MFC 1.0(CPP files) of small and real(dos application) mode.
+
+Other source available:
+     All sources are available. If you are interesting about it, please
+  contack me via E-mail. You need not paid anything for it, but you must
+  proof following condition by anyway you can:
+         Only for public font building/researching purpose.
+         Keep the constraint when you distribute the source.
+         The background for language tools.
+
+     Since I had meet a trouble when I was am undergradute student and I
+  distributed a program source, I distribute source codes very carefully.
+  I am very sorry for this extra process.
+
+
+
+-- 和 ------------------------------------------------------------------------
+TTFSTUB.EXE:
+
+	TTFSTUB ttf_file English_id_string Chinese_id_string
+
+True Type Fileのスタブを生成します。
+他のものとは独立した、2つのid文字列を必要とします。
+このプログラムは以下のコード・シーケンスをサポートします。
+
+	0～1			無効のフォントへのマップ.
+	2～95(94)		ASCIIコードへのマップ、
+				ENGPATCH使用後のファイルにそれをセットアップ.
+	96～13597(13502)	BIG5コード・スペースへのマップ、
+				13053の中国のフォントを１番目に、
+				グラフ式のシンボルを２番目に.
+	13598～..(5809)		ユーザ定期コードのため予約、
+				グリフを追加するためにADDを使用します.
+
+
+
+BATCH.EXE:
+
+	BATCH batch_file [start [end]]
+
+次のものに続くことのような 0～13052 の間の始めから終わりへ
+連続するパラメーターを備えたバッチファイルを呼びます。
+
+	batch_file 0
+	batch_file 1
+	batch_file 2
+	batch_file 3
+	...
+
+
+
+DYNABMP.EXE:
+
+	DYNABMP type font# bitmap_file
+
+DYNAFONTカードから1024X1024ビットマップを得る、
+DYNAドライバーがインストールされていなければなりません。
+タイプはDYNAFONTによって定義されます。
+font#はBIG5コードの続いて起こる数です。
+ビットマップ・ファイルは以下のようにコード化されます。
+	Y Xstart Xend
+各ラスター・セグメントのために。
+ファイルのヘッダーは4つのchar「DYNA」です。
+
+
+
+FGBMP.EXE:
+
+	FGBMP type font# bitmap_file
+
+ETan TuLon カードから 1024X1024 ビットマップを得る、
+FGドライバーがインストールされていなければなりません。
+タイプはETanによって定義されます。
+font#はBIG5コードの続いて起こる数です。
+ビットマップ・ファイルは以下のようにコード化されます。
+
+	Y count Xstart_1 Xend_1 ... Xstart_count Xend_count
+
+各ラスター・スキャン・ラインのために。
+ファイルのヘッダーは4つのchar「ETFG」です。
+ある場合では、それがDYANフォーマットとして保存するでしょう。
+
+
+
+FREEMAN.EXE:
+
+	FREEMAN bitmap_file freeman_file [[(A|B)D]]
+
+フォントをコード化されたビットマップ・ファイルから FREEMAN に
+変換してください。
+第3のパラメーターのフラグは A、AD、B(デフォルト)、BD あるいは D です。
+
+フラグA は、プログラムが次の角のみを考慮することを意味します。
+
+               @@@@@@@@@@@@@@@@:
+               @@@@@@@@@@@@@@@@:
+               @@@@@+ This corner:
+               @@@@@:
+               @@@@@:
+               @@@@@:
+
+フラグB は、プログラムが上記の角および次の角を考慮することを意味します。
+
+               @@@@@@@@@@@@@@@@:
+               @@@@@@@@@@@@@@@@:
+               @@@@@+ This corner:
+               @@@@@@:
+               @@@@@@@:
+               @@@@@@@@:
+
+フラグD は NTU_TW.TTFの中で使用されて、フォントを10ドット複写すること
+(bolding)を意味します。
+
+
+
+VECTOR.EXE:
+
+	VECTOR freeman_file vector_file [threashold]。
+
+ベクトルにFREEMANポイントを適合させて、各ベクトルは小さな線分です。
+threasholdは直接の距離以上の跡の長さです、
+デフォルトは1.001です。
+
+
+
+SPLINE.EXE:
+
+	SPLINE vector_font spline_font [threashold]。
+
+Q-スプラインとしてベクトル・フォントに適合して、
+各スプラインはコントロールを行っています。
+threashold は後戻りの後に平均の距離です、
+デフォルトは1.8ユニットです。
+
+
+
+SPLX.EXE:
+
+	SPLINE vector_font spline_font [threashold]
+
+Q-スプラインとしてベクトル・フォントに適合して、
+各スプラインは2つのコントロールを行っています。
+threashold は後戻りの後に平均の距離です、
+デフォルトは1.8ユニットです。
+
+
+
+TOGLYF.EXE:
+
+	TOGLYF spline_file グリフ_file
+
+グリフフォーマットとしてスプライン・ファイルをストアする、
+そのツルー・タイプ、定義されました。
+
+
+
+ADD.EXE:
+
+	ADD ttf_file グリフ_file
+
+ttfファイルにグリフを加えてください。
+ツルー・タイプグリフが連続して追加されるに違いないことに
+注目してください。
+
+
+
+ENGPATCH.EXE:
+
+	ENGPATCH ttf_file
+
+行われたTrue Type Fileの後に32～127まで
+ASCIIコードのアルファベット部分を継ぎはぎしてください。
+
+
+
+DFM.EXE:
+
+	DFM bitmap_file freeman_file
+
+FREEMANコード・データを表示する、FREEMAN.EXEから来て、
+オリジナルのビットマップと一致する。
+VESAドライバーがインストールされてなければなりません。
+
+
+
+DPT.EXE:
+
+	DPT bitmap_file points_file
+
+データが来たポイントを表示する、
+VECTOR.EXE、SPLINE.EXEあるいはSPLX.EXE、
+またオリジナルのビットマップと一致します。
+VESAドライバーがインストールされてなければなりません。
+
+
+
+DSP.EXE:
+
+	DSP bitmap_file spline_file
+
+データが来たスプラインを表示する、SPLINE.EXE、
+またオリジナルのビットマップと一致します。
+VESAドライバーがインストールされてなければなりません。
+
+
+
+DSPX.EXE:
+
+	DSPX bitmap_file spline_file
+
+データが来たスプラインを表示する、SPLX.EXE、
+またオリジナルのビットマップと一致します。
+VESAドライバーがインストールされてなければなりません。
+
+
+
+GET.EXE:
+
+	GET ttf_file index glyph_file
+
+ntu ttf の内の中国のグリフのインデックスのグリフを得ます。
+０ は第1の中国のグリフ(第97にすべてのグリフ)のため。
+
+
+
+READTTF.EXE:
+
+	READTTF ttf_file
+
+True Type File・データを解析するための
+汎用プログラム。
+
+
+
+TTFSTUB.CPP:
+
+TTFSTUB.EXEのソース。
+新しいコード・スキームを提供しようとするなら、下記を修正しないといけない。
+
+    unsigned char ptn_2byte[189]    グラフ式のシンボルへのマップASCIIコード
+    gene_name()                     plateform情報を提供してください
+    gene_cmap()                     スキームの作成
+
+汚く見えようと「LYJ」とタグされたテーブルを削除しないでください。
+ADDとGETのグリフに役立ちます。
+
+
+
+BIG5.C:
+BF_FILE.C:
+ARRAY.CPP:
+
+サブルーチン・ファイル。ファイルはすべて、Microsoft C/C++7.0 の
+real(dos アプリケーション)モードのMFC 1.0(CPPファイル)で
+コンパイルされました。
+
+
+
+
+利用可能な他のソース:
+
+ソースはすべて利用可能です。
+それについて関心があったら、私にEメールで連絡してください。
+対価を払う必要は無いけれど、以下の証明をしなければなりません。
+
+	公のフォントのためのみの作成/研究する目的であること。
+	ソースを分配する場合は、制約を維持してください。
+	言語ツールの背景。
+
+私は学部学生のときプログラムソースの配布でトラブルにあいました。
+私は、ソース・コードを非常に注意深く分配します。
+私はこの余分なプロセスを非常に残念に思います。
+
+
+
+----------------------------------------------------------------------------

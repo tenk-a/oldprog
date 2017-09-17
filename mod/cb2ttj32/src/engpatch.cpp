@@ -1,8 +1,9 @@
 #define _DOS
-#include <afx.h>
+//#include <afx.h>
 #include <iostream.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include "ntuttf.h"
 
 struct ttfTB
@@ -24,7 +25,11 @@ void main(short argc, char *argv[])
      FILE *fn = fopen(argv[1],"rb+");
      if (!fn) { cout << "File open error.\n"; return; }
      build_ref(fn);
+#ifdef HANKANA
+     for (short i = 2; i < 96+64; i++) modify(i,fn);
+#else
      for (short i = 2; i < 96; i++) modify(i,fn);
+#endif
      }
 
 void build_ref(FILE *fn)
@@ -102,4 +107,3 @@ void getXrange(short num,FILE *fn)
      delete flag;
 //if ((xmin < 0) || (xmax > XSIZE)) {cout << "Error!\n"; cout.flush();}
      }
-

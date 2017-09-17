@@ -1,85 +1,51 @@
-all: obj demo utl dynabmp.exe freeman.exe splx.exe spline.exe toglyf.exe get.exe fgbmp.exe add.exe vector.exe
+all: obj freeman.exe spline.exe toglyf.exe get.exe add.exe vector.exe utl
 
-obj: big5.obj array.obj bf_file.obj
+obj: sjis.obj array.obj bf_file.obj
 
-utl: readttf.exe engpatch.exe batch.exe ttfstub.exe part_ttf.exe subset.exe
+utl: readttf.exe engpatch.exe batch.exe ttfstub.exe
 
-demo: dsp.exe dfm.exe dpt.exe dspx.exe
-
-CL_OPT=/AS /Ox /G2 /W3
-
-dynabmp.exe: dynabmp.cpp
-        CL $(CL_OPT) dynabmp.cpp big5
+CC=CL
+#CL_OPT=/W3 /DHANKANA
+CL_OPT=/W3
+MFC_LIB=mfc42.lib
 
 freeman.exe: freeman.cpp
-        CL $(CL_OPT) freeman.cpp array safxcr.lib
-
-splx.exe: splx.cpp
-        CL $(CL_OPT) splx.cpp array safxcr.lib
+        $(CC) $(C_OPT) freeman.cpp array.obj $(MFC_LIB)
 
 spline.exe: spline.cpp
-        CL $(CL_OPT) spline.cpp array safxcr.lib
+        $(CC) $(C_OPT) spline.cpp array.obj $(MFC_LIB)
 
 toglyf.exe: toglyf.cpp
-        CL $(CL_OPT) toglyf.cpp array safxcr.lib
-
-get.exe: get.cpp
-        CL $(CL_OPT) get.cpp bf_file
-
-fgbmp.exe: fgbmp.cpp
-        CL $(CL_OPT) fgbmp.cpp big5 fgx
+        $(CC) $(C_OPT) toglyf.cpp array.obj $(MFC_LIB)
 
 add.exe: add.cpp
-        CL $(CL_OPT) add.cpp bf_file
+        $(CC) $(C_OPT) add.cpp bf_file.obj $(MFC_LIB)
 
 vector.exe: vector.cpp
-        CL $(CL_OPT) vector.cpp array safxcr.lib
-
-big5.obj: big5.c
-        CL $(CL_OPT) /c big5.c
-
-array.obj: array.cpp
-        CL $(CL_OPT) /c array.cpp
-
-bf_file.obj: bf_file.c
-        CL $(CL_OPT) /c bf_file.c
-
-readttf.exe: readttf.c
-        CL $(CL_OPT) readttf.c bf_file
+        $(CC) $(C_OPT) vector.cpp array.obj $(MFC_LIB)
 
 engpatch.exe: engpatch.cpp
-        CL $(CL_OPT) engatch.cpp big5 bf_file
+        $(CC) $(C_OPT) /DSJIS engpatch.cpp sjis.obj bf_file.obj
 
-batch.exe: batch.cpp
-        CL $(CL_OPT) batch.cpp
+batch.exe: batch.c
+        $(CC) $(C_OPT) batch.c winmm.lib
 
 ttfstub.exe: ttfstub.cpp
-        CL $(CL_OPT) ttfstub.cpp big5 bf_file array safxcr.lib
+        $(CC) $(C_OPT) /DSJIS ttfstub.cpp sjis.obj bf_file.obj array.obj $(MFC_LIB)
 
-part_ttf.exe: part_ttf.cpp
-        CL $(CL_OPT) part_ttf.cpp big5 bf_file array safxcr.lib
+sjis.obj: sjis.c
+        $(CC) $(C_OPT) /c sjis.c
 
-dsp.exe: dsp.cpp
-        CL $(CL_OPT) dsp.cpp graphics.lib
+array.obj: array.cpp
+        $(CC) $(C_OPT) /c array.cpp
 
-dspx.exe: dspx.cpp
-        CL $(CL_OPT) dspx.cpp graphics.lib
+bf_file.obj: bf_file.c
+        $(CC) $(C_OPT) /c bf_file.c
 
-dpt.exe: dpt.cpp
-        CL $(CL_OPT) dpt.cpp graphics.lib
+# ----
+get.exe: get.cpp
+        $(CC) $(C_OPT) get.cpp bf_file.obj $(MFC_LIB)
 
-dfm.exe: dfm.cpp
-        CL $(CL_OPT) dfm.cpp graphics.lib
+readttf.exe: readttf.c
+       $(CC) $(C_OPT) readttf.c bf_file.obj
 
-subset.exe: subset.cpp
-        CL $(CL_OPT) subset.cpp big5
-
-
-backup:
-        xcopy *.cpp b:\ntuttf.bak
-        xcopy *.c b:\ntuttf.bak
-        xcopy *.h b:\ntuttf.bak
-        copy makefile b:\ntuttf.bak
-        xcopy *.exe b:\
-
-

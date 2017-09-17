@@ -1,8 +1,3 @@
-#ifdef SJIS
-#undef SJIS
-#endif
-#define ANK
-
 #define _DOS
 #ifndef NO_MFC
 #  include <afx.h>
@@ -16,25 +11,31 @@
 #include "array.h"
 
 #define NFONT 2
-#define EFONT 94
 #ifdef SJIS
-# define RFONT 0
-# define CFONT 8836
-# define EachFont 188
-# define EachSeg 189
-# define EachOff (EachSeg-EachFont)
+#  define RFONT 	0
+#  define CFONT 	8836
+# ifdef HANKANA		//îºäpÉJÉiÇí«â¡
+#  define EFONT 	(94+64)
+# else	// âpêîÇÃÇ›
+#  define EFONT		94
+# endif
+#  define EachFont 	188	//ëSäpÇÃâ∫à ÉoÉCÉgÇÃêÿÇÍñ⁄
+#  define EachSeg  	189	//ëSäpÇÃâ∫à ÉoÉCÉgÇÃë±Ç´
+#  define EachOff 	(EachSeg-EachFont)
 #elif defined ANK
 # define RFONT 0
 # define CFONT 256
 # define EachFont 256
 # define EachSeg 257
 # define EachOff (EachSeg-EachFont)
+# define EFONT 256
 #else
 # define RFONT 5809
 # define CFONT 13502
 # define EachFont 157
 # define EachSeg 191
 # define EachOff (EachSeg-EachFont)
+# define EFONT 94		/* Eng translate from ASCII 0x21 to 0x7E total 94 fonts*/
 #endif
 
 #define numTbl 13
@@ -130,9 +131,19 @@ unsigned char prep_prog[8] = {
 
 /* Eng translate from ASCII 0x21 to 0x7E total 94 fonts*/
 #ifdef SJIS
-/* the following string is in EUC! */
+  #ifdef HANKANA		/* the following string is in SJIS! */
+unsigned char ptn_2byte[EFONT*2+2] = 
+	"ÅIÅhÅîÅêÅìÅïÅfÅiÅjÅñÅ{ÅCÅ|ÅDÅ^ÇOÇPÇQÇRÇSÇTÇUÇVÇWÇXÅFÅGÅÉÅÅÅÑÅH"
+	"ÅóÇ`ÇaÇbÇcÇdÇeÇfÇgÇhÇiÇjÇkÇlÇmÇnÇoÇpÇqÇrÇsÇtÇuÇvÇwÇxÇyÅmÅ_ÅnÅOÅQ"
+	"ÅeÇÅÇÇÇÉÇÑÇÖÇÜÇáÇàÇâÇäÇãÇåÇçÇéÇèÇêÇëÇíÇìÇîÇïÇñÇóÇòÇôÇöÅoÅbÅpÅP"
+	"Å@ÅBÅuÅvÅAÅEÉíÉ@ÉBÉDÉFÉHÉÉÉÖÉáÉbÅ[ÉAÉCÉEÉGÉIÉJÉLÉNÉPÉRÉTÉVÉXÉZÉ\"
+	"É^É`ÉcÉeÉgÉiÉjÉkÉlÉmÉnÉqÉtÉwÉzÉ}É~ÉÄÉÅÉÇÉÑÉÜÉàÉâÉäÉãÉåÉçÉèÉìÅJÅK";
+  #else					/* the following string is in EUC! */
+//unsigned char ptn_2byte[189] =
+//"°™°…°Ù°°Û°ı°«° °À°ˆ°‹°§°›°•°ø£∞£±£≤£≥£¥£µ£∂£∑£∏£π°ß°®°„°·°‰°©°˜£¡£¬£√£ƒ£≈£∆£«£»£…£ £À£Ã£Õ£Œ£œ£–£—£“£”£‘£’£÷£◊£ÿ£Ÿ£⁄°Œ°Ô°œ°∞°≤°°£·£‚£„£‰£Â£Ê£Á£Ë£È£Í£Î£Ï£Ì£Ó£Ô££Ò£Ú£Û£Ù£ı£ˆ£˜£¯£˘£˙°–°√°—°±";
 unsigned char ptn_2byte[189] =
-"°™°…°Ù°°Û°ı°«° °À°ˆ°‹°§°›°•°ø£∞£±£≤£≥£¥£µ£∂£∑£∏£π°ß°®°„°·°‰°©°˜£¡£¬£√£ƒ£≈£∆£«£»£…£ £À£Ã£Õ£Œ£œ£–£—£“£”£‘£’£÷£◊£ÿ£Ÿ£⁄°Œ°Ô°œ°∞°≤°°£·£‚£„£‰£Â£Ê£Á£Ë£È£Í£Î£Ï£Ì£Ó£Ô££Ò£Ú£Û£Ù£ı£ˆ£˜£¯£˘£˙°–°√°—°±";
+"ÅIÅhÅîÅêÅìÅïÅfÅiÅjÅñÅ{ÅCÅ|ÅDÅ^ÇOÇPÇQÇRÇSÇTÇUÇVÇWÇXÅFÅGÅÉÅÅÅÑÅHÅóÇ`ÇaÇbÇcÇdÇeÇfÇgÇhÇiÇjÇkÇlÇmÇnÇoÇpÇqÇrÇsÇtÇuÇvÇwÇxÇyÅmÅèÅnÅOÅQÅ@ÇÅÇÇÇÉÇÑÇÖÇÜÇáÇàÇâÇäÇãÇåÇçÇéÇèÇêÇëÇíÇìÇîÇïÇñÇóÇòÇôÇöÅoÅbÅpÅP";
+  #endif
 #elif defined ANK
 ;
 #else
@@ -478,96 +489,92 @@ void addstr2(bigfirst &st, char *str)
 void gene_profile()
      { //gene head, hhea, hmtx, maxp, lyjs and post
      table *tmp = &ttfTbl[HEAD];
-     tmp->addlong( 0x10000); /* Version */
-     tmp->addlong( 0x10000); /* Revision */
-     tmp->addlong( 0); /* Reserved for chk adjust */
-     tmp->addlong( 0x5f0f3cf5); /* magic # */
-     tmp->addshort(3); /* flag */
-     tmp->addshort(XSIZE); /* uPEM */
+     tmp->addlong( 0x10000); 				/* Version */
+     tmp->addlong( 0x10000); 				/* Revision */
+     tmp->addlong( 0); 						/* Reserved for chk adjust */
+     tmp->addlong( 0x5f0f3cf5); 			/* magic # */
+     tmp->addshort(3); 						/* flag */
+     tmp->addshort(XSIZE); 					/* uPEM */
      tmp->addlong( 0); tmp->addlong( 1993);
      tmp->addlong( 0); tmp->addlong( 1993); /* date */
      tmp->addshort(0);
      tmp->addshort((unsigned short)(-1*DESCENT));
      tmp->addshort(XSIZE);
-     tmp->addshort(YSIZE-DESCENT); /* xyMinMax */
-     tmp->addshort(0); /* MacStyle */
-     tmp->addshort(25); /* lowestPPEM */
-     tmp->addshort(2); /* dir */
-     tmp->addshort(1); /* locFormat, long */
+     tmp->addshort(YSIZE-DESCENT); 			/* xyMinMax */
+     tmp->addshort(0); 						/* MacStyle */
+     tmp->addshort(25);	 					/* lowestPPEM */
+     tmp->addshort(2); 						/* dir */
+     tmp->addshort(1); 						/* locFormat, long */
      tmp->addshort(0);
      tmp->chksum4();
      tmp->len = tmp->getlen();
+
      tmp = &ttfTbl[HHEA];
-     tmp->addlong( 0x10000); /* Version */
-     tmp->addshort(YSIZE-DESCENT); /* ascent */
-     tmp->addshort((unsigned short)(-1*DESCENT)); /* descent */
-     tmp->addshort(DESCENT); /* line gap */
-     tmp->addshort(XSIZE); /* advWMax */
-     tmp->addshort(0); /* minLSB */
-     tmp->addshort(0); /* minRSB */
-     tmp->addshort(XSIZE); /* maxExt */
-     tmp->addshort(1); /* slope */
-     tmp->addshort(0); /* vertical */
+     tmp->addlong( 0x10000); 						/* Version */
+     tmp->addshort(YSIZE-DESCENT); 					/* ascent */
+     tmp->addshort((unsigned short)(-1*DESCENT)); 	/* descent */
+     tmp->addshort(DESCENT); 						/* line gap */
+     tmp->addshort(XSIZE); 							/* advWMax */
+     tmp->addshort(0); 								/* minLSB */
+     tmp->addshort(0); 								/* minRSB */
+     tmp->addshort(XSIZE); 							/* maxExt */
+     tmp->addshort(1); 								/* slope */
+     tmp->addshort(0);								/* vertical */
      tmp->addshort(0); tmp->addshort(0); tmp->addshort(0);
      tmp->addshort(0); tmp->addshort(0);
-     tmp->addshort(0); /* curr format */
-     tmp->addshort(97); /* #longMetrics */
+     tmp->addshort(0); 								/* curr format */
+     tmp->addshort(97); 							/* #longMetrics */
      tmp->chksum4();
      tmp->len = tmp->getlen();
      tmp = &ttfTbl[HMTX];
-     tmp->addshort(XSIZE/2); tmp->addshort(0);  //AdvMax and LSB
+     tmp->addshort(XSIZE/2); tmp->addshort(0);  	//AdvMax and LSB
      tmp->addshort(XSIZE); tmp->addshort(0);
-#ifndef ANK
-     for (short i = 0; i < 94; i++)
-#else
-     for (short i = 0; i < 256; i++)
-#endif
+     for (short i = 0; i < EFONT; i++)
          { tmp->addshort(XSIZE/2); tmp->addshort(0); }
      tmp->addshort(XSIZE); tmp->addshort(0);
      //Follow RFONT+CFONT-1 of zeros reserved
      tmp->chksum4();
      tmp->len = (unsigned long)tmp->getlen()+(unsigned long)(RFONT+CFONT-1)*2L;
+
      tmp = &ttfTbl[MAXP];
-     tmp->addlong( 0x10000); /* Version */
-#ifndef ANK
-     tmp->addshort(RFONT+CFONT+94+2); /* #glyf */
-#else
-     tmp->addshort(RFONT+CFONT+256+2); /* #glyf */
-#endif
+     tmp->addlong( 0x10000); 				/* Version */
+     tmp->addshort(RFONT+CFONT+EFONT+2); 	/* #glyf */
      tmp->addshort(800);
      tmp->addshort(40);
-     tmp->addshort(800); /* for componet */
+     tmp->addshort(800); 					/* for componet */
      tmp->addshort(40);
-     tmp->addshort(1); /* Zone */
-     tmp->addshort(0); /* Twilite */
-     tmp->addshort(10); /* Storage */
-     tmp->addshort(0); /* FDEFS */
-     tmp->addshort(0); /* IDEFS */
-     tmp->addshort(1024); /* stack */
-     tmp->addshort(0); /* glyf inst */
-     tmp->addshort(1); /* component elemt */
-     tmp->addshort(1); /* component depth */
+     tmp->addshort(1); 						/* Zone */
+     tmp->addshort(0); 						/* Twilite */
+     tmp->addshort(10); 					/* Storage */
+     tmp->addshort(0); 						/* FDEFS */
+     tmp->addshort(0); 						/* IDEFS */
+     tmp->addshort(1024); 					/* stack */
+     tmp->addshort(0); 						/* glyf inst */
+     tmp->addshort(1); 						/* component elemt */
+     tmp->addshort(1); 						/* component depth */
      tmp->chksum4();
      tmp->len = tmp->getlen();
-     tmp = &ttfTbl[LYJS];  //Lin, Y.J. expanded definition
-     tmp->addlong( 0x10000); /* Version */
-     tmp->addshort(1); //big5
-     tmp->addshort(RFONT+CFONT); //# of chinese
-     tmp->addshort(0); //# of chinese filled
-     tmp->addshort(96); //#glyf of first chinese
-     tmp->addlong(0L); //Reserved
+
+     tmp = &ttfTbl[LYJS];  					//Lin, Y.J. expanded definition
+     tmp->addlong( 0x10000); 				/* Version */
+     tmp->addshort(1); 						//big5
+     tmp->addshort(RFONT+CFONT); 			//# of chinese
+     tmp->addshort(0); 						//# of chinese filled
+     tmp->addshort(EFONT+2); 				//#glyf of first chinese
+     tmp->addlong(0L); 						//Reserved
      tmp->chksum4();
      tmp->len = tmp->getlen();
+
      tmp = &ttfTbl[POST];
-     tmp->addlong( 0x30000); /* Version */
-     tmp->addlong( 0); /* Italic */
+     tmp->addlong( 0x30000); 				/* Version */
+     tmp->addlong( 0); 						/* Italic */
      tmp->addshort((unsigned short)(-1*DESCENT/2)); /* underline */
-     tmp->addshort(25); /* underline thick */
-     tmp->addlong( 1); /* Fixed */
-     tmp->addlong( 10000); /* minMemType42 */
-     tmp->addlong( 100000); /* max */
-     tmp->addlong( 10000); /* minMemType1 */
-     tmp->addlong( 100000); /* max */
+     tmp->addshort(25); 					/* underline thick */
+     tmp->addlong( 1); 						/* Fixed */
+     tmp->addlong( 10000); 					/* minMemType42 */
+     tmp->addlong( 100000); 				/* max */
+     tmp->addlong( 10000); 					/* minMemType1 */
+     tmp->addlong( 100000); 				/* max */
      tmp->chksum4();
      tmp->len = tmp->getlen();
      }
@@ -600,47 +607,58 @@ void gene_cmap()
      short i, j, base, fnum, segCnt;
      unsigned short start, *head_ary, *end_ary, *dlt_ary, *off_ary;
      struct cmap_sh *sub_ary;
-     fmat0.addshort(0); /* format */
-     fmat0.addshort(262); /* len */
-     fmat0.addshort(0); /* Revision */
-     for (i = 0; i <= 32; i++) fmat0.addbyte(0);
-     for (; i <= 0x7e; i++) fmat0.addbyte((unsigned char)(i-32+1));
-     for (; i < 256; i++) fmat0.addbyte(0);
+
+     /* follow make format 0 */
+     fmat0.addshort(0); 		/* format */
+     fmat0.addshort(262); 		/* len */
+     fmat0.addshort(0); 		/* Revision */
+     for (i = 0; i <= 32; i++)	fmat0.addbyte(0);
+     for (; i <= 0x7e; i++)		fmat0.addbyte((unsigned char)(i-32+1));
+  #ifdef HANKANA
+     for (; i < 0xA0; i++)		fmat0.addbyte(0);
+     for (; i < 0xE0; i++)		fmat0.addbyte((unsigned char)(i-0xA0+96));
+  #endif
+     for (; i < 256; i++)		fmat0.addbyte(0);
+
      /* follow make format 2 */
      head_ary = new unsigned short[256];
-     for (i = 0; i < 128; i++) head_ary[i] = 0; /* English */
-     for (; i < 0x81; i++) head_ary[i] = 1; /* Ununsed */
-     for (j = 2; i <= 0x9f; i++) head_ary[i] = j++; /* First segment */
-     for (; i < 0xe0; i++) head_ary[i] = 1;
-     for (; i <= 0xef; i++) head_ary[i] = j++; /* Sec segment */
-     for (; i < 256; i++) head_ary[i] = 1;
-     for (i = 0; i < 256; i++) head_ary[i] *= 8;
+     for (i = 0; i < 128; i++)	head_ary[i] = 0; 	/* English */
+     for (; i < 0x81; i++)		head_ary[i] = 1; 	/* Ununsed */
+     for (j = 2; i <= 0x9f;i++) head_ary[i] = j++;	/* First segment */
+   #ifdef HANKANA
+     for (; i < 0xe0; i++)		head_ary[i] = 0;	/* îºäpÉJÉi EnglishàµÇ¢ */
+   #else
+     for (; i < 0xe0; i++)		head_ary[i] = 1;	/* Unused */
+   #endif
+     for (; i <= 0xef; i++)		head_ary[i] = j++;	/* Sec segment */
+     for (; i < 256; i++)		head_ary[i] = 1;	/* Unused */
+     for (i = 0; i < 256; i++)	head_ary[i] *= 8;	// sub_aryÇÃóvëfÇ™8ÉoÉCÉgÇ»ÇÃÇ≈
      sub_ary = new struct cmap_sh[j];
-     sub_ary[0].fCod = 0; sub_ary[0].numEnt = 256; sub_ary[0].idDelta = 0;
-     sub_ary[1].fCod = 64;
-     sub_ary[1].numEnt = sub_ary[1].idDelta = sub_ary[1].idOff = 0;
+     sub_ary[0].fCod =  0; sub_ary[0].numEnt = 256; sub_ary[0].idDelta = 0;
+     sub_ary[1].fCod = 64; sub_ary[1].numEnt = sub_ary[1].idDelta = sub_ary[1].idOff = 0;
      /* 0x8140 -- 0x9ffc */
-     for (fnum = EachFont*31, base = 0, i = 2; fnum > 0;
+     for (fnum = EachFont*31, base = 0, i = 2;
+         fnum > 0;
          i++,base += ((fnum > EachFont)?EachFont:fnum), fnum -= EachFont)
          {
-         sub_ary[i].fCod = 64;
-         sub_ary[i].numEnt =
-             (fnum > EachFont)?EachSeg:((fnum <= 63)?fnum:(fnum+EachOff));
+         sub_ary[i].fCod   = 64;
+         sub_ary[i].numEnt = (fnum > EachFont)?EachSeg:((fnum <= 63)?fnum:(fnum+EachOff));	//Ç±ÇÃè„à ÉoÉCÉgÇ…É}ÉbÉvÇ≥ÇÍÇƒÇÈï∂éöÇÃêî
          sub_ary[i].idDelta = base;
          }
      /* 0xe040 -- 0xeffc */
-     for (fnum = EachFont*16, base = EachFont*31; fnum > 0;
+     for (fnum = EachFont*16, base = EachFont*31;
+         fnum > 0;
          i++,base += ((fnum > EachFont)?EachFont:fnum), fnum -= EachFont)
          {
-         sub_ary[i].fCod = 64;
-         sub_ary[i].numEnt =
-             (fnum > EachFont)?EachSeg:((fnum <= 63)?fnum:(fnum+EachOff));
+         sub_ary[i].fCod    = 64;
+         sub_ary[i].numEnt  = (fnum > EachFont)?EachSeg:((fnum <= 63)?fnum:(fnum+EachOff));
          sub_ary[i].idDelta = base;
          }
      sub_ary[j-1].idOff = 2;
      for (i = j-2; i >= 2; i--) sub_ary[i].idOff = sub_ary[i+1].idOff + 8;
      sub_ary[0].idOff = (j-1)*8+2+EachSeg*2;
      make_gidx(glyf_index);
+
      fmat2.addshort(2); /* format */
      fmat2.addshort(6+256*2+j*8+glyf_index.getlen()); /* len */
      fmat2.addshort(0);
@@ -663,33 +681,38 @@ void gene_cmap()
      end_ary  = new unsigned short[segCnt+1];
      dlt_ary  = new unsigned short[segCnt+1];
      off_ary  = new unsigned short[segCnt+1];
-     head_ary[0] = 0; end_ary[0] = 0xff; dlt_ary[0] = 0;
-     off_ary[0] = (EachSeg+segCnt)*2;
+     head_ary[0] = 0;
+     end_ary[0]  = 0xff;
+     dlt_ary[0]  = 0;
+     off_ary[0]  = (EachSeg+segCnt)*2;
      i = 1; /* above is english */
      /* 0x8140 -- 0x9ffc */
      for (base = 0, start = 0x8140, fnum = EachFont*31;
-         fnum > 0; fnum -= EachFont, start += 256, base += EachFont, i++)
-         {
-         head_ary[i] = start;
-         end_ary[i] =
-             start + ((fnum > EachFont)?EachSeg:((fnum > 63)?(fnum+EachOff):fnum)) - 1;
-         dlt_ary[i] = base;
-         off_ary[i] = (segCnt-i)*2;
-         }
-     /* 0xe040 -- 0xeffc */
-     for (base = EachFont*31, start = 0xe040, fnum = EachFont*16; fnum > 0;
+         fnum > 0;
          fnum -= EachFont, start += 256, base += EachFont, i++)
          {
          head_ary[i] = start;
-         end_ary[i] =
-             start + ((fnum > EachFont)?EachSeg:((fnum > 63)?(fnum+EachOff):fnum)) - 1;
-         dlt_ary[i] = base;
-         off_ary[i] = (segCnt-i)*2;
+         end_ary[i]  = start + ((fnum > EachFont)?EachSeg:((fnum > 63)?(fnum+EachOff):fnum)) - 1;
+         dlt_ary[i]  = base;
+         off_ary[i]  = (segCnt-i)*2;
+         }
+     /* 0xe040 -- 0xeffc */
+     for (base = EachFont*31, start = 0xe040, fnum = EachFont*16;
+         fnum > 0;
+         fnum -= EachFont, start += 256, base += EachFont, i++)
+         {
+         head_ary[i] = start;
+         end_ary[i]  = start + ((fnum > EachFont)?EachSeg:((fnum > 63)?(fnum+EachOff):fnum)) - 1;
+         dlt_ary[i]  = base;
+         off_ary[i]  = (segCnt-i)*2;
          }
      if (i >= segCnt)
         { cout << "Error at CMAP format4, memory may destroy.\n"; return;}
-     head_ary[i] = end_ary[i] = 0xffff;
-     dlt_ary[i] = 1; off_ary[i] = 0;
+     head_ary[i] = 0xffff;
+     end_ary[i]  = 0xffff;
+     dlt_ary[i]  = 1;
+     off_ary[i]  = 0;
+
      fmat4.addshort(4); /* format */
      fmat4.addshort(14+segCnt*8+glyf_index.getlen()); /* len */
      fmat4.addshort(0);
@@ -697,13 +720,14 @@ void gene_cmap()
      fmat4.addshort(64); /* segCnt between 32 - 63 */
      fmat4.addshort(5);  /* log_2(64/2) */
      fmat4.addshort(segCnt*2-64);
-     for (i = 0; i < segCnt; i++) fmat4.addshort(end_ary[i]); delete end_ary;
+     for (i = 0; i < segCnt; i++) fmat4.addshort(end_ary[i]);  delete end_ary;
      fmat4.addshort(0);
      for (i = 0; i < segCnt; i++) fmat4.addshort(head_ary[i]); delete head_ary;
-     for (i = 0; i < segCnt; i++) fmat4.addshort(dlt_ary[i]); delete dlt_ary;
-     for (i = 0; i < segCnt; i++) fmat4.addshort(off_ary[i]); delete off_ary;
+     for (i = 0; i < segCnt; i++) fmat4.addshort(dlt_ary[i]);  delete dlt_ary;
+     for (i = 0; i < segCnt; i++) fmat4.addshort(off_ary[i]);  delete off_ary;
      for (i = 0; i < (short)glyf_index.getlen(); i++)
          fmat4.addbyte(glyf_index[i]);
+
      /* follow make cmap */
      table *tmp = &ttfTbl[CMAP];
      tmp->addshort(0); /* Version */
@@ -733,14 +757,22 @@ void gene_cmap()
 
 void make_gidx(bigfirst &gidx)
      {
-     short i, base = 96;
-     for (i = 0; i < 63; i++, base++) gidx.addshort(base);
-     for (i = 63; i < 64; i++)          gidx.addshort(0);
-     for (i = 64; i < 189; i++, base++)     gidx.addshort(base);
+     short i, base = EFONT+2;
+     // ëSäpâ∫à ÉoÉCÉgÇÃèÛë‘
+     for (i = 0; i < 63; i++, base++)   gidx.addshort(base);
+     for (i = 63; i < 64; i++)          gidx.addshort(0);	//0x7f
+     for (i = 64; i < 189; i++, base++) gidx.addshort(base);
+
+     // ëSäpè„à ÉoÉCÉgÇÃèÛë‘
      for (i = 0; i <= 32; i++)      gidx.addshort( 0);
      for (; i <= 0x7e; i++)         gidx.addshort(i-32+1);
+  #ifdef HANKANA
+     for (; i < 0xA0; i++)			gidx.addshort(0);
+     for (; i < 0xE0; i++)			gidx.addshort(i-0xA0+96);
+  #endif
      for (; i < 256; i++)           gidx.addshort(0);
      }
+
 #elif defined ANK
 void gene_cmap()
      {
@@ -1012,15 +1044,14 @@ void make_gidx(bigfirst &gidx)
 void gene_basicglyf()
      {
      table *loca = &ttfTbl[LOCA], *glyf = &ttfTbl[GLYF];
+     // 0
      loca->addlong(0);
      glyf_spcfnt(*glyf);
+     // 1
      loca->addlong((long)glyf->getlen());
      glyf_spcfnt(*glyf);
-#ifndef ANK
-     for (short i = 0; i < 94; i++)
-#else
-     for (short i = 0; i < 256; i++)
-#endif
+     //
+     for (short i = 0; i < EFONT; i++)
          {
          loca->addlong((long)glyf->getlen());
          glyf_engfnt(*glyf,i);
@@ -1035,33 +1066,34 @@ void gene_basicglyf()
 
 void glyf_spcfnt(bigfirst &glyf)
      {
-     glyf.addshort(1);
-     glyf.addshort(0);
-     glyf.addshort(-1*DESCENT);
-     glyf.addshort(XSIZE/2); //hmtx define the kerning, not here
-     glyf.addshort(YSIZE-DESCENT);
-     glyf.addshort(0);
-     glyf.addshort(0);
-     glyf.addbyte(0x37); //On curve, both x,y are positive short
-     glyf.addbyte(1);
-     glyf.addbyte(1);
-     glyf.addshort(-1); //for parent add
+     glyf.addshort(1);				//numberObContours
+     glyf.addshort(0);				// xMin
+     glyf.addshort(-1*DESCENT);		// yMin
+     glyf.addshort(XSIZE/2); 		// xMax	//hmtx define the kerning, not here
+     glyf.addshort(YSIZE-DESCENT);	// yMax
+     								// ?
+     glyf.addshort(0);				// endPtsOfContours[n]
+     glyf.addshort(0);				// instructionLength
+     glyf.addbyte(0x37); 			// instruction[n] //On curve, both x,y are positive short
+     glyf.addbyte(1);				// flag[n]
+     glyf.addbyte(1);				// xCoordinates[]
+     glyf.addshort(-1); 			// yCoordinates[] //for parent add
      }
 
 void glyf_engfnt(bigfirst &glyf, short i)
      {
-     glyf.addshort((unsigned short)-1);
-     glyf.addshort(0);
-     glyf.addshort(-1*DESCENT);
-     glyf.addshort(XSIZE/2); //hmtx define the kerning, not here
-     glyf.addshort(YSIZE-DESCENT);
-     glyf.addshort(0x53);
+     // îºäpï∂éöÇÃèÄîı
+     glyf.addshort((unsigned short)-1);		//numberObContours=-1 .. çáê¨GlyphãLèq
+     glyf.addshort(0);						//ècÉCÉìÉfÉbÉNÉX
+     glyf.addshort(-1*DESCENT);				//xÉIÉvÉZÉbÉg
+     glyf.addshort(XSIZE/2); 				//xÉIÉtÉZÉbÉg//hmtx define the kerning, not here
+     glyf.addshort(YSIZE-DESCENT);			//yÉIÉtÉZÉbÉg
+     glyf.addshort(0x53);					//ïœå`ÉIÉvÉVÉáÉì
 #ifdef SJIS
-#  if 1	/* ptn_2byte is in EUC */
-     glyf.addshort(euc(ptn_2byte[i*2], ptn_2byte[i*2+1])+96); //glyf index
-#  else
-     glyf.addshort(sjis(ptn_2byte[i*2], ptn_2byte[i*2+1])+96); //glyf index
-#  endif
+     /* ptn_2byte is in EUC */
+     // glyf.addshort(euc(ptn_2byte[i*2], ptn_2byte[i*2+1])+EFONT+2);	//glyf index
+     /* ptn_2byte is in SJIS */
+     glyf.addshort(sjis(ptn_2byte[i*2], ptn_2byte[i*2+1])+EFONT+2);	//glyf index
 #elif defined ANK
      glyf.addshort(i); //glyf index
 #else

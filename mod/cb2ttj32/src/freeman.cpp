@@ -1,6 +1,6 @@
-#define _DOS
+//#define _DOS
 #include <afx.h>
-#include <afxcoll.h>
+//#include <afxcoll.h>
 #include <iostream.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +16,7 @@ class bitmap
      {
 public:
      bitmap(char *filename, const char *_hf);
-     ~bitmap() { _hfree(data); }
+     ~bitmap() { free(data); }
      unsigned char test(short x, short y)
           { return (data[(long)y*Width+x/8] & mask[x&7])?1:0; }
      void set(short x, short y) { data[(long)y*Width+x/8] |= mask[x&7]; }
@@ -28,7 +28,7 @@ private:
      void read_dyna(FILE *fn);
      void read_etfg(FILE *fn);
      static unsigned char mask[8];
-     unsigned char __huge *data;
+     unsigned char *data;
      short D_flag;
      };
 
@@ -37,12 +37,12 @@ unsigned char bitmap::mask[8] = { 0x80,0x40,0x20,0x10,8,4,2,1 };
 bitmap::bitmap(char *filename, const char *_hf)
      {
      D_flag = strchr(_hf,'D')?1:0;
-     data = (unsigned char __huge *)_halloc(YSIZE,Width);
+     data = (unsigned char *)calloc(YSIZE,Width);
      valid = data?1:0;
      if (valid)
         {
         for (short i = 0; i < YSIZE; i++)
-            _fmemset((unsigned char __far *)(data+(long)i*Width),0,Width);
+            memset((unsigned char *)(data+(long)i*Width),0,Width);
         FILE *fn = fopen(filename,"rb");
         if (!fn) return;
         char tag[5];
@@ -366,4 +366,3 @@ void scan_special(contour &ct)
          i++;
          }
      }
-
