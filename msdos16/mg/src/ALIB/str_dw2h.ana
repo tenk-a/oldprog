@@ -1,67 +1,67 @@
 submodule Str
-	//	1992	writen by M.Kitamura
+    //	1992	writen by M.Kitamura
 
 *proc BtoH(es.di,al)
-	endproc
+    endproc
 *proc WtoH(es.di,ax)
-	endproc
+    endproc
 
 *proc DWtoH(es.di,dx.ax)
-//	dx.axを8桁の16進文字列にする
-//	arg dx.ax	値
-//	arg es.di	バッファ
-//	in	cf		0:'A'-'F'  1:'a'-'f'
+//  dx.axを8桁の16進文字列にする
+//  arg dx.ax	値
+//  arg es.di	バッファ
+//  in	cf  	0:'A'-'F'  1:'a'-'f'
 begin
-	dx <=> ax
-	WtoH es.di,ax
-	dx <=> ax
+    dx <=> ax
+    WtoH es.di,ax
+    dx <=> ax
 endproc //continue
 
 *proc WtoH(es.di,ax)
-//	axを4桁の16進文字列にする
-//	arg ax		値
-//	arg es.di	バッファ
-//	in	cf	0:'A'-'F'  1:'a'-'f'
+//  axを4桁の16進文字列にする
+//  arg ax  	値
+//  arg es.di	バッファ
+//  in	cf  0:'A'-'F'  1:'a'-'f'
 begin
-	ah <=> al
-	BtoH es.di,al
-	ah <=> al
+    ah <=> al
+    BtoH es.di,al
+    ah <=> al
 endproc //continue
 
 *proc BtoH(es.di,al)
-//	alを4桁の16進文字列にする
-//	arg al		値
-//	arg es.di	バッファ
-//	in	cf	0:'A'-'F'  1:'a'-'f'
+//  alを4桁の16進文字列にする
+//  arg al  	値
+//  arg es.di	バッファ
+//  in	cf  0:'A'-'F'  1:'a'-'f'
 begin
-	push ax
-	push fx
-	ah = al
-	al >>= 4
-	ah &= 0x0f
-	ax += 0x3030
-	if (ah > '9')
-		ah += 'A' - ('9' + 1)
-		pop  fx
-		push fx
-		if (cf)
-			ah += 'A' - 'a'
-		fi
-	fi
-	if (al > '9')
-		al += 'A' - ('9' + 1)
-		pop  fx
-		push fx
-		if (cf)
-			al += 'A' - 'a'
-		fi
-	fi
-	rep.inc
-	rep.set.w di,ax
-	b[di] = '\0'
-	pop fx
-	pop ax
-	ret
+    push ax
+    push fx
+    ah = al
+    al >>= 4
+    ah &= 0x0f
+    ax += 0x3030
+    if (ah > '9')
+    	ah += 'A' - ('9' + 1)
+    	pop  fx
+    	push fx
+    	if (cf)
+    	    ah += 'A' - 'a'
+    	fi
+    fi
+    if (al > '9')
+    	al += 'A' - ('9' + 1)
+    	pop  fx
+    	push fx
+    	if (cf)
+    	    al += 'A' - 'a'
+    	fi
+    fi
+    rep.inc
+    rep.set.w di,ax
+    b[di] = '\0'
+    pop fx
+    pop ax
+    ret
 endproc
 
 endmodule

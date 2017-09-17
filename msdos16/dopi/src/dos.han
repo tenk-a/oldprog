@@ -1,57 +1,57 @@
 module Dos
-	//	1992	writen by M.Kitamura
-	//	実際に使ってないマクロもあるので間違いがあるかも...
-	//	マクロにしていないファンクションも当然あります。必要に応じて
-	//	作成／削除しませう
+    //	1992	writen by M.Kitamura
+    //	実際に使ってないマクロもあるので間違いがあるかも...
+    //	マクロにしていないファンクションも当然あります。必要に応じて
+    //	作成／削除しませう
 
 *const STDIN,STDOUT,STDERR
 
 *@define EXIT(cnst) ax = (0x4c00 | ((cnst)&0xff));intr 0x21;
 
 *proc Exit(al)
-//	非常駐終了
-//	arg al : 復帰値
+//  非常駐終了
+//  arg al : 復帰値
 macro
-	ah = 0x4c
-	intr 0x21
+    ah = 0x4c
+    intr 0x21
 endproc
 
 *proc Keep(al,dx)
-//	常駐終了
-//	arg al : 復帰値
-//	arg dx : 常駐部サイズ（パラグラフ）
+//  常駐終了
+//  arg al : 復帰値
+//  arg dx : 常駐部サイズ（パラグラフ）
 macro
-	ah = 0x31
-	intr 0x21
+    ah = 0x31
+    intr 0x21
 endproc
 
 *proc GetVersion()
-//	DOSのヴァージョンを得る
-//	out al	バージョン整数部
-//	out ah	バージョン小数部
-//	break bx,cx 	不定（bh:OEM番号  bl.cx:ユーザ番号）
+//  DOSのヴァージョンを得る
+//  out al  バージョン整数部
+//  out ah  バージョン小数部
+//  break bx,cx     不定（bh:OEM番号  bl.cx:ユーザ番号）
 macro
-	ah = 0x30
-	intr 0x21
+    ah = 0x30
+    intr 0x21
 endproc
 
 *proc SetVect(al,dx)
-//	割り込みベクタの設定
-//	arg al		ベクタ番号
-//	arg dx		ベクタのアドレス
-//	in	ds				セグメント
+//  割り込みベクタの設定
+//  arg al  	ベクタ番号
+//  arg dx  	ベクタのアドレス
+//  in	ds  	    	セグメント
 macro
-	ah = 0x25
-	intr 0x21
+    ah = 0x25
+    intr 0x21
 endproc
 
 *proc GetVect(al)
-//	割り込みベクタの読みだし
-//	arg al		ベクタ番号
-//	out es.bx	ベクタのアドレス
+//  割り込みベクタの読みだし
+//  arg al  	ベクタ番号
+//  out es.bx	ベクタのアドレス
 macro
-	ah = 0x35
-	intr 0x21
+    ah = 0x35
+    intr 0x21
 endproc
 
 *proc GetCtrlC()
@@ -59,8 +59,8 @@ endproc
 // out al =0
 // out dl 0:ブレイク・チェックoff 1:on
 macro
-	ax = 0x3300
-	intr 0x21
+    ax = 0x3300
+    intr 0x21
 endproc
 
 *proc SetCtrlC(dl)
@@ -68,490 +68,490 @@ endproc
 // arg dl 0:ブレイク・チェックoff 1:on
 // out al =0
 macro
-	ax = 0x3301
-	intr 0x21
+    ax = 0x3301
+    intr 0x21
 endproc
 
 *proc GetTime()
 // 時間の取得
-// out ch		時間
-// out cl		分
-// out dh		秒
-// out dl		1/100秒
+// out ch   	時間
+// out cl   	分
+// out dh   	秒
+// out dl   	1/100秒
 macro
-	ah = 0x2C
-	intr 0x21
+    ah = 0x2C
+    intr 0x21
 endproc
 
 *proc GetDate()
-//	out cx		年(1980～2079)
-//	out dh		月
-//	out dl		日
-//	out al		曜日(0:日～6:土)
+//  out cx  	年(1980～2079)
+//  out dh  	月
+//  out dl  	日
+//  out al  	曜日(0:日～6:土)
 macro
-	ah = 0x2A
-	intr 0x21
+    ah = 0x2A
+    intr 0x21
 endproc
 
 *proc PackTime(ch,cl,bh)
 // 時間をファイルの属性用にパック
-// in  ch		時間
-// in  cl		分
-// in  bh		秒
-// out cx		packed time
+// in  ch   	時間
+// in  cl   	分
+// in  bh   	秒
+// out cx   	packed time
 macro
-	ch <<= 2
-	cx <<= 3
-	cl |= bh
+    ch <<= 2
+    cx <<= 3
+    cl |= bh
 endproc
 
 *proc PackDate(ax,dh,dl)
 // 日付をファイルの属性用にパック
-//	in	ax		年(1980～2079)
-//	in	dh		月
-//	in	dl		日
-//	out dx		packed date
-//	break ax
+//  in	ax  	年(1980～2079)
+//  in	dh  	月
+//  in	dl  	日
+//  out dx  	packed date
+//  break ax
 macro
-	ax -= 1980
-	dh <<= 4
-	dh <<= 1
-	rcl al,1
-	dl |= dh
-	dh = al
+    ax -= 1980
+    dh <<= 4
+    dh <<= 1
+    rcl al,1
+    dl |= dh
+    dh = al
 endproc
 
 *proc UnpackTime(cx)
-// out ch		時間
-// out cl		分
-// out bh		秒
-// out bl		=0
+// out ch   	時間
+// out cl   	分
+// out bh   	秒
+// out bl   	=0
 macro
-	bh = cl
-	bx &= 0x1f00
-	cx >>= 3
-	cl >>= 2
-	cx &= 0x1f3f
+    bh = cl
+    bx &= 0x1f00
+    cx >>= 3
+    cl >>= 2
+    cx &= 0x1f3f
 endproc
 
 *proc UnpackDate(dx)
-//	out ax		年(1980～2079)
-//	out dh		月
-//	out dl		日
+//  out ax  	年(1980～2079)
+//  out dh  	月
+//  out dl  	日
 macro
-	al = dh
-	dh = dl
-	al >>= 1
-	rcl dh,1
-	dh >>= 4
-	dl &= 0x1f
-	ah = 0
-	ax += 1980
+    al = dh
+    dh = dl
+    al >>= 1
+    rcl dh,1
+    dh >>= 4
+    dl &= 0x1f
+    ah = 0
+    ax += 1980
 endproc
 
 // memory /////////////////////////////////////////////////////////////////////
 
 *proc AllocMem(bx)
-//	メモリの収得
-//	arg bx	パラグラフサイズ
-//	out ax	先頭パラグラフ
-//	out cf	0:成功／1:失敗	ax=7:MCB破壊 8:ﾒﾓﾘ不足 bx=空きﾒﾓﾘのﾊﾟﾗｸﾞﾗﾌ･ｻｲｽﾞ
+//  メモリの収得
+//  arg bx  パラグラフサイズ
+//  out ax  先頭パラグラフ
+//  out cf  0:成功／1:失敗  ax=7:MCB破壊 8:ﾒﾓﾘ不足 bx=空きﾒﾓﾘのﾊﾟﾗｸﾞﾗﾌ･ｻｲｽﾞ
 macro
-	ah = 0x48
-	intr 0x21
+    ah = 0x48
+    intr 0x21
 endproc
-	//	AllocMemで収得できる最大パラグラフ数は、AllocMem(0xffff)とすれば
-	//	復帰値 bx で求められる。ただし、cf=1,ax=8でないといけない
+    //	AllocMemで収得できる最大パラグラフ数は、AllocMem(0xffff)とすれば
+    //	復帰値 bx で求められる。ただし、cf=1,ax=8でないといけない
 
 *proc FreeMem(es)
-//	AllocMemで収得したメモリの解放
-//	arg es	解放するパラグラフの先頭
-//	out cf	0:成功／1:失敗	ax=7:MCB破壊 9:es不正(AllocMemされたものでない)
+//  AllocMemで収得したメモリの解放
+//  arg es  解放するパラグラフの先頭
+//  out cf  0:成功／1:失敗  ax=7:MCB破壊 9:es不正(AllocMemされたものでない)
 macro
-	ah = 0x49
-	intr 0x21
+    ah = 0x49
+    intr 0x21
 endproc
 
 *proc ChgMem(es,bx)
-//	メモリのサイズ変更
-//	arg es	変更するパラグラフの先頭
-//	arg bx	変更後のサイズ
-//	out cf	0:成功／1:失敗	ax=7:MCB破壊 8:メモリ不足 9:es不正
+//  メモリのサイズ変更
+//  arg es  変更するパラグラフの先頭
+//  arg bx  変更後のサイズ
+//  out cf  0:成功／1:失敗  ax=7:MCB破壊 8:メモリ不足 9:es不正
 macro
-	ah = 0x4A
-	intr 0x21
+    ah = 0x4A
+    intr 0x21
 endproc
 
 *proc GetMemStrategy()
-//	メモリ割り当て方法の読出
-// 	out ax	ストラテジ
+//  メモリ割り当て方法の読出
+//  out ax  ストラテジ
 //  out cf 0:成功／1:失敗 (ax = 01 : alが0,1以外,ｽﾄﾗﾃｼﾞが無効)
 macro
-	ax = 0x5800
-	intr 0x21
+    ax = 0x5800
+    intr 0x21
 endproc
 
 *proc SetMemStrategy(bx)
 //  メモリ割り当て方法の設定
-// 	in  bx	ストラテジ
+//  in	bx  ストラテジ
 //  out cf 0:成功／1:失敗 (ax = 01 : alが0,1以外,ｽﾄﾗﾃｼﾞが無効)
 macro
-	ax = 0x5801
-	intr 0x21
+    ax = 0x5801
+    intr 0x21
 endproc
 
 // ストラテジ
-//	 	0x00:最下位のMCBを割当
-//	 	0x01:最小ｻｲｽﾞのMCBを割当
-//	 	0x02:最上位のMCBを割当
-//	 	0x40:最下位のUCBを割当
-//	 	0x41:最小ｻｲｽﾞのUCBを割当
-//	 	0x42:最上位のUCBを割当
-//	 	0x80:最下位のUCBorMCBを割当
-//	 	0x81:最小ｻｲｽﾞのUCBorMCBを割当
-//	 	0x82:最上位のUCBorMCBを割当
+//  	0x00:最下位のMCBを割当
+//  	0x01:最小ｻｲｽﾞのMCBを割当
+//  	0x02:最上位のMCBを割当
+//  	0x40:最下位のUCBを割当
+//  	0x41:最小ｻｲｽﾞのUCBを割当
+//  	0x42:最上位のUCBを割当
+//  	0x80:最下位のUCBorMCBを割当
+//  	0x81:最小ｻｲｽﾞのUCBorMCBを割当
+//  	0x82:最上位のUCBorMCBを割当
 
 @if 0
 *proc AllocMem2(ax,bx)
 // 最低サイズaxで、なるべくサイズbxまでメモリを確保. ax確保できないときはエラー
-//	arg ax	最低パラグラフ・サイズ
-//	arg bx	最大パラグラフ・サイズ. bx=0xffff のとき出来る限り確保
-//	out ax	先頭パラグラフ
+//  arg ax  最低パラグラフ・サイズ
+//  arg bx  最大パラグラフ・サイズ. bx=0xffff のとき出来る限り確保
+//  out ax  先頭パラグラフ
 //  out bx  実際に確保したパラグラフ・サイズ
-//	out cf	0:成功  1:失敗(ax:エラー番号)
+//  out cf  0:成功  1:失敗(ax:エラー番号)
 begin
-	save dx
-	dx = ax
-	Dos.AllocMem(bx)
-	if (cf)
-		if (ax == 0x08 && bx)
-			|bx - dx
-			go (<) RET	//cf=1
-			Dos.AllocMem(bx)
-		else
-			cf = 1
-		fi
-	fi
+    save dx
+    dx = ax
+    Dos.AllocMem(bx)
+    if (cf)
+    	if (ax == 0x08 && bx)
+    	    |bx - dx
+    	    go (<) RET	//cf=1
+    	    Dos.AllocMem(bx)
+    	else
+    	    cf = 1
+    	fi
+    fi
   RET:
-	return
+    return
 endproc
 @fi
 
-//	ディスク／ファイル関係 ///////////////////////////////////////////////////
+//  ディスク／ファイル関係 ///////////////////////////////////////////////////
 
 *proc Open(dx,al)
-//	ファイルのオープン
-//	arg dx	パス名
-//	arg al	アクセス制御コード
-//	in	ds	パス名のセグメント
-//	out ax	ファイル・ハンドル
-//	out cf	0:成功／1:失敗 ax にERRコード)
+//  ファイルのオープン
+//  arg dx  パス名
+//  arg al  アクセス制御コード
+//  in	ds  パス名のセグメント
+//  out ax  ファイル・ハンドル
+//  out cf  0:成功／1:失敗 ax にERRコード)
 macro
-	ah = 0x3d
-	intr 0x21
+    ah = 0x3d
+    intr 0x21
 endproc
 
 *proc Close(bx)
-//	ファイルのクローズ
-//	arg bx	ファイル・ハンドル
-//	out cf	0:成功	1:失敗(ax にERRコード)
+//  ファイルのクローズ
+//  arg bx  ファイル・ハンドル
+//  out cf  0:成功  1:失敗(ax にERRコード)
 macro
-	ah = 0x3e
-	intr 0x21
+    ah = 0x3e
+    intr 0x21
 endproc
 
 *proc Create(dx,cx)
-//	ファイルの作成。すでにファイルが存在したばあい、その内容を消す。
-//	arg dx	パス名
-//	arg cx	ファイル属性
-//	in	ds	パス名のセグメント
-//	out ax	ファイル・ハンドル
-//	out cf	0:成功	1:失敗(ax にERRコード)
+//  ファイルの作成。すでにファイルが存在したばあい、その内容を消す。
+//  arg dx  パス名
+//  arg cx  ファイル属性
+//  in	ds  パス名のセグメント
+//  out ax  ファイル・ハンドル
+//  out cf  0:成功  1:失敗(ax にERRコード)
 macro
-	ah = 0x3c
-	intr 0x21
+    ah = 0x3c
+    intr 0x21
 endproc
 
 *proc CreateNew(dx,cx)
-//	ファイルの作成。すでにファイルが存在したばあいは失敗。
-//	arg dx	パス名
-//	arg cx	ファイル属性
-//	in	ds	パス名のセグメント
-//	out ax	ファイル・ハンドル
-//	out cf	0:成功	1:失敗(ax にERRコード)
+//  ファイルの作成。すでにファイルが存在したばあいは失敗。
+//  arg dx  パス名
+//  arg cx  ファイル属性
+//  in	ds  パス名のセグメント
+//  out ax  ファイル・ハンドル
+//  out cf  0:成功  1:失敗(ax にERRコード)
 macro
-	ah = 0x5b
-	intr 0x21
+    ah = 0x5b
+    intr 0x21
 endproc
 
 *proc Write(bx,dx,cx)
-//	ファイルへの書き込み
-//	arg bx	ファイル・ハンドル
-//	arg dx	バッファ・アドレス
-//	arg cx	サイズ
-//	in	ds	バッファのセグメント
-//	out cf,ax	0:成功	1:失敗(ax にERRコード)
+//  ファイルへの書き込み
+//  arg bx  ファイル・ハンドル
+//  arg dx  バッファ・アドレス
+//  arg cx  サイズ
+//  in	ds  バッファのセグメント
+//  out cf,ax	0:成功	1:失敗(ax にERRコード)
 macro
-	ah = 0x40
-	intr 0x21
+    ah = 0x40
+    intr 0x21
 endproc
 
 *proc Read(bx,dx,cx)
-//	ファイルからの読み込み
-//	arg bx	ファイル・ハンドル
-//	arg dx	バッファ・アドレス
-//	arg cx	サイズ
-//	in	ds	バッファのセグメント
-//	out cf,ax	0:成功	1:失敗(ax にERRコード)
+//  ファイルからの読み込み
+//  arg bx  ファイル・ハンドル
+//  arg dx  バッファ・アドレス
+//  arg cx  サイズ
+//  in	ds  バッファのセグメント
+//  out cf,ax	0:成功	1:失敗(ax にERRコード)
 macro
-	ah = 0x3f
-	intr 0x21
+    ah = 0x3f
+    intr 0x21
 endproc
 
 *proc Lseek(bx,cx.dx,al)
-//	ファイル・ポインタの移動
-//	arg bx		ファイル・ハンドル
-//	arg cx.dx	移動するバイト数
-//	arg al		移動の基準とする位置 0:ファイル先頭  1:現在位置  2:ファイル末
-//	out dx.ax	更新後のファイル・ポインタ（ファイル先頭からのオフセット値）
-//	out cf		0:正常／1:失敗	ax=1:alの指定ミス 6:bx(ハンドル)の指定ミス
+//  ファイル・ポインタの移動
+//  arg bx  	ファイル・ハンドル
+//  arg cx.dx	移動するバイト数
+//  arg al  	移動の基準とする位置 0:ファイル先頭  1:現在位置  2:ファイル末
+//  out dx.ax	更新後のファイル・ポインタ（ファイル先頭からのオフセット値）
+//  out cf  	0:正常／1:失敗	ax=1:alの指定ミス 6:bx(ハンドル)の指定ミス
 macro
-	ah = 0x42
-	intr 0x21
+    ah = 0x42
+    intr 0x21
 endproc
 
 *proc Dup(bx)
-//	ファイル・ハンドルのコピー
-//	arg bx	ファイル・ハンドル
-//	out ax	新しいファイル・ハンドル
-//	out cf	0:正常／1:失敗	ax=1:alの指定ミス 6:bx(ハンドル)の指定ミス
+//  ファイル・ハンドルのコピー
+//  arg bx  ファイル・ハンドル
+//  out ax  新しいファイル・ハンドル
+//  out cf  0:正常／1:失敗  ax=1:alの指定ミス 6:bx(ハンドル)の指定ミス
 macro
-	ah = 0x45
-	intr 0x21
+    ah = 0x45
+    intr 0x21
 endproc
 
 *proc Dup2(bx,cx)
-//	指定したファイル・ハンドルへのコピー（リダイレクト）
-//	arg bx	ファイル・ハンドル
-//	out ax	新しいファイル・ハンドル
-//	out cf	0:正常／1:失敗	ax=1:alの指定ミス 6:bx(ハンドル)の指定ミス
+//  指定したファイル・ハンドルへのコピー（リダイレクト）
+//  arg bx  ファイル・ハンドル
+//  out ax  新しいファイル・ハンドル
+//  out cf  0:正常／1:失敗  ax=1:alの指定ミス 6:bx(ハンドル)の指定ミス
 macro
-	ah = 0x46
-	intr 0x21
+    ah = 0x46
+    intr 0x21
 endproc
 
 *proc GetFtime(bx)
-//	ファイルの日付・時間を得る
-//	arg bx	ファイル・ハンドル
-//	out cx	時間
-//	out dx	日付
-//	out al	=0
-//	out cf	0:正常／1:失敗	ax=6:bx(ハンドル)の指定ミス
+//  ファイルの日付・時間を得る
+//  arg bx  ファイル・ハンドル
+//  out cx  時間
+//  out dx  日付
+//  out al  =0
+//  out cf  0:正常／1:失敗  ax=6:bx(ハンドル)の指定ミス
 macro
-	ax = 0x57 * 0x100 + 0
-	intr 0x21
+    ax = 0x57 * 0x100 + 0
+    intr 0x21
 endproc
 
 *proc SetFtime(bx,cx,dx)
-//	ファイルの日付・時間を変更（ファイルがクローズされた時点で更新）
-//	arg bx	ファイル・ハンドル
-//	arg cx	時間
-//	arg dx	日付
-//	out al	=1
-//	out cf	0:正常／1:失敗	ax=6:bx(ハンドル)の指定ミス
+//  ファイルの日付・時間を変更（ファイルがクローズされた時点で更新）
+//  arg bx  ファイル・ハンドル
+//  arg cx  時間
+//  arg dx  日付
+//  out al  =1
+//  out cf  0:正常／1:失敗  ax=6:bx(ハンドル)の指定ミス
 macro
-	ax = 0x57 * 0x100 + 1
-	intr 0x21
+    ax = 0x57 * 0x100 + 1
+    intr 0x21
 endproc
 
 *proc Rename(dx,es.di)
-//	arg dx		変更前のパス名
-//	arg es.di	変更後のパス名
-//	in	ds		変更前のパス名のあるセグメント
-//	out cf,ax	0:成功	1:失敗(ax にERRコード)
+//  arg dx  	変更前のパス名
+//  arg es.di	変更後のパス名
+//  in	ds  	変更前のパス名のあるセグメント
+//  out cf,ax	0:成功	1:失敗(ax にERRコード)
 macro
-	ah = 0x56
-	intr 0x21
+    ah = 0x56
+    intr 0x21
 endproc
 
 *proc Delete(dx)
-//	ファイルの削除
-//	arg dx		パス名
-//	in	ds		パス名のセグメント
-//	out cf,ax	0:成功	1:失敗(ax にERRコード)
+//  ファイルの削除
+//  arg dx  	パス名
+//  in	ds  	パス名のセグメント
+//  out cf,ax	0:成功	1:失敗(ax にERRコード)
 macro
-	ah = 0x41
-	intr 0x21
+    ah = 0x41
+    intr 0x21
 endproc
 
 *proc GetAttr(dx,cx)
-//	arg dx		パス名
-//	in	ds		パス名のセグメント
-//	out cx		ファイル属性
-//	out ax		0x4300
-//	out cf,ax	0:成功	1:失敗(ax にERRコード)
+//  arg dx  	パス名
+//  in	ds  	パス名のセグメント
+//  out cx  	ファイル属性
+//  out ax  	0x4300
+//  out cf,ax	0:成功	1:失敗(ax にERRコード)
 macro
-	ax = 0x4300
-	intr 0x21
+    ax = 0x4300
+    intr 0x21
 endproc
 
 *proc SetAttr(dx,cx)
-//	arg dx		パス名
-//	in	ds		パス名のセグメント
-//	in	cx		ファイル属性
-//	out ax		0x4300
-//	out cf,ax	0:成功	1:失敗(ax にERRコード)
+//  arg dx  	パス名
+//  in	ds  	パス名のセグメント
+//  in	cx  	ファイル属性
+//  out ax  	0x4300
+//  out cf,ax	0:成功	1:失敗(ax にERRコード)
 macro
-	ax = 0x4301
-	intr 0x21
+    ax = 0x4301
+    intr 0x21
 endproc
 
 *proc MakDir(dx)
-//	サブ・ディレクトリの作成
-//	arg dx	パス名
-//	in	ds	パス名のセグメント
-//	out cf	0:正常／1:失敗	ax=5:作成できない
+//  サブ・ディレクトリの作成
+//  arg dx  パス名
+//  in	ds  パス名のセグメント
+//  out cf  0:正常／1:失敗  ax=5:作成できない
 macro
-	ah = 0x39
-	intr 0x21
+    ah = 0x39
+    intr 0x21
 endproc
 
 *proc DelDir(dx)
-//	サブ・ディレクトリの削除
-//	arg dx	パス名
-//	in	ds	パス名のセグメント
-//	out cf	0:正常／1:失敗 ax=3:存在しない 5:削除できない 16:ｶﾚﾝﾄだった
+//  サブ・ディレクトリの削除
+//  arg dx  パス名
+//  in	ds  パス名のセグメント
+//  out cf  0:正常／1:失敗 ax=3:存在しない 5:削除できない 16:ｶﾚﾝﾄだった
 macro
-	ah = 0x3A
-	intr 0x21
+    ah = 0x3A
+    intr 0x21
 endproc
 
 *proc SetDir(dx)
-//	カレント・ディレクトリの変更
-//	arg dx	パス名
-//	in	ds	パス名のセグメント
-//	out cf	0:正常／1:失敗 ax=3:存在しないパス名
+//  カレント・ディレクトリの変更
+//  arg dx  パス名
+//  in	ds  パス名のセグメント
+//  out cf  0:正常／1:失敗 ax=3:存在しないパス名
 macro
-	ah = 0x3B
-	intr 0x21
+    ah = 0x3B
+    intr 0x21
 endproc
 
 *proc GetDir(dl,si)
-//	カレント・ディレクトリ名の収得(ドライブ名無）
-//	arg dl	0:カレント・ドライブ 0:A  1:B ...
-//	out si	収得したパス名を収める
+//  カレント・ディレクトリ名の収得(ドライブ名無）
+//  arg dl  0:カレント・ドライブ 0:A  1:B ...
+//  out si  収得したパス名を収める
 macro
-	ah = 0x47
-	intr 0x21
+    ah = 0x47
+    intr 0x21
 endproc
 
 *proc SetDrive(dl)
 // カレント・ドライブの設定
-// arg dl	ドライブ番号(0:ｶﾚﾝﾄ 1:A,2:B...)
-// out al	使用可能な最大ドライブ数
+// arg dl   ドライブ番号(0:ｶﾚﾝﾄ 1:A,2:B...)
+// out al   使用可能な最大ドライブ数
 macro
-	ah = 0x0D
-	intr 0x21
+    ah = 0x0D
+    intr 0x21
 endproc
 
 *proc GetDrive()
 // カレント・ドライブの取得
-// out	al		ドライブ番号(0:ｶﾚﾝﾄ 1:A,2:B...)
+// out	al  	ドライブ番号(0:ｶﾚﾝﾄ 1:A,2:B...)
 macro
-	ah = 0x19
-	intr 0x21
+    ah = 0x19
+    intr 0x21
 endproc
 
 *proc GetDiskFree(dl)
-//	ディスクの残り容量の収得
-//	arg dl	0:カレント・ドライブ 0:A  1:B ...
-//	out bx	使用可能なクラスタ数
-//	out ax	１クラスタあたりのセクタ数	ax=0xFFFF ドライブ指定が無効
-//	out cx	１セクタあたりのバイト数
-//	out dx	１ドライブあたりのクラスタ数
+//  ディスクの残り容量の収得
+//  arg dl  0:カレント・ドライブ 0:A  1:B ...
+//  out bx  使用可能なクラスタ数
+//  out ax  １クラスタあたりのセクタ数	ax=0xFFFF ドライブ指定が無効
+//  out cx  １セクタあたりのバイト数
+//  out dx  １ドライブあたりのクラスタ数
 macro
-	ah = 0x36
-	intr 0x21
+    ah = 0x36
+    intr 0x21
 endproc
 
 *proc TransPathName(es.di,si)
-//	（JOIN,SUBSTなどが設定された）論理的なパス名を物理的なパス名に変換
-//	arg si		元のパス名
-//	arg es.di	変換後のパス名
-//	in	ds		元のパス名のセグメント
+//  （JOIN,SUBSTなどが設定された）論理的なパス名を物理的なパス名に変換
+//  arg si  	元のパス名
+//  arg es.di	変換後のパス名
+//  in	ds  	元のパス名のセグメント
 macro
-	ah = 0x60
-	intr 0x21
+    ah = 0x60
+    intr 0x21
 endproc
 
 // ファイル属性
-//	0x01	取得専用
-//	0x02	不可視属性（通常、ディレクトリ検索で除外）
-//	0x04	システム・ファイル
-//	0x08	ボリューム名
-//	0x10	ディレクトリ
-//	0x20	保存ビット
+//  0x01    取得専用
+//  0x02    不可視属性（通常、ディレクトリ検索で除外）
+//  0x04    システム・ファイル
+//  0x08    ボリューム名
+//  0x10    ディレクトリ
+//  0x20    保存ビット
 
 // アクセス制御コード
-//	b7		0～1	インヘリッド・ビット
-//	b6-b4	シュアリング・モード
-//	b3-b0	アクセス・コード
-//			0b0000	読出
-//			0b0001	書込
-//			0b0010	読出／書込
+//  b7	    0～1    インヘリッド・ビット
+//  b6-b4   シュアリング・モード
+//  b3-b0   アクセス・コード
+//  	    0b0000  読出
+//  	    0b0001  書込
+//  	    0b0010  読出／書込
 
 /////////////////////////////////////////////////////////////////////////////
 *struct FIND
-	drv:b
-	name:b(8)
-	ext:b(3)
-	attr:b
-	count:w
-	cluster:w
-	rsv:b(4)
-	fattr:b
-	ftime:w
-	fdate:w
-	fsize:d
-	fname:b(13)
+    drv:b
+    name:b(8)
+    ext:b(3)
+    attr:b
+    count:w
+    cluster:w
+    rsv:b(4)
+    fattr:b
+    ftime:w
+    fdate:w
+    fsize:d
+    fname:b(13)
 endstruct
 
 *proc FindFirst(dx,cx)
-//	ディレクトリ・エントリの検索
-//	検索結果は DTA に設定される
-//	arg dx	パス名（ワイロド・カード機能付き'*','?'）
-//	arg cx	ファイル属性
-//	in	ds	データ・セグメント
-//	out cf(,ax) 0:成功／1:失敗 ax=2:ファイル不在 3:無効なパス 12:検索終了
+//  ディレクトリ・エントリの検索
+//  検索結果は DTA に設定される
+//  arg dx  パス名（ワイロド・カード機能付き'*','?'）
+//  arg cx  ファイル属性
+//  in	ds  データ・セグメント
+//  out cf(,ax) 0:成功／1:失敗 ax=2:ファイル不在 3:無効なパス 12:検索終了
 macro
-	ah = 0x4e
-	intr 0x21
+    ah = 0x4e
+    intr 0x21
 endproc
 
 *proc FindNext()
-//	次のディレクトリ・エントリの検索
-//	検索結果は DTA に設定される
-//	out cf(,ax) 0:成功／1:失敗 ax=12:検索終了
+//  次のディレクトリ・エントリの検索
+//  検索結果は DTA に設定される
+//  out cf(,ax) 0:成功／1:失敗 ax=12:検索終了
 macro
-	ah = 0x4f
-	intr 0x21
+    ah = 0x4f
+    intr 0x21
 endproc
 
 *proc GetDTA()
-//	DTA のアドレスを得る
-//	out   es.bx DTAのアドレス
+//  DTA のアドレスを得る
+//  out   es.bx DTAのアドレス
 macro
-	ah = 0x2F
-	intr 0x21
+    ah = 0x2F
+    intr 0x21
 endproc
 
 *proc SetDTA(dx)
-//	DTA のアドレスを変更
-//	arg dx		DTA のアドレス
-//	in	ds		DTA のセグメント
+//  DTA のアドレスを変更
+//  arg dx  	DTA のアドレス
+//  in	ds  	DTA のセグメント
 macro
-	ah = 0x1A
-	intr 0x21
+    ah = 0x1A
+    intr 0x21
 endproc
 
 

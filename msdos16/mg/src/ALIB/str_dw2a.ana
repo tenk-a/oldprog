@@ -1,53 +1,53 @@
 submodule Str
 
 *proc DWtoA(es.di,dx.ax)
-//	数値dx.ax を 10桁の10進文字列に変換(文字列は asciiz)
-//	arg es.di	格納するバッファ 11バイト
-//	arg dx.ax	値
-//	out es.di	次のアドレス(入力時の di += 11)
+//  数値dx.ax を 10桁の10進文字列に変換(文字列は asciiz)
+//  arg es.di	格納するバッファ 11バイト
+//  arg dx.ax	値
+//  out es.di	次のアドレス(入力時の di += 11)
 begin
-	save ax,bx,cx,dx,si,fx
-	bx = 10 	//use SUB1
-	rep.dec
-	if (dx)
-		|dx >>= 1
-		|rcr ax
-		push fx
-		cx = 50000
-		div  dx.ax,cx	//ax:商  dx:余
-		push dx
-		dx = 0
-		gosub SUB1
-		pop  ax
-		dx = 0
-		|pop fx
-		rcl  dx.ax
-	else
-		cx = 5
-		rep.inc
-		push ax
-		al = '0'
-		rep.set di,al,cx
-		pop  ax
-		rep.dec
-	fi
-	gosub SUB1
-	return
+    save ax,bx,cx,dx,si,fx
+    bx = 10 	//use SUB1
+    rep.dec
+    if (dx)
+    	|dx >>= 1
+    	|rcr ax
+    	push fx
+    	cx = 50000
+    	div  dx.ax,cx	//ax:商  dx:余
+    	push dx
+    	dx = 0
+    	gosub SUB1
+    	pop  ax
+    	dx = 0
+    	|pop fx
+    	rcl  dx.ax
+    else
+    	cx = 5
+    	rep.inc
+    	push ax
+    	al = '0'
+    	rep.set di,al,cx
+    	pop  ax
+    	rep.dec
+    fi
+    gosub SUB1
+    return
 
-  SUB1://in bx=10,di,dx.ax	out di	break dx,ax,cx=0
-	//bx = 10
-	cx = 5
-	di += 5
-	loop
-		div  dx.ax,bx	//ax:商  dx:余
-		dl += '0'
-		--di
-		b[di] = dl
-		dx= 0
-	endloop (--cx)
-	di += 5
-	b[di] = 0
-	ret
+  SUB1://in bx=10,di,dx.ax  out di  break dx,ax,cx=0
+    //bx = 10
+    cx = 5
+    di += 5
+    loop
+    	div  dx.ax,bx	//ax:商  dx:余
+    	dl += '0'
+    	--di
+    	b[di] = dl
+    	dx= 0
+    endloop (--cx)
+    di += 5
+    b[di] = 0
+    ret
 endproc
 
 endmodule

@@ -1,20 +1,20 @@
 submodule Subr
-	import Dos
+    import Dos
 
 *proc Seek (bx,dx.ax)
-//	ファイル・ポインタの移動
-//	arg bx		ファイル・ハンドル
-//	arg dx.ax	移動するバイト数
+//  ファイル・ポインタの移動
+//  arg bx  	ファイル・ハンドル
+//  arg dx.ax	移動するバイト数
 begin
-	save ax,cx,dx
-	cx = dx
-	dx = ax
-	ax = 0
-	Dos.Lseek bx,cx.dx,al
-	if (cf)
-		Subr.PriExit "シーク・エラー\N"
-	fi
-	return
+    save ax,cx,dx
+    cx = dx
+    dx = ax
+    ax = 0
+    Dos.Lseek bx,cx.dx,al
+    if (cf)
+    	Subr.PriExit "シーク・エラー\N"
+    fi
+    return
 endproc
 
 endmodule

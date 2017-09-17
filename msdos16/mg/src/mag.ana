@@ -1,27 +1,27 @@
 module Mag
-	c_name "Mag","_",1
-	/*
-		横は最大 3790ドット
-	*/
+    c_name "Mag","_",1
+    /*
+    	横は最大 3790ドット
+    */
 
 //////////////////////////////////////////////////////////////////////////////
 
 
-*struct HDR		// MAGヘッダ
-	nil:b		// 0
-	macNo:b		// 機種番号
-	macFlg:b	// 機種依存データ
-	scrnMode:b	// スクリーン・モード
-	startX:w	// 始点ｘ
-	startY:w	// 始点ｙ
-	endX:w		// 終点ｘ
-	endY:w		// 終点ｙ
-	flagAofs:d	// フラグＡへのオフセット
-	flagBofs:d	// フラグＢへのオフセット
-	flagBsiz:d	// フラグＢのサイズ
-	pdataOfs:d	// ピクセル・データへのオフセット
-	pdataSiz:d	// ピクセル・データのサイズ
-	grbPal:b()	// GRBパレット・データ
+*struct HDR 	// MAGヘッダ
+    nil:b   	// 0
+    macNo:b 	// 機種番号
+    macFlg:b	// 機種依存データ
+    scrnMode:b	// スクリーン・モード
+    startX:w	// 始点ｘ
+    startY:w	// 始点ｙ
+    endX:w  	// 終点ｘ
+    endY:w  	// 終点ｙ
+    flagAofs:d	// フラグＡへのオフセット
+    flagBofs:d	// フラグＢへのオフセット
+    flagBsiz:d	// フラグＢのサイズ
+    pdataOfs:d	// ピクセル・データへのオフセット
+    pdataSiz:d	// ピクセル・データのサイズ
+    grbPal:b()	// GRBパレット・データ
 endstruct
 
 //スクリーン・モード
@@ -29,17 +29,17 @@ endstruct
 
 @if 0
 *struct R
-	hdrOfs:d
-	flagAofs:d, flagAsiz:d
-	flagBofs:d, flagBsiz:d//, flagBofs0:d
-	pdataOfs:d, pdataSiz:d
+    hdrOfs:d
+    flagAofs:d, flagAsiz:d
+    flagBofs:d, flagBsiz:d//, flagBofs0:d
+    pdataOfs:d, pdataSiz:d
 endstruct
 
 *struct W
-	hdrOfs:d
-	flagAofs:d, flagAsiz:d
-	flagBofs:d, flagBsiz:d, flagBofs0:d
-	pdataOfs:d, pdataSiz:d
+    hdrOfs:d
+    flagAofs:d, flagAsiz:d
+    flagBofs:d, flagBsiz:d, flagBofs0:d
+    pdataOfs:d, pdataSiz:d
 endstruct
 @endif
 
@@ -52,7 +52,7 @@ endstruct
 endproc
 
 *proc Create(ght:d,filename:d);cdecl
-//	Magファイルのヘッダ出力
+//  Magファイルのヘッダ出力
 endproc
 
 *proc ReadPDB(ght:d, cnt:w);cdecl

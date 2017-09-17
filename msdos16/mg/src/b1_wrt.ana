@@ -1,17 +1,17 @@
 submodule B1
-	import Std
-	import GH
-	import Pri
-	import Subr
-	import Deb
-	import Fname
-	import Dos
-	import Str
-	import FPal
-	import RPal
-	import G98
+    import Std
+    import GH
+    import Pri
+    import Subr
+    import Deb
+    import Fname
+    import Dos
+    import Str
+    import FPal
+    import RPal
+    import G98
 
-@define	GHT	GH.T[ds:0]
+@define GHT GH.T[ds:0]
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -19,158 +19,158 @@ submodule B1
 
 *proc InitW(ght:d);cdecl
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	ds = ax = %var
-	if (B1.pc98flg)
-		G98.SetAnalog
-		ds.bx = ght
-		GHT.vSeg(0) = 0xA800
-		GHT.vSeg(1) = 0xB000
-		GHT.vSeg(2) = 0xB800
-		GHT.vSeg(3) = 0xE000
-	fi
-	ds.bx = ght
-	if (GHT.vSeg(0) == 0)
-		ax = cx = 80*400 * 4 / 16
-		GH.GetMem bx,ax,cx
-		GHT.vSeg(0) = ax
-		ax += 80*400/16; GHT.vSeg(1) = ax
-		ax += 80*400/16; GHT.vSeg(2) = ax
-		ax += 80*400/16; GHT.vSeg(3) = ax
-	fi
-	B1.VCls bx
-	GHT.wrtX8flg = 1
-	return
+    ds = ax = %var
+    if (B1.pc98flg)
+    	G98.SetAnalog
+    	ds.bx = ght
+    	GHT.vSeg(0) = 0xA800
+    	GHT.vSeg(1) = 0xB000
+    	GHT.vSeg(2) = 0xB800
+    	GHT.vSeg(3) = 0xE000
+    fi
+    ds.bx = ght
+    if (GHT.vSeg(0) == 0)
+    	ax = cx = 80*400 * 4 / 16
+    	GH.GetMem bx,ax,cx
+    	GHT.vSeg(0) = ax
+    	ax += 80*400/16; GHT.vSeg(1) = ax
+    	ax += 80*400/16; GHT.vSeg(2) = ax
+    	ax += 80*400/16; GHT.vSeg(3) = ax
+    fi
+    B1.VCls bx
+    GHT.wrtX8flg = 1
+    return
 endproc
 
 @if 0
 *proc PutPalFil(ght:d);cdecl
 enter
-	save pusha,es,ds
-	local ftime:w,fdate:w,ftimeFlg:w
-	local pal:b(48)
-	local filnam:b(130)
+    save pusha,es,ds
+    local ftime:w,fdate:w,ftimeFlg:w
+    local pal:b(48)
+    local filnam:b(130)
 
-	ds.bx = ght
-	ftimeFlg = ax = GHT.ftimeFlg
-	ftime = ax = GHT.ftime
-	fdate = ax = GHT.fdate
+    ds.bx = ght
+    ftimeFlg = ax = GHT.ftimeFlg
+    ftime = ax = GHT.ftime
+    fdate = ax = GHT.fdate
 
-	ax = &pal
-	GH.GetRGB12 ds.bx, ww(ss,ax)
-	ds.si = GHT.wrtName
-	es = ss
-	di = &filnam
-	Str.Cpy es.di, si
-	ds = ax = %var
-	Fname.ChgExt es.di, "rgb"
-	ds = es
-	Subr.Create di, 0
-	bx = ax
-	dx = &pal
-	ds = ss
-	Subr.Write  bx, dx, 48
-	if (ftimeFlg);Dos.SetFtime bx, ftime, fdate; fi
-	Subr.Close bx
-	return
+    ax = &pal
+    GH.GetRGB12 ds.bx, ww(ss,ax)
+    ds.si = GHT.wrtName
+    es = ss
+    di = &filnam
+    Str.Cpy es.di, si
+    ds = ax = %var
+    Fname.ChgExt es.di, "rgb"
+    ds = es
+    Subr.Create di, 0
+    bx = ax
+    dx = &pal
+    ds = ss
+    Subr.Write	bx, dx, 48
+    if (ftimeFlg);Dos.SetFtime bx, ftime, fdate; fi
+    Subr.Close bx
+    return
 endproc
 @fi
 
 var errMsg1:b() = "256色や640*400以上の画像は変換できない\N"
 
 *proc Create(ght:d,filename:d);cdecl
-	//out ax	0:no error	0以外:error
+    //out ax	0:no error  0以外:error
 enter
-	save bx,cx,dx,si,di,es,ds
-	cvar fmt:b() = "B1"
+    save bx,cx,dx,si,di,es,ds
+    cvar fmt:b() = "B1"
 
-	ds.bx = ght
-	if (GHT.endX >= 640 || GHT.endY >= 400 || GHT.plnW > 4)
-		Pri.Fmt &errMsg1
-		ax = 1
-		go.w RET
-	fi
-	GHT.wrtName = dx.ax = filename
-	GHT.wrtFmtName = cx.ax = ww(cs,&fmt)
-	GHT.fmtW = GH.B1
-	GHT.b1WnextLine = ax = GHT.startY
-	//
-  	//B1.VCls bx
-  	ax = 0
+    ds.bx = ght
+    if (GHT.endX >= 640 || GHT.endY >= 400 || GHT.plnW > 4)
+    	Pri.Fmt &errMsg1
+    	ax = 1
+    	go.w RET
+    fi
+    GHT.wrtName = dx.ax = filename
+    GHT.wrtFmtName = cx.ax = ww(cs,&fmt)
+    GHT.fmtW = GH.B1
+    GHT.b1WnextLine = ax = GHT.startY
+    //
+    //B1.VCls bx
+    ax = 0
   RET:
-	return
+    return
 endproc
 
 
 *proc CloseW(GHTptr:d);cdecl
 enter
-	save bx,ds,ax
-	cvar datseg:w = %var
-	local gv:w(4),ftime:w,fdate:w,ftimeFlg:w
-	local filnam:b(130)
+    save bx,ds,ax
+    cvar datseg:w = %var
+    local gv:w(4),ftime:w,fdate:w,ftimeFlg:w
+    local filnam:b(130)
 
-	ds.bx = GHTptr
-	gv(0) = ax = GHT.vSeg(0)
-	gv(1) = ax = GHT.vSeg(1)
-	gv(2) = ax = GHT.vSeg(2)
-	gv(3) = ax = GHT.vSeg(3)
-	ftimeFlg = ax = GHT.ftimeFlg
-	ftime = ax = GHT.ftime
-	fdate = ax = GHT.fdate
-	//
-	FPal.Put GHT.wrtName, GHT.rgbPal
-	//
-	push ds.bx
-		ds.si = GHT.wrtName
-		es.di = ww(ss,&filnam)
-		Str.Cpy es.di, si
-		//B
-		ds = datseg
-		Fname.ChgExt es.di, "b1"
-		ds.dx = es.di
-		Subr.Create dx, 0
-		bx = ax
-		ds = gv(0)
-		cx = 80*400
-		Subr.Write bx, 0, cx
-		if (ftimeFlg);Dos.SetFtime bx, ftime, fdate; fi
-		Dos.Close bx
-		//R
-		ds = datseg
-		Fname.ChgExt es.di, "r1"
-		ds.dx = es.di
-		Subr.Create dx, 0
-		bx = ax
-		ds = gv(1)
-		cx = 80*400
-		Subr.Write bx, 0, cx
-		if (ftimeFlg);Dos.SetFtime bx, ftime, fdate; fi
-		Dos.Close bx
-		//G
-		ds = datseg
-		Fname.ChgExt es.di, "g1"
-		ds.dx = es.di
-		Subr.Create dx, 0
-		bx = ax
-		ds = gv(2)
-		cx = 80*400
-		Subr.Write bx, 0, cx
-		if (ftimeFlg);Dos.SetFtime bx, ftime, fdate; fi
-		Dos.Close bx
-		//E
-		ds = datseg
-		Fname.ChgExt es.di, "e1"
-		ds.dx = es.di
-		Subr.Create dx, 0
-		bx = ax
-		ds = gv(3)
-		cx = 80*400
-		Subr.Write bx, 0, cx
-		if (ftimeFlg);Dos.SetFtime bx, ftime, fdate; fi
-		Dos.Close bx
-	pop  ds.bx
-	return
+    ds.bx = GHTptr
+    gv(0) = ax = GHT.vSeg(0)
+    gv(1) = ax = GHT.vSeg(1)
+    gv(2) = ax = GHT.vSeg(2)
+    gv(3) = ax = GHT.vSeg(3)
+    ftimeFlg = ax = GHT.ftimeFlg
+    ftime = ax = GHT.ftime
+    fdate = ax = GHT.fdate
+    //
+    FPal.Put GHT.wrtName, GHT.rgbPal
+    //
+    push ds.bx
+    	ds.si = GHT.wrtName
+    	es.di = ww(ss,&filnam)
+    	Str.Cpy es.di, si
+    	//B
+    	ds = datseg
+    	Fname.ChgExt es.di, "b1"
+    	ds.dx = es.di
+    	Subr.Create dx, 0
+    	bx = ax
+    	ds = gv(0)
+    	cx = 80*400
+    	Subr.Write bx, 0, cx
+    	if (ftimeFlg);Dos.SetFtime bx, ftime, fdate; fi
+    	Dos.Close bx
+    	//R
+    	ds = datseg
+    	Fname.ChgExt es.di, "r1"
+    	ds.dx = es.di
+    	Subr.Create dx, 0
+    	bx = ax
+    	ds = gv(1)
+    	cx = 80*400
+    	Subr.Write bx, 0, cx
+    	if (ftimeFlg);Dos.SetFtime bx, ftime, fdate; fi
+    	Dos.Close bx
+    	//G
+    	ds = datseg
+    	Fname.ChgExt es.di, "g1"
+    	ds.dx = es.di
+    	Subr.Create dx, 0
+    	bx = ax
+    	ds = gv(2)
+    	cx = 80*400
+    	Subr.Write bx, 0, cx
+    	if (ftimeFlg);Dos.SetFtime bx, ftime, fdate; fi
+    	Dos.Close bx
+    	//E
+    	ds = datseg
+    	Fname.ChgExt es.di, "e1"
+    	ds.dx = es.di
+    	Subr.Create dx, 0
+    	bx = ax
+    	ds = gv(3)
+    	cx = 80*400
+    	Subr.Write bx, 0, cx
+    	if (ftimeFlg);Dos.SetFtime bx, ftime, fdate; fi
+    	Dos.Close bx
+    pop  ds.bx
+    return
 endproc
 
 
@@ -179,153 +179,153 @@ cvar frmExFlg:w = 0
 
 *proc Df_FrmExPal(flg:w);cdecl
 enter
-	save ax
-	frmExFlg = ax = flg
-	return
+    save ax
+    frmExFlg = ax = flg
+    return
 endproc
 
 *proc CreaFrm(ght:d,filename:d);cdecl
-	//out ax	0:no error	not 0:error
+    //out ax	0:no error  not 0:error
 enter
-	save bx,cx,dx,si,di,es,ds
-	cvar fmt:b() = "FRM"
+    save bx,cx,dx,si,di,es,ds
+    cvar fmt:b() = "FRM"
 
-	ds.bx = ght
-	if (GHT.endX >= 640 || GHT.endY >= 400 || GHT.plnW > 4)
-		Pri.Fmt &errMsg1
-		ax = 1
-		go.w RET
-	fi
-	GHT.wrtName = dx.ax = filename
-	GHT.wrtFmtName = cx.ax = ww(cs,&fmt)
-	GHT.fmtW = GH.FRM
-	GHT.b1WnextLine = ax = GHT.startY
-	//
-	//B1.VCls bx
-  	ax = 0
+    ds.bx = ght
+    if (GHT.endX >= 640 || GHT.endY >= 400 || GHT.plnW > 4)
+    	Pri.Fmt &errMsg1
+    	ax = 1
+    	go.w RET
+    fi
+    GHT.wrtName = dx.ax = filename
+    GHT.wrtFmtName = cx.ax = ww(cs,&fmt)
+    GHT.fmtW = GH.FRM
+    GHT.b1WnextLine = ax = GHT.startY
+    //
+    //B1.VCls bx
+    ax = 0
   RET:
-	return
+    return
 endproc
 
 *proc ClosFrmW(ght:d);cdecl
 enter
-	save pusha,es,ds
-	local filnam:b(130)
-	local pal:b(48)
+    save pusha,es,ds
+    local filnam:b(130)
+    local pal:b(48)
 
-	ds.bx = ght
-	GH.Create bx,GHT.wrtName
-	GH.Write bx, ww(GHT.vSeg(0), 0x0000), 80*400
-	GH.Write bx, ww(GHT.vSeg(1), 0x0000), 80*400
-	GH.Write bx, ww(GHT.vSeg(2), 0x0000), 80*400
-	GH.Write bx, ww(GHT.vSeg(3), 0x0000), 80*400
-	if (frmExFlg)
-		ax = &pal
-		FPal.C8to4 GHT.rgbPal, ss.ax
-		GH.Write bx, ss.ax, 48
-	fi
-	GH.CloseW ds.bx
-	if (frmExFlg == 0)
-		FPal.Put GHT.wrtName, GHT.rgbPal
-	fi
-	return
+    ds.bx = ght
+    GH.Create bx,GHT.wrtName
+    GH.Write bx, ww(GHT.vSeg(0), 0x0000), 80*400
+    GH.Write bx, ww(GHT.vSeg(1), 0x0000), 80*400
+    GH.Write bx, ww(GHT.vSeg(2), 0x0000), 80*400
+    GH.Write bx, ww(GHT.vSeg(3), 0x0000), 80*400
+    if (frmExFlg)
+    	ax = &pal
+    	FPal.C8to4 GHT.rgbPal, ss.ax
+    	GH.Write bx, ss.ax, 48
+    fi
+    GH.CloseW ds.bx
+    if (frmExFlg == 0)
+    	FPal.Put GHT.wrtName, GHT.rgbPal
+    fi
+    return
 endproc
 
 //////////////////////////////////////////////////////////////////////////////
 *proc CreaBlk(ght:d,filename:d);cdecl
-	//out ax	0:no error	not 0:error
+    //out ax	0:no error  not 0:error
 enter
-	save bx,cx,dx,si,di,es,ds
-	cvar fmt:b() = "BLK"
+    save bx,cx,dx,si,di,es,ds
+    cvar fmt:b() = "BLK"
 
-	ds.bx = ght
-	if (GHT.endX >= 640 || GHT.endY >= 400 || GHT.plnW > 4)
-		Pri.Fmt &errMsg1
-		ax = 1
-		go.w RET
-	fi
-	GHT.wrtName = dx.ax = filename
-	GHT.wrtFmtName = cx.ax = ww(cs,&fmt)
-	GHT.fmtW = GH.BLK
-	GHT.b1WnextLine = ax = GHT.startY
-	//
-  	ax = 0
+    ds.bx = ght
+    if (GHT.endX >= 640 || GHT.endY >= 400 || GHT.plnW > 4)
+    	Pri.Fmt &errMsg1
+    	ax = 1
+    	go.w RET
+    fi
+    GHT.wrtName = dx.ax = filename
+    GHT.wrtFmtName = cx.ax = ww(cs,&fmt)
+    GHT.fmtW = GH.BLK
+    GHT.b1WnextLine = ax = GHT.startY
+    //
+    ax = 0
   RET:
-	return
+    return
 endproc
 
 *proc ClosBlkW(ght:d);cdecl
 enter
-	save pusha,es,ds
-	local pal:b(48)
+    save pusha,es,ds
+    local pal:b(48)
 
-	ds.bx = ght
-	GH.Create bx, GHT.wrtName
-	//WRITE BRG-PALETTE
-	ax = &pal
-	FPal.C8to4 GHT.rgbPal, ss.ax
-	push ds,es
-		si = di = dx = ax
-		ds = ax = ss
-		es = ax
-		cx = 16
-		loop
-			rep.load.w ax,si
-			rep.cpy.b  di,si
-			rep.set.w  di,ax
-		endloop (--cx)
-	pop  ds,es
-	GH.Write bx, ss.dx, 48
-	GH.Write bx, ww(GHT.vSeg(0), 0x0000), 80*400
-	GH.Write bx, ww(GHT.vSeg(1), 0x0000), 80*400
-	GH.Write bx, ww(GHT.vSeg(2), 0x0000), 80*400
-	GH.Write bx, ww(GHT.vSeg(3), 0x0000), 80*400
-	GH.CloseW ds.bx
-	return
+    ds.bx = ght
+    GH.Create bx, GHT.wrtName
+    //WRITE BRG-PALETTE
+    ax = &pal
+    FPal.C8to4 GHT.rgbPal, ss.ax
+    push ds,es
+    	si = di = dx = ax
+    	ds = ax = ss
+    	es = ax
+    	cx = 16
+    	loop
+    	    rep.load.w ax,si
+    	    rep.cpy.b  di,si
+    	    rep.set.w  di,ax
+    	endloop (--cx)
+    pop  ds,es
+    GH.Write bx, ss.dx, 48
+    GH.Write bx, ww(GHT.vSeg(0), 0x0000), 80*400
+    GH.Write bx, ww(GHT.vSeg(1), 0x0000), 80*400
+    GH.Write bx, ww(GHT.vSeg(2), 0x0000), 80*400
+    GH.Write bx, ww(GHT.vSeg(3), 0x0000), 80*400
+    GH.CloseW ds.bx
+    return
 endproc
 
 //////////////////////////////////////////////////////////////////////////////
 
 *proc CreatGv(ght:d,filename:d);cdecl
-	//out ax	0:no error	not 0:error
+    //out ax	0:no error  not 0:error
 enter
-	save bx,cx,dx,si,di,es,ds
-	var pal:b(48)
-	cvar fmt:b() = "#"
+    save bx,cx,dx,si,di,es,ds
+    var pal:b(48)
+    cvar fmt:b() = "#"
 
-	ds.bx = ght
-	if (/*GHT.endX >= 640 || GHT.endY >= 400 ||*/ GHT.plnW > 4)
-		Pri.Fmt &errMsg1
-		ax = 1
-		go.w RET
-	fi
-	GHT.wrtName = dx.ax = filename
-	GHT.wrtFmtName = cx.ax = ww(cs,&fmt)
-	GHT.fmtW = GH.VRAM
-	GHT.b1WnextLine = ax = GHT.startY
-	//
-	//B1.VCls bx
-	es = ax = %var
-	if (w[es:%B1.pc98flg])
-		G98.SetAnalog
-		G98.ActGVPage 0
-		G98.DspGVPage 0
-		G98.DspGV 1
-		dx = &pal
-		FPal.C8to4 GHT.rgbPal, ww(%var,dx)
-		push ds.bx
-			ds = ax = %var
-			RPal.SetRGB 100, dx
-		pop  ds.bx
-  	fi
-  	ax = 0
+    ds.bx = ght
+    if (/*GHT.endX >= 640 || GHT.endY >= 400 ||*/ GHT.plnW > 4)
+    	Pri.Fmt &errMsg1
+    	ax = 1
+    	go.w RET
+    fi
+    GHT.wrtName = dx.ax = filename
+    GHT.wrtFmtName = cx.ax = ww(cs,&fmt)
+    GHT.fmtW = GH.VRAM
+    GHT.b1WnextLine = ax = GHT.startY
+    //
+    //B1.VCls bx
+    es = ax = %var
+    if (w[es:%B1.pc98flg])
+    	G98.SetAnalog
+    	G98.ActGVPage 0
+    	G98.DspGVPage 0
+    	G98.DspGV 1
+    	dx = &pal
+    	FPal.C8to4 GHT.rgbPal, ww(%var,dx)
+    	push ds.bx
+    	    ds = ax = %var
+    	    RPal.SetRGB 100, dx
+    	pop  ds.bx
+    fi
+    ax = 0
   RET:
-	return
+    return
 endproc
 
 *proc CloseGvW(ght:d);cdecl
 enter
-	return
+    return
 endproc
 
 
@@ -337,171 +337,171 @@ cvar gv:w(4)
 
 *proc PutLine(di,si,dx)
 //  arg di     画面のアドレス
-//	arg si     ピクセル・データのアドレス
+//  arg si     ピクセル・データのアドレス
 //  arg dx     横幅(８ドット単位)
-//	in  ds     ピクセル・データのsegment
+//  in	ds     ピクセル・データのsegment
 enter
-	save pusha,ax,bx,cx,dx,di,si,sav_ds:ds
+    save pusha,ax,bx,cx,dx,di,si,sav_ds:ds
 
-	cx = dx
-	bx = dx = 0 //dl:blue dh:red  bl:green	bh:明度
+    cx = dx
+    bx = dx = 0 //dl:blue dh:red  bl:green  bh:明度
 
-	loop.w
-		rep.load.w ax,si
-		|al >>= 1;	dl <<=. 1;	|al >>= 1;	dh <<=. 1
-		|al >>= 1;	bl <<=. 1;	|al >>= 1;	bh <<=. 1
-		|ah >>= 1;	dl <<=. 1;	|ah >>= 1;	dh <<=. 1
-		|ah >>= 1;	bl <<=. 1;	|ah >>= 1;	bh <<=. 1
-		rep.load.w ax,si
-		|al >>= 1;	dl <<=. 1;	|al >>= 1;	dh <<=. 1
-		|al >>= 1;	bl <<=. 1;	|al >>= 1;	bh <<=. 1
-		|ah >>= 1;	dl <<=. 1;	|ah >>= 1;	dh <<=. 1
-		|ah >>= 1;	bl <<=. 1;	|ah >>= 1;	bh <<=. 1
-		rep.load.w ax,si
-		|al >>= 1;	dl <<=. 1;	|al >>= 1;	dh <<=. 1
-		|al >>= 1;	bl <<=. 1;	|al >>= 1;	bh <<=. 1
-		|ah >>= 1;	dl <<=. 1;	|ah >>= 1;	dh <<=. 1
-		|ah >>= 1;	bl <<=. 1;	|ah >>= 1;	bh <<=. 1
-		rep.load.w ax,si
-		|al >>= 1;	dl <<=. 1;	|al >>= 1;	dh <<=. 1
-		|al >>= 1;	bl <<=. 1;	|al >>= 1;	bh <<=. 1
-		|ah >>= 1;	dl <<=. 1;	|ah >>= 1;	dh <<=. 1
-		|ah >>= 1;	bl <<=. 1;	|ah >>= 1;	bh <<=. 1
-		ds = gv(0); b[di] = dl
-		ds = gv(1); b[di] = dh
-		ds = gv(2); b[di] = bl
-		ds = gv(3); b[di] = bh
-		ds = sav_ds
-		++di
-	endloop (--cx)
-	return
+    loop.w
+    	rep.load.w ax,si
+    	|al >>= 1;  dl <<=. 1;	|al >>= 1;  dh <<=. 1
+    	|al >>= 1;  bl <<=. 1;	|al >>= 1;  bh <<=. 1
+    	|ah >>= 1;  dl <<=. 1;	|ah >>= 1;  dh <<=. 1
+    	|ah >>= 1;  bl <<=. 1;	|ah >>= 1;  bh <<=. 1
+    	rep.load.w ax,si
+    	|al >>= 1;  dl <<=. 1;	|al >>= 1;  dh <<=. 1
+    	|al >>= 1;  bl <<=. 1;	|al >>= 1;  bh <<=. 1
+    	|ah >>= 1;  dl <<=. 1;	|ah >>= 1;  dh <<=. 1
+    	|ah >>= 1;  bl <<=. 1;	|ah >>= 1;  bh <<=. 1
+    	rep.load.w ax,si
+    	|al >>= 1;  dl <<=. 1;	|al >>= 1;  dh <<=. 1
+    	|al >>= 1;  bl <<=. 1;	|al >>= 1;  bh <<=. 1
+    	|ah >>= 1;  dl <<=. 1;	|ah >>= 1;  dh <<=. 1
+    	|ah >>= 1;  bl <<=. 1;	|ah >>= 1;  bh <<=. 1
+    	rep.load.w ax,si
+    	|al >>= 1;  dl <<=. 1;	|al >>= 1;  dh <<=. 1
+    	|al >>= 1;  bl <<=. 1;	|al >>= 1;  bh <<=. 1
+    	|ah >>= 1;  dl <<=. 1;	|ah >>= 1;  dh <<=. 1
+    	|ah >>= 1;  bl <<=. 1;	|ah >>= 1;  bh <<=. 1
+    	ds = gv(0); b[di] = dl
+    	ds = gv(1); b[di] = dh
+    	ds = gv(2); b[di] = bl
+    	ds = gv(3); b[di] = bh
+    	ds = sav_ds
+    	++di
+    endloop (--cx)
+    return
 endproc
 
 
 *proc PutOneM(di,si,ax)
 begin
-	save pusha,es,ds
+    save pusha,es,ds
 
-	cx = ax
-	ch = cl
-	~~ cl
-	//Pri.Fmt "#%04x/%04x",ax,cx
-	dx = bx = 0
-	rep.load.w ax,si
-	|al >>= 1;	dl <<=. 1;	|al >>= 1;	dh <<=. 1
-	|al >>= 1;	bl <<=. 1;	|al >>= 1;	bh <<=. 1
-	|ah >>= 1;	dl <<=. 1;	|ah >>= 1;	dh <<=. 1
-	|ah >>= 1;	bl <<=. 1;	|ah >>= 1;	bh <<=. 1
-	rep.load.w ax,si
-	|al >>= 1;	dl <<=. 1;	|al >>= 1;	dh <<=. 1
-	|al >>= 1;	bl <<=. 1;	|al >>= 1;	bh <<=. 1
-	|ah >>= 1;	dl <<=. 1;	|ah >>= 1;	dh <<=. 1
-	|ah >>= 1;	bl <<=. 1;	|ah >>= 1;	bh <<=. 1
-	rep.load.w ax,si
-	|al >>= 1;	dl <<=. 1;	|al >>= 1;	dh <<=. 1
-	|al >>= 1;	bl <<=. 1;	|al >>= 1;	bh <<=. 1
-	|ah >>= 1;	dl <<=. 1;	|ah >>= 1;	dh <<=. 1
-	|ah >>= 1;	bl <<=. 1;	|ah >>= 1;	bh <<=. 1
-	rep.load.w ax,si
-	|al >>= 1;	dl <<=. 1;	|al >>= 1;	dh <<=. 1
-	|al >>= 1;	bl <<=. 1;	|al >>= 1;	bh <<=. 1
-	|ah >>= 1;	dl <<=. 1;	|ah >>= 1;	dh <<=. 1
-	|ah >>= 1;	bl <<=. 1;	|ah >>= 1;	bh <<=. 1
-	ds = gv(0); b[di] &= ch; dl &= cl; b[di] |= dl
-	ds = gv(1); b[di] &= ch; dh &= cl; b[di] |= dh
-	ds = gv(2); b[di] &= ch; bl &= cl; b[di] |= bl
-	ds = gv(3); b[di] &= ch; bh &= cl; b[di] |= bh
-	return
+    cx = ax
+    ch = cl
+    ~~ cl
+    //Pri.Fmt "#%04x/%04x",ax,cx
+    dx = bx = 0
+    rep.load.w ax,si
+    |al >>= 1;	dl <<=. 1;  |al >>= 1;	dh <<=. 1
+    |al >>= 1;	bl <<=. 1;  |al >>= 1;	bh <<=. 1
+    |ah >>= 1;	dl <<=. 1;  |ah >>= 1;	dh <<=. 1
+    |ah >>= 1;	bl <<=. 1;  |ah >>= 1;	bh <<=. 1
+    rep.load.w ax,si
+    |al >>= 1;	dl <<=. 1;  |al >>= 1;	dh <<=. 1
+    |al >>= 1;	bl <<=. 1;  |al >>= 1;	bh <<=. 1
+    |ah >>= 1;	dl <<=. 1;  |ah >>= 1;	dh <<=. 1
+    |ah >>= 1;	bl <<=. 1;  |ah >>= 1;	bh <<=. 1
+    rep.load.w ax,si
+    |al >>= 1;	dl <<=. 1;  |al >>= 1;	dh <<=. 1
+    |al >>= 1;	bl <<=. 1;  |al >>= 1;	bh <<=. 1
+    |ah >>= 1;	dl <<=. 1;  |ah >>= 1;	dh <<=. 1
+    |ah >>= 1;	bl <<=. 1;  |ah >>= 1;	bh <<=. 1
+    rep.load.w ax,si
+    |al >>= 1;	dl <<=. 1;  |al >>= 1;	dh <<=. 1
+    |al >>= 1;	bl <<=. 1;  |al >>= 1;	bh <<=. 1
+    |ah >>= 1;	dl <<=. 1;  |ah >>= 1;	dh <<=. 1
+    |ah >>= 1;	bl <<=. 1;  |ah >>= 1;	bh <<=. 1
+    ds = gv(0); b[di] &= ch; dl &= cl; b[di] |= dl
+    ds = gv(1); b[di] &= ch; dh &= cl; b[di] |= dh
+    ds = gv(2); b[di] &= ch; bl &= cl; b[di] |= bl
+    ds = gv(3); b[di] &= ch; bh &= cl; b[di] |= bh
+    return
 endproc
 
 
 *proc WritePDB(ght:d, lincnt:w);cdecl
 enter
-	save pusha,es,ds
-	local szX:w
+    save pusha,es,ds
+    local szX:w
 
-	ds.bx = ght
-	gv(0) = ax = GHT.vSeg(0)
-	gv(1) = ax = GHT.vSeg(1)
-	gv(2) = ax = GHT.vSeg(2)
-	gv(3) = ax = GHT.vSeg(3)
+    ds.bx = ght
+    gv(0) = ax = GHT.vSeg(0)
+    gv(1) = ax = GHT.vSeg(1)
+    gv(2) = ax = GHT.vSeg(2)
+    gv(3) = ax = GHT.vSeg(3)
 
-	cx = di = GHT.b1WnextLine
-	dx = lincnt
-	cx += dx
-	GHT.b1WnextLine = cx
+    cx = di = GHT.b1WnextLine
+    dx = lincnt
+    cx += dx
+    GHT.b1WnextLine = cx
 
-	if (di >= 400)
-		dx = 0
-		go ERR
-	fi
-	cx = dx
-	cx += di
-	if (cx > 400)
-  		dx = 400
-  		dx -= di
+    if (di >= 400)
+    	dx = 0
+    	go ERR
+    fi
+    cx = dx
+    cx += di
+    if (cx > 400)
+    	dx = 400
+    	dx -= di
   ERR:
-		Deb.Chk;if(==);Pri.Fmt "B1,FRM出力で縦座標が400を越えている\N";fi
-	fi
-	cx = dx
+    	Deb.Chk;if(==);Pri.Fmt "B1,FRM出力で縦座標が400を越えている\N";fi
+    fi
+    cx = dx
 
-	if.w (cx)
-		dx.ax = di * B1.GVLINSIZ
-		dx = GHT.startXo; dx >>= 3
-		ax += dx
-		di = ax
-		dx = GHT.sizeXo
-		szX = dx
-		dx >>= 3
-		si = GHT.hisSizO
-		if (dx == 1)
-			al = GHT.startXom.l
-			al |= GHT.endXom.l
-			ds = GHT.pdbSeg
-			loop
-				PutOneM di, si, ax
-				si += 8
-				di += B1.GVLINSIZ
-			endloop(--cx)
-		elsif (dx == 2)
-			al = GHT.startXom.l
-			ah = GHT.endXom.l
-			ds = GHT.pdbSeg
-			loop
-				PutOneM di, si, ax
-				si += 8
-				di += 1
-				ah <=> al
-				PutOneM di, si, ax
-				ah <=> al
-				si += 8
-				di += B1.GVLINSIZ - 1
-			endloop(--cx)
-		else
-			dx -= 2
-			szX -= 8*2
-			al = GHT.startXom.l
-			ah = GHT.endXom.l
-			ds = GHT.pdbSeg
-			loop
-				push di
-					PutOneM di, si, ax
-					si += 8
-					di += 1
-					PutLine di, si, dx
-					si += szX
-					di += dx
-					ah <=> al
-					PutOneM di, si, ax
-					ah <=> al
-					si += 8
-				pop  di
-				di += B1.GVLINSIZ
-			endloop (--cx)
+    if.w (cx)
+    	dx.ax = di * B1.GVLINSIZ
+    	dx = GHT.startXo; dx >>= 3
+    	ax += dx
+    	di = ax
+    	dx = GHT.sizeXo
+    	szX = dx
+    	dx >>= 3
+    	si = GHT.hisSizO
+    	if (dx == 1)
+    	    al = GHT.startXom.l
+    	    al |= GHT.endXom.l
+    	    ds = GHT.pdbSeg
+    	    loop
+    	    	PutOneM di, si, ax
+    	    	si += 8
+    	    	di += B1.GVLINSIZ
+    	    endloop(--cx)
+    	elsif (dx == 2)
+    	    al = GHT.startXom.l
+    	    ah = GHT.endXom.l
+    	    ds = GHT.pdbSeg
+    	    loop
+    	    	PutOneM di, si, ax
+    	    	si += 8
+    	    	di += 1
+    	    	ah <=> al
+    	    	PutOneM di, si, ax
+    	    	ah <=> al
+    	    	si += 8
+    	    	di += B1.GVLINSIZ - 1
+    	    endloop(--cx)
+    	else
+    	    dx -= 2
+    	    szX -= 8*2
+    	    al = GHT.startXom.l
+    	    ah = GHT.endXom.l
+    	    ds = GHT.pdbSeg
+    	    loop
+    	    	push di
+    	    	    PutOneM di, si, ax
+    	    	    si += 8
+    	    	    di += 1
+    	    	    PutLine di, si, dx
+    	    	    si += szX
+    	    	    di += dx
+    	    	    ah <=> al
+    	    	    PutOneM di, si, ax
+    	    	    ah <=> al
+    	    	    si += 8
+    	    	pop  di
+    	    	di += B1.GVLINSIZ
+    	    endloop (--cx)
     	fi
     fi
   RET:
-	return
+    return
 endproc
 
 endmodule

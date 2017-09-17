@@ -1,24 +1,24 @@
 /*
-	コマンドライン解析
-	ファイル名をそのつどDOSコールで探す
-	（ファイル読み込みのみのプログラム用）
-	1992	writen by M.Kitamura
+    コマンドライン解析
+    ファイル名をそのつどDOSコールで探す
+    （ファイル読み込みのみのプログラム用）
+    1992    writen by M.Kitamura
 */
 module CmdLineS
-	model SMALL
-	//stack 0x400
+    model SMALL
+    //stack 0x400
 
-	import Fname
-	import Str
+    import Fname
+    import Str
 
 /////////////////
-*var fname:w				// 検索に用いたファイル名(ﾜｲﾙﾄﾞｶｰﾄﾞ有).
-*var fnameOptCnt:w			// トークンの数
-*var fnameOptTbl:w			// コマンドラインより得たトークン表のアドレス
-*var optTbl:w				// オプション表のアドレス
-*var optCnt:w				// オプションの数
-*var fnameTbl:w 			// ファイル名表のアドレス
-*var fnameCnt:w 			// ファイル名の数
+*var fname:w	    	    // 検索に用いたファイル名(ﾜｲﾙﾄﾞｶｰﾄﾞ有).
+*var fnameOptCnt:w  	    // トークンの数
+*var fnameOptTbl:w  	    // コマンドラインより得たトークン表のアドレス
+*var optTbl:w	    	    // オプション表のアドレス
+*var optCnt:w	    	    // オプションの数
+*var fnameTbl:w     	    // ファイル名表のアドレス
+*var fnameCnt:w     	    // ファイル名の数
 var fnameTbl2:w
 var fnameCnt2:w
 const FILCNT=63
@@ -26,75 +26,75 @@ var fnameOptTbls:w(FILCNT)
 var cbuf:b(130)
 
 *proc Init(dx)
-//	コマンドライン解析。PSPよりコマンドラインを自前のバッファにコピーし、
-//	トークンに分割する
-//	arg dx		psp のセグメント
-//	out si		fnameOptTblの先頭アドレス
-//	out cx		fnameOptCnt
+//  コマンドライン解析。PSPよりコマンドラインを自前のバッファにコピーし、
+//  トークンに分割する
+//  arg dx  	psp のセグメント
+//  out si  	fnameOptTblの先頭アドレス
+//  out cx  	fnameOptCnt
 enter
-	save ax,bx,dx,di,es,ds,fx
-	local flg:w = ax
+    save ax,bx,dx,di,es,ds,fx
+    local flg:w = ax
 
-	ds = si = %var
-	rep.inc
-	es = si
-	si = 0x81
-	di = &cbuf
-	ds = dx
-	loop
-		rep.load al,si
-		exit (al == 0x0d)
-		rep.set  di,al
-	endloop (si < 0x100)
-	al = 0
-	rep.set di,al
-	ds = es
-	si = &cbuf
-	di = &fnameOptTbls
-	fnameTbl = di
-	fnameOptTbl = di
-	cx = FILCNT
-	Str.SepLine es.di,si,cx
-	fnameOptCnt = cx
-	fnameCnt = cx
-	fnameCnt2 = cx
-	ax = 0
-	optCnt	= ax
-	optTbl = ax
-	fname = ax
-	si = di
-	return
+    ds = si = %var
+    rep.inc
+    es = si
+    si = 0x81
+    di = &cbuf
+    ds = dx
+    loop
+    	rep.load al,si
+    	exit (al == 0x0d)
+    	rep.set  di,al
+    endloop (si < 0x100)
+    al = 0
+    rep.set di,al
+    ds = es
+    si = &cbuf
+    di = &fnameOptTbls
+    fnameTbl = di
+    fnameOptTbl = di
+    cx = FILCNT
+    Str.SepLine es.di,si,cx
+    fnameOptCnt = cx
+    fnameCnt = cx
+    fnameCnt2 = cx
+    ax = 0
+    optCnt  = ax
+    optTbl = ax
+    fname = ax
+    si = di
+    return
 endproc
 
 
 *proc MoveOpt()
-//	Initで取得したトークンのテーブルで、オプションを前に移動
-//	out si		optTbl
-//	out cx		optCnt
-//	out di		fnameTbl
-//	out ax		fnameCnt
+//  Initで取得したトークンのテーブルで、オプションを前に移動
+//  out si  	optTbl
+//  out cx  	optCnt
+//  out di  	fnameTbl
+//  out ax  	fnameCnt
 begin
-	save bx,dx,ds
-	ds = ax = %var
-	ax = 0
-	cx = fnameOptCnt
-	si = fnameOptTbl
-	optTbl = si
-	Fname.MoveOpt si,cx
-	di = si
-	fnameOptCnt = cx
-	optCnt	= ax
-	cx -= ax
-	fnameCnt2 = cx
-	fnameCnt = cx
-	push ax
-	  ax <<= 1
-	  di += ax
-	pop  ax
-	ax <=> cx
-	fnameTbl2 = di
-	fnameTbl = di
-	return
+    save bx,dx,ds
+    ds = ax = %var
+    ax = 0
+    cx = fnameOptCnt
+    si = fnameOptTbl
+    optTbl = si
+    Fname.MoveOpt si,cx
+    di = si
+    fnameOptCnt = cx
+    optCnt  = ax
+    cx -= ax
+    fnameCnt2 = cx
+    fnameCnt = cx
+    push ax
+      ax <<= 1
+      di += ax
+    pop  ax
+    ax <=> cx
+    fnameTbl2 = di
+    fnameTbl = di
+    return
 endproc
 
 

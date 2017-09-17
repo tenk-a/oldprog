@@ -1,23 +1,23 @@
 module Deb_Dmp
-	c_name "Deb"
-	import Pri
+    c_name "Deb"
+    import Pri
 
 *proc Dmp(pt:d,cnt:w);cdecl
 enter
-	save pusha, es,ds,fx
-	cx = 0
-	ds.si = pt
-	loop
-		if ((cx & 0x0f) == 0)
-			Pri.FmtDS "\N%08lx ",ds.si
-		fi
-		rep.load al,si
-		ah = 0
-		Pri.FmtDS "%02x ",ax
-		++cx
-	endloop (cx < cnt)
-	Pri.FmtDS "\N"
-	return
+    save pusha, es,ds,fx
+    cx = 0
+    ds.si = pt
+    loop
+    	if ((cx & 0x0f) == 0)
+    	    Pri.FmtDS "\N%08lx ",ds.si
+    	fi
+    	rep.load al,si
+    	ah = 0
+    	Pri.FmtDS "%02x ",ax
+    	++cx
+    endloop (cx < cnt)
+    Pri.FmtDS "\N"
+    return
 endproc
 
 endmodule

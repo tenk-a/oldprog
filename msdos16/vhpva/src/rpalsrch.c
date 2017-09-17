@@ -23,13 +23,13 @@ _dos_mcbfirst(void)
     intdosx(&reg,&reg,&sreg);
  #if 0
     {
-        word seg;
-        byte far *p;
+    	word seg;
+    	byte far *p;
 
-        p = MAKE_FP(sreg.es, reg.x.bx - 2);
-        seg = *((word far *)p);
-        printf("%04x:%04x=%08lx %04x %lx\n",sreg.es,reg.x.bx-2,p,
-                                            seg,MAKE_FP(seg,0));
+    	p = MAKE_FP(sreg.es, reg.x.bx - 2);
+    	seg = *((word far *)p);
+    	printf("%04x:%04x=%08lx %04x %lx\n",sreg.es,reg.x.bx-2,p,
+    	    	    	    	    	    seg,MAKE_FP(seg,0));
     }
  #endif
     return MAKE_FP(*(word far *)MAKE_FP(sreg.es, reg.x.bx - 2), 0);
@@ -40,16 +40,16 @@ static int
 far_strcmp(unsigned char far *s1, unsigned char far *s2)
 {
     while (*s1 == *s2)
-        if (*s1 == '\0')
-            return 0;
-        else {
-            ++s1;
-            ++s2;
-        }
+    	if (*s1 == '\0')
+    	    return 0;
+    	else {
+    	    ++s1;
+    	    ++s2;
+    	}
     if (*s1 > *s2)
-        return 1;
+    	return 1;
     else
-        return -1;
+    	return -1;
 }
 #endif
 
@@ -63,17 +63,17 @@ RPal_Search(void)
     seg = PTR_SEG(p);
     for (;;) {
       #if 0
-        printf("pointer = %08lx\nflag = %c\nowner = %x\nsize = %x\n",
-            p,p->flag,p->owner,p->blksiz);
+    	printf("pointer = %08lx\nflag = %c\nowner = %x\nsize = %x\n",
+    	    p,p->flag,p->owner,p->blksiz);
       #endif
-        if (p->owner != NULL) {
-            if (far_strcmp((byte far *)p + 0x10, "pal98 grb") == 0)
-                return (struct RAMPAL far *)((byte far *)p + 0x10);
-        }
-        seg += p->blksiz + 1;
-        p = MAKE_FP(seg,0);
-        if (p->flag != 'M')
-            break;
+    	if (p->owner != NULL) {
+    	    if (far_strcmp((byte far *)p + 0x10, "pal98 grb") == 0)
+    	    	return (struct RAMPAL far *)((byte far *)p + 0x10);
+    	}
+    	seg += p->blksiz + 1;
+    	p = MAKE_FP(seg,0);
+    	if (p->flag != 'M')
+    	    break;
     }
     return NULL;
 }
@@ -91,17 +91,17 @@ RPal_Get(int *toon, byte *grb)
     int  i;
 
     if ((p = RPal_Search()) == NULL)
-        return -1;
+    	return -1;
     *toon = p->toon;
     for (i = 0; i < 16; ++i) {
-        grb[i * 3 + 0] = p->grb[i][0];
-        grb[i * 3 + 1] = p->grb[i][1];
-        grb[i * 3 + 2] = p->grb[i][2];
+    	grb[i * 3 + 0] = p->grb[i][0];
+    	grb[i * 3 + 1] = p->grb[i][1];
+    	grb[i * 3 + 2] = p->grb[i][2];
     }
     {
-        byte far *r;
-        r = (byte far *)p + 0x10;
-        printf("%s\n",r);
+    	byte far *r;
+    	r = (byte far *)p + 0x10;
+    	printf("%s\n",r);
     }
     return 0;
 }
@@ -114,17 +114,17 @@ RPal_Set(int toon, byte *grb)
     int  i;
 
     if ((p = RPal_Search()) != NULL) {
-        p->toon = (tÿon > 100) ? 100 : toon;
-        for (i = 0; i < 16; ++i) {
-            p->grb[i][0] = grb[i*3 + 0];
-            p->grb[i][1] = grb[i*3 + 1];
-            p->grb[i][2] = grb[i*3 + 2];
-        }
+    	p->toon = (tÿon > 100) ? 100 : toon;
+    	for (i = 0; i < 16; ++i) {
+    	    p->grb[i][0] = grb[i*3 + 0];
+    	    p->grb[i][1] = grb[i*3 + 1];
+    	    p->grb[i][2] = grb[i*3 + 2];
+    	}
     }
     for (i = 0; i < 16; ++i) {
-        setGRB(i,grb[i*3 + 0] * toon / 100,
-                 grb[i*3 + 1] * toon / 100,
-                 grb[i*3 + 2] * toon / 100);
+    	setGRB(i,grb[i*3 + 0] * toon / 100,
+    	    	 grb[i*3 + 1] * toon / 100,
+    	    	 grb[i*3 + 2] * toon / 100);
     }
 }
 
@@ -139,39 +139,38 @@ main(int argc, char *argv[])
     int  i;
 
     if (RPal_Get(&toon, grb)) {
-        printf("í’“ÊßÚ¯Ä‚ª‚ ‚è‚Ü‚¹‚ñ\n");
-        exit(1);
+    	printf("í’“ÊßÚ¯Ä‚ª‚ ‚è‚Ü‚¹‚ñ\n");
+    	exit(1);
     }
     printf("Toon = %d\n",toon);
     for (i = 0; i < 16; ++i)
-        printf("G:%02x  R:%02x  B:%02x\n",grb[i*3],grb[i*3+1],grb[i*3+2]);
-    
+    	printf("G:%02x  R:%02x  B:%02x\n",grb[i*3],grb[i*3+1],grb[i*3+2]);
+
     if (argc < 2)
-        return;
+    	return;
     strcpy (buf,argv[1]);
     strcat (buf,".RGB");
     if ((fp = fopen(buf,"rb")) == NULL) {
-        printf(".RGBÌ§²Ù‚ğopen‚Å‚«‚Ü‚¹‚ñ");
-        exit(1);
+    	printf(".RGBÌ§²Ù‚ğopen‚Å‚«‚Ü‚¹‚ñ");
+    	exit(1);
     }
     for (i = 0; i < 16; ++i) {
-        grb[i*3+1] = fgetc(fp);
-        grb[i*3+0] = fgetc(fp);
-        grb[i*3+2] = fgetc(fp);
+    	grb[i*3+1] = fgetc(fp);
+    	grb[i*3+0] = fgetc(fp);
+    	grb[i*3+2] = fgetc(fp);
     }
     fclose(fp);
     if (argc > 2 && *(argv[2]) >= '0' && *(argv[2]) <= '9')
-        toon = (int)strtol(argv[2],NULL,10);
+    	toon = (int)strtol(argv[2],NULL,10);
     if (toon > 100)
-        toon = 100;
+    	toon = 100;
     RPal_Set(toon,grb);
     if (RPal_Get(&toon, grb)) {
-        printf("í’“ÊßÚ¯Ä‚ª‚ ‚è‚Ü‚¹‚ñ\n");
-        exit(1);
+    	printf("í’“ÊßÚ¯Ä‚ª‚ ‚è‚Ü‚¹‚ñ\n");
+    	exit(1);
     }
     printf("Toon = %d\n",toon);
     for (i = 0; i < 16; ++i)
-        printf("G:%02x  R:%02x  B:%02x\n",grb[i*3],grb[i*3+1],grb[i*3+2]);
+    	printf("G:%02x  R:%02x  B:%02x\n",grb[i*3],grb[i*3+1],grb[i*3+2]);
 }
 #endif
-

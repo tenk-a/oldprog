@@ -1,19 +1,19 @@
 submodule Subr
-	import Dos
+    import Dos
 
 *proc Read (bx,dx,cx)
-//	ファイルからの読み込み
-//	arg bx	ファイル・ハンドル
-//	arg dx	バッファ・アドレス
-//	arg cx	サイズ
-//	out ax	サイズ
-//	in	ds	バッファのセグメント
+//  ファイルからの読み込み
+//  arg bx  ファイル・ハンドル
+//  arg dx  バッファ・アドレス
+//  arg cx  サイズ
+//  out ax  サイズ
+//  in	ds  バッファのセグメント
 begin
-	Dos.Read bx,dx,cx
-	if (cf)
-		Subr.PriExit "リード・エラー\N"
-	fi
-	return
+    Dos.Read bx,dx,cx
+    if (cf)
+    	Subr.PriExit "リード・エラー\N"
+    fi
+    return
 endproc
 
 endmodule

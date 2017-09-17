@@ -1,14 +1,14 @@
 module VHF
-	c_name "VHF","_",1
+    c_name "VHF","_",1
 
-	import Pri
-	import Vv
-	import V98
-	import RPAL
-	import FB
+    import Pri
+    import Vv
+    import V98
+    import RPAL
+    import FB
   @if defined(WAB21)
-	import C
-	import WAB256
+    import C
+    import WAB256
   @fi
 
 @define V() Vv.T[ds:0]
@@ -27,188 +27,188 @@ cvar sfFlg:w=0
 
 proc HF_Scroll(xofs:w,yofs:w)
 enter
-	if (sfFlg == 0)
-		FB.Scroll xofs,yofs
-	fi
-	return
+    if (sfFlg == 0)
+    	FB.Scroll xofs,yofs
+    fi
+    return
 endproc
 
 *proc ShowOn()
 begin
-	save pusha,es,ds
+    save pusha,es,ds
   @if defined(WAB21)
-	WAB256.ShowOn();
-	WAB256.AccessOn();
+    WAB256.ShowOn();
+    WAB256.AccessOn();
   @else
-	FB._Mode (/*FB.FBONLY*/FB.BOTH)
+    FB._Mode (/*FB.FBONLY*/FB.BOTH)
   @fi
-	return
+    return
 endproc
 
 *proc ShowOff()
 begin
-	save pusha,es,ds
+    save pusha,es,ds
   @if defined(WAB21)
-	WAB256.ShowOff();
-	WAB256.AccessOff();
+    WAB256.ShowOff();
+    WAB256.AccessOff();
   @else
-	FB._Mode (FB.PCONLY)
+    FB._Mode (FB.PCONLY)
   @fi
-	return
+    return
 endproc
 
 
 *proc Start();cdecl
 begin
-	if (hfFlg == 0)
-	  @if defined(WAB21)
-		WAB256.Init 0x04,0,0
-		if (ax)
-			Pri.Fmt "\NWAB‚ª‚È‚¢‚Ý‚½‚¢...\N"
-			ds = ax = %var
-			C.Exit 1
-		fi
-		WAB256.ShowOn();
-		//WAB256.ShowOff();
-		//WAB256.AccessOn();
-	  @else
-		FB._Init
-	  @fi
-		hfFlg = 1
-	fi
-	return
+    if (hfFlg == 0)
+      @if defined(WAB21)
+    	WAB256.Init 0x04,0,0
+    	if (ax)
+    	    Pri.Fmt "\NWAB‚ª‚È‚¢‚Ý‚½‚¢...\N"
+    	    ds = ax = %var
+    	    C.Exit 1
+    	fi
+    	WAB256.ShowOn();
+    	//WAB256.ShowOff();
+    	//WAB256.AccessOn();
+      @else
+    	FB._Init
+      @fi
+    	hfFlg = 1
+    fi
+    return
 endproc
 
 *proc GStart();cdecl
 begin
-	save pusha,es,ds
-	V98.GCls
-	RPAL.SetDfltPal 100
+    save pusha,es,ds
+    V98.GCls
+    RPAL.SetDfltPal 100
   @if defined(WAB21)
-	WAB256.ShowOn();
-	WAB256.AccessOn();
+    WAB256.ShowOn();
+    WAB256.AccessOn();
   @else
-	FB._Mode (/*FB.FBONLY*/FB.BOTH)
-	ax = 0
-	HF_Scroll ax,ax
-	sclOfsX=ax
-	sclOfsY=ax
+    FB._Mode (/*FB.FBONLY*/FB.BOTH)
+    ax = 0
+    HF_Scroll ax,ax
+    sclOfsX=ax
+    sclOfsY=ax
   @fi
-	return
+    return
 endproc
 
 
 *proc GEnd()
 begin
-	save pusha,es,ds
+    save pusha,es,ds
   @if defined(WAB21)
-	WAB256.ShowOff();
-	WAB256.AccessOff();
+    WAB256.ShowOff();
+    WAB256.AccessOff();
   @else
-	FB._Mode (FB.PCONLY)
+    FB._Mode (FB.PCONLY)
   @fi
-	return
+    return
 endproc
 
 *proc SetTone0(tone:w);cdecl
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	rep.inc
-	es.di = gPal
-	ds.si = gVpalette
-	cx = 256
-	bx = 100
-	loop
-		rep.load al,si
-		ax = al*tone.l;dx=0;div dx.ax,bx;if (ah);al=0xff;fi
-		rep.set di,al
-		rep.load al,si
-		ax = al*tone.l;dx=0;div dx.ax,bx;if (ah);al=0xff;fi
-		rep.set di,al
-		rep.load al,si
-		ax = al*tone.l;dx=0;div dx.ax,bx;if (ah);al=0xff;fi
-		rep.set di,al
-	endloop (--cx)
-	return
+    rep.inc
+    es.di = gPal
+    ds.si = gVpalette
+    cx = 256
+    bx = 100
+    loop
+    	rep.load al,si
+    	ax = al*tone.l;dx=0;div dx.ax,bx;if (ah);al=0xff;fi
+    	rep.set di,al
+    	rep.load al,si
+    	ax = al*tone.l;dx=0;div dx.ax,bx;if (ah);al=0xff;fi
+    	rep.set di,al
+    	rep.load al,si
+    	ax = al*tone.l;dx=0;div dx.ax,bx;if (ah);al=0xff;fi
+    	rep.set di,al
+    endloop (--cx)
+    return
 endproc
 
 @if defined(WAB21)
 *proc SetPal(v21Seg:w, tone:w);cdecl
 enter
-	save pusha,es,ds
-	cvar wab_pal:b(256*3)
+    save pusha,es,ds
+    cvar wab_pal:b(256*3)
 
-	ds = v21Seg
-	gPal = dx.ax  = ww(%var,%gPalBuf)
-	gVpalette = dx.ax = V.palette
-	SetTone0 tone
+    ds = v21Seg
+    gPal = dx.ax  = ww(%var,%gPalBuf)
+    gVpalette = dx.ax = V.palette
+    SetTone0 tone
 
-	es = ax = cs
-	di = &wab_pal
-	dh = 0
-	loop	//G
-		dl = 0
-		loop	//R
-			ah = 0
-			loop	//B
-				al = dl; if (al); al |= 0x1f; fi	//R
-				rep.set di,al
-				al = dh; if (al); al |= 0x1f; fi	//G
-				rep.set di,al
-				al = ah; if (al); al |= 0x3f; fi	//B
-				rep.set di,al
-				ah += 64
-			endloop (ah)
-			dl += 32
-		endloop (dl)
-		dh += 32
-	endloop(dh)
-	ax = &wab_pal
-	WAB256.SetRGB tone, es.ax
-	return
+    es = ax = cs
+    di = &wab_pal
+    dh = 0
+    loop    //G
+    	dl = 0
+    	loop	//R
+    	    ah = 0
+    	    loop    //B
+    	    	al = dl; if (al); al |= 0x1f; fi    //R
+    	    	rep.set di,al
+    	    	al = dh; if (al); al |= 0x1f; fi    //G
+    	    	rep.set di,al
+    	    	al = ah; if (al); al |= 0x3f; fi    //B
+    	    	rep.set di,al
+    	    	ah += 64
+    	    endloop (ah)
+    	    dl += 32
+    	endloop (dl)
+    	dh += 32
+    endloop(dh)
+    ax = &wab_pal
+    WAB256.SetRGB tone, es.ax
+    return
 endproc
 @else
 *proc SetPal(v21Seg:w, tone:w);cdecl
 enter
-	save pusha,es,ds
-	ds = v21Seg
-	gPal = dx.ax  = ww(%var,%gPalBuf)
-	gVpalette = dx.ax = V.palette
-	SetTone0 tone
-	return
+    save pusha,es,ds
+    ds = v21Seg
+    gPal = dx.ax  = ww(%var,%gPalBuf)
+    gVpalette = dx.ax = V.palette
+    SetTone0 tone
+    return
 endproc
 @fi
 
 *proc GCls()
 begin
-	save pusha,es,ds
+    save pusha,es,ds
   @if defined(WAB21)
-	WAB256.Cls
+    WAB256.Cls
   @else
-	FB.Clear()
-	ax=0
-	HF_Scroll ax,ax
-	sclOfsX=ax
-	sclOfsY=ax
+    FB.Clear()
+    ax=0
+    HF_Scroll ax,ax
+    sclOfsX=ax
+    sclOfsY=ax
   @fi
-	return
+    return
 endproc
 
 
 *proc End(tone:w);cdecl
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	if (hfFlg && tone < 100)
-		GEnd
-		FB._Mode (FB.FBOFF)
-		ax=0
-		HF_Scroll ax,ax
-	else
-		FB._Mode FB.BOTH
-	fi
-	return
+    if (hfFlg && tone < 100)
+    	GEnd
+    	FB._Mode (FB.FBOFF)
+    	ax=0
+    	HF_Scroll ax,ax
+    else
+    	FB._Mode FB.BOTH
+    fi
+    return
 endproc
 
 
@@ -218,35 +218,35 @@ cvar px_x:w,px_y:w,px_addr:d
 
 proc Px_SetY(ax)
 begin
-	save pusha,es
+    save pusha,es
 
-	px_y = 0
-	WAB256.LineAddr ax
-	px_addr = dx.ax
-	return
+    px_y = 0
+    WAB256.LineAddr ax
+    px_addr = dx.ax
+    return
 endproc
 
 proc Px_One(si)
 begin
-	save ax,bx,di,es
+    save ax,bx,di,es
 
-	rep.load al,si
-	bl = al
-	rep.load.w ax,si
-	//
-	bl &= 0b11100000
-	bl >>= 3
-	al &= 0b11100000
-	//al >>= 0
-	//ah &= 0x11000000
-	ah >>= 6
-	al |= bl
-	al |= ah
+    rep.load al,si
+    bl = al
+    rep.load.w ax,si
+    //
+    bl &= 0b11100000
+    bl >>= 3
+    al &= 0b11100000
+    //al >>= 0
+    //ah &= 0x11000000
+    ah >>= 6
+    al |= bl
+    al |= ah
 
-	es.di = px_addr
-	di += px_x
-	rep.set di,al
-	return
+    es.di = px_addr
+    di += px_x
+    rep.set di,al
+    return
 endproc
 @fi
 
@@ -254,439 +254,439 @@ endproc
 
 *proc PutPx(datSeg:w,xg:w,yg:w,x0:w,y0:w,xsize:w,ysize:w);cdecl
 enter
-	save pusha,es,ds
-	local xsize2:w,yvsize:w,pal:d
+    save pusha,es,ds
+    local xsize2:w,yvsize:w,pal:d
 
-	ds = datSeg
+    ds = datSeg
 
-	yvsize = ax = V.yvsize
-	pal = dx.ax = gPal
+    yvsize = ax = V.yvsize
+    pal = dx.ax = gPal
 
-	ax = yg
+    ax = yg
   L1:
-	if (ax >= 400)
-		ax -= 400
-		yg = ax
-		go.w L1
-	fi
+    if (ax >= 400)
+    	ax -= 400
+    	yg = ax
+    	go.w L1
+    fi
   L2:
-	ax = xg
-	if (ax >= 640)
-		ax -= 640
-		xg = ax
-		go.w L2
-	fi
-	xsize2 = 0
-	ax = x0
-	dx = xsize
-	ax += dx
-	if (ax > V.xvsize)
-		ax -= V.xvsize
-		xsize2 = ax
-		dx -= ax
-		xsize = dx
-	fi
-	ds = pal.h
-	if (xsize2 == 0)
-		cx = ysize
-		loop
-			ax = yg
-		  @if defined(WAB21)
-			Px_SetY ax
-		  @else
-			port(0xD6) = ax
-		  @fi
-			if (ax == 399)
-				gosub Y399
-				goto J1
-			fi
-			++ax //;if (ax == 400);ax = 0;fi
-			yg = ax
-			Vv.LineAddr datSeg, y0
-			es.di = dx.ax
-			push cx
-				bx = xg
-				cx = xsize
-				dx = pal.l
-				di += x0
-				loop
-				  @if defined(WAB21)
-					px_x = ax = bx
-				  @else
-					port(0xD4) = ax = bx
-				  @fi
-					++bx
-					ah = 0
-					al = b[es:di];++di
-					si = dx
-					si += ax
-					ax += ax
-					si += ax
-				  @if defined(WAB21)
-					Px_One si
-				  @else
-					rep.load al,si
-					port(0xD8+0*2) = al
-					rep.load al,si
-					port(0xD8+1*2) = al
-					rep.load al,si
-					port(0xD8+2*2) = al
-				  @fi
-				endloop (--cx)
-			pop  cx
-		  J1:
-			ax = y0
-			++ax;if (ax == yvsize);ax = 0;fi
-			y0 = ax
-		endloop (--cx)
-	else
-		loop.w
-			ax = yg
-		  @if defined(WAB21)
-			Px_SetY ax
-		  @else
-			port(0xD6) = ax
-		  @fi
-			if (ax == 399)
-				gosub Y399
-				goto J2
-			fi
-			++ax //;if (ax == 400);ax = 0;fi
-			yg = ax
-			Vv.LineAddr datSeg, y0
-			es.di = dx.ax
-			bx = xg
-			cx = xsize
-			dx = pal.l
-			push di
-				di += x0
-				loop
-				  @if defined(WAB21)
-					px_x = ax = bx
-				  @else
-					port(0xD4) = ax = bx
-				  @fi
-					++bx
-					ah = 0
-					al = b[es:di]; ++di
-					si = dx
-					si += ax
-					ax += ax
-					si += ax
-				  @if defined(WAB21)
-					Px_One si
-				  @else
-					rep.load al,si
-					port(0xD8+0*2) = al
-					rep.load al,si
-					port(0xD8+1*2) = al
-					rep.load al,si
-					port(0xD8+2*2) = al
-				  @fi
-				endloop (--cx)
-			pop di
-			cx = xsize2
-			loop
-			  @if defined(WAB21)
-				px_x = ax = bx
-			  @else
-				port(0xD4) = ax = bx
-			  @fi
-				++bx
-				ah = 0
-				al = b[es:di]; ++di
-				si = dx
-				si += ax
-				ax += ax
-				si += ax
-			  @if defined(WAB21)
-				Px_One si
-			  @else
-				rep.load al,si
-				port(0xD8+0*2) = al
-				rep.load al,si
-				port(0xD8+1*2) = al
-				rep.load al,si
-				port(0xD8+2*2) = al
-			  @fi
-			endloop (--cx)
-		J2:
-			ax = y0
-			++ax;if (ax == yvsize);ax = 0;fi
-			y0 = ax
-		endloop (--ysize)
-	fi
-	return
+    ax = xg
+    if (ax >= 640)
+    	ax -= 640
+    	xg = ax
+    	go.w L2
+    fi
+    xsize2 = 0
+    ax = x0
+    dx = xsize
+    ax += dx
+    if (ax > V.xvsize)
+    	ax -= V.xvsize
+    	xsize2 = ax
+    	dx -= ax
+    	xsize = dx
+    fi
+    ds = pal.h
+    if (xsize2 == 0)
+    	cx = ysize
+    	loop
+    	    ax = yg
+    	  @if defined(WAB21)
+    	    Px_SetY ax
+    	  @else
+    	    port(0xD6) = ax
+    	  @fi
+    	    if (ax == 399)
+    	    	gosub Y399
+    	    	goto J1
+    	    fi
+    	    ++ax //;if (ax == 400);ax = 0;fi
+    	    yg = ax
+    	    Vv.LineAddr datSeg, y0
+    	    es.di = dx.ax
+    	    push cx
+    	    	bx = xg
+    	    	cx = xsize
+    	    	dx = pal.l
+    	    	di += x0
+    	    	loop
+    	    	  @if defined(WAB21)
+    	    	    px_x = ax = bx
+    	    	  @else
+    	    	    port(0xD4) = ax = bx
+    	    	  @fi
+    	    	    ++bx
+    	    	    ah = 0
+    	    	    al = b[es:di];++di
+    	    	    si = dx
+    	    	    si += ax
+    	    	    ax += ax
+    	    	    si += ax
+    	    	  @if defined(WAB21)
+    	    	    Px_One si
+    	    	  @else
+    	    	    rep.load al,si
+    	    	    port(0xD8+0*2) = al
+    	    	    rep.load al,si
+    	    	    port(0xD8+1*2) = al
+    	    	    rep.load al,si
+    	    	    port(0xD8+2*2) = al
+    	    	  @fi
+    	    	endloop (--cx)
+    	    pop  cx
+    	  J1:
+    	    ax = y0
+    	    ++ax;if (ax == yvsize);ax = 0;fi
+    	    y0 = ax
+    	endloop (--cx)
+    else
+    	loop.w
+    	    ax = yg
+    	  @if defined(WAB21)
+    	    Px_SetY ax
+    	  @else
+    	    port(0xD6) = ax
+    	  @fi
+    	    if (ax == 399)
+    	    	gosub Y399
+    	    	goto J2
+    	    fi
+    	    ++ax //;if (ax == 400);ax = 0;fi
+    	    yg = ax
+    	    Vv.LineAddr datSeg, y0
+    	    es.di = dx.ax
+    	    bx = xg
+    	    cx = xsize
+    	    dx = pal.l
+    	    push di
+    	    	di += x0
+    	    	loop
+    	    	  @if defined(WAB21)
+    	    	    px_x = ax = bx
+    	    	  @else
+    	    	    port(0xD4) = ax = bx
+    	    	  @fi
+    	    	    ++bx
+    	    	    ah = 0
+    	    	    al = b[es:di]; ++di
+    	    	    si = dx
+    	    	    si += ax
+    	    	    ax += ax
+    	    	    si += ax
+    	    	  @if defined(WAB21)
+    	    	    Px_One si
+    	    	  @else
+    	    	    rep.load al,si
+    	    	    port(0xD8+0*2) = al
+    	    	    rep.load al,si
+    	    	    port(0xD8+1*2) = al
+    	    	    rep.load al,si
+    	    	    port(0xD8+2*2) = al
+    	    	  @fi
+    	    	endloop (--cx)
+    	    pop di
+    	    cx = xsize2
+    	    loop
+    	      @if defined(WAB21)
+    	    	px_x = ax = bx
+    	      @else
+    	    	port(0xD4) = ax = bx
+    	      @fi
+    	    	++bx
+    	    	ah = 0
+    	    	al = b[es:di]; ++di
+    	    	si = dx
+    	    	si += ax
+    	    	ax += ax
+    	    	si += ax
+    	      @if defined(WAB21)
+    	    	Px_One si
+    	      @else
+    	    	rep.load al,si
+    	    	port(0xD8+0*2) = al
+    	    	rep.load al,si
+    	    	port(0xD8+1*2) = al
+    	    	rep.load al,si
+    	    	port(0xD8+2*2) = al
+    	      @fi
+    	    endloop (--cx)
+    	J2:
+    	    ax = y0
+    	    ++ax;if (ax == yvsize);ax = 0;fi
+    	    y0 = ax
+    	endloop (--ysize)
+    fi
+    return
  @if 1
   Y399:
-	push cx
-		yg = 0
-		Vv.LineAddr datSeg, y0
-		es.di = dx.ax
-		bx = xg
-		cx = xsize
-		dx = pal.l
-		push di
-			di += x0
-			loop
-			  @if defined(WAB21)
-				px_x = ax = bx
-			  @else
-				if (bx == 640)
-					port(0xD6) = ax = bx = 0
-				fi
-				port(0xD4) = ax = bx
-			  @fi
-				++bx
-				ah = 0
-				al = b[es:di]; ++di
-				si = dx
-				si += ax
-				ax += ax
-				si += ax
-			  @if defined(WAB21)
-				Px_One si
-			  @else
-				rep.load al,si
-				port(0xD8+0*2) = al
-				rep.load al,si
-				port(0xD8+1*2) = al
-				rep.load al,si
-				port(0xD8+2*2) = al
-			  @fi
-			endloop (--cx)
-		pop di
-		cx = xsize2
-		if (cx)
-			loop
-			  @if defined(WAB21)
-				px_x = ax = bx
-			  @else
-				if (bx == 640)
-					port(0xD6) = ax = bx = 0
-				fi
-				port(0xD4) = ax = bx
-			  @fi
-				++bx
-				ah = 0
-				al = b[es:di]; ++di
-				si = dx
-				si += ax
-				ax += ax
-				si += ax
-			  @if defined(WAB21)
-				Px_One si
-			  @else
-				rep.load al,si
-				port(0xD8+0*2) = al
-				rep.load al,si
-				port(0xD8+1*2) = al
-				rep.load al,si
-				port(0xD8+2*2) = al
-			  @fi
-			endloop (--cx)
-		fi
-	pop  cx
-	ret
+    push cx
+    	yg = 0
+    	Vv.LineAddr datSeg, y0
+    	es.di = dx.ax
+    	bx = xg
+    	cx = xsize
+    	dx = pal.l
+    	push di
+    	    di += x0
+    	    loop
+    	      @if defined(WAB21)
+    	    	px_x = ax = bx
+    	      @else
+    	    	if (bx == 640)
+    	    	    port(0xD6) = ax = bx = 0
+    	    	fi
+    	    	port(0xD4) = ax = bx
+    	      @fi
+    	    	++bx
+    	    	ah = 0
+    	    	al = b[es:di]; ++di
+    	    	si = dx
+    	    	si += ax
+    	    	ax += ax
+    	    	si += ax
+    	      @if defined(WAB21)
+    	    	Px_One si
+    	      @else
+    	    	rep.load al,si
+    	    	port(0xD8+0*2) = al
+    	    	rep.load al,si
+    	    	port(0xD8+1*2) = al
+    	    	rep.load al,si
+    	    	port(0xD8+2*2) = al
+    	      @fi
+    	    endloop (--cx)
+    	pop di
+    	cx = xsize2
+    	if (cx)
+    	    loop
+    	      @if defined(WAB21)
+    	    	px_x = ax = bx
+    	      @else
+    	    	if (bx == 640)
+    	    	    port(0xD6) = ax = bx = 0
+    	    	fi
+    	    	port(0xD4) = ax = bx
+    	      @fi
+    	    	++bx
+    	    	ah = 0
+    	    	al = b[es:di]; ++di
+    	    	si = dx
+    	    	si += ax
+    	    	ax += ax
+    	    	si += ax
+    	      @if defined(WAB21)
+    	    	Px_One si
+    	      @else
+    	    	rep.load al,si
+    	    	port(0xD8+0*2) = al
+    	    	rep.load al,si
+    	    	port(0xD8+1*2) = al
+    	    	rep.load al,si
+    	    	port(0xD8+2*2) = al
+    	      @fi
+    	    endloop (--cx)
+    	fi
+    pop  cx
+    ret
   @fi
 endproc
 
 *proc ResetScl(datSeg:w);cdecl
 enter
-	save pusha,ds
-	ds = datSeg
-	ax = 0
-	V.xvstart = ax
-	V.yvstart = ax
-	sclOfsX = ax
-	sclOfsY = ax
-	HF_Scroll ax,ax
-	return
+    save pusha,ds
+    ds = datSeg
+    ax = 0
+    V.xvstart = ax
+    V.yvstart = ax
+    sclOfsX = ax
+    sclOfsY = ax
+    HF_Scroll ax,ax
+    return
 endproc
 
 *proc PutPxPart(datSeg:w);cdecl
 enter
-	save ds,ax
-	ds = datSeg
-	ResetScl ds
-	ax = 0
-	PutPx ds, V.xgstart, V.ygstart, ax, ax, V.xgsize, V.ygsize
-	return
+    save ds,ax
+    ds = datSeg
+    ResetScl ds
+    ax = 0
+    PutPx ds, V.xgstart, V.ygstart, ax, ax, V.xgsize, V.ygsize
+    return
 endproc
 
 *proc PutPxScrn(datSeg:w,x0:w,y0:w);cdecl
 enter
-	save ds,dx,ax
-	ds = datSeg
-	ResetScl ds
-	V.xvstart = ax = x0
-	V.yvstart = dx = y0
-	//if (V.loopFlg)
-		ax = dx = 0
-	//fi
-	PutPx ds, ax, dx, x0, y0, V.xgsize, V.ygsize
-	return
+    save ds,dx,ax
+    ds = datSeg
+    ResetScl ds
+    V.xvstart = ax = x0
+    V.yvstart = dx = y0
+    //if (V.loopFlg)
+    	ax = dx = 0
+    //fi
+    PutPx ds, ax, dx, x0, y0, V.xgsize, V.ygsize
+    return
 endproc
 
 *proc PutPxBCol(datSeg:w);cdecl
 enter
-	save pusha,es,ds
-	local yvsize:w,ygsize:w,pal:d,xg:w,yg:w,y0:w,xsize:w,bcol:w
+    save pusha,es,ds
+    local yvsize:w,ygsize:w,pal:d,xg:w,yg:w,y0:w,xsize:w,bcol:w
 
-	ds = datSeg
-	ResetScl ds
+    ds = datSeg
+    ResetScl ds
 
-	pal = dx.ax = gPal
-	xsize = ax = V.xvsize
-	yvsize = ax = V.yvsize
-	xg = ax = V.xgstart
-	yg = ax = V.ygstart
-	bcol = ax = V.overlayColor
+    pal = dx.ax = gPal
+    xsize = ax = V.xvsize
+    yvsize = ax = V.yvsize
+    xg = ax = V.xgstart
+    yg = ax = V.ygstart
+    bcol = ax = V.overlayColor
 
-	cx = V.ygsize
-	y0 = 0
-	ds = pal.h
-	loop
-		ax = yg
-	  @if defined(WAB21)
-		Px_SetY ax
-	  @else
-		port(0xD6) = ax
-	  @fi
-		++ax;go.w (ax == 400) RET
-		//++ax;if (ax == 400);ax = 0;fi
-		yg = ax
-		Vv.LineAddr datSeg, y0
-		es.di = dx.ax
-		push cx
-			bx = xg
-			cx = xsize
-			dx = pal.l
-			loop
-			  @if defined(WAB21)
-				px_x = ax = bx
-			  @else
-				port(0xD4) = ax = bx
-			  @fi
-				++bx
-				ah = 0
-				al = b[es:di]
-				++di
-				next (al == bcol.l)
-				si = dx
-				si += ax
-				ax += ax
-				si += ax
-			  @if defined(WAB21)
-				Px_One si
-			  @else
-				rep.load al,si
-				port(0xD8+0*2) = al
-				rep.load al,si
-				port(0xD8+1*2) = al
-				rep.load al,si
-				port(0xD8+2*2) = al
-			  @fi
-			endloop (--cx)
-		pop  cx
-		ax = y0
-		++ax;if (ax == yvsize);ax = 0;fi
-		y0 = ax
-	endloop (--cx)
+    cx = V.ygsize
+    y0 = 0
+    ds = pal.h
+    loop
+    	ax = yg
+      @if defined(WAB21)
+    	Px_SetY ax
+      @else
+    	port(0xD6) = ax
+      @fi
+    	++ax;go.w (ax == 400) RET
+    	//++ax;if (ax == 400);ax = 0;fi
+    	yg = ax
+    	Vv.LineAddr datSeg, y0
+    	es.di = dx.ax
+    	push cx
+    	    bx = xg
+    	    cx = xsize
+    	    dx = pal.l
+    	    loop
+    	      @if defined(WAB21)
+    	    	px_x = ax = bx
+    	      @else
+    	    	port(0xD4) = ax = bx
+    	      @fi
+    	    	++bx
+    	    	ah = 0
+    	    	al = b[es:di]
+    	    	++di
+    	    	next (al == bcol.l)
+    	    	si = dx
+    	    	si += ax
+    	    	ax += ax
+    	    	si += ax
+    	      @if defined(WAB21)
+    	    	Px_One si
+    	      @else
+    	    	rep.load al,si
+    	    	port(0xD8+0*2) = al
+    	    	rep.load al,si
+    	    	port(0xD8+1*2) = al
+    	    	rep.load al,si
+    	    	port(0xD8+2*2) = al
+    	      @fi
+    	    endloop (--cx)
+    	pop  cx
+    	ax = y0
+    	++ax;if (ax == yvsize);ax = 0;fi
+    	y0 = ax
+    endloop (--cx)
   RET:
-	return
+    return
 endproc
 
 
 *proc PutPxLoop(datSeg:w);cdecl
 enter
-	save pusha,es,ds
-	local yvsize:w,ygsize:w,pal:d,xg:w,yg:w,y0:w,xsize:w
-	local x_cnt:w,x_rst:w
+    save pusha,es,ds
+    local yvsize:w,ygsize:w,pal:d,xg:w,yg:w,y0:w,xsize:w
+    local x_cnt:w,x_rst:w
 
-	ds = datSeg
-	ResetScl ds
+    ds = datSeg
+    ResetScl ds
 
-	dx.ax = ww(0, V.xgscrn)
-	div dx.ax, V.xvsize
-	x_cnt = ax
-	x_rst = dx
-	pal = dx.ax = gPal
-	xsize = ax = V.xvsize
-	yvsize = ax = V.yvsize
-	yg = 0
-	y0 = 0
-	cx = V.ygsize
-	ds = pal.h
-	loop
-		ax = yg
-		exit (ax == 400)
-	  @if defined(WAB21)
-		Px_SetY ax
-	  @else
-		port(0xD6) = ax
-	  @fi
-		yg = ax
-		Vv.LineAddr datSeg, y0
-		bx = 0
-		cx = x_cnt
-		es.di = dx.ax
-		loop
-			push cx
-			cx = xsize
-			gosub PutXYN
-			pop  cx
-		endloop (--cx)
-		cx = x_rst
-		if (cx)
-			gosub PutXYN
-		fi
-		ax = y0
-		++ax;if (ax == yvsize);ax = 0;fi
-		y0 = ax
-		++yg
-	endloop
-	return
+    dx.ax = ww(0, V.xgscrn)
+    div dx.ax, V.xvsize
+    x_cnt = ax
+    x_rst = dx
+    pal = dx.ax = gPal
+    xsize = ax = V.xvsize
+    yvsize = ax = V.yvsize
+    yg = 0
+    y0 = 0
+    cx = V.ygsize
+    ds = pal.h
+    loop
+    	ax = yg
+    	exit (ax == 400)
+      @if defined(WAB21)
+    	Px_SetY ax
+      @else
+    	port(0xD6) = ax
+      @fi
+    	yg = ax
+    	Vv.LineAddr datSeg, y0
+    	bx = 0
+    	cx = x_cnt
+    	es.di = dx.ax
+    	loop
+    	    push cx
+    	    cx = xsize
+    	    gosub PutXYN
+    	    pop  cx
+    	endloop (--cx)
+    	cx = x_rst
+    	if (cx)
+    	    gosub PutXYN
+    	fi
+    	ax = y0
+    	++ax;if (ax == yvsize);ax = 0;fi
+    	y0 = ax
+    	++yg
+    endloop
+    return
 
   PutXYN:
-	push di
-	dx = pal.l
-	loop
-	  @if defined(WAB21)
-		px_x = ax = bx
-	  @else
-		port(0xD4) = ax = bx
-	  @fi
-		++bx
-		ah = 0
-		al = b[es:di]
-		++di
-		si = dx
-		si += ax
-		ax += ax
-		si += ax
-	  @if defined(WAB21)
-		Px_One si
-	  @else
-		rep.load al,si
-		port(0xD8+0*2) = al
-		rep.load al,si
-		port(0xD8+1*2) = al
-		rep.load al,si
-		port(0xD8+2*2) = al
-	  @fi
-	endloop (--cx)
-	pop  di
-	ret
+    push di
+    dx = pal.l
+    loop
+      @if defined(WAB21)
+    	px_x = ax = bx
+      @else
+    	port(0xD4) = ax = bx
+      @fi
+    	++bx
+    	ah = 0
+    	al = b[es:di]
+    	++di
+    	si = dx
+    	si += ax
+    	ax += ax
+    	si += ax
+      @if defined(WAB21)
+    	Px_One si
+      @else
+    	rep.load al,si
+    	port(0xD8+0*2) = al
+    	rep.load al,si
+    	port(0xD8+1*2) = al
+    	rep.load al,si
+    	port(0xD8+2*2) = al
+      @fi
+    endloop (--cx)
+    pop  di
+    ret
 endproc
 
 *proc SetTone(tone:w);cdecl
 enter
-	save pusha,ds,es
-	SetTone0 tone
-	ds = gDatSeg
-	PutPxScrn ds, V.xvstart, V.yvstart
-	return
+    save pusha,ds,es
+    SetTone0 tone
+    ds = gDatSeg
+    PutPxScrn ds, V.xvstart, V.yvstart
+    return
 endproc
 
 /*---------------------------------------------------------------------------*/
@@ -694,307 +694,307 @@ endproc
 
 *proc GetSclOfs(datSeg:w);cdecl
 enter
-	dx.ax = 0
-	return
+    dx.ax = 0
+    return
 endproc
 
 *proc SclUp(Seg:w, ddd:w);cdecl
 enter
-	return
+    return
 endproc
 
 *proc SclDw(Seg:w, ddd:w);cdecl
 enter
-	return
+    return
 endproc
 
 *proc SclLft(Seg:w, ddd:w);cdecl
 enter
-	return
+    return
 endproc
 
 *proc SclRig(Seg:w, ddd:w);cdecl
 enter
-	return
+    return
 endproc
 
 @else
 
 *proc GetSclOfs(datSeg:w);cdecl
 enter
-	save ds
-	if (sfFlg)
-		dx.ax = 0
-	else
-		ds = datSeg
-		ax = sclOfsX
-		dx = sclOfsY
-	fi
-	return
+    save ds
+    if (sfFlg)
+    	dx.ax = 0
+    else
+    	ds = datSeg
+    	ax = sclOfsX
+    	dx = sclOfsY
+    fi
+    return
 endproc
 
 *proc SclUp(Seg:w, nnn:w);cdecl
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	ds = Seg
-	cx = nnn
-	if.w (cx <= 32)
-		loop
-			--V.yvstart
-			if (V.yvstart .<. 0)
-				if (V.loopFlg == 0)
-					V.yvstart = 0
-					go.w RET
-				fi
-				ax = V.yvsize
-				V.yvstart += ax
-			fi
-			ax = sclOfsY
-			ax -= 1
-			if (ax .<. 0)
-				ax += 400
-			fi
-			sclOfsY = ax
-			HF_Scroll sclOfsX, ax
-			PutPx ds, sclOfsX,sclOfsY, V.xvstart, V.yvstart, V.xgsize, 1
-		endloop (--cx)
-  	else
-		cx >>= 4
-		loop
-			ax = V.yvstart;	ax -= 16;	V.yvstart = ax
-			if (V.yvstart .<. 0)
-				if (V.loopFlg == 0)
-					V.yvstart = 0
-					go RET
-				fi
-				ax = V.yvsize
-				V.yvstart += ax
-			fi
-			ax = sclOfsY
-			ax -= 16
-			if (ax .<. 0)
-				ax += 400
-			fi
-			sclOfsY = ax
-			HF_Scroll sclOfsX, ax
-			PutPx ds, sclOfsX,sclOfsY, V.xvstart, V.yvstart, V.xgsize, 16
-		endloop (--cx)
-  	fi
+    ds = Seg
+    cx = nnn
+    if.w (cx <= 32)
+    	loop
+    	    --V.yvstart
+    	    if (V.yvstart .<. 0)
+    	    	if (V.loopFlg == 0)
+    	    	    V.yvstart = 0
+    	    	    go.w RET
+    	    	fi
+    	    	ax = V.yvsize
+    	    	V.yvstart += ax
+    	    fi
+    	    ax = sclOfsY
+    	    ax -= 1
+    	    if (ax .<. 0)
+    	    	ax += 400
+    	    fi
+    	    sclOfsY = ax
+    	    HF_Scroll sclOfsX, ax
+    	    PutPx ds, sclOfsX,sclOfsY, V.xvstart, V.yvstart, V.xgsize, 1
+    	endloop (--cx)
+    else
+    	cx >>= 4
+    	loop
+    	    ax = V.yvstart; ax -= 16;	V.yvstart = ax
+    	    if (V.yvstart .<. 0)
+    	    	if (V.loopFlg == 0)
+    	    	    V.yvstart = 0
+    	    	    go RET
+    	    	fi
+    	    	ax = V.yvsize
+    	    	V.yvstart += ax
+    	    fi
+    	    ax = sclOfsY
+    	    ax -= 16
+    	    if (ax .<. 0)
+    	    	ax += 400
+    	    fi
+    	    sclOfsY = ax
+    	    HF_Scroll sclOfsX, ax
+    	    PutPx ds, sclOfsX,sclOfsY, V.xvstart, V.yvstart, V.xgsize, 16
+    	endloop (--cx)
+    fi
   RET:
-	return
+    return
 endproc
 
 *proc SclDw(Seg:w, nnn:w);cdecl
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	ds = Seg
-	cx = nnn
-	si = V.yvstart
-	di = V.yvsize
-	if (V.loopFlg)
-	  L1:
-		if (si .>=. di)
-			si -= di
-			go L1
-		fi
-	else
-		di -= 400
-	fi
+    ds = Seg
+    cx = nnn
+    si = V.yvstart
+    di = V.yvsize
+    if (V.loopFlg)
+      L1:
+    	if (si .>=. di)
+    	    si -= di
+    	    go L1
+    	fi
+    else
+    	di -= 400
+    fi
 
-	if.w (cx <= 32)
-		loop
-			if (si .>=. di)
-				go.w (V.loopFlg == 0) RET2
-				si -= di
-			fi
-			dx = ax = sclOfsY
-			ax += 1
-			if (ax >= 400)
-				ax -= 400
-			fi
-			sclOfsY = ax
-			push dx
-				HF_Scroll sclOfsX, ax
-			pop  dx
-			bx = si
-			bx += 400
-			PutPx ds, sclOfsX,dx/*gY*/, V.xvstart, bx, V.xgsize, 1
-			++si
-		endloop (--cx)
-	else
-		cx >>= 4
-		loop
-			if (si .>=. di)
-				go (V.loopFlg == 0) RET2
-				si -= di
-			fi
-			dx = ax = sclOfsY
-			ax += 16
-			if (ax >= 400)
-				ax -= 400
-			fi
-			sclOfsY = ax
-			push dx
-				HF_Scroll sclOfsX, ax
-			pop  dx
-			bx = si
-			bx += 400
-			PutPx ds, sclOfsX,dx/*gY*/, V.xvstart, bx, V.xgsize, 16
-			si+=16
-		endloop (--cx)
-	fi
-	V.yvstart = si
+    if.w (cx <= 32)
+    	loop
+    	    if (si .>=. di)
+    	    	go.w (V.loopFlg == 0) RET2
+    	    	si -= di
+    	    fi
+    	    dx = ax = sclOfsY
+    	    ax += 1
+    	    if (ax >= 400)
+    	    	ax -= 400
+    	    fi
+    	    sclOfsY = ax
+    	    push dx
+    	    	HF_Scroll sclOfsX, ax
+    	    pop  dx
+    	    bx = si
+    	    bx += 400
+    	    PutPx ds, sclOfsX,dx/*gY*/, V.xvstart, bx, V.xgsize, 1
+    	    ++si
+    	endloop (--cx)
+    else
+    	cx >>= 4
+    	loop
+    	    if (si .>=. di)
+    	    	go (V.loopFlg == 0) RET2
+    	    	si -= di
+    	    fi
+    	    dx = ax = sclOfsY
+    	    ax += 16
+    	    if (ax >= 400)
+    	    	ax -= 400
+    	    fi
+    	    sclOfsY = ax
+    	    push dx
+    	    	HF_Scroll sclOfsX, ax
+    	    pop  dx
+    	    bx = si
+    	    bx += 400
+    	    PutPx ds, sclOfsX,dx/*gY*/, V.xvstart, bx, V.xgsize, 16
+    	    si+=16
+    	endloop (--cx)
+    fi
+    V.yvstart = si
   RET:
-	return
+    return
   RET2:
-	V.yvstart = di
-	go RET
+    V.yvstart = di
+    go RET
 endproc
 
 *proc SclLft(datSeg:w, nnn:w);cdecl
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	ds = datSeg
-	cx = nnn
-	cx >>= 4
-	if (cx)
-		si = V.xvstart
-		loop
-			si -= 16
-			go (si .<. 0) RET2
-		  J1:
-			ax = sclOfsX
-			ax -= 16
-			if (ax .<. 0)
-				ax += 640
-			fi
-			sclOfsX = ax
-			push ax
-				HF_Scroll ax, sclOfsY
-			pop  ax
-			PutPx ds, ax/*gX*/,sclOfsY, si, V.yvstart,16, V.ygsize
-		endloop (--cx)
-		V.xvstart = si
-	fi
+    ds = datSeg
+    cx = nnn
+    cx >>= 4
+    if (cx)
+    	si = V.xvstart
+    	loop
+    	    si -= 16
+    	    go (si .<. 0) RET2
+    	  J1:
+    	    ax = sclOfsX
+    	    ax -= 16
+    	    if (ax .<. 0)
+    	    	ax += 640
+    	    fi
+    	    sclOfsX = ax
+    	    push ax
+    	    	HF_Scroll ax, sclOfsY
+    	    pop  ax
+    	    PutPx ds, ax/*gX*/,sclOfsY, si, V.yvstart,16, V.ygsize
+    	endloop (--cx)
+    	V.xvstart = si
+    fi
   RET:
-	return
+    return
   RET2:
-	if (V.loopFlg)
-		ax = V.xvsize
-		if (ax & 0x0f)
-			ax += 16
-			ax &= 0xFFF0
-		fi
-		si += ax
-		go J1
-	fi
-	V.xvstart = 0
-	go RET
+    if (V.loopFlg)
+    	ax = V.xvsize
+    	if (ax & 0x0f)
+    	    ax += 16
+    	    ax &= 0xFFF0
+    	fi
+    	si += ax
+    	go J1
+    fi
+    V.xvstart = 0
+    go RET
 endproc
 
 *proc SclRig(datSeg:w, nnn:w);cdecl
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	ds = datSeg
-	cx = nnn
-	cx >>= 4
-	if.w (cx)
-		di = V.xvsize
-		if (di & 0x0f)
-			di &= 0xfff0
-			di += 16
-		fi
-		go (di </*<=*/ 640) RET
-		//|di >>= 1;adc di,0;di+=di
-		si = V.xvstart
-		if (V.loopFlg)
-		  L1:
-			if (si .>=. di)
-				si -= di
-				go L1
-			fi
-		else
-			di -= 640
-		fi
-		loop
-			if (si .>=. di)
-				go (V.loopFlg == 0) RET3
-				si -= di
-			fi
-			dx = ax = sclOfsX
-			ax += 16
-			if (ax >= 640)
-				ax -= 640
-			fi
-			sclOfsX = ax
-			push dx
-			HF_Scroll ax, sclOfsY
-			pop  ax
-			bx = si
-			bx += 640
-			dx = sclOfsY
-			++dx;// if (dx == 400);dx = 0;fi
-			PutPx ds, ax, dx/*sclOfsY*/, bx, V.yvstart, 16, V.ygsize
-			si += 16
-		endloop (--cx)
-		V.xvstart = si
-	fi
+    ds = datSeg
+    cx = nnn
+    cx >>= 4
+    if.w (cx)
+    	di = V.xvsize
+    	if (di & 0x0f)
+    	    di &= 0xfff0
+    	    di += 16
+    	fi
+    	go (di </*<=*/ 640) RET
+    	//|di >>= 1;adc di,0;di+=di
+    	si = V.xvstart
+    	if (V.loopFlg)
+    	  L1:
+    	    if (si .>=. di)
+    	    	si -= di
+    	    	go L1
+    	    fi
+    	else
+    	    di -= 640
+    	fi
+    	loop
+    	    if (si .>=. di)
+    	    	go (V.loopFlg == 0) RET3
+    	    	si -= di
+    	    fi
+    	    dx = ax = sclOfsX
+    	    ax += 16
+    	    if (ax >= 640)
+    	    	ax -= 640
+    	    fi
+    	    sclOfsX = ax
+    	    push dx
+    	    HF_Scroll ax, sclOfsY
+    	    pop  ax
+    	    bx = si
+    	    bx += 640
+    	    dx = sclOfsY
+    	    ++dx;// if (dx == 400);dx = 0;fi
+    	    PutPx ds, ax, dx/*sclOfsY*/, bx, V.yvstart, 16, V.ygsize
+    	    si += 16
+    	endloop (--cx)
+    	V.xvstart = si
+    fi
   RET:
-	return
+    return
 RET3:
-	V.xvstart = di
-	go RET
+    V.xvstart = di
+    go RET
 endproc
 @fi
 
 /*---------------------------------------------------------------------------*/
 
 *proc Init(vvSeg:w,mmSeg:w,mmSzs:w,emsHdl:w,emsSeg:w,emsCnt:w,	\
-			pln:w,xsz:w,ysz:w,xstart:w,ystart:w,pal:d,asp1:w,asp2:w,bcol:w, \
-			reductFlg:w,loopFlg:w	\
-			)
-	cdecl
+    	    pln:w,xsz:w,ysz:w,xstart:w,ystart:w,pal:d,asp1:w,asp2:w,bcol:w, \
+    	    reductFlg:w,loopFlg:w   \
+    	    )
+    cdecl
 enter
-	save bx,cx,dx,si,di,es,ds
+    save bx,cx,dx,si,di,es,ds
 
-	if (hfFlg == 0)
-		Start
-	fi
-	sfFlg = 0
-	ds = vvSeg
-	gDatSeg = ds
-	Vv.Init 0, vvSeg,mmSeg,mmSzs,emsHdl,emsSeg,emsCnt,pln,640,400,\
-			xsz,ysz,xstart,ystart,pal,asp1,asp2,bcol,reductFlg,loopFlg
-	gPal = dx.ax = ww(%var,%gPalBuf)
-	ax = 0
-	HF_Scroll ax,ax
-	ax = V.maxLine
-	return
+    if (hfFlg == 0)
+    	Start
+    fi
+    sfFlg = 0
+    ds = vvSeg
+    gDatSeg = ds
+    Vv.Init 0, vvSeg,mmSeg,mmSzs,emsHdl,emsSeg,emsCnt,pln,640,400,\
+    	    xsz,ysz,xstart,ystart,pal,asp1,asp2,bcol,reductFlg,loopFlg
+    gPal = dx.ax = ww(%var,%gPalBuf)
+    ax = 0
+    HF_Scroll ax,ax
+    ax = V.maxLine
+    return
 endproc
 
-*proc InitSF(vvSeg:w,mmSeg:w,mmSzs:w,emsHdl:w,emsSeg:w,emsCnt:w,	\
-			pln:w,xsz:w,ysz:w,xstart:w,ystart:w,pal:d,asp1:w,asp2:w,bcol:w, \
-			reductFlg:w,loopFlg:w	\
-			)
-	cdecl
+*proc InitSF(vvSeg:w,mmSeg:w,mmSzs:w,emsHdl:w,emsSeg:w,emsCnt:w,    \
+    	    pln:w,xsz:w,ysz:w,xstart:w,ystart:w,pal:d,asp1:w,asp2:w,bcol:w, \
+    	    reductFlg:w,loopFlg:w   \
+    	    )
+    cdecl
 enter
-	save bx,cx,dx,si,di,es,ds
+    save bx,cx,dx,si,di,es,ds
 
-	if (hfFlg == 0)
-		Start
-	fi
-	sfFlg = 1
-	ds = vvSeg
-	gDatSeg = ds
-	Vv.Init 0, vvSeg,mmSeg,mmSzs,emsHdl,emsSeg,emsCnt,pln,640,400,\
-			xsz,ysz,xstart,ystart,pal,asp1,asp2,bcol,reductFlg,loopFlg
-	gPal = dx.ax = ww(%var,%gPalBuf)
-	ax = V.maxLine
-	return
+    if (hfFlg == 0)
+    	Start
+    fi
+    sfFlg = 1
+    ds = vvSeg
+    gDatSeg = ds
+    Vv.Init 0, vvSeg,mmSeg,mmSzs,emsHdl,emsSeg,emsCnt,pln,640,400,\
+    	    xsz,ysz,xstart,ystart,pal,asp1,asp2,bcol,reductFlg,loopFlg
+    gPal = dx.ax = ww(%var,%gPalBuf)
+    ax = V.maxLine
+    return
 endproc
 
 /*---------------------------------------------------------------------------*/

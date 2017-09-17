@@ -1,116 +1,116 @@
 submodule GH
-	import Dos
-	import Subr
-	import Std
-	import Pri
+    import Dos
+    import Subr
+    import Std
+    import Pri
 
-@define	GHT()	GH.T[ds:0]
+@define GHT()	GH.T[ds:0]
 
 *proc ReadBWDbuf(bx)
-//	ファイルよりデータを読み込む
-//	arg ds.bx	pointer to GH.T
+//  ファイルよりデータを読み込む
+//  arg ds.bx	pointer to GH.T
 begin
-	save pusha,es,ds
+    save pusha,es,ds
 
-	di = ds
-	cx = GHT.rdBufSiz
-	dx = 0
-	ax = GHT.rdBufSeg
-	push ds,bx
-		bx = GHT.rdHdl
-		ds = ax
-		//Pri.Fmt "dosread %x,%08lx,%d(%x)\N",bx,ax.dx,cx,cx
-		Dos.Read bx,dx,cx
-		|ds = di
-		go (_c_) J1
-		//Pri.Fmt "(ax%04x,cx%04x)\N",ax,cx
-		if (ax == 0)
-	  J1:
-			Subr.PriExit "データの読込みに失敗しました\N"
-		fi
-		if (ax);--ax;fi
-	pop  ds,bx
-	//Pri.Fmt ",rdBufBtm%04x,%04x\N",GHT.rdBufBtm,ax
-	GHT.rdBufBtm = ax
-	GHT.rdPtr = dx
-	return
+    di = ds
+    cx = GHT.rdBufSiz
+    dx = 0
+    ax = GHT.rdBufSeg
+    push ds,bx
+    	bx = GHT.rdHdl
+    	ds = ax
+    	//Pri.Fmt "dosread %x,%08lx,%d(%x)\N",bx,ax.dx,cx,cx
+    	Dos.Read bx,dx,cx
+    	|ds = di
+    	go (_c_) J1
+    	//Pri.Fmt "(ax%04x,cx%04x)\N",ax,cx
+    	if (ax == 0)
+      J1:
+    	    Subr.PriExit "データの読込みに失敗しました\N"
+    	fi
+    	if (ax);--ax;fi
+    pop  ds,bx
+    //Pri.Fmt ",rdBufBtm%04x,%04x\N",GHT.rdBufBtm,ax
+    GHT.rdBufBtm = ax
+    GHT.rdPtr = dx
+    return
 endproc
 
 *proc ResetReadBWD(bx)
   //Seek後にReadB(W,D)を使うばあい実行
 begin
-	GHT.rdPtr = 0xffff
-	GHT.rdBufBtm = 0
-	return
+    GHT.rdPtr = 0xffff
+    GHT.rdBufBtm = 0
+    return
 endproc
 
 *proc InitReadBWD(bx,ax,cx)
   //入力ﾊﾞｯﾌｧのﾒﾓﾘを確保する。そのとき、ﾃﾞﾌｫﾙﾄのﾊﾞｯﾌｧが設定済みならそちらを使う
-  //arg bx	GH.Tへのポインタ
-  //arg ax	ﾊﾞｯﾌｧの最小ｻｲｽﾞ
-  //arg cx	ﾊﾞｯﾌｧの最大ｻｲｽﾞ
+  //arg bx  GH.Tへのポインタ
+  //arg ax  ﾊﾞｯﾌｧの最小ｻｲｽﾞ
+  //arg cx  ﾊﾞｯﾌｧの最大ｻｲｽﾞ
 begin
-	save dx
-	if (GHT.rdBufSeg == 0 || ax > GHT.rdBufSiz)
-		Std.ParaSize ax,dx
-		Std.ParaSize cx,dx
-		GH.GetMem bx, ax, cx
-		GHT.rdBufSeg = ax
-		cx <<= 4
-		GHT.rdBufSiz = cx
-	fi
-	GHT.rdPtr = 0xffff
-	GHT.rdBufBtm = 0
-	return
+    save dx
+    if (GHT.rdBufSeg == 0 || ax > GHT.rdBufSiz)
+    	Std.ParaSize ax,dx
+    	Std.ParaSize cx,dx
+    	GH.GetMem bx, ax, cx
+    	GHT.rdBufSeg = ax
+    	cx <<= 4
+    	GHT.rdBufSiz = cx
+    fi
+    GHT.rdPtr = 0xffff
+    GHT.rdBufBtm = 0
+    return
 endproc
 
 *proc ReadB (bx)
-	//1 バイト整数入力
-	//arg ds.bx	pointer to GH.T
-	//out al
+    //1 バイト整数入力
+    //arg ds.bx pointer to GH.T
+    //out al
 begin
-	save si,di,es,ds
+    save si,di,es,ds
 
-	di = GHT.rdPtr
-	loop
-		es = GHT.rdBufSeg
-		if (di <= GHT.rdBufBtm)
-			al = b[es:di]
-			++di
-			GHT.rdPtr = di
-			return
-		fi
-		ReadBWDbuf bx
-		di = 0
-	endloop
+    di = GHT.rdPtr
+    loop
+    	es = GHT.rdBufSeg
+    	if (di <= GHT.rdBufBtm)
+    	    al = b[es:di]
+    	    ++di
+    	    GHT.rdPtr = di
+    	    return
+    	fi
+    	ReadBWDbuf bx
+    	di = 0
+    endloop
 endproc
 
 *proc ReadW(bx)
-	//2 バイト整数入力
-	//arg ds.bx	pointer to GH.T
-	//out ax
+    //2 バイト整数入力
+    //arg ds.bx pointer to GH.T
+    //out ax
 begin
-	ReadB bx
-	ah = al
-	ReadB bx
-	if (GHT.rdMode == 0)
-		ah <=> al
-	fi
-	return
+    ReadB bx
+    ah = al
+    ReadB bx
+    if (GHT.rdMode == 0)
+    	ah <=> al
+    fi
+    return
 endproc
 
 *proc ReadD(bx)
-	//4 バイト整数入力
-	//arg ds.bx	pointer to GH.T
-	//out dx.ax
+    //4 バイト整数入力
+    //arg ds.bx pointer to GH.T
+    //out dx.ax
 begin
-	ReadW bx
-	dx = ax
-	ReadW bx
-	if (GHT.rdMode == 0)
-		ax <=> dx
-	fi
-	return
+    ReadW bx
+    dx = ax
+    ReadW bx
+    if (GHT.rdMode == 0)
+    	ax <=> dx
+    fi
+    return
 endproc
 
 endmodule

@@ -1,79 +1,79 @@
 module WRITLN
-	//	1992	writen by M.Kitamura
-	//model SMALL
-	//stack 0x10
+    //	1992	writen by M.Kitamura
+    //model SMALL
+    //stack 0x10
 
-	import Dos
+    import Dos
 
 var crlf:b() = {"\N"}
 var cnt:w  = 2
 
 *proc SetCrLf(ax)
-//	出力する改行コードを設定
-//	out   ax	改行コード （al,ah の順に出力）
-//	break fx
+//  出力する改行コードを設定
+//  out   ax	改行コード （al,ah の順に出力）
+//  break fx
 begin
-	save ds,bx
-	ds = bx = %var
-	w[%crlf] = ax
-	cnt = 2
-	if (ah == 0)
-		--cnt
-	fi
-	return
+    save ds,bx
+    ds = bx = %var
+    w[%crlf] = ax
+    cnt = 2
+    if (ah == 0)
+    	--cnt
+    fi
+    return
 endproc
 
 *proc WritLn(bx,dx,cx)
-//	1 行出力. '\n','\r\n'を改行とみなし、改行か指定サイズまで出力する。
-//	'\n'は'\r\n'にして出力する。'\r'の扱いは未定義とするので使って
-//	はいけない。文字列の終わりに'\0'が付いている必要はない。
-//	arg bx	ファイルハンドル
-//	arg dx	出力する文字列
-//	arg cx	出力する最大文字数（バイト）
-//	in	ds
-//	out ax	実際に出力したサイズ（byte）  error時:エラーコード
-//	out cf	0:no error	1:error
-//	out df	= 0
-//	break fx
+//  1 行出力. '\n','\r\n'を改行とみなし、改行か指定サイズまで出力する。
+//  '\n'は'\r\n'にして出力する。'\r'の扱いは未定義とするので使って
+//  はいけない。文字列の終わりに'\0'が付いている必要はない。
+//  arg bx  ファイルハンドル
+//  arg dx  出力する文字列
+//  arg cx  出力する最大文字数（バイト）
+//  in	ds
+//  out ax  実際に出力したサイズ（byte）  error時:エラーコード
+//  out cf  0:no error	1:error
+//  out df  = 0
+//  break fx
 enter
-	save bx,cx,pos:dx,di,es,ds
-	local flg:b
+    save bx,cx,pos:dx,di,es,ds
+    local flg:b
 
-	rep.inc
-	di = dx 	//di=文字列
-	es = ax = ds
-	al = '\n'
-	repn.scan(di,al,cx)
-	//pos = di			//文字列の次のｱﾄﾞﾚｽ
-	cx = di
-	cx -= dx			//出力する文字数
-	flg = 0
-	if (b[di - 1] == '\n' && b[di-2] != '\r')
-		--cx
-		flg = 1
-	fi
-	if (cx)
-		Dos.Write(bx, dx, cx)
-		go (cf) ERR
-		cx = ax
-	fi
-	if (flg)
-		push cx,ds
-		ds = cx = %var
-		dx = &crlf
-		cx = cnt
-		Dos.Write(bx, dx, cx)
-		pop  cx,ds
-		go (cf) ERR
-		++cx
-	fi
-	ax = cx
-	cf = 0
-	//go RTS
+    rep.inc
+    di = dx 	//di=文字列
+    es = ax = ds
+    al = '\n'
+    repn.scan(di,al,cx)
+    //pos = di	    	//文字列の次のｱﾄﾞﾚｽ
+    cx = di
+    cx -= dx	    	//出力する文字数
+    flg = 0
+    if (b[di - 1] == '\n' && b[di-2] != '\r')
+    	--cx
+    	flg = 1
+    fi
+    if (cx)
+    	Dos.Write(bx, dx, cx)
+    	go (cf) ERR
+    	cx = ax
+    fi
+    if (flg)
+    	push cx,ds
+    	ds = cx = %var
+    	dx = &crlf
+    	cx = cnt
+    	Dos.Write(bx, dx, cx)
+    	pop  cx,ds
+    	go (cf) ERR
+    	++cx
+    fi
+    ax = cx
+    cf = 0
+    //go RTS
  ERR:
-	//cf = 1
+    //cf = 1
  //RTS:
-	return
+    return
 endproc
 
 endmodule

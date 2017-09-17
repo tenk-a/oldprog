@@ -1,35 +1,35 @@
 submodule Str
 
 *proc CpyP(es.di,si)
-//	arg es.di	コピー先
-//	arg si		コピー元
-//	out di		コピーした文字列のつぎのアドレス
+//  arg es.di	コピー先
+//  arg si  	コピー元
+//  out di  	コピーした文字列のつぎのアドレス
 begin
-	save ax,si,es,cx
+    save ax,si,es,cx
 
-	push es,di
-	es = cx = ds
-	di = si
-	cx = 0xffff
-	al = 0
-	repn.scan di,al,cx
-	++cx
-	com cx
-	++cx
-	pop es,di
+    push es,di
+    es = cx = ds
+    di = si
+    cx = 0xffff
+    al = 0
+    repn.scan di,al,cx
+    ++cx
+    com cx
+    ++cx
+    pop es,di
 
-	rep.cpy   di,si,cx
-	--di
-	return
+    rep.cpy   di,si,cx
+    --di
+    return
 endproc
 
 *proc Cpy(es.di, si)
-//	arg es.di	コピー先
-//	arg si		コピー元
+//  arg es.di	コピー先
+//  arg si  	コピー元
 begin
-	save di
-	CpyP es.di, si
-	return
+    save di
+    CpyP es.di, si
+    return
 endproc
 
 endmodule

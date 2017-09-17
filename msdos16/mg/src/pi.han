@@ -1,31 +1,31 @@
 module Pi
-	c_name "Pi","_",1
+    c_name "Pi","_",1
 
 @if 0	// もはや不要
 
 *struct R
-	colTblSeg:w 	//色表のバッファ
-	colTblSzs:w 	//色表のサイズ
-	hdncmt:d		//隠れコメントへのポインタ
-	hdncmtSiz:w		//隠れコメントバッファのサイズ
-	hdncmtLen:w		//隠れコメントの長さ
-	rbdat:w			//ビット・ストリームのデータ
-	rbcnt:b			//ビット・ストリームのカウンタ
-	pos:b			//前回の相対位置複写の残りの処理
-	len:d			//その長さ
-	ofs:w(5-1)		//比較するピクセルとの差
+    colTblSeg:w     //色表のバッファ
+    colTblSzs:w     //色表のサイズ
+    hdncmt:d	    //隠れコメントへのポインタ
+    hdncmtSiz:w     //隠れコメントバッファのサイズ
+    hdncmtLen:w     //隠れコメントの長さ
+    rbdat:w 	    //ビット・ストリームのデータ
+    rbcnt:b 	    //ビット・ストリームのカウンタ
+    pos:b   	    //前回の相対位置複写の残りの処理
+    len:d   	    //その長さ
+    ofs:w(5-1)	    //比較するピクセルとの差
 endstruct
 
 *struct W
-	colTblSeg:w 	//色表のバッファ
-	colTblSzs:w 	//色表のサイズ
-	hdncmt:d		//隠れコメントへのポインタ
-	hdncmtSiz:w		//隠れコメントバッファのサイズ
-	hdncmtLen:w		//隠れコメントの長さ
-	wrtdat:w		//ビット・ストリームのカウンタ＆データ
-	pos:b			//前回の相対位置複写の残りの処理
-	posflgs:b		//相対位置0-4の継続フラグ
-	len:d			//その長さ
+    colTblSeg:w     //色表のバッファ
+    colTblSzs:w     //色表のサイズ
+    hdncmt:d	    //隠れコメントへのポインタ
+    hdncmtSiz:w     //隠れコメントバッファのサイズ
+    hdncmtLen:w     //隠れコメントの長さ
+    wrtdat:w	    //ビット・ストリームのカウンタ＆データ
+    pos:b   	    //前回の相対位置複写の残りの処理
+    posflgs:b	    //相対位置0-4の継続フラグ
+    len:d   	    //その長さ
 endstruct
 
 @endif
@@ -36,16 +36,16 @@ endproc
 endproc
 
 *proc Open(ght:d, fname:d);cdecl
-	// Pi のヘッダを読み込む
-	// arg si	GHへのポインタ
-  	// arg dx	ファイル名
-	// out ax	エラーコード   0:Ok  1:Piでない  2:ヘッダの値がおかしい
+    // Pi のヘッダを読み込む
+    // arg si	GHへのポインタ
+    // arg dx	ファイル名
+    // out ax	エラーコード   0:Ok  1:Piでない  2:ヘッダの値がおかしい
 endproc
 
 *proc ReadPDB(ght:d, linCnt:w);cdecl
 //  Piファイルよりデータを読み込んで展開
-//	arg si	GH.Tへのポインタ
-//	arg ax  取得する行数
+//  arg si  GH.Tへのポインタ
+//  arg ax  取得する行数
 endproc
 
 *proc CloseR(GHTptr:d);cdecl
@@ -54,10 +54,10 @@ endproc
 *proc InitRead(ght:d);cdecl
 endproc
 
-//	*proc InitColTbl(bx,ax,cl)
-//	//	色表(16色*16通り) の初期化
-//	//	in	rep.inc
-//	endproc
+//  *proc InitColTbl(bx,ax,cl)
+//  //	色表(16色*16通り) の初期化
+//  //	in  rep.inc
+//  endproc
 
 *proc GetColTblBuf(bx)
 endproc
@@ -82,20 +82,20 @@ endproc
 
 //////
 *proc Df_CntFlg(al)
-	endproc
+    endproc
 *proc Df_PriDatFlg(al)
-	endproc
+    endproc
 *proc PriCntRep()
-//	圧縮状態の表示
-	endproc
+//  圧縮状態の表示
+    endproc
 *proc Df_ApicgFlg (flg:w);cdecl
-//	APICGのユーザ名を認識するかどうか
-	endproc
+//  APICGのユーザ名を認識するかどうか
+    endproc
 *proc Df_DfltPalFlg(al);cdecl
-	// デフォルトパレットで出力するようにする
-	endproc
+    // デフォルトパレットで出力するようにする
+    endproc
 *proc Df_LoopFlg(al)
-	// ループモードにして出力する
-	endproc
+    // ループモードにして出力する
+    endproc
 
 endmodule

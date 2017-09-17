@@ -1,41 +1,41 @@
 submodule Str
 
 *proc Cmp(es.di,si)
-//	arg es.di	
-//	arg si		
+//  arg es.di
+//  arg si
 begin
-	save si,di,es,cx
+    save si,di,es,cx
 
-	rep.inc
-	push es,di
-		es = cx = ds
-		di = si
-		cx = 0xffff
-		al = 0
-		repn.scan di,al,cx
-		++cx
-		com cx
-		++cx
-	pop es,di
+    rep.inc
+    push es,di
+    	es = cx = ds
+    	di = si
+    	cx = 0xffff
+    	al = 0
+    	repn.scan di,al,cx
+    	++cx
+    	com cx
+    	++cx
+    pop es,di
 
-	if (cx)
-		repe.cmp   di,si,cx
-		if (==)
-			ax = 0
-		else
-			--di
-			--si
-			rep.load al,si
-			if ((b[di] - al) > 0)
-				ax = 1
-			else
-				ax = -1
-			fi
-		fi
-	else
-		ax = 0
-	fi
-	return
+    if (cx)
+    	repe.cmp   di,si,cx
+    	if (==)
+    	    ax = 0
+    	else
+    	    --di
+    	    --si
+    	    rep.load al,si
+    	    if ((b[di] - al) > 0)
+    	    	ax = 1
+    	    else
+    	    	ax = -1
+    	    fi
+    	fi
+    else
+    	ax = 0
+    fi
+    return
 endproc
 
 endmodule

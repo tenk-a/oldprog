@@ -1,14 +1,14 @@
 module GVDSP
-	model SMALL
-	//  ds = %var でないといけない
-	c_name "","",1
-	//@set P86 = 1
+    model SMALL
+    //	ds = %var でないといけない
+    c_name "","",1
+    //@set P86 = 1
 
 
 *var Gv_btmLine:w
 *var Gv_ofsFlg:w
 //struct VRAMSEG
-//	b:w,r:w,g:w,i:w
+//  b:w,r:w,g:w,i:w
 //endstruct
 var  bvramSeg:w
 var  rvramSeg:w
@@ -16,205 +16,205 @@ var  gvramSeg:w
 var  ivramSeg:w
 
 *proc Gv_Init();cdecl
-//	Gv関係の関数を使うにあたっての初期化
+//  Gv関係の関数を使うにあたっての初期化
 begin
-	save ax
-	bvramSeg = 0xa800
-	rvramSeg = 0xb000
-	gvramSeg = 0xb800
-	ivramSeg = 0xe000
-	Gv_btmLine = 400
-	return
+    save ax
+    bvramSeg = 0xa800
+    rvramSeg = 0xb000
+    gvramSeg = 0xb800
+    ivramSeg = 0xe000
+    Gv_btmLine = 400
+    return
 endproc
 
 *proc WaitVSync()
-//	VSYNC で時間待ち
+//  VSYNC で時間待ち
 begin
-	save ax
-	loop
-		al = port(0x60)
-	endloop (al & 0x20)
-	loop
-		al = port(0x60)
-	endloop ((al & 0x20) == 0)
-	return
+    save ax
+    loop
+    	al = port(0x60)
+    endloop (al & 0x20)
+    loop
+    	al = port(0x60)
+    endloop ((al & 0x20) == 0)
+    return
 endproc
 
 *proc Gv_Cls();cdecl
-//	画面消去
+//  画面消去
 begin
-	save ax,cx,dx,di,es
-	port(0x7c) = al = 0x80
-	ax = 0
-	dx = 0x7e
-	port(dx) = al
-	port(dx) = al
-	port(dx) = al
-	port(dx) = al
-	es = dx = bvramSeg
-	di = ax
-	cx = (80*400)/2
-	rep.set.w di,ax,cx
-	port(0x7c) = al
-	return
+    save ax,cx,dx,di,es
+    port(0x7c) = al = 0x80
+    ax = 0
+    dx = 0x7e
+    port(dx) = al
+    port(dx) = al
+    port(dx) = al
+    port(dx) = al
+    es = dx = bvramSeg
+    di = ax
+    cx = (80*400)/2
+    rep.set.w di,ax,cx
+    port(0x7c) = al
+    return
 endproc
 
 *proc Gv_GUp(yy:w);cdecl
-//	画面をyy行上へ
+//  画面をyy行上へ
 enter
-	save pusha,ax,bx,cx,dx,di,si,es,ds
-	ds = ax = %var
-	rep.inc
-	ax = Gv_btmLine
-	ax -= yy
-	dx.ax = ax * 40
-	cx = ax
-	dx.ax = yy * 80
-	bx = ax
-	dx = cx
+    save pusha,ax,bx,cx,dx,di,si,es,ds
+    ds = ax = %var
+    rep.inc
+    ax = Gv_btmLine
+    ax -= yy
+    dx.ax = ax * 40
+    cx = ax
+    dx.ax = yy * 80
+    bx = ax
+    dx = cx
 
-	ds = ax = bvramSeg
-	es = ax
-	di = 0
-	si = bx
-	rep.cpy.w di,si,cx
-	
-	cx = dx
-	ds = ax = %var
-	ds = ax = rvramSeg
-	es = ax
-	di = 0
-	si = bx
-	rep.cpy.w di,si,cx
+    ds = ax = bvramSeg
+    es = ax
+    di = 0
+    si = bx
+    rep.cpy.w di,si,cx
 
-	cx = dx
-	ds = ax = %var
-	ds = ax = gvramSeg
-	es = ax
-	di = 0
-	si = bx
-	rep.cpy.w di,si,cx
+    cx = dx
+    ds = ax = %var
+    ds = ax = rvramSeg
+    es = ax
+    di = 0
+    si = bx
+    rep.cpy.w di,si,cx
 
-	cx = dx
-	ds = ax = %var
-	ds = ax = ivramSeg
-	es = ax
-	di = 0
-	si = bx
-	rep.cpy.w di,si,cx
-	return
+    cx = dx
+    ds = ax = %var
+    ds = ax = gvramSeg
+    es = ax
+    di = 0
+    si = bx
+    rep.cpy.w di,si,cx
+
+    cx = dx
+    ds = ax = %var
+    ds = ax = ivramSeg
+    es = ax
+    di = 0
+    si = bx
+    rep.cpy.w di,si,cx
+    return
 endproc
 
 *proc Gv_GDwn(yy:w);cdecl
-//	画面をyy行下へ
+//  画面をyy行下へ
 enter
-	save pusha,ax,bx,cx,dx,di,si,es,ds
-	local cnt:w
+    save pusha,ax,bx,cx,dx,di,si,es,ds
+    local cnt:w
 
-	ds = ax = %var
-	rep.dec
-	ax = Gv_btmLine
-	ax -= yy
-	dx.ax = ax * 40
-	cx = ax
-	cnt = ax
-	dx.ax = yy * 80
-	bx = ax
-	dx.ax = Gv_btmLine * 80
-	dx = ax
-	ax -= bx
-	bx = ax
-	dx -= 2
-	bx -= 2
+    ds = ax = %var
+    rep.dec
+    ax = Gv_btmLine
+    ax -= yy
+    dx.ax = ax * 40
+    cx = ax
+    cnt = ax
+    dx.ax = yy * 80
+    bx = ax
+    dx.ax = Gv_btmLine * 80
+    dx = ax
+    ax -= bx
+    bx = ax
+    dx -= 2
+    bx -= 2
 
-	ds = ax = bvramSeg
-	es = ax
-	di = dx
-	si = bx
-	rep.cpy.w di,si,cx
+    ds = ax = bvramSeg
+    es = ax
+    di = dx
+    si = bx
+    rep.cpy.w di,si,cx
 
-	ds = ax = %var
-	ds = ax = rvramSeg
-	es = ax
-	di = dx
-	si = bx
-	cx = cnt
-	rep.cpy.w di,si,cx
+    ds = ax = %var
+    ds = ax = rvramSeg
+    es = ax
+    di = dx
+    si = bx
+    cx = cnt
+    rep.cpy.w di,si,cx
 
-	ds = ax = %var
-	ds = ax = gvramSeg
-	es = ax
-	di = dx
-	si = bx
-	cx = cnt
-	rep.cpy.w di,si,cx
+    ds = ax = %var
+    ds = ax = gvramSeg
+    es = ax
+    di = dx
+    si = bx
+    cx = cnt
+    rep.cpy.w di,si,cx
 
-	ds = ax = %var
-	ds = ax = ivramSeg
-	es = ax
-	di = dx
-	si = bx
-	cx = cnt
-	rep.cpy.w di,si,cx
-	rep.inc
-	return
+    ds = ax = %var
+    ds = ax = ivramSeg
+    es = ax
+    di = dx
+    si = bx
+    cx = cnt
+    rep.cpy.w di,si,cx
+    rep.inc
+    return
 endproc
 
 @if 1
 *proc Gv_GLft(xx:w);cdecl
 //  画面をxxバイト左へ
 enter
-	save pusha,ax,bx,cx,dx,di,si,es,ds
-	ds = ax = %var
-	rep.inc
-	dx.ax = Gv_btmLine * 80
-	cx = ax
-	cx -= bx
-	dx = cx
-	bx = xx
+    save pusha,ax,bx,cx,dx,di,si,es,ds
+    ds = ax = %var
+    rep.inc
+    dx.ax = Gv_btmLine * 80
+    cx = ax
+    cx -= bx
+    dx = cx
+    bx = xx
 
-	ds = ax = bvramSeg
-	es = ax
-	di = 0
-	si = bx
-	if ((cx >>= 1) .cf. 1)
-		rep.cpy di,si
-	fi
-	rep.cpy.w di,si,cx
-	
-	cx = dx
-	ds = ax = %var
-	ds = ax = rvramSeg
-	es = ax
-	di = 0
-	si = bx
-	if ((cx >>= 1) .cf. 1)
-		rep.cpy di,si
-	fi
-	rep.cpy.w di,si,cx
+    ds = ax = bvramSeg
+    es = ax
+    di = 0
+    si = bx
+    if ((cx >>= 1) .cf. 1)
+    	rep.cpy di,si
+    fi
+    rep.cpy.w di,si,cx
 
-	cx = dx
-	ds = ax = %var
-	ds = ax = gvramSeg
-	es = ax
-	di = 0
-	si = bx
-	if ((cx >>= 1) .cf. 1)
-		rep.cpy di,si
-	fi
-	rep.cpy.w di,si,cx
+    cx = dx
+    ds = ax = %var
+    ds = ax = rvramSeg
+    es = ax
+    di = 0
+    si = bx
+    if ((cx >>= 1) .cf. 1)
+    	rep.cpy di,si
+    fi
+    rep.cpy.w di,si,cx
 
-	cx = dx
-	ds = ax = %var
-	ds = ax = ivramSeg
-	es = ax
-	di = 0
-	si = bx
-	if ((cx >>= 1) .cf. 1)
-		rep.cpy di,si
-	fi
-	rep.cpy.w di,si,cx
-	return
+    cx = dx
+    ds = ax = %var
+    ds = ax = gvramSeg
+    es = ax
+    di = 0
+    si = bx
+    if ((cx >>= 1) .cf. 1)
+    	rep.cpy di,si
+    fi
+    rep.cpy.w di,si,cx
+
+    cx = dx
+    ds = ax = %var
+    ds = ax = ivramSeg
+    es = ax
+    di = 0
+    si = bx
+    if ((cx >>= 1) .cf. 1)
+    	rep.cpy di,si
+    fi
+    rep.cpy.w di,si,cx
+    return
 endproc
 @fi
 
@@ -222,1055 +222,1055 @@ endproc
 *proc Gv_GRgt(xx:w);cdecl
 //   画面をxxﾊﾞｲﾄ右へ
 enter
-	save pusha,ax,bx,cx,dx,di,si,es,ds
-	local cnt:w
+    save pusha,ax,bx,cx,dx,di,si,es,ds
+    local cnt:w
 
-	ds = ax = %var
-	rep.dec
-	dx.ax = Gv_btmLine * 80
-	dx = cx = ax
-	cx -= xx
-	bx = cx
-	cnt = cx
-	--dx
-	--bx
-	if ((cx & 0x01) == 0)
-		--dx
-		--bx
-	fi
+    ds = ax = %var
+    rep.dec
+    dx.ax = Gv_btmLine * 80
+    dx = cx = ax
+    cx -= xx
+    bx = cx
+    cnt = cx
+    --dx
+    --bx
+    if ((cx & 0x01) == 0)
+    	--dx
+    	--bx
+    fi
 
-	ds = ax = bvramSeg
-	es = ax
-	di = dx
-	si = bx
-	if ((cx >>= 1) .cf. 1)
-		rep.cpy di,si
-	fi
-	rep.cpy.w di,si,cx
+    ds = ax = bvramSeg
+    es = ax
+    di = dx
+    si = bx
+    if ((cx >>= 1) .cf. 1)
+    	rep.cpy di,si
+    fi
+    rep.cpy.w di,si,cx
 
-	ds = ax = %var
-	ds = ax = rvramSeg
-	es = ax
-	di = dx
-	si = bx
-	cx = cnt
-	if ((cx >>= 1) .cf. 1)
-		rep.cpy di,si
-	fi
-	rep.cpy.w di,si,cx
+    ds = ax = %var
+    ds = ax = rvramSeg
+    es = ax
+    di = dx
+    si = bx
+    cx = cnt
+    if ((cx >>= 1) .cf. 1)
+    	rep.cpy di,si
+    fi
+    rep.cpy.w di,si,cx
 
-	ds = ax = %var
-	ds = ax = gvramSeg
-	es = ax
-	di = dx
-	si = bx
-	cx = cnt
-	if ((cx >>= 1) .cf. 1)
-		rep.cpy di,si
-	fi
-	rep.cpy.w di,si,cx
+    ds = ax = %var
+    ds = ax = gvramSeg
+    es = ax
+    di = dx
+    si = bx
+    cx = cnt
+    if ((cx >>= 1) .cf. 1)
+    	rep.cpy di,si
+    fi
+    rep.cpy.w di,si,cx
 
-	ds = ax = %var
-	ds = ax = ivramSeg
-	es = ax
-	di = dx
-	si = bx
-	cx = cnt
-	if ((cx >>= 1) .cf. 1)
-		rep.cpy di,si
-	fi
-	rep.cpy.w di,si,cx
+    ds = ax = %var
+    ds = ax = ivramSeg
+    es = ax
+    di = dx
+    si = bx
+    cx = cnt
+    if ((cx >>= 1) .cf. 1)
+    	rep.cpy di,si
+    fi
+    rep.cpy.w di,si,cx
 
-	rep.inc
-	return
+    rep.inc
+    return
 endproc
 @fi
 
 
 
 *proc Gv_GetVRam(adr:d,xx:w,yy:w,f:w);cdecl
-//	画面を取り込む
+//  画面を取り込む
 enter
-	save pusha,es,ds
-	local x:w,x2:w,y:w,y2:w,tp:d,xx_4:w,gp:w
-	local gvseg:w,rvseg:w,bvseg:w,ivseg:w
+    save pusha,es,ds
+    local x:w,x2:w,y:w,y2:w,tp:d,xx_4:w,gp:w
+    local gvseg:w,rvseg:w,bvseg:w,ivseg:w
 
-	ds = ax = %var
-	bvseg = ax = bvramSeg
-	rvseg = ax = rvramSeg
-	gvseg = ax = gvramSeg
-	ivseg = ax = ivramSeg
+    ds = ax = %var
+    bvseg = ax = bvramSeg
+    rvseg = ax = rvramSeg
+    gvseg = ax = gvramSeg
+    ivseg = ax = ivramSeg
 
-	port(0xA6) = al = 0	//ActGVPage
-	dx.ax = adr
-	bx = ax
-	bx >>= 4
-	dx += bx
-	ax &= 0x0f
-	adr = dx.ax
-	tp = dx.ax
+    port(0xA6) = al = 0 //ActGVPage
+    dx.ax = adr
+    bx = ax
+    bx >>= 4
+    dx += bx
+    ax &= 0x0f
+    adr = dx.ax
+    tp = dx.ax
 
-	ax = xx
-	cx = ax
-	cx <<= 2
-	xx_4 = cx
-	//ax = xx
-	cx = yy
-	bx = dx = 0
-	if (ax > 80)
-		bx = ax
-		bx -= 80
-		if (bx > 80)
-			bx = 80
-		fi
-		ax = 80
-	elsif (cx > 400)
-		dx = cx
-		dx -= 400
-		if (dx > 400)
-			dx = 400
-		fi
-		cx = 400
-	fi
-	x = ax
-	x2 = bx
-	y = cx
-	y2 = dx
+    ax = xx
+    cx = ax
+    cx <<= 2
+    xx_4 = cx
+    //ax = xx
+    cx = yy
+    bx = dx = 0
+    if (ax > 80)
+    	bx = ax
+    	bx -= 80
+    	if (bx > 80)
+    	    bx = 80
+    	fi
+    	ax = 80
+    elsif (cx > 400)
+    	dx = cx
+    	dx -= 400
+    	if (dx > 400)
+    	    dx = 400
+    	fi
+    	cx = 400
+    fi
+    x = ax
+    x2 = bx
+    y = cx
+    y2 = dx
 
-	dx.di = tp
-	gp = si = 0
-	bx = y
-	loop
-		es = dx
-		cx = x
-		loop
-			ds = dx = bvseg
-			al = b[si]
-			ds = dx = rvseg
-			ah = b[si]
-			rep.set.w di,ax
-			ds = dx = ivseg
-			ah = b[si]
-			ds = dx = gvseg
-			rep.load al,si
-			rep.set.w di,ax
-		endloop (--cx)
-		dx.di = tp
-		di += xx_4
-		ax = di
-		ax >>= 4
-		dx += ax
-		di &= 0x0f
-		tp = dx.di
-		si = gp
-		si += 80
-		gp = si
-	endloop (--bx)
+    dx.di = tp
+    gp = si = 0
+    bx = y
+    loop
+    	es = dx
+    	cx = x
+    	loop
+    	    ds = dx = bvseg
+    	    al = b[si]
+    	    ds = dx = rvseg
+    	    ah = b[si]
+    	    rep.set.w di,ax
+    	    ds = dx = ivseg
+    	    ah = b[si]
+    	    ds = dx = gvseg
+    	    rep.load al,si
+    	    rep.set.w di,ax
+    	endloop (--cx)
+    	dx.di = tp
+    	di += xx_4
+    	ax = di
+    	ax >>= 4
+    	dx += ax
+    	di &= 0x0f
+    	tp = dx.di
+    	si = gp
+    	si += 80
+    	gp = si
+    endloop (--bx)
 
-	port(0xA6) = al = 1	//ActGVPage
-	if.w (f == 3)
-		dx.di = adr
-		di += 80*4
-		bx = di
-		bx >>= 4
-		dx += bx
-		di &= 0x0f
-		tp = dx.di
-		gp = si = 0
-		bx = y
-		loop
-			es = dx
-			cx = x2
-			loop
-				ds = dx = bvseg
-				al = b[si]
-				ds = dx = rvseg
-				ah = b[si]
-				rep.set.w di,ax
-				ds = dx = ivseg
-				ah = b[si]
-				ds = dx = gvseg
-				rep.load al,si
-				rep.set.w di,ax
-			endloop (--cx)
-			dx.di = tp
-			di += xx_4
-			ax = di
-			ax >>= 4
-			dx += ax
-			di &= 0x0f
-			tp = dx.di
-			si = gp
-			si += 80
-			gp = si
-		endloop (--bx)
+    port(0xA6) = al = 1 //ActGVPage
+    if.w (f == 3)
+    	dx.di = adr
+    	di += 80*4
+    	bx = di
+    	bx >>= 4
+    	dx += bx
+    	di &= 0x0f
+    	tp = dx.di
+    	gp = si = 0
+    	bx = y
+    	loop
+    	    es = dx
+    	    cx = x2
+    	    loop
+    	    	ds = dx = bvseg
+    	    	al = b[si]
+    	    	ds = dx = rvseg
+    	    	ah = b[si]
+    	    	rep.set.w di,ax
+    	    	ds = dx = ivseg
+    	    	ah = b[si]
+    	    	ds = dx = gvseg
+    	    	rep.load al,si
+    	    	rep.set.w di,ax
+    	    endloop (--cx)
+    	    dx.di = tp
+    	    di += xx_4
+    	    ax = di
+    	    ax >>= 4
+    	    dx += ax
+    	    di &= 0x0f
+    	    tp = dx.di
+    	    si = gp
+    	    si += 80
+    	    gp = si
+    	endloop (--bx)
 
-	elsif.w (f == 2)
-		dx.ax = xx * (400*4)
-		bx = ax
-		dx <<= 12
-		bx >>= 4
-		dx |= bx
-		ax &= 0x0f
-		dx += adr.h
-		ax += adr.l
-		di = ax
-		ax >>= 4
-		dx += ax
-		di &= 0x0f
-		tp = dx.di
-		gp = si = 0
-		bx = y2
-		loop
-			es = dx
-			cx = x
-			loop
-				ds = dx = bvseg
-				al = b[si]
-				ds = dx = rvseg
-				ah = b[si]
-				rep.set.w di,ax
-				ds = dx = ivseg
-				ah = b[si]
-				ds = dx = gvseg
-				rep.load al,si
-				rep.set.w di,ax
-			endloop (--cx)
-			dx.di = tp
-			di += xx_4
-			ax = di
-			ax >>= 4
-			dx += ax
-			di &= 0x0f
-			tp = dx.di
-			si = gp
-			si += 80
-			gp = si
-		endloop (--bx)
-	fi
-	port(0xA6) = al = 0	//ActGVPage
-	return
+    elsif.w (f == 2)
+    	dx.ax = xx * (400*4)
+    	bx = ax
+    	dx <<= 12
+    	bx >>= 4
+    	dx |= bx
+    	ax &= 0x0f
+    	dx += adr.h
+    	ax += adr.l
+    	di = ax
+    	ax >>= 4
+    	dx += ax
+    	di &= 0x0f
+    	tp = dx.di
+    	gp = si = 0
+    	bx = y2
+    	loop
+    	    es = dx
+    	    cx = x
+    	    loop
+    	    	ds = dx = bvseg
+    	    	al = b[si]
+    	    	ds = dx = rvseg
+    	    	ah = b[si]
+    	    	rep.set.w di,ax
+    	    	ds = dx = ivseg
+    	    	ah = b[si]
+    	    	ds = dx = gvseg
+    	    	rep.load al,si
+    	    	rep.set.w di,ax
+    	    endloop (--cx)
+    	    dx.di = tp
+    	    di += xx_4
+    	    ax = di
+    	    ax >>= 4
+    	    dx += ax
+    	    di &= 0x0f
+    	    tp = dx.di
+    	    si = gp
+    	    si += 80
+    	    gp = si
+    	endloop (--bx)
+    fi
+    port(0xA6) = al = 0 //ActGVPage
+    return
 endproc
 
 ///////////////////////////////////////////////////////////////////////////////
 *proc Gv_Cnv4a(dp:d, xsiz:w, ysiz:w);cdecl
-//	PiLd_Load4a で展開されたデータをGv系の手続きが利用する形に変換
+//  PiLd_Load4a で展開されたデータをGv系の手続きが利用する形に変換
 enter
-	save bx,cx,dx,si,di,ds
-	local tp:d,xx:w
+    save bx,cx,dx,si,di,ds
+    local tp:d,xx:w
 
-	rep.inc
-	ds = ax = %var
+    rep.inc
+    ds = ax = %var
 
-	dx.si = dp
-	ax = si
-	ax >>= 4
-	dx += ax
-	si &= 0x0f
-	tp.h = dx
+    dx.si = dp
+    ax = si
+    ax >>= 4
+    dx += ax
+    si &= 0x0f
+    tp.h = dx
 
-	cx = xsiz
-	xx = cx
-	di = ysiz
-	go.w (di==0||cx==0) ERR
+    cx = xsiz
+    xx = cx
+    di = ysiz
+    go.w (di==0||cx==0) ERR
 
-	loop.w LLL
-		dx = tp.h
-		ax = si
-		ax >>= 4
-		dx += ax
-		si &= 0x0f
-		tp.h = dx
-		ds = dx
-		cx = xx
-		loop.w
-			bx = dx = 0 //dl:blue dh:red  bl:green  bh:明度
-			rep.load.w ax,si
-			|al <<= 1;  rcl bh,1;   |al <<= 1;  rcl bl,1
-			|al <<= 1;  rcl dh,1;   |al <<= 1;  rcl dl,1
-			|al <<= 1;  rcl bh,1;   |al <<= 1;  rcl bl,1
-			|al <<= 1;  rcl dh,1;   |al <<= 1;  rcl dl,1
-			|ah <<= 1;  rcl bh,1;   |ah <<= 1;  rcl bl,1
-			|ah <<= 1;  rcl dh,1;   |ah <<= 1;  rcl dl,1
-			|ah <<= 1;  rcl bh,1;   |ah <<= 1;  rcl bl,1
-			|ah <<= 1;  rcl dh,1;   |ah <<= 1;  rcl dl,1
-			rep.load.w ax,si
-			|al <<= 1;  rcl bh,1;   |al <<= 1;  rcl bl,1
-			|al <<= 1;  rcl dh,1;   |al <<= 1;  rcl dl,1
-			|al <<= 1;  rcl bh,1;   |al <<= 1;  rcl bl,1
-			|al <<= 1;  rcl dh,1;   |al <<= 1;  rcl dl,1
-			|ah <<= 1;  rcl bh,1;   |ah <<= 1;  rcl bl,1
-			|ah <<= 1;  rcl dh,1;   |ah <<= 1;  rcl dl,1
-			|ah <<= 1;  rcl bh,1;   |ah <<= 1;  rcl bl,1
-			|ah <<= 1;  rcl dh,1;   |ah <<= 1;  rcl dl,1
-			w[si - 4] = dx
-			w[si - 2] = bx
-		endloop (--cx)
-	endloop (--di)
-	ax = 0
+    loop.w LLL
+    	dx = tp.h
+    	ax = si
+    	ax >>= 4
+    	dx += ax
+    	si &= 0x0f
+    	tp.h = dx
+    	ds = dx
+    	cx = xx
+    	loop.w
+    	    bx = dx = 0 //dl:blue dh:red  bl:green  bh:明度
+    	    rep.load.w ax,si
+    	    |al <<= 1;	rcl bh,1;   |al <<= 1;	rcl bl,1
+    	    |al <<= 1;	rcl dh,1;   |al <<= 1;	rcl dl,1
+    	    |al <<= 1;	rcl bh,1;   |al <<= 1;	rcl bl,1
+    	    |al <<= 1;	rcl dh,1;   |al <<= 1;	rcl dl,1
+    	    |ah <<= 1;	rcl bh,1;   |ah <<= 1;	rcl bl,1
+    	    |ah <<= 1;	rcl dh,1;   |ah <<= 1;	rcl dl,1
+    	    |ah <<= 1;	rcl bh,1;   |ah <<= 1;	rcl bl,1
+    	    |ah <<= 1;	rcl dh,1;   |ah <<= 1;	rcl dl,1
+    	    rep.load.w ax,si
+    	    |al <<= 1;	rcl bh,1;   |al <<= 1;	rcl bl,1
+    	    |al <<= 1;	rcl dh,1;   |al <<= 1;	rcl dl,1
+    	    |al <<= 1;	rcl bh,1;   |al <<= 1;	rcl bl,1
+    	    |al <<= 1;	rcl dh,1;   |al <<= 1;	rcl dl,1
+    	    |ah <<= 1;	rcl bh,1;   |ah <<= 1;	rcl bl,1
+    	    |ah <<= 1;	rcl dh,1;   |ah <<= 1;	rcl dl,1
+    	    |ah <<= 1;	rcl bh,1;   |ah <<= 1;	rcl bl,1
+    	    |ah <<= 1;	rcl dh,1;   |ah <<= 1;	rcl dl,1
+    	    w[si - 4] = dx
+    	    w[si - 2] = bx
+    	endloop (--cx)
+    endloop (--di)
+    ax = 0
   RTS:
-	return
+    return
   ERR:
-  	ax = 1
-  	go RTS
+    ax = 1
+    go RTS
 endproc
 
 
 *proc Gv_Cnv4b(dp:d, xsiz:w, ysiz:w);cdecl
-//	PiLd_Load4b で展開されたデータをGv系の手続きが利用する形に変換
+//  PiLd_Load4b で展開されたデータをGv系の手続きが利用する形に変換
 enter
-	save bx,cx,dx,si,di,ds
-	local tp:d,xx:w
+    save bx,cx,dx,si,di,ds
+    local tp:d,xx:w
 
-	rep.inc
-	ds = ax = %var
+    rep.inc
+    ds = ax = %var
 
-	dx.si = dp
-	ax = si
-	ax >>= 4
-	dx += ax
-	si &= 0x0f
-	dp = dx.ax
-	tp.h = dx
+    dx.si = dp
+    ax = si
+    ax >>= 4
+    dx += ax
+    si &= 0x0f
+    dp = dx.ax
+    tp.h = dx
 
-	cx = xsiz
-	xx = cx
-	ax = ysiz
-	go.w (ax==0||cx==0) ERR
-	es.di = dp
-	loop.w LLL
-		dx = tp.h
-		ax = si
-		ax >>= 4
-		dx += ax
-		si &= 0x0f
-		tp.h = dx
-		ds = dx
-		cx = xx
-		loop.w
-			bx = dx = 0 //dl:blue dh:red  bl:green  bh:明度
-			rep.load.w ax,si
-			|al >>= 1;  rcl dl,1;   |al >>= 1;  rcl dh,1
-			|al >>= 1;  rcl bl,1;   |al >>= 1;  rcl bh,1
-			|ah >>= 1;  rcl dl,1;   |ah >>= 1;  rcl dh,1
-			|ah >>= 1;  rcl bl,1;   |ah >>= 1;  rcl bh,1
-			rep.load.w ax,si
-			|al >>= 1;  rcl dl,1;   |al >>= 1;  rcl dh,1
-			|al >>= 1;  rcl bl,1;   |al >>= 1;  rcl bh,1
-			|ah >>= 1;  rcl dl,1;   |ah >>= 1;  rcl dh,1
-			|ah >>= 1;  rcl bl,1;   |ah >>= 1;  rcl bh,1
-			rep.load.w ax,si
-			|al >>= 1;  rcl dl,1;   |al >>= 1;  rcl dh,1
-			|al >>= 1;  rcl bl,1;   |al >>= 1;  rcl bh,1
-			|ah >>= 1;  rcl dl,1;   |ah >>= 1;  rcl dh,1
-			|ah >>= 1;  rcl bl,1;   |ah >>= 1;  rcl bh,1
-			rep.load.w ax,si
-			|al >>= 1;  rcl dl,1;   |al >>= 1;  rcl dh,1
-			|al >>= 1;  rcl bl,1;   |al >>= 1;  rcl bh,1
-			|ah >>= 1;  rcl dl,1;   |ah >>= 1;  rcl dh,1
-			|ah >>= 1;  rcl bl,1;   |ah >>= 1;  rcl bh,1
-			w[es:di] = dx
-			di+=2
-			w[es:di] = bx
-			di+=2
-		endloop (--cx)
-		dx = es
-		ax = di
-		ax >>= 4
-		dx += ax
-		es = dx
-		di &= 0x0f
-		//dp = dx.di
-	endloop (--ysiz)
-	ax = 0
+    cx = xsiz
+    xx = cx
+    ax = ysiz
+    go.w (ax==0||cx==0) ERR
+    es.di = dp
+    loop.w LLL
+    	dx = tp.h
+    	ax = si
+    	ax >>= 4
+    	dx += ax
+    	si &= 0x0f
+    	tp.h = dx
+    	ds = dx
+    	cx = xx
+    	loop.w
+    	    bx = dx = 0 //dl:blue dh:red  bl:green  bh:明度
+    	    rep.load.w ax,si
+    	    |al >>= 1;	rcl dl,1;   |al >>= 1;	rcl dh,1
+    	    |al >>= 1;	rcl bl,1;   |al >>= 1;	rcl bh,1
+    	    |ah >>= 1;	rcl dl,1;   |ah >>= 1;	rcl dh,1
+    	    |ah >>= 1;	rcl bl,1;   |ah >>= 1;	rcl bh,1
+    	    rep.load.w ax,si
+    	    |al >>= 1;	rcl dl,1;   |al >>= 1;	rcl dh,1
+    	    |al >>= 1;	rcl bl,1;   |al >>= 1;	rcl bh,1
+    	    |ah >>= 1;	rcl dl,1;   |ah >>= 1;	rcl dh,1
+    	    |ah >>= 1;	rcl bl,1;   |ah >>= 1;	rcl bh,1
+    	    rep.load.w ax,si
+    	    |al >>= 1;	rcl dl,1;   |al >>= 1;	rcl dh,1
+    	    |al >>= 1;	rcl bl,1;   |al >>= 1;	rcl bh,1
+    	    |ah >>= 1;	rcl dl,1;   |ah >>= 1;	rcl dh,1
+    	    |ah >>= 1;	rcl bl,1;   |ah >>= 1;	rcl bh,1
+    	    rep.load.w ax,si
+    	    |al >>= 1;	rcl dl,1;   |al >>= 1;	rcl dh,1
+    	    |al >>= 1;	rcl bl,1;   |al >>= 1;	rcl bh,1
+    	    |ah >>= 1;	rcl dl,1;   |ah >>= 1;	rcl dh,1
+    	    |ah >>= 1;	rcl bl,1;   |ah >>= 1;	rcl bh,1
+    	    w[es:di] = dx
+    	    di+=2
+    	    w[es:di] = bx
+    	    di+=2
+    	endloop (--cx)
+    	dx = es
+    	ax = di
+    	ax >>= 4
+    	dx += ax
+    	es = dx
+    	di &= 0x0f
+    	//dp = dx.di
+    endloop (--ysiz)
+    ax = 0
   RTS:
-	return
+    return
   ERR:
-  	ax = 1
-  	go RTS
+    ax = 1
+    go RTS
 endproc
 
 *proc Gv_RevX(dp:d, xsiz:w, ysiz:w);cdecl
-//	バッファを左右反転
+//  バッファを左右反転
 enter
-	save pusha,ax,bx,cx,dx,si,di,es,ds
-	local n:b,cnt:w,xdd:w,tp:d,xsiz_4:w
+    save pusha,ax,bx,cx,dx,si,di,es,ds
+    local n:b,cnt:w,xdd:w,tp:d,xsiz_4:w
 
-	rep.inc
-	ax = cx = xsiz
-	n = 0
-	if ((cx >>= 1) .cf. 1)
-		n = 1
-	fi
-	cnt = cx
-	ax <<= 2
-	xsiz_4 = ax
-	ax -= 4
-	xdd = ax
-	
-	dx.si = dp
-	ax = si
-	ax >>= 4
-	dx += ax
-	si &= 0x0f
-	tp = dx.si
+    rep.inc
+    ax = cx = xsiz
+    n = 0
+    if ((cx >>= 1) .cf. 1)
+    	n = 1
+    fi
+    cnt = cx
+    ax <<= 2
+    xsiz_4 = ax
+    ax -= 4
+    xdd = ax
 
-	bx = ysiz
-	loop.w
-		ds = dx
-		di = si
-		di += xdd
-		cx = cnt
-		loop.w
-			al = b[si]
-			ah = b[di]
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al
-			b[si] = al;++si
-			b[di] = ah;++di
+    dx.si = dp
+    ax = si
+    ax >>= 4
+    dx += ax
+    si &= 0x0f
+    tp = dx.si
 
-			al = b[si]
-			ah = b[di]
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al
-			b[si] = al;++si
-			b[di] = ah;++di
+    bx = ysiz
+    loop.w
+    	ds = dx
+    	di = si
+    	di += xdd
+    	cx = cnt
+    	loop.w
+    	    al = b[si]
+    	    ah = b[di]
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al
+    	    b[si] = al;++si
+    	    b[di] = ah;++di
 
-			al = b[si]
-			ah = b[di]
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al
-			b[si] = al;++si
-			b[di] = ah;++di
+    	    al = b[si]
+    	    ah = b[di]
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al
+    	    b[si] = al;++si
+    	    b[di] = ah;++di
 
-			al = b[si]
-			ah = b[di]
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al
-			b[si] = al;++si
-			b[di] = ah;++di
-			di -= 8
-		endloop (--cx)
-		if (n)
-			ax = w[si]
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al
-			ah <=> al
-			w[si] = ax
-			si += 2
-			ax = w[si]
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al
-			ah <=> al
-			w[si] = ax
-		fi
-		si = tp.l
-		si += xsiz_4
-		ax = si
-		ax >>= 4
-		dx += ax
-		si &= 0x0f
-		tp.l = si
-	endloop (--bx)
-	return
+    	    al = b[si]
+    	    ah = b[di]
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al
+    	    b[si] = al;++si
+    	    b[di] = ah;++di
+
+    	    al = b[si]
+    	    ah = b[di]
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al
+    	    b[si] = al;++si
+    	    b[di] = ah;++di
+    	    di -= 8
+    	endloop (--cx)
+    	if (n)
+    	    ax = w[si]
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al
+    	    ah <=> al
+    	    w[si] = ax
+    	    si += 2
+    	    ax = w[si]
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al
+    	    ah <=> al
+    	    w[si] = ax
+    	fi
+    	si = tp.l
+    	si += xsiz_4
+    	ax = si
+    	ax >>= 4
+    	dx += ax
+    	si &= 0x0f
+    	tp.l = si
+    endloop (--bx)
+    return
 endproc
 
 @if 1
 *proc Gv_RevY(dp:d, xsiz:w, ysiz:w);cdecl
-//	バッファを上下反転
+//  バッファを上下反転
 enter
-	save pusha,ax,bx,cx,dx,si,di,es,ds
-	local xcnt:w,cnt:w,xdd:w,tp:d,xsiz_4:w,xsiz_d:d
+    save pusha,ax,bx,cx,dx,si,di,es,ds
+    local xcnt:w,cnt:w,xdd:w,tp:d,xsiz_4:w,xsiz_d:d
 
-	ax = xsiz
-	ax <<= 1
-	xcnt = ax
-	ax <<= 1
-	xsiz_4 = ax
-	cx = ax
-	cx >>= 4
-	ax &= 0x0f
-	xsiz_d = cx.ax
+    ax = xsiz
+    ax <<= 1
+    xcnt = ax
+    ax <<= 1
+    xsiz_4 = ax
+    cx = ax
+    cx >>= 4
+    ax &= 0x0f
+    xsiz_d = cx.ax
 
-	ax = ysiz
-	//n = 0
-	//if ((ax >>= 1) .cf. 1)
-	//	n = 1
-	//fi
-	ax >>= 1
-	cnt = ax
-	bx.si = dp
-	ax = si
-	ax >>= 4
-	bx += ax
-	si &= 0x0f
-	tp = bx.si
-	ax = ysiz
-	ax -= 1
-	dx.ax = ax * xsiz_4
-	dx <<= 12
-	cx = ax
-	cx >>= 4
-	dx |= cx
-	dx += bx
-	ax &= 0x0f
-	si += ax
-	dp = dx.si
+    ax = ysiz
+    //n = 0
+    //if ((ax >>= 1) .cf. 1)
+    //	n = 1
+    //fi
+    ax >>= 1
+    cnt = ax
+    bx.si = dp
+    ax = si
+    ax >>= 4
+    bx += ax
+    si &= 0x0f
+    tp = bx.si
+    ax = ysiz
+    ax -= 1
+    dx.ax = ax * xsiz_4
+    dx <<= 12
+    cx = ax
+    cx >>= 4
+    dx |= cx
+    dx += bx
+    ax &= 0x0f
+    si += ax
+    dp = dx.si
 
-	dx.si = tp
-	bx.di = dp
-	go.w (cnt == 0) RTS
-	loop
-		ds = dx
-		es = bx
-		cx = xcnt
-		loop
-			ax = w[si]
-			dx = w[es:di]
-			rep.set.w di,ax
-			w[si] = dx
-			si+=2
-		endloop (--cx)
-		bx.di = dp
-		--bx
-		di += 16
-		bx -= xsiz_d.h
-		di -= xsiz_d.l
-		ax = di
-		ax >>= 4
-		bx += ax
-		di &= 0x0f
-		dp = bx.di
-		dx.si = tp
-		si += xsiz_4
-		ax = si
-		ax >>= 4
-		dx += ax
-		si &= 0x0f
-		tp = dx.si
-	endloop (--cnt)
+    dx.si = tp
+    bx.di = dp
+    go.w (cnt == 0) RTS
+    loop
+    	ds = dx
+    	es = bx
+    	cx = xcnt
+    	loop
+    	    ax = w[si]
+    	    dx = w[es:di]
+    	    rep.set.w di,ax
+    	    w[si] = dx
+    	    si+=2
+    	endloop (--cx)
+    	bx.di = dp
+    	--bx
+    	di += 16
+    	bx -= xsiz_d.h
+    	di -= xsiz_d.l
+    	ax = di
+    	ax >>= 4
+    	bx += ax
+    	di &= 0x0f
+    	dp = bx.di
+    	dx.si = tp
+    	si += xsiz_4
+    	ax = si
+    	ax >>= 4
+    	dx += ax
+    	si &= 0x0f
+    	tp = dx.si
+    endloop (--cnt)
  RTS:
-	return
+    return
 endproc
 @fi
 
 ///////////////////////////////////////////////////////////////////////////////
 *proc Gv_Dsp640(tp:d,ysiz:w);cdecl
-//	横640ドットの画像専用の表示
+//  横640ドットの画像専用の表示
 enter
-	save bx,cx,dx,si,di,es,ds
-	local gvseg:w,rvseg:w,bvseg:w,ivseg:w
+    save bx,cx,dx,si,di,es,ds
+    local gvseg:w,rvseg:w,bvseg:w,ivseg:w
 
-	ds = ax = %var
-	bvseg = ax = bvramSeg
-	rvseg = ax = rvramSeg
-	gvseg = ax = gvramSeg
-	ivseg = ax = ivramSeg
+    ds = ax = %var
+    bvseg = ax = bvramSeg
+    rvseg = ax = rvramSeg
+    gvseg = ax = gvramSeg
+    ivseg = ax = ivramSeg
 
-	dx.si = tp
-	go.w (dx == 0 && si == 0) ERR
-	ax = si
-	ax >>= 4
-	dx += ax
-	si &= 0x0f
-	tp = dx.si
+    dx.si = tp
+    go.w (dx == 0 && si == 0) ERR
+    ax = si
+    ax >>= 4
+    dx += ax
+    si &= 0x0f
+    tp = dx.si
 
-	bx = ysiz
-	go.w (bx == 0) ERR
-	if (bx > Gv_btmLine)
-		bx = Gv_btmLine
-	fi
-	di = 0
-	dx = tp.h
-	loop
-		ax = si
-		ax >>= 4
-		dx += ax
-		ds = dx
-		si &= 0x0f
-		cx = 20
-		loop
-			rep.load al,si;ah = b[si+3]
-			es = bvseg; w[es:di] = ax
-			rep.load al,si;ah = b[si+3]
-			es = rvseg; w[es:di] = ax
-			rep.load al,si;ah = b[si+3]
-			es = gvseg; w[es:di] = ax
-			rep.load al,si;ah = b[si+3]
-			es = ivseg; rep.set.w di,ax
-			si += 4
-			rep.load al,si;ah = b[si+3]
-			es = bvseg; w[es:di] = ax
-			rep.load al,si;ah = b[si+3]
-			es = rvseg; w[es:di] = ax
-			rep.load al,si;ah = b[si+3]
-			es = gvseg; w[es:di] = ax
-			rep.load al,si;ah = b[si+3]
-			es = ivseg; rep.set.w di,ax
-			si += 4
-		endloop (--cx)
-	endloop (--bx)
-	ax = 0
+    bx = ysiz
+    go.w (bx == 0) ERR
+    if (bx > Gv_btmLine)
+    	bx = Gv_btmLine
+    fi
+    di = 0
+    dx = tp.h
+    loop
+    	ax = si
+    	ax >>= 4
+    	dx += ax
+    	ds = dx
+    	si &= 0x0f
+    	cx = 20
+    	loop
+    	    rep.load al,si;ah = b[si+3]
+    	    es = bvseg; w[es:di] = ax
+    	    rep.load al,si;ah = b[si+3]
+    	    es = rvseg; w[es:di] = ax
+    	    rep.load al,si;ah = b[si+3]
+    	    es = gvseg; w[es:di] = ax
+    	    rep.load al,si;ah = b[si+3]
+    	    es = ivseg; rep.set.w di,ax
+    	    si += 4
+    	    rep.load al,si;ah = b[si+3]
+    	    es = bvseg; w[es:di] = ax
+    	    rep.load al,si;ah = b[si+3]
+    	    es = rvseg; w[es:di] = ax
+    	    rep.load al,si;ah = b[si+3]
+    	    es = gvseg; w[es:di] = ax
+    	    rep.load al,si;ah = b[si+3]
+    	    es = ivseg; rep.set.w di,ax
+    	    si += 4
+    	endloop (--cx)
+    endloop (--bx)
+    ax = 0
   RTS:
-	return
+    return
   ERR:
-  	ax = 1
-	go RTS
+    ax = 1
+    go RTS
 endproc
 
 *proc Gv_Dsp(tp:d,xsiz:w,ysiz:w,sx0:w,sy0:w);cdecl
-//	画像の表示
+//  画像の表示
 enter
-	save bx,cx,dx,si,di,es,ds
-	local gvseg:w,rvseg:w,bvseg:w,ivseg:w
-	local gp:w,xlen:w,sxx:w
+    save bx,cx,dx,si,di,es,ds
+    local gvseg:w,rvseg:w,bvseg:w,ivseg:w
+    local gp:w,xlen:w,sxx:w
 
-	ds = ax = %var
-	bvseg = ax = bvramSeg
-	rvseg = ax = rvramSeg
-	gvseg = ax = gvramSeg
-	ivseg = ax = ivramSeg
+    ds = ax = %var
+    bvseg = ax = bvramSeg
+    rvseg = ax = rvramSeg
+    gvseg = ax = gvramSeg
+    ivseg = ax = ivramSeg
 
-	dx.si = tp
-	go.w (dx == 0 && si == 0) ERR
-	ax = si
-	ax >>= 4
-	dx += ax
-	si &= 0x0f
-	tp = dx.si
+    dx.si = tp
+    go.w (dx == 0 && si == 0) ERR
+    ax = si
+    ax >>= 4
+    dx += ax
+    si &= 0x0f
+    tp = dx.si
 
-	cx = xsiz
-	go.w (cx == 0) ERR
-	go.w (cl & 0x07) ERR
-	cx >>= 3
-	xlen = cx
+    cx = xsiz
+    go.w (cx == 0) ERR
+    go.w (cl & 0x07) ERR
+    cx >>= 3
+    xlen = cx
 
-	ax = ysiz
-	go.w (ax == 0) ERR
+    ax = ysiz
+    go.w (ax == 0) ERR
 
-	cx = sx0
-	cx .>>= 3
-	sx0 = cx
-	go.w (cx .>. 79) ERR
-	sxx = cx
-	if (cx .<. 0)
-		sxx = 0
-	fi
+    cx = sx0
+    cx .>>= 3
+    sx0 = cx
+    go.w (cx .>. 79) ERR
+    sxx = cx
+    if (cx .<. 0)
+    	sxx = 0
+    fi
 
-	dx = sy0
-	go.w (dx .>. 399) ERR
-	ax = 0
-	if (dx .>. 0)
-		dx.ax = dx * 80
-	fi
-	gp = di = ax
-	dx = sy0
-	loop
-		cx = tp.h
-		ax = si
-		ax >>= 4
-		cx += ax
-		tp.h = cx
-		si &= 0x0f
-		exit.w (dx .>. 399) 
-		bx = sx0
-		cx = xlen
-		if (dx .<. 0)
-			cx <<= 2
-			si += cx
-		else
-			di += sxx
-			loop
-				if (bx .<. 0 || bx .>. 79)
-					si += 4
-				else
-					ds = tp.h
-					rep.load.w ax,si
-					ds = bvseg; b[di] = al
-					ds = rvseg; b[di] = ah
-					ds = tp.h
-					rep.load.w ax,si
-					ds = gvseg; b[di] = al
-					ds = ivseg; b[di] = ah
-					++di
-				fi
-				++bx
-			endloop (--cx)
-			di = gp
-			di += 80
-			gp = di
-		fi
-		++dx
-	endloop (--ysiz)
-	ax = 0
+    dx = sy0
+    go.w (dx .>. 399) ERR
+    ax = 0
+    if (dx .>. 0)
+    	dx.ax = dx * 80
+    fi
+    gp = di = ax
+    dx = sy0
+    loop
+    	cx = tp.h
+    	ax = si
+    	ax >>= 4
+    	cx += ax
+    	tp.h = cx
+    	si &= 0x0f
+    	exit.w (dx .>. 399)
+    	bx = sx0
+    	cx = xlen
+    	if (dx .<. 0)
+    	    cx <<= 2
+    	    si += cx
+    	else
+    	    di += sxx
+    	    loop
+    	    	if (bx .<. 0 || bx .>. 79)
+    	    	    si += 4
+    	    	else
+    	    	    ds = tp.h
+    	    	    rep.load.w ax,si
+    	    	    ds = bvseg; b[di] = al
+    	    	    ds = rvseg; b[di] = ah
+    	    	    ds = tp.h
+    	    	    rep.load.w ax,si
+    	    	    ds = gvseg; b[di] = al
+    	    	    ds = ivseg; b[di] = ah
+    	    	    ++di
+    	    	fi
+    	    	++bx
+    	    endloop (--cx)
+    	    di = gp
+    	    di += 80
+    	    gp = di
+    	fi
+    	++dx
+    endloop (--ysiz)
+    ax = 0
   RTS:
-	return
+    return
   ERR:
-  	ax = 1
-	go RTS
+    ax = 1
+    go RTS
 endproc
 
 *proc Gv_DspOvrLd(tp:d,xsiz:w,ysiz:w,sx0:w,sy0:w,col:w);cdecl
-//	合成表示
+//  合成表示
 enter
-	save bx,cx,dx,si,di,es,ds
-	local gvseg:w,rvseg:w,bvseg:w,ivseg:w
-	local gp:w,xlen:w,sxx:w
+    save bx,cx,dx,si,di,es,ds
+    local gvseg:w,rvseg:w,bvseg:w,ivseg:w
+    local gp:w,xlen:w,sxx:w
 
-	ds = ax = %var
-	bvseg = ax = bvramSeg
-	rvseg = ax = rvramSeg
-	gvseg = ax = gvramSeg
-	ivseg = ax = ivramSeg
+    ds = ax = %var
+    bvseg = ax = bvramSeg
+    rvseg = ax = rvramSeg
+    gvseg = ax = gvramSeg
+    ivseg = ax = ivramSeg
 
-	dx.si = tp
-	go.w (dx == 0 && si == 0) ERR
-	ax = si
-	ax >>= 4
-	dx += ax
-	si &= 0x0f
-	tp = dx.si
+    dx.si = tp
+    go.w (dx == 0 && si == 0) ERR
+    ax = si
+    ax >>= 4
+    dx += ax
+    si &= 0x0f
+    tp = dx.si
 
-	cx = xsiz
-	go.w (cx == 0) ERR
-	go.w (cl & 0x07) ERR
-	cx >>= 3
-	xlen = cx
+    cx = xsiz
+    go.w (cx == 0) ERR
+    go.w (cl & 0x07) ERR
+    cx >>= 3
+    xlen = cx
 
-	ax = ysiz
-	go.w (ax == 0) ERR
+    ax = ysiz
+    go.w (ax == 0) ERR
 
-	cx = sx0
-	cx .>>= 3
-	sx0 = cx
-	go.w (cx .>. 79) ERR
-	sxx = cx
-	if (cx .<. 0)
-		sxx = 0
-	fi
+    cx = sx0
+    cx .>>= 3
+    sx0 = cx
+    go.w (cx .>. 79) ERR
+    sxx = cx
+    if (cx .<. 0)
+    	sxx = 0
+    fi
 
-	dx = sy0
-	go.w (dx .>. 399) ERR
-	ax = 0
-	if (dx .>. 0)
-		dx.ax = dx * 80
-	fi
-	gp = di = ax
-	dx = sy0
-	loop.w
-		cx = tp.h
-		ax = si
-		ax >>= 4
-		cx += ax
-		tp.h = cx
-		ds = cx
-		si &= 0x0f
-		exit.w (dx .>. 399) 
-		bx = sx0
-		cx = xlen
-		if (dx .<. 0)
-			cx <<= 2
-			si += cx
-		else
-			di += sxx
-			loop.w
-				if (bx .<. 0 || bx .>. 79)
-					si += 4
-				else
-					push bx,dx
-					ah = col.l
-					dh = b[si];++si
-					if ((ah >>= 1) .cf. 0)
-						//dh ^= 0xff //com dh
-						com dh
-					fi
-					rep.load al,si
-					if ((ah >>= 1) .cf. 0)
-						//al ^= 0xff //com al
-						com al
-					fi
-					dh &= al
-					rep.load al,si
-					if ((ah >>= 1) .cf. 0)
-						//al ^= 0xff //com al
-						com al
-					fi
-					dh &= al
-					rep.load al,si
-					if ((ah >>= 1) .cf. 0)
-						//al ^= 0xff //com al
-						com al
-					fi
-					dh &= al
-					dl = dh
-					com dl
-					si -= 4
+    dx = sy0
+    go.w (dx .>. 399) ERR
+    ax = 0
+    if (dx .>. 0)
+    	dx.ax = dx * 80
+    fi
+    gp = di = ax
+    dx = sy0
+    loop.w
+    	cx = tp.h
+    	ax = si
+    	ax >>= 4
+    	cx += ax
+    	tp.h = cx
+    	ds = cx
+    	si &= 0x0f
+    	exit.w (dx .>. 399)
+    	bx = sx0
+    	cx = xlen
+    	if (dx .<. 0)
+    	    cx <<= 2
+    	    si += cx
+    	else
+    	    di += sxx
+    	    loop.w
+    	    	if (bx .<. 0 || bx .>. 79)
+    	    	    si += 4
+    	    	else
+    	    	    push bx,dx
+    	    	    ah = col.l
+    	    	    dh = b[si];++si
+    	    	    if ((ah >>= 1) .cf. 0)
+    	    	    	//dh ^= 0xff //com dh
+    	    	    	com dh
+    	    	    fi
+    	    	    rep.load al,si
+    	    	    if ((ah >>= 1) .cf. 0)
+    	    	    	//al ^= 0xff //com al
+    	    	    	com al
+    	    	    fi
+    	    	    dh &= al
+    	    	    rep.load al,si
+    	    	    if ((ah >>= 1) .cf. 0)
+    	    	    	//al ^= 0xff //com al
+    	    	    	com al
+    	    	    fi
+    	    	    dh &= al
+    	    	    rep.load al,si
+    	    	    if ((ah >>= 1) .cf. 0)
+    	    	    	//al ^= 0xff //com al
+    	    	    	com al
+    	    	    fi
+    	    	    dh &= al
+    	    	    dl = dh
+    	    	    com dl
+    	    	    si -= 4
 
-					rep.load al,si
-					es = bx = bvseg
-					ah = b[es:di]
-					ax &= dx	//al &= dl;ah &= dh
-					al |= ah
-					b[es:di] = al
+    	    	    rep.load al,si
+    	    	    es = bx = bvseg
+    	    	    ah = b[es:di]
+    	    	    ax &= dx	//al &= dl;ah &= dh
+    	    	    al |= ah
+    	    	    b[es:di] = al
 
-					rep.load al,si
-					es = bx = rvseg
-					ah = b[es:di]
-					ax &= dx	//al &= dl;ah &= dh
-					al |= ah
-					b[es:di] = al
+    	    	    rep.load al,si
+    	    	    es = bx = rvseg
+    	    	    ah = b[es:di]
+    	    	    ax &= dx	//al &= dl;ah &= dh
+    	    	    al |= ah
+    	    	    b[es:di] = al
 
-					rep.load al,si
-					es = bx = gvseg
-					ah = b[es:di]
-					ax &= dx	//al &= dl;ah &= dh
-					al |= ah
-					b[es:di] = al
+    	    	    rep.load al,si
+    	    	    es = bx = gvseg
+    	    	    ah = b[es:di]
+    	    	    ax &= dx	//al &= dl;ah &= dh
+    	    	    al |= ah
+    	    	    b[es:di] = al
 
-					rep.load al,si
-					es = bx = ivseg
-					ah = b[es:di]
-					ax &= dx	//al &= dl;ah &= dh
-					al |= ah
-					rep.set di,al
-					pop bx,dx
-				fi
-				++bx
-			endloop (--cx)
-			di = gp
-			di += 80
-			gp = di
-		fi
-		++dx
-	endloop (--ysiz)
-	ax = 0
+    	    	    rep.load al,si
+    	    	    es = bx = ivseg
+    	    	    ah = b[es:di]
+    	    	    ax &= dx	//al &= dl;ah &= dh
+    	    	    al |= ah
+    	    	    rep.set di,al
+    	    	    pop bx,dx
+    	    	fi
+    	    	++bx
+    	    endloop (--cx)
+    	    di = gp
+    	    di += 80
+    	    gp = di
+    	fi
+    	++dx
+    endloop (--ysiz)
+    ax = 0
   RTS:
-	return
+    return
   ERR:
-  	ax = 1
-	go RTS
+    ax = 1
+    go RTS
 endproc
 
 *proc Gv_DspSml(tp:d,xsiz:w,ysiz:w);cdecl
-//	縮小表示
+//  縮小表示
 enter
-	save bx,cx,dx,si,di,es,ds
-	local gvseg:w,rvseg:w,bvseg:w,ivseg:w
-	local gp:w,xlen:w,xsiz_4:w,l2flg:b
+    save bx,cx,dx,si,di,es,ds
+    local gvseg:w,rvseg:w,bvseg:w,ivseg:w
+    local gp:w,xlen:w,xsiz_4:w,l2flg:b
 
-	ds = ax = %var
-	bvseg = ax = bvramSeg
-	rvseg = ax = rvramSeg
-	gvseg = ax = gvramSeg
-	ivseg = ax = ivramSeg
+    ds = ax = %var
+    bvseg = ax = bvramSeg
+    rvseg = ax = rvramSeg
+    gvseg = ax = gvramSeg
+    ivseg = ax = ivramSeg
 
-	dx.si = tp
-	go.w (dx == 0 && si == 0) ERR
-	ax = si
-	ax >>= 4
-	dx += ax
-	si &= 0x0f
-	tp = dx.si
+    dx.si = tp
+    go.w (dx == 0 && si == 0) ERR
+    ax = si
+    ax >>= 4
+    dx += ax
+    si &= 0x0f
+    tp = dx.si
 
-	cx = xsiz
-	go.w (cx == 0) ERR
-	go.w (cl & 0x07) ERR
-	cx >>= 1
-	xsiz_4 = cx
-	cx >>= 3
-	if (cx > 80)
-		cx = 80
-	fi
-	xlen = cx
+    cx = xsiz
+    go.w (cx == 0) ERR
+    go.w (cl & 0x07) ERR
+    cx >>= 1
+    xsiz_4 = cx
+    cx >>= 3
+    if (cx > 80)
+    	cx = 80
+    fi
+    xlen = cx
 
-	ax = Gv_btmLine
-	l2flg = 0
-	if (ax == 200)
-		l2flg = 1
-	fi
-	dx = ysiz
-	go.w (dx == 0) ERR
-	if (dx > 800)
-		ysiz = 800
-	fi
-	gp = di = 0
-	dx = 0
-	ds.si = tp
-	loop.w
-		cx = ds
-		ax = si
-		ax >>= 4
-		cx += ax
-		ds = cx
-		si &= 0x0f
-		if.w ((dx & 0x02) == 0||l2flg)
-			bx = si
-			cx = xlen
-			loop.w
-				rep.load al,si
-				|al <<= 1;|rcl ah;|al <<= 1;|rcl ah;al <<= 2
-				|al <<= 1;|rcl ah;|al <<= 1;|rcl ah
-				al = b[si+3]
-				|al <<= 1;|rcl ah;|al <<= 1;|rcl ah;al <<= 2
-				|al <<= 1;|rcl ah;|al <<= 1;|rcl ah
-				es = bvseg; b[es:di] = ah
-				rep.load al,si
-				|al <<= 1;|rcl ah;|al <<= 1;|rcl ah;al <<= 2
-				|al <<= 1;|rcl ah;|al <<= 1;|rcl ah
-				al = b[si+3]
-				|al <<= 1;|rcl ah;|al <<= 1;|rcl ah;al <<= 2
-				|al <<= 1;|rcl ah;|al <<= 1;|rcl ah
-				es = rvseg; b[es:di] = ah
-				rep.load al,si
-				|al <<= 1;|rcl ah;|al <<= 1;|rcl ah;al <<= 2
-				|al <<= 1;|rcl ah;|al <<= 1;|rcl ah
-				al = b[si+3]
-				|al <<= 1;|rcl ah;|al <<= 1;|rcl ah;al <<= 2
-				|al <<= 1;|rcl ah;|al <<= 1;|rcl ah
-				es = gvseg; b[es:di] = ah
-				rep.load al,si
-				|al <<= 1;|rcl ah;|al <<= 1;|rcl ah;al <<= 2
-				|al <<= 1;|rcl ah;|al <<= 1;|rcl ah
-				al = b[si+3]
-				|al <<= 1;|rcl ah;|al <<= 1;|rcl ah;al <<= 2
-				|al <<= 1;|rcl ah;|al <<= 1;|rcl ah
-				es = ivseg; b[es:di] = ah
-				si += 4
-				++di
-			endloop (--cx)
-			si = bx
-			di = gp
-			di += 80
-			gp = di
-		fi
-		si += xsiz_4
-		++dx
-	endloop (dx < ysiz)
-	ax = 0
+    ax = Gv_btmLine
+    l2flg = 0
+    if (ax == 200)
+    	l2flg = 1
+    fi
+    dx = ysiz
+    go.w (dx == 0) ERR
+    if (dx > 800)
+    	ysiz = 800
+    fi
+    gp = di = 0
+    dx = 0
+    ds.si = tp
+    loop.w
+    	cx = ds
+    	ax = si
+    	ax >>= 4
+    	cx += ax
+    	ds = cx
+    	si &= 0x0f
+    	if.w ((dx & 0x02) == 0||l2flg)
+    	    bx = si
+    	    cx = xlen
+    	    loop.w
+    	    	rep.load al,si
+    	    	|al <<= 1;|rcl ah;|al <<= 1;|rcl ah;al <<= 2
+    	    	|al <<= 1;|rcl ah;|al <<= 1;|rcl ah
+    	    	al = b[si+3]
+    	    	|al <<= 1;|rcl ah;|al <<= 1;|rcl ah;al <<= 2
+    	    	|al <<= 1;|rcl ah;|al <<= 1;|rcl ah
+    	    	es = bvseg; b[es:di] = ah
+    	    	rep.load al,si
+    	    	|al <<= 1;|rcl ah;|al <<= 1;|rcl ah;al <<= 2
+    	    	|al <<= 1;|rcl ah;|al <<= 1;|rcl ah
+    	    	al = b[si+3]
+    	    	|al <<= 1;|rcl ah;|al <<= 1;|rcl ah;al <<= 2
+    	    	|al <<= 1;|rcl ah;|al <<= 1;|rcl ah
+    	    	es = rvseg; b[es:di] = ah
+    	    	rep.load al,si
+    	    	|al <<= 1;|rcl ah;|al <<= 1;|rcl ah;al <<= 2
+    	    	|al <<= 1;|rcl ah;|al <<= 1;|rcl ah
+    	    	al = b[si+3]
+    	    	|al <<= 1;|rcl ah;|al <<= 1;|rcl ah;al <<= 2
+    	    	|al <<= 1;|rcl ah;|al <<= 1;|rcl ah
+    	    	es = gvseg; b[es:di] = ah
+    	    	rep.load al,si
+    	    	|al <<= 1;|rcl ah;|al <<= 1;|rcl ah;al <<= 2
+    	    	|al <<= 1;|rcl ah;|al <<= 1;|rcl ah
+    	    	al = b[si+3]
+    	    	|al <<= 1;|rcl ah;|al <<= 1;|rcl ah;al <<= 2
+    	    	|al <<= 1;|rcl ah;|al <<= 1;|rcl ah
+    	    	es = ivseg; b[es:di] = ah
+    	    	si += 4
+    	    	++di
+    	    endloop (--cx)
+    	    si = bx
+    	    di = gp
+    	    di += 80
+    	    gp = di
+    	fi
+    	si += xsiz_4
+    	++dx
+    endloop (dx < ysiz)
+    ax = 0
   RTS:
-	return
+    return
   ERR:
-  	ax = 1
-	go RTS
+    ax = 1
+    go RTS
 endproc
 
 ///////////////////////////////////////////////////////////////////////////////
 *proc Gv_WkCpy(scrnp:d,scrnX:w,scrnY:w,x0:w,y0:w,xx:w,yy:w,ggx:w,ggy:w);cdecl
-//	バッファ中の指定位置(x0,y0)のサイズ(xx,yy) をVRAMの(ggx,ggy)に表示
+//  バッファ中の指定位置(x0,y0)のサイズ(xx,yy) をVRAMの(ggx,ggy)に表示
 enter
-	save bx,cx,dx,si,di,es,ds
-	local gvseg:w,rvseg:w,bvseg:w,ivseg:w
-	local tp:d,gp:w,x0_4:w,scrnX_4:w,x1:w,gvofs:w,gp2:w
+    save bx,cx,dx,si,di,es,ds
+    local gvseg:w,rvseg:w,bvseg:w,ivseg:w
+    local tp:d,gp:w,x0_4:w,scrnX_4:w,x1:w,gvofs:w,gp2:w
 
-	ds = ax = %var
-	rep.inc
+    ds = ax = %var
+    rep.inc
 
-	ax = ggy
-	go.w (scrnX == 0||scrnY==0||xx==0||yy==0||ggx > 79||ax >= Gv_btmLine) ERR
+    ax = ggy
+    go.w (scrnX == 0||scrnY==0||xx==0||yy==0||ggx > 79||ax >= Gv_btmLine) ERR
 
-	bvseg = ax = bvramSeg
-	rvseg = ax = rvramSeg
-	gvseg = ax = gvramSeg
-	ivseg = ax = ivramSeg
+    bvseg = ax = bvramSeg
+    rvseg = ax = rvramSeg
+    gvseg = ax = gvramSeg
+    ivseg = ax = ivramSeg
 
-	ax = x0; ax <<= 2; x0_4 = ax
-	ax = scrnX;ax <<= 2; scrnX_4 = ax
+    ax = x0; ax <<= 2; x0_4 = ax
+    ax = scrnX;ax <<= 2; scrnX_4 = ax
 
-	dx.ax = scrnp
-	go.w (dx == 0 && ax == 0) ERR
-	cx = ax
-	cx >>= 4
-	dx += cx
-	ax &= 0x0f
-	scrnp = dx.ax
+    dx.ax = scrnp
+    go.w (dx == 0 && ax == 0) ERR
+    cx = ax
+    cx >>= 4
+    dx += cx
+    ax &= 0x0f
+    scrnp = dx.ax
 
-	dx.ax = ggy * 80
-	cx = 0
-	if (Gv_ofsFlg != 0)
-		cx = 80
-	fi
-	gvofs = cx
-	ax += cx
-	gp = ax
-	cx += 80 * 400
-	gp2 = cx
+    dx.ax = ggy * 80
+    cx = 0
+    if (Gv_ofsFlg != 0)
+    	cx = 80
+    fi
+    gvofs = cx
+    ax += cx
+    gp = ax
+    cx += 80 * 400
+    gp2 = cx
 
-	ax = x0
-	ax += xx
-	x1 = ax
-	bx = y0
-	di = gp
-	loop.w
-		if (bx == scrnY)
-			bx = 0;
-		fi
-		dx.ax = bx * scrnX_4
-		si = ax
-		dx <<= 12
-		ax >>= 4
-		dx |= ax
-		si &= 0x0f
-		dx +=scrnp.h
-		si +=scrnp.l
-		ax = si
-		ax >>= 4
-		dx += ax
-		si &= 0x0f
-		tp = dx.si
-		si += x0_4
-		ax = si
-		si &= 0x0f
-		ax >>= 4
-		dx += ax
-		ds = dx
-		di += ggx
-		cx = x0
-		loop
-			if (cx == scrnX)
-				ds.si = tp
-			fi
-			rep.load.w ax,si
-			es = bvseg; b[es:di] = al
-			es = rvseg; b[es:di] = ah
-			rep.load.w ax,si
-			es = gvseg; b[es:di] = al
-			es = ivseg; b[es:di] = ah
-			++di
-			++cx
-		endloop (cx < x1)
-		di = gp
-		di += 80
-		if (di == gp2)
-			di = gvofs
-		fi
-		gp = di
-		++bx
-	endloop (--yy)
+    ax = x0
+    ax += xx
+    x1 = ax
+    bx = y0
+    di = gp
+    loop.w
+    	if (bx == scrnY)
+    	    bx = 0;
+    	fi
+    	dx.ax = bx * scrnX_4
+    	si = ax
+    	dx <<= 12
+    	ax >>= 4
+    	dx |= ax
+    	si &= 0x0f
+    	dx +=scrnp.h
+    	si +=scrnp.l
+    	ax = si
+    	ax >>= 4
+    	dx += ax
+    	si &= 0x0f
+    	tp = dx.si
+    	si += x0_4
+    	ax = si
+    	si &= 0x0f
+    	ax >>= 4
+    	dx += ax
+    	ds = dx
+    	di += ggx
+    	cx = x0
+    	loop
+    	    if (cx == scrnX)
+    	    	ds.si = tp
+    	    fi
+    	    rep.load.w ax,si
+    	    es = bvseg; b[es:di] = al
+    	    es = rvseg; b[es:di] = ah
+    	    rep.load.w ax,si
+    	    es = gvseg; b[es:di] = al
+    	    es = ivseg; b[es:di] = ah
+    	    ++di
+    	    ++cx
+    	endloop (cx < x1)
+    	di = gp
+    	di += 80
+    	if (di == gp2)
+    	    di = gvofs
+    	fi
+    	gp = di
+    	++bx
+    endloop (--yy)
   RTS0:
-	ax = 0
+    ax = 0
   RTS:
-	return
+    return
   ERR:
-  	ax = 1
-	go RTS
+    ax = 1
+    go RTS
 
 endproc
 
@@ -1278,308 +1278,308 @@ endproc
 @if 0
 *proc Gv_Dsp2(tp:d,xsiz:w,ysiz:w,sx0:w,sy0:w);cdecl
 enter
-	save bx,cx,dx,si,di,es,ds
-	local gvseg:w,rvseg:w,bvseg:w,ivseg:w
-	local gp:w,xlen:w,sxx:w,ycnt:w,tp_h:w
+    save bx,cx,dx,si,di,es,ds
+    local gvseg:w,rvseg:w,bvseg:w,ivseg:w
+    local gp:w,xlen:w,sxx:w,ycnt:w,tp_h:w
 
-	ds = ax = %var
-	bvseg = ax = bvramSeg
-	rvseg = ax = rvramSeg
-	gvseg = ax = gvramSeg
-	ivseg = ax = ivramSeg
+    ds = ax = %var
+    bvseg = ax = bvramSeg
+    rvseg = ax = rvramSeg
+    gvseg = ax = gvramSeg
+    ivseg = ax = ivramSeg
 
-	dx.si = tp
-	go.w (dx == 0 && si == 0) ERR
-	ax = si
-	ax >>= 4
-	dx += ax
-	si &= 0x0f
-	tp = dx.si
-	tp_h = dx
+    dx.si = tp
+    go.w (dx == 0 && si == 0) ERR
+    ax = si
+    ax >>= 4
+    dx += ax
+    si &= 0x0f
+    tp = dx.si
+    tp_h = dx
 
-	cx = xsiz
-	go.w (cx == 0) ERR
-	go.w (cl & 0x07) ERR
-	cx >>= 3
-	xlen = cx
+    cx = xsiz
+    go.w (cx == 0) ERR
+    go.w (cl & 0x07) ERR
+    cx >>= 3
+    xlen = cx
 
-	ax = ysiz
-	go.w (ax == 0) ERR
-	if ((ax >>= 1) .cf. 1)
-		ysiz = ax
-		++ax
-		ycnt = ax
-	else
-		ycnt = ax
-		ysiz = ax
-	fi
-	
-	cx = sx0
-	cx .>>= 3
-	sx0 = cx
-	go.w (cx .>. 79) ERR
-	sxx = cx
-	if (cx .<. 0)
-		sxx = 0
-	fi
+    ax = ysiz
+    go.w (ax == 0) ERR
+    if ((ax >>= 1) .cf. 1)
+    	ysiz = ax
+    	++ax
+    	ycnt = ax
+    else
+    	ycnt = ax
+    	ysiz = ax
+    fi
 
-	dx = sy0
-	go.w (dx .>. 399) ERR
-	ax = 0
-	if (dx .>. 0)
-		dx.ax = dx * 80
-	fi
-	gp = di = ax
-	dx = sy0
-	loop
-		cx = tp_h
-		ax = si
-		ax >>= 4
-		cx += ax
-		tp_h = cx
-		si &= 0x0f
-		exit.w (dx .>. 399) 
-		bx = sx0
-		cx = xlen
-		if (dx .<. 0)
-			cx <<= 2
-			si += cx
-		else
-			di += sxx
-			loop
-				if (bx .<. 0 || bx .>. 79)
-					si += 4
-				else
-					ds = tp_h
-					rep.load.w ax,si
-					ds = bvseg; b[di] = al
-					ds = rvseg; b[di] = ah
-					ds = tp_h
-					rep.load.w ax,si
-					ds = gvseg; b[di] = al
-					ds = ivseg; b[di] = ah
-					++di
-				fi
-				++bx
-			endloop (--cx)
-			di = gp
-			di += 80*2
-			gp = di
-		fi
-		cx = xlen
-		cx <<= 2
-		si += cx
-		dx+= 2;
-	endloop (--ycnt)
-	
-	dx = sy0
-	ax = 0
-	if (dx .>. 0)
-		dx.ax = dx * 80
-	fi
-	ax += 80
-	gp = di = ax
-	dx = sy0
-	++dx
-	ax.si = tp
-	tp_h = ax
-	ax = xlen
-	ax <<= 2
-	si += ax
-	loop
-		cx = tp_h
-		ax = si
-		ax >>= 4
-		cx += ax
-		tp_h = cx
-		si &= 0x0f
-		exit.w (dx .>. 399) 
-		bx = sx0
-		cx = xlen
-		if (dx .<. 0)
-			cx <<= 2
-			si += cx
-		else
-			di += sxx
-			loop
-				if (bx .<. 0 || bx .>. 79)
-					si += 4
-				else
-					ds = tp_h
-					rep.load.w ax,si
-					ds = bvseg; b[di] = al
-					ds = rvseg; b[di] = ah
-					ds = tp_h
-					rep.load.w ax,si
-					ds = gvseg; b[di] = al
-					ds = ivseg; b[di] = ah
-					++di
-				fi
-				++bx
-			endloop (--cx)
-			di = gp
-			di += 80*2
-			gp = di
-		fi
-		cx = xlen
-		cx <<= 2
-		si += cx
-		dx+= 2;
-	endloop (--ysiz)
-	
-	ax = 0
+    cx = sx0
+    cx .>>= 3
+    sx0 = cx
+    go.w (cx .>. 79) ERR
+    sxx = cx
+    if (cx .<. 0)
+    	sxx = 0
+    fi
+
+    dx = sy0
+    go.w (dx .>. 399) ERR
+    ax = 0
+    if (dx .>. 0)
+    	dx.ax = dx * 80
+    fi
+    gp = di = ax
+    dx = sy0
+    loop
+    	cx = tp_h
+    	ax = si
+    	ax >>= 4
+    	cx += ax
+    	tp_h = cx
+    	si &= 0x0f
+    	exit.w (dx .>. 399)
+    	bx = sx0
+    	cx = xlen
+    	if (dx .<. 0)
+    	    cx <<= 2
+    	    si += cx
+    	else
+    	    di += sxx
+    	    loop
+    	    	if (bx .<. 0 || bx .>. 79)
+    	    	    si += 4
+    	    	else
+    	    	    ds = tp_h
+    	    	    rep.load.w ax,si
+    	    	    ds = bvseg; b[di] = al
+    	    	    ds = rvseg; b[di] = ah
+    	    	    ds = tp_h
+    	    	    rep.load.w ax,si
+    	    	    ds = gvseg; b[di] = al
+    	    	    ds = ivseg; b[di] = ah
+    	    	    ++di
+    	    	fi
+    	    	++bx
+    	    endloop (--cx)
+    	    di = gp
+    	    di += 80*2
+    	    gp = di
+    	fi
+    	cx = xlen
+    	cx <<= 2
+    	si += cx
+    	dx+= 2;
+    endloop (--ycnt)
+
+    dx = sy0
+    ax = 0
+    if (dx .>. 0)
+    	dx.ax = dx * 80
+    fi
+    ax += 80
+    gp = di = ax
+    dx = sy0
+    ++dx
+    ax.si = tp
+    tp_h = ax
+    ax = xlen
+    ax <<= 2
+    si += ax
+    loop
+    	cx = tp_h
+    	ax = si
+    	ax >>= 4
+    	cx += ax
+    	tp_h = cx
+    	si &= 0x0f
+    	exit.w (dx .>. 399)
+    	bx = sx0
+    	cx = xlen
+    	if (dx .<. 0)
+    	    cx <<= 2
+    	    si += cx
+    	else
+    	    di += sxx
+    	    loop
+    	    	if (bx .<. 0 || bx .>. 79)
+    	    	    si += 4
+    	    	else
+    	    	    ds = tp_h
+    	    	    rep.load.w ax,si
+    	    	    ds = bvseg; b[di] = al
+    	    	    ds = rvseg; b[di] = ah
+    	    	    ds = tp_h
+    	    	    rep.load.w ax,si
+    	    	    ds = gvseg; b[di] = al
+    	    	    ds = ivseg; b[di] = ah
+    	    	    ++di
+    	    	fi
+    	    	++bx
+    	    endloop (--cx)
+    	    di = gp
+    	    di += 80*2
+    	    gp = di
+    	fi
+    	cx = xlen
+    	cx <<= 2
+    	si += cx
+    	dx+= 2;
+    endloop (--ysiz)
+
+    ax = 0
   RTS:
-	return
+    return
   ERR:
-  	ax = 1
-	go RTS
+    ax = 1
+    go RTS
 endproc
 @fi
 
 *proc Gv_DspP(tp:d,xsiz:w,ysiz:w,sx0:w,sy0:w,zcnt:w);cdecl
-//	見栄張り表示 1,2 （2行ごと、４行ごと）
+//  見栄張り表示 1,2 （2行ごと、４行ごと）
 enter
-	save bx,cx,dx,si,di,es,ds
-	local gvseg:w,rvseg:w,bvseg:w,ivseg:w
-	local gp:w, xlen:w, sxx:w, yend:w, tp_h:w, n_80:w, xlen_n:w
+    save bx,cx,dx,si,di,es,ds
+    local gvseg:w,rvseg:w,bvseg:w,ivseg:w
+    local gp:w, xlen:w, sxx:w, yend:w, tp_h:w, n_80:w, xlen_n:w
 
-	ds = ax = %var
-	bvseg = ax = bvramSeg
-	rvseg = ax = rvramSeg
-	gvseg = ax = gvramSeg
-	ivseg = ax = ivramSeg
+    ds = ax = %var
+    bvseg = ax = bvramSeg
+    rvseg = ax = rvramSeg
+    gvseg = ax = gvramSeg
+    ivseg = ax = ivramSeg
 
-	dx.si = tp
-	go.w (dx == 0 && si == 0) ERR
-	ax = si
-	ax >>= 4
-	dx += ax
-	si &= 0x0f
-	tp = dx.si
+    dx.si = tp
+    go.w (dx == 0 && si == 0) ERR
+    ax = si
+    ax >>= 4
+    dx += ax
+    si &= 0x0f
+    tp = dx.si
 
-	cx = xsiz
-	go.w (cx == 0) ERR
-	go.w (cl & 0x07) ERR
-	cx >>= 3
-	xlen = cx
+    cx = xsiz
+    go.w (cx == 0) ERR
+    go.w (cl & 0x07) ERR
+    cx >>= 3
+    xlen = cx
 
-	ax = ysiz
-	go.w (ax == 0) ERR
-	
-	cx = sx0
-	cx .>>= 3
-	sx0 = cx
-	go.w (cx .>. 79) ERR
-	sxx = cx
-	if (cx .<. 0)
-		sxx = 0
-	fi
+    ax = ysiz
+    go.w (ax == 0) ERR
 
-	dx = sy0
-	go.w (dx .>. 399) ERR
-	ax = dx
-	ax += ysiz
-	--ax
-	if (ax .>. 399)
-		ax = 399
-	fi
-	yend = ax
-	if (zcnt == 1)
-		n_80 = 80
-		xlen_n = 0
-	elsif (zcnt == 2)
-		n_80 = 80*2
-		ax = xlen
-		ax <<= 2
-		xlen_n = ax
-	elsif (zcnt == 4)
-		n_80 = 80*4
-		ax = xlen
-		ax <<= 2
-		xlen_n = ax
-		ax <<= 1
-		xlen_n += ax
-	fi
-	cx = 0
-	loop.w
-		tp_h = ax = tp.h
-		ax = 0
-		dx = sy0
-		dx += cx
-		if (dx .>. 0)
-			dx.ax = dx * 80
-		else
-			dx = cx
-			loop (dx)
-				ax += 80
-				--dx
-			endloop
-		fi
-		gp = di = ax
-		dx = sy0
-		dx += cx
-		push cx
-		si = tp.l
-		ax = xlen
-		ax <<= 2
-		if (cx)
-			loop
-				si += ax
-			endloop (--cx)
-		fi
-		loop
-			cx = tp_h
-			ax = si
-			ax >>= 4
-			cx += ax
-			tp_h = cx
-			si &= 0x0f
-			exit.w (dx .>. yend) 
-			bx = sx0
-			cx = xlen
-			if (dx .<. 0)
-				cx <<= 2
-				si += cx
-			else
-				di += sxx
-				loop
-					if (bx .<. 0 || bx .>. 79)
-						si += 4
-					else
-						ds = tp_h
-						rep.load.w ax,si
-						ds = bvseg; b[di] = al
-						ds = rvseg; b[di] = ah
-						ds = tp_h
-						rep.load.w ax,si
-						ds = gvseg; b[di] = al
-						ds = ivseg; b[di] = ah
-						++di
-					fi
-					++bx
-				endloop (--cx)
-				di = gp
-				di += n_80
-				gp = di
-			fi
-			si += xlen_n
-			dx+= zcnt;
-		endloop
-		pop cx
-		++cx
-		exit (cx == zcnt)
-		ax = 10
-		loop
-			WaitVSync
-		endloop (--ax)
-	endloop (cx < zcnt)
+    cx = sx0
+    cx .>>= 3
+    sx0 = cx
+    go.w (cx .>. 79) ERR
+    sxx = cx
+    if (cx .<. 0)
+    	sxx = 0
+    fi
 
-	ax = 0
+    dx = sy0
+    go.w (dx .>. 399) ERR
+    ax = dx
+    ax += ysiz
+    --ax
+    if (ax .>. 399)
+    	ax = 399
+    fi
+    yend = ax
+    if (zcnt == 1)
+    	n_80 = 80
+    	xlen_n = 0
+    elsif (zcnt == 2)
+    	n_80 = 80*2
+    	ax = xlen
+    	ax <<= 2
+    	xlen_n = ax
+    elsif (zcnt == 4)
+    	n_80 = 80*4
+    	ax = xlen
+    	ax <<= 2
+    	xlen_n = ax
+    	ax <<= 1
+    	xlen_n += ax
+    fi
+    cx = 0
+    loop.w
+    	tp_h = ax = tp.h
+    	ax = 0
+    	dx = sy0
+    	dx += cx
+    	if (dx .>. 0)
+    	    dx.ax = dx * 80
+    	else
+    	    dx = cx
+    	    loop (dx)
+    	    	ax += 80
+    	    	--dx
+    	    endloop
+    	fi
+    	gp = di = ax
+    	dx = sy0
+    	dx += cx
+    	push cx
+    	si = tp.l
+    	ax = xlen
+    	ax <<= 2
+    	if (cx)
+    	    loop
+    	    	si += ax
+    	    endloop (--cx)
+    	fi
+    	loop
+    	    cx = tp_h
+    	    ax = si
+    	    ax >>= 4
+    	    cx += ax
+    	    tp_h = cx
+    	    si &= 0x0f
+    	    exit.w (dx .>. yend)
+    	    bx = sx0
+    	    cx = xlen
+    	    if (dx .<. 0)
+    	    	cx <<= 2
+    	    	si += cx
+    	    else
+    	    	di += sxx
+    	    	loop
+    	    	    if (bx .<. 0 || bx .>. 79)
+    	    	    	si += 4
+    	    	    else
+    	    	    	ds = tp_h
+    	    	    	rep.load.w ax,si
+    	    	    	ds = bvseg; b[di] = al
+    	    	    	ds = rvseg; b[di] = ah
+    	    	    	ds = tp_h
+    	    	    	rep.load.w ax,si
+    	    	    	ds = gvseg; b[di] = al
+    	    	    	ds = ivseg; b[di] = ah
+    	    	    	++di
+    	    	    fi
+    	    	    ++bx
+    	    	endloop (--cx)
+    	    	di = gp
+    	    	di += n_80
+    	    	gp = di
+    	    fi
+    	    si += xlen_n
+    	    dx+= zcnt;
+    	endloop
+    	pop cx
+    	++cx
+    	exit (cx == zcnt)
+    	ax = 10
+    	loop
+    	    WaitVSync
+    	endloop (--ax)
+    endloop (cx < zcnt)
+
+    ax = 0
   RTS:
-	return
+    return
   ERR:
-  	ax = 1
-	go RTS
+    ax = 1
+    go RTS
 endproc
 
 endmodule

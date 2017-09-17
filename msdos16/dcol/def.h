@@ -15,22 +15,22 @@ typedef unsigned long DWORD;
   #define isdigit(c)  ((c) >= '0' && (c) <= '9')
 #endif
 
-#define FNAMESIZE	128
-#define WRTBUFSIZE	0x6000
+#define FNAMESIZE   128
+#define WRTBUFSIZE  0x6000
 
 
-#ifdef __TURBOC__	/* TC(++),BC++用かな... たぶん QC でも大丈夫かも...?    */
-	/*MSDOSな環境なら*/
-	#define FAR_ALLOC	/* callocの代わりにfarcalloc を使う場合, 定義		*/
-	//#define DIRENTRY/* ﾜｲﾙﾄﾞ･ｶｰﾄﾞ対応のﾌｧｲﾙ名取得ﾙｰﾁﾝを使う.				*/
-	#define FDATEGET/* ファイルの日付を保存するオプションを付加				*/
+#ifdef __TURBOC__   /* TC(++),BC++用かな... たぶん QC でも大丈夫かも...?    */
+    /*MSDOSな環境なら*/
+    #define FAR_ALLOC	/* callocの代わりにfarcalloc を使う場合, 定義	    */
+    //#define DIRENTRY/* ﾜｲﾙﾄﾞ･ｶｰﾄﾞ対応のﾌｧｲﾙ名取得ﾙｰﾁﾝを使う.	    	    */
+    #define FDATEGET/* ファイルの日付を保存するオプションを付加     	    */
 #else
-	#define huge
-	#define far
+    #define huge
+    #define far
 #endif
 
 /*---------------------------------------------------------------------------*/
-/*					共　通　												 */
+/*  	    	    共　通　	    	    	    	    	    	     */
 /*---------------------------------------------------------------------------*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,10 +39,10 @@ typedef unsigned long DWORD;
 #include <alloc.h>
 #endif
 #if 0
-	#define KEYBRK	/* CTRL-C で abort 可にする...? */
-	#include <signal.h>
+    #define KEYBRK  /* CTRL-C で abort 可にする...? */
+    #include <signal.h>
 #endif
 
 
-#define FNAMESIZE	128
+#define FNAMESIZE   128
 

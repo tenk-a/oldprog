@@ -1,253 +1,253 @@
 module MP
-	c_name "","",1
-	import Std
-	import GVDSP
+    c_name "","",1
+    import Std
+    import GVDSP
 
 *proc Mp_Init();cdecl
 enter
-	save ax,dx
+    save ax,dx
 
-	dx = 0x0C06
-	port(dx) = al = 0xD8
+    dx = 0x0C06
+    port(dx) = al = 0xD8
 
-	dx = 0x0c07
-	port(dx) = al = 0x0d8
+    dx = 0x0c07
+    port(dx) = al = 0x0d8
 
-	//port(0x6a) = al = 0x01
-	port(0x6a) = al = 0x02
+    //port(0x6a) = al = 0x01
+    port(0x6a) = al = 0x02
 
-	return
+    return
 endproc
 
 *proc Mp_Term();cdecl
 enter
-	save ax,dx
+    save ax,dx
 
-//	dx = 0x0C06
-//	port(dx) = al = 0x4D
-	port(0x6a) = al = 0x01
+//  dx = 0x0C06
+//  port(dx) = al = 0x4D
+    port(0x6a) = al = 0x01
 
-	return
+    return
 endproc
 
 *proc Mp_SetPal(pal:d);cdecl
 enter
-	save pusha,es,ds
-	ds.si = pal
-	cx = 0
-	loop
-		port(0xA8) = al = cl
-		rep.load al,si
-		ah = al
-		al >>= 4
-		ah <<= 4
-		al |= ah
-		port(0xAC) = al
-		rep.load al,si
-		ah = al
-		al >>= 4
-		ah <<= 4
-		al |= ah
-		port(0xAA) = al
-		rep.load al,si
-		ah = al
-		al >>= 4
-		ah <<= 4
-		al |= ah
-		port(0xAE) = al
-		cx += 1
-	endloop(cx < 256)
-	return
+    save pusha,es,ds
+    ds.si = pal
+    cx = 0
+    loop
+    	port(0xA8) = al = cl
+    	rep.load al,si
+    	ah = al
+    	al >>= 4
+    	ah <<= 4
+    	al |= ah
+    	port(0xAC) = al
+    	rep.load al,si
+    	ah = al
+    	al >>= 4
+    	ah <<= 4
+    	al |= ah
+    	port(0xAA) = al
+    	rep.load al,si
+    	ah = al
+    	al >>= 4
+    	ah <<= 4
+    	al |= ah
+    	port(0xAE) = al
+    	cx += 1
+    endloop(cx < 256)
+    return
 endproc
 
 *proc Mp_Cnv(dp:d, xsiz:w, ysiz:w);cdecl
-//	PiLd_Load4b で展開されたデータをMp系の手続きが利用する形に変換
+//  PiLd_Load4b で展開されたデータをMp系の手続きが利用する形に変換
 enter
-	save bx,cx,dx,si,di,ds,es
-	local tp_h:w,xsz:w//,t:w
-	cvar t:w 
-	
-	rep.inc
-	ds = ax = %var
+    save bx,cx,dx,si,di,ds,es
+    local tp_h:w,xsz:w//,t:w
+    cvar t:w
 
-	dx.si = dp
-	ax = si
-	ax >>= 4
-	dx += ax
-	si &= 0x0f
-	dp = dx.si
-	tp_h = dx
+    rep.inc
+    ds = ax = %var
 
-	cx = xsiz
-	xsz = cx
-	ax = ysiz
-	go.w (ax==0||cx==0) ERR
-	es.di = dp
-	loop.w LLL
-		dx = tp_h
-		ax = si
-		ax >>= 4
-		dx += ax
-		si &= 0x0f
-		tp_h = dx
-		ds = dx
-		cx = xsz
-		loop.w
-			push cx
-			t = cx = bx = dx = 0 //dl:blue dh:red  bl:green  bh:明度
-								 //cl:b    ch:r    t.l:g  t.h:i
-			rep.load.w ax,si
-			|al >>= 1;  rcl dl,1;   |al >>= 1;  rcl dh,1
-			|al >>= 1;  rcl bl,1;   |al >>= 1;  rcl bh,1
-			|al >>= 1;  rcl cl,1;   |al >>= 1;  rcl ch,1
-			|al >>= 1;  rcl t.l,1;  |al >>= 1;  rcl t.h,1
-			|ah >>= 1;  rcl dl,1;   |ah >>= 1;  rcl dh,1
-			|ah >>= 1;  rcl bl,1;   |ah >>= 1;  rcl bh,1
-			|ah >>= 1;  rcl cl,1;   |ah >>= 1;  rcl ch,1
-			|ah >>= 1;  rcl t.l,1;   |ah >>= 1;  rcl t.h,1
-			rep.load.w ax,si
-			|al >>= 1;  rcl dl,1;   |al >>= 1;  rcl dh,1
-			|al >>= 1;  rcl bl,1;   |al >>= 1;  rcl bh,1
-			|al >>= 1;  rcl cl,1;   |al >>= 1;  rcl ch,1
-			|al >>= 1;  rcl t.l,1;  |al >>= 1;  rcl t.h,1
-			|ah >>= 1;  rcl dl,1;   |ah >>= 1;  rcl dh,1
-			|ah >>= 1;  rcl bl,1;   |ah >>= 1;  rcl bh,1
-			|ah >>= 1;  rcl cl,1;   |ah >>= 1;  rcl ch,1
-			|ah >>= 1;  rcl t.l,1;  |ah >>= 1;  rcl t.h,1
-			rep.load.w ax,si
-			|al >>= 1;  rcl dl,1;   |al >>= 1;  rcl dh,1
-			|al >>= 1;  rcl bl,1;   |al >>= 1;  rcl bh,1
-			|al >>= 1;  rcl cl,1;   |al >>= 1;  rcl ch,1
-			|al >>= 1;  rcl t.l,1;  |al >>= 1;  rcl t.h,1
-			|ah >>= 1;  rcl dl,1;   |ah >>= 1;  rcl dh,1
-			|ah >>= 1;  rcl bl,1;   |ah >>= 1;  rcl bh,1
-			|ah >>= 1;  rcl cl,1;   |ah >>= 1;  rcl ch,1
-			|ah >>= 1;  rcl t.l,1;  |ah >>= 1;  rcl t.h,1
-			rep.load.w ax,si
-			|al >>= 1;  rcl dl,1;   |al >>= 1;  rcl dh,1
-			|al >>= 1;  rcl bl,1;   |al >>= 1;  rcl bh,1
-			|al >>= 1;  rcl cl,1;   |al >>= 1;  rcl ch,1
-			|al >>= 1;  rcl t.l,1;  |al >>= 1;  rcl t.h,1
-			|ah >>= 1;  rcl dl,1;   |ah >>= 1;  rcl dh,1
-			|ah >>= 1;  rcl bl,1;   |ah >>= 1;  rcl bh,1
-			|ah >>= 1;  rcl cl,1;   |ah >>= 1;  rcl ch,1
-			|ah >>= 1;  rcl t.l,1;  |ah >>= 1;  rcl t.h,1
-			w[es:di] = dx
-			di+=2
-			w[es:di] = bx
-			di+=2
-			w[es:di] = cx
-			di+=2
-			w[es:di] = ax = t
-			di+=2
-			pop cx
-		endloop (--cx)
-		dx = es
-		ax = di
-		ax >>= 4
-		dx += ax
-		es = dx
-		di &= 0x0f
-		//dp = dx.di
-	endloop (--ysiz)
-	ax = 0
+    dx.si = dp
+    ax = si
+    ax >>= 4
+    dx += ax
+    si &= 0x0f
+    dp = dx.si
+    tp_h = dx
+
+    cx = xsiz
+    xsz = cx
+    ax = ysiz
+    go.w (ax==0||cx==0) ERR
+    es.di = dp
+    loop.w LLL
+    	dx = tp_h
+    	ax = si
+    	ax >>= 4
+    	dx += ax
+    	si &= 0x0f
+    	tp_h = dx
+    	ds = dx
+    	cx = xsz
+    	loop.w
+    	    push cx
+    	    t = cx = bx = dx = 0 //dl:blue dh:red  bl:green  bh:明度
+    	    	    	    	 //cl:b    ch:r    t.l:g  t.h:i
+    	    rep.load.w ax,si
+    	    |al >>= 1;	rcl dl,1;   |al >>= 1;	rcl dh,1
+    	    |al >>= 1;	rcl bl,1;   |al >>= 1;	rcl bh,1
+    	    |al >>= 1;	rcl cl,1;   |al >>= 1;	rcl ch,1
+    	    |al >>= 1;	rcl t.l,1;  |al >>= 1;	rcl t.h,1
+    	    |ah >>= 1;	rcl dl,1;   |ah >>= 1;	rcl dh,1
+    	    |ah >>= 1;	rcl bl,1;   |ah >>= 1;	rcl bh,1
+    	    |ah >>= 1;	rcl cl,1;   |ah >>= 1;	rcl ch,1
+    	    |ah >>= 1;	rcl t.l,1;   |ah >>= 1;  rcl t.h,1
+    	    rep.load.w ax,si
+    	    |al >>= 1;	rcl dl,1;   |al >>= 1;	rcl dh,1
+    	    |al >>= 1;	rcl bl,1;   |al >>= 1;	rcl bh,1
+    	    |al >>= 1;	rcl cl,1;   |al >>= 1;	rcl ch,1
+    	    |al >>= 1;	rcl t.l,1;  |al >>= 1;	rcl t.h,1
+    	    |ah >>= 1;	rcl dl,1;   |ah >>= 1;	rcl dh,1
+    	    |ah >>= 1;	rcl bl,1;   |ah >>= 1;	rcl bh,1
+    	    |ah >>= 1;	rcl cl,1;   |ah >>= 1;	rcl ch,1
+    	    |ah >>= 1;	rcl t.l,1;  |ah >>= 1;	rcl t.h,1
+    	    rep.load.w ax,si
+    	    |al >>= 1;	rcl dl,1;   |al >>= 1;	rcl dh,1
+    	    |al >>= 1;	rcl bl,1;   |al >>= 1;	rcl bh,1
+    	    |al >>= 1;	rcl cl,1;   |al >>= 1;	rcl ch,1
+    	    |al >>= 1;	rcl t.l,1;  |al >>= 1;	rcl t.h,1
+    	    |ah >>= 1;	rcl dl,1;   |ah >>= 1;	rcl dh,1
+    	    |ah >>= 1;	rcl bl,1;   |ah >>= 1;	rcl bh,1
+    	    |ah >>= 1;	rcl cl,1;   |ah >>= 1;	rcl ch,1
+    	    |ah >>= 1;	rcl t.l,1;  |ah >>= 1;	rcl t.h,1
+    	    rep.load.w ax,si
+    	    |al >>= 1;	rcl dl,1;   |al >>= 1;	rcl dh,1
+    	    |al >>= 1;	rcl bl,1;   |al >>= 1;	rcl bh,1
+    	    |al >>= 1;	rcl cl,1;   |al >>= 1;	rcl ch,1
+    	    |al >>= 1;	rcl t.l,1;  |al >>= 1;	rcl t.h,1
+    	    |ah >>= 1;	rcl dl,1;   |ah >>= 1;	rcl dh,1
+    	    |ah >>= 1;	rcl bl,1;   |ah >>= 1;	rcl bh,1
+    	    |ah >>= 1;	rcl cl,1;   |ah >>= 1;	rcl ch,1
+    	    |ah >>= 1;	rcl t.l,1;  |ah >>= 1;	rcl t.h,1
+    	    w[es:di] = dx
+    	    di+=2
+    	    w[es:di] = bx
+    	    di+=2
+    	    w[es:di] = cx
+    	    di+=2
+    	    w[es:di] = ax = t
+    	    di+=2
+    	    pop cx
+    	endloop (--cx)
+    	dx = es
+    	ax = di
+    	ax >>= 4
+    	dx += ax
+    	es = dx
+    	di &= 0x0f
+    	//dp = dx.di
+    endloop (--ysiz)
+    ax = 0
   RTS:
-	return
+    return
   ERR:
-  	ax = 1
-  	go RTS
+    ax = 1
+    go RTS
 endproc
 
 *proc Mp_WkCpy(scrnp:d,scrnX:w,scrnY:w,x0:w,y0:w,xsz:w,ysz:w,ggx:w,ggy:w);cdecl
-//	バッファ中の指定位置(x0,y0)のサイズ(xsz,ysz) をVRAMの(ggx,ggy)に表示
+//  バッファ中の指定位置(x0,y0)のサイズ(xsz,ysz) をVRAMの(ggx,ggy)に表示
 enter
-	save bx,cx,dx,si,di,es,ds
-	local gvseg:w,rvseg:w,bvseg:w,ivseg:w
-	local tp:d,gp:w,x0_8:w,scrnX_8:w,xEnd:w,gpEnd:w
+    save bx,cx,dx,si,di,es,ds
+    local gvseg:w,rvseg:w,bvseg:w,ivseg:w
+    local tp:d,gp:w,x0_8:w,scrnX_8:w,xEnd:w,gpEnd:w
 
-	ds = ax = %var
-	rep.inc
+    ds = ax = %var
+    rep.inc
 
-	ax = ggy
-	go.w (scrnX == 0||scrnY==0||xsz==0||ysz==0||ggx > 79	\
-		||ax >= GVDSP.Gv_btmLine) ERR
+    ax = ggy
+    go.w (scrnX == 0||scrnY==0||xsz==0||ysz==0||ggx > 79    \
+    	||ax >= GVDSP.Gv_btmLine) ERR
 
-	bvseg = 0xA800//ax = bvramSeg
-	rvseg = 0xB000//ax = rvramSeg
-	gvseg = 0xB800//ax = gvramSeg
-	ivseg = 0xE000//ax = ivramSeg
+    bvseg = 0xA800//ax = bvramSeg
+    rvseg = 0xB000//ax = rvramSeg
+    gvseg = 0xB800//ax = gvramSeg
+    ivseg = 0xE000//ax = ivramSeg
 
-	ax = x0; ax <<= 3; x0_8 = ax
-	ax = scrnX;ax <<= 3; scrnX_8 = ax
+    ax = x0; ax <<= 3; x0_8 = ax
+    ax = scrnX;ax <<= 3; scrnX_8 = ax
 
-	dx.ax = scrnp
-	go.w (dx == 0 && ax == 0) ERR
-	Std.FpToHp dx,ax,cx
-	scrnp = dx.ax
+    dx.ax = scrnp
+    go.w (dx == 0 && ax == 0) ERR
+    Std.FpToHp dx,ax,cx
+    scrnp = dx.ax
 
-	gpEnd = 80*400
-	dx.ax = ggy * 80
-	gp = ax
+    gpEnd = 80*400
+    dx.ax = ggy * 80
+    gp = ax
 
-	ax = x0
-	ax += xsz
-	xEnd = ax
+    ax = x0
+    ax += xsz
+    xEnd = ax
 
-	bx = y0
-	di = gp
-	loop.w
-		if (bx >= scrnY)
-			bx = 0;
-		fi
-		dx.ax = bx * scrnX_8
-		Std.DwToHp dx,ax, si
-		dx.ax += scrnp
-		Std.FpToHp dx,ax, si
-		tp = dx.ax
-		ax += x0_8
-		ds.si = dx.ax
+    bx = y0
+    di = gp
+    loop.w
+    	if (bx >= scrnY)
+    	    bx = 0;
+    	fi
+    	dx.ax = bx * scrnX_8
+    	Std.DwToHp dx,ax, si
+    	dx.ax += scrnp
+    	Std.FpToHp dx,ax, si
+    	tp = dx.ax
+    	ax += x0_8
+    	ds.si = dx.ax
 
-		//port(0x6a) = al = 0x01
-		di += ggx
-		cx = x0
-		loop
-			port(0xA6) = al = 0	//ActGVPage
-			if (cx == scrnX)
-				ds.si = tp
-			fi
-			rep.load.w ax,si
-			es = bvseg; b[es:di] = al
-			es = rvseg; b[es:di] = ah
-			rep.load.w ax,si
-			es = gvseg; b[es:di] = al
-			es = ivseg; b[es:di] = ah
-			port(0xA6) = al = 1	//ActGVPage
-			rep.load.w ax,si
-			es = bvseg; b[es:di] = al
-			es = rvseg; b[es:di] = ah
-			rep.load.w ax,si
-			es = gvseg; b[es:di] = al
-			es = ivseg; b[es:di] = ah
-			++di
-			++cx
-		endloop (cx < xEnd)
-		port(0xA6) = al = 0	//ActGVPage
-	    //port(0x6a) = al = 0x02
-		di = gp
-		di += 80
-		if (di >= gpEnd)
-			di = 0
-		fi
-		gp = di
-		++bx
-	endloop (--ysz)
+    	//port(0x6a) = al = 0x01
+    	di += ggx
+    	cx = x0
+    	loop
+    	    port(0xA6) = al = 0 //ActGVPage
+    	    if (cx == scrnX)
+    	    	ds.si = tp
+    	    fi
+    	    rep.load.w ax,si
+    	    es = bvseg; b[es:di] = al
+    	    es = rvseg; b[es:di] = ah
+    	    rep.load.w ax,si
+    	    es = gvseg; b[es:di] = al
+    	    es = ivseg; b[es:di] = ah
+    	    port(0xA6) = al = 1 //ActGVPage
+    	    rep.load.w ax,si
+    	    es = bvseg; b[es:di] = al
+    	    es = rvseg; b[es:di] = ah
+    	    rep.load.w ax,si
+    	    es = gvseg; b[es:di] = al
+    	    es = ivseg; b[es:di] = ah
+    	    ++di
+    	    ++cx
+    	endloop (cx < xEnd)
+    	port(0xA6) = al = 0 //ActGVPage
+    	//port(0x6a) = al = 0x02
+    	di = gp
+    	di += 80
+    	if (di >= gpEnd)
+    	    di = 0
+    	fi
+    	gp = di
+    	++bx
+    endloop (--ysz)
   RTS0:
-	ax = 0
+    ax = 0
   RTS:
-	return
+    return
   ERR:
-  	ax = 1
-	go RTS
+    ax = 1
+    go RTS
 endproc
 
 

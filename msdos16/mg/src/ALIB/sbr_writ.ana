@@ -1,24 +1,24 @@
 submodule Subr
-	import Dos
-	import Pri
+    import Dos
+    import Pri
 
 *proc Write(bx,dx,cx)
-//	ファイルへの書込み
-//	arg bx	ファイル・ハンドル
-//	arg dx	バッファ・アドレス
-//	arg cx	サイズ
-//	out ax	サイズ
-//	in	ds	バッファのセグメント
+//  ファイルへの書込み
+//  arg bx  ファイル・ハンドル
+//  arg dx  バッファ・アドレス
+//  arg cx  サイズ
+//  out ax  サイズ
+//  in	ds  バッファのセグメント
 begin
-	Dos.Write bx,dx,cx
-	if (cf)
-		Pri.Fmt "error=%d\t",ax
-		Subr.PriExit "書込みでエラーがありました\N"
-	fi
-	if (ax != cx)
-		Subr.PriExit "書込みでエラーがありました（ディスクがいっぱいかも？）\N"
-	fi
-	return
+    Dos.Write bx,dx,cx
+    if (cf)
+    	Pri.Fmt "error=%d\t",ax
+    	Subr.PriExit "書込みでエラーがありました\N"
+    fi
+    if (ax != cx)
+    	Subr.PriExit "書込みでエラーがありました（ディスクがいっぱいかも？）\N"
+    fi
+    return
 endproc
 
 endmodule

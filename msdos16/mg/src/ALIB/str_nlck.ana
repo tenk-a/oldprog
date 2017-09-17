@@ -1,40 +1,40 @@
 submodule Str
-	//	1992	writen by M.Kitamura
+    //	1992	writen by M.Kitamura
 
-	import Std
+    import Std
 
 *proc NilChk(si,cx)
-//	サイズcx の文字列si 中に'\0'または不正全角があるかどうか
-//	out ax	1:'\0'があった 2:不正全角があった  0:不正文字なし
-//	out cf	0:不正文字無し 1:不正文字有り
+//  サイズcx の文字列si 中に'\0'または不正全角があるかどうか
+//  out ax  1:'\0'があった 2:不正全角があった  0:不正文字なし
+//  out cf  0:不正文字無し 1:不正文字有り
 begin
-	save cx,si
+    save cx,si
 
-	if (cx)
-		rep.inc
-		loop
-			rep.load al,si
-			go (al == '\0') ERR
-			if (Str.sjisFlg && Std.IsKanji(al))
-				--cx
-				go (cx == 0) ERR2
-				rep.load al,si
-				go !(Std.IsKanji2(al)) ERR2
-			fi
-		endloop (--cx)
-	fi
-	ax = 0
-	cf = 0
+    if (cx)
+    	rep.inc
+    	loop
+    	    rep.load al,si
+    	    go (al == '\0') ERR
+    	    if (Str.sjisFlg && Std.IsKanji(al))
+    	    	--cx
+    	    	go (cx == 0) ERR2
+    	    	rep.load al,si
+    	    	go !(Std.IsKanji2(al)) ERR2
+    	    fi
+    	endloop (--cx)
+    fi
+    ax = 0
+    cf = 0
   RTS:
-	return
+    return
   ERR2:
-	ax = 2
-	go ERR0
+    ax = 2
+    go ERR0
   ERR:
-	ax = 1
+    ax = 1
   ERR0:
-	cf = 1
-	go RTS
+    cf = 1
+    go RTS
 endproc
 
 endmodule

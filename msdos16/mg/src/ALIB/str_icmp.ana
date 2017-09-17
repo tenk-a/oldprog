@@ -1,47 +1,47 @@
 submodule Str
-	import Std
+    import Std
 
 *proc ICmp(es.di,si)
-//	arg es.di	
-//	arg si		
+//  arg es.di
+//  arg si
 begin
-	save si,di,es,cx
+    save si,di,es,cx
 
-	rep.inc
-	push es,di
-		es = cx = ds
-		di = si
-		cx = 0xffff
-		al = 0
-		repn.scan di,al,cx
-		++cx
-		com cx
-		++cx
-	pop es,di
+    rep.inc
+    push es,di
+    	es = cx = ds
+    	di = si
+    	cx = 0xffff
+    	al = 0
+    	repn.scan di,al,cx
+    	++cx
+    	com cx
+    	++cx
+    pop es,di
 
-	if (cx)
-		loop
-			rep.load al,si
-			Std.ToUpper al
-			ah = b[es:di]
-			++di
-			Std.ToUpper ah
-			if (al != ah)
-				if (ah > al)
-					ax = 1
-				else
-					ax = -1
-				fi
-				go RET
-			fi
-		endloop (--cx)
-		ax = 0
-	else
-		ax = 0
-	fi
+    if (cx)
+    	loop
+    	    rep.load al,si
+    	    Std.ToUpper al
+    	    ah = b[es:di]
+    	    ++di
+    	    Std.ToUpper ah
+    	    if (al != ah)
+    	    	if (ah > al)
+    	    	    ax = 1
+    	    	else
+    	    	    ax = -1
+    	    	fi
+    	    	go RET
+    	    fi
+    	endloop (--cx)
+    	ax = 0
+    else
+    	ax = 0
+    fi
   RET:
-	return
-  	
+    return
+
 endproc
 
 endmodule

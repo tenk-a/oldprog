@@ -1,9 +1,9 @@
 module GdcScl
-	//GDCｽｸﾛｰﾙの方法は、Magd v1.12(Tak氏作)のソースを参考にしました(無断利用^^;
-	c_name "","",1
-	import GVDSP
+    //GDCｽｸﾛｰﾙの方法は、Magd v1.12(Tak氏作)のソースを参考にしました(無断利用^^;
+    c_name "","",1
+    import GVDSP
 
-@define GdcWait()	loop;al = port(0xa0);endloop(al & 0x02)
+@define GdcWait()   loop;al = port(0xa0);endloop(al & 0x02)
 
 *var Gdc_ofsX:w,Gdc_ofsY:w
 *var Gdc_sclDat:b = 0
@@ -11,152 +11,152 @@ module GdcScl
 
 *proc Gdc_SclInit();c_decl
 begin
-	Gdc_ofsX = ax = 0
-	Gdc_ofsY = ax
-	al = port(0x31)
-	if (al & 0x80)
-		Gdc_sclDat = 0x00	// + (Gv_btmLine == 200) ? 0x80 : 0;
-	else
-		Gdc_sclDat = 0x40	// + (Gv_btmLine == 200) ? 0x80 : 0;
-	fi
-	GdcWait()
-	port(0xa2) = al = 0x70
-	GdcWait()
-	port(0xa0) = al = 0x00
-	GdcWait()
-	port(0xa0) = al = 0x00
-	GdcWait()
-	port(0xa0) = al = (400 & 0x0f) << 4
-	GdcWait()
-	al = Gdc_sclDat; al += (400 >> 4); port(0xa0) = al
-	GdcWait()
-	port(0xa0) = al = 0x00
-	GdcWait()
-	port(0xa0) = al = 0x00
-	GdcWait()
-	port(0xa0) = al = 0x00
-	GdcWait()
-	port(0xa0) = al = Gdc_sclDat
-	return
+    Gdc_ofsX = ax = 0
+    Gdc_ofsY = ax
+    al = port(0x31)
+    if (al & 0x80)
+    	Gdc_sclDat = 0x00   // + (Gv_btmLine == 200) ? 0x80 : 0;
+    else
+    	Gdc_sclDat = 0x40   // + (Gv_btmLine == 200) ? 0x80 : 0;
+    fi
+    GdcWait()
+    port(0xa2) = al = 0x70
+    GdcWait()
+    port(0xa0) = al = 0x00
+    GdcWait()
+    port(0xa0) = al = 0x00
+    GdcWait()
+    port(0xa0) = al = (400 & 0x0f) << 4
+    GdcWait()
+    al = Gdc_sclDat; al += (400 >> 4); port(0xa0) = al
+    GdcWait()
+    port(0xa0) = al = 0x00
+    GdcWait()
+    port(0xa0) = al = 0x00
+    GdcWait()
+    port(0xa0) = al = 0x00
+    GdcWait()
+    port(0xa0) = al = Gdc_sclDat
+    return
 endproc
 
 
 *proc Gdc_SclSub()
 begin
-	save si,di,ds,es
+    save si,di,ds,es
 
-	dx.ax = GVDSP.Gv_btmLine * 80
-	bx = ax
-	dx = 0
+    dx.ax = GVDSP.Gv_btmLine * 80
+    bx = ax
+    dx = 0
 
-	es = ax = 0xA800
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xB000
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xB800
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xE000
-	ds = ax
-	rep.cpy.w bx,dx,40
-	return
+    es = ax = 0xA800
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xB000
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xB800
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xE000
+    ds = ax
+    rep.cpy.w bx,dx,40
+    return
 endproc
 
 
 *proc Gdc_SclSub2()
 begin
-	save si,di,ds,es
+    save si,di,ds,es
 
-	dx.ax = GVDSP.Gv_btmLine * 80
-	dx = ax
-	
-	bx = 0
+    dx.ax = GVDSP.Gv_btmLine * 80
+    dx = ax
 
-	es = ax = 0xA800
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xB000
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xB800
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xE000
-	ds = ax
-	rep.cpy.w bx,dx,40
-	return
+    bx = 0
+
+    es = ax = 0xA800
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xB000
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xB800
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xE000
+    ds = ax
+    rep.cpy.w bx,dx,40
+    return
 endproc
 
 
 *proc Gdc_Scl(ddx:w, ddy:w);cdecl
 enter
-	var sad1:w,/*sl1:w,*/sad2:w,sl2:w
-	var x:w,btmLine:w
+    var sad1:w,/*sl1:w,*/sad2:w,sl2:w
+    var x:w,btmLine:w
 
-	btmLine = 400	//Gv_btmLine;
-	dx = Gdc_ofsX
-	dx += ddx
-	Gdc_ofsX = dx
-	
-	if (dx .<. 0)
-		Gdc_SclSub
-		Gdc_ofsX += 80
-		--Gdc_ofsY
-	elsif (dx .>=. 80)
-		Gdc_SclSub2
-		Gdc_ofsX -= 80
-		++Gdc_ofsY
-	fi
-	ax = Gdc_ofsX
-	ax >>= 1
-	x = ax
-	
-	ax = Gdc_ofsY
-	ax += ddy
-	Gdc_ofsY = ax
-	bx = btmLine
-	if (ax .<. 0)
-		ax += bx
-		Gdc_ofsY = ax
-	elsif (ax .>=. bx)
-		ax -= bx
-		Gdc_ofsY = ax
-	fi
-	if (ax)	//Gdc_ofsY
-		dx.ax = ax * 40
-		dx = x
-		ax += dx
-		sad1 = ax
-		sad2 = dx
-		sl2 = ax = Gdc_ofsY
-		bx -= sl2	//ax = bx;ax -= sl2;sl1 = ax
-	else
-		sad1 = ax = x
-		//sl1 = bx
-		sad2 = 0
-		sl2 = 0
-	fi
-	GdcWait()
-	port(0xa2) = al = 0x70
-	GdcWait()
-	port(0xa0) = al = sad1.l
-	GdcWait()
-	port(0xa0) = al = sad1.h
-	GdcWait()
-	al = bl; al <<= 4; port(0xa0) = al
-	GdcWait()
-	ax = bx; ax >>= 4; al += Gdc_sclDat; port(0xa0) = al
-	GdcWait()
-	port(0xa0) = al = sad2.l
-	GdcWait()
-	port(0xa0) = al = sad2.h
-	GdcWait()
-	al = sl2.l; al <<= 4; port(0xa0) = al
-	GdcWait()
-	ax = sl2; ax >>= 4; al += Gdc_sclDat; port(0xa0) = al
-	return
+    btmLine = 400   //Gv_btmLine;
+    dx = Gdc_ofsX
+    dx += ddx
+    Gdc_ofsX = dx
+
+    if (dx .<. 0)
+    	Gdc_SclSub
+    	Gdc_ofsX += 80
+    	--Gdc_ofsY
+    elsif (dx .>=. 80)
+    	Gdc_SclSub2
+    	Gdc_ofsX -= 80
+    	++Gdc_ofsY
+    fi
+    ax = Gdc_ofsX
+    ax >>= 1
+    x = ax
+
+    ax = Gdc_ofsY
+    ax += ddy
+    Gdc_ofsY = ax
+    bx = btmLine
+    if (ax .<. 0)
+    	ax += bx
+    	Gdc_ofsY = ax
+    elsif (ax .>=. bx)
+    	ax -= bx
+    	Gdc_ofsY = ax
+    fi
+    if (ax) //Gdc_ofsY
+    	dx.ax = ax * 40
+    	dx = x
+    	ax += dx
+    	sad1 = ax
+    	sad2 = dx
+    	sl2 = ax = Gdc_ofsY
+    	bx -= sl2   //ax = bx;ax -= sl2;sl1 = ax
+    else
+    	sad1 = ax = x
+    	//sl1 = bx
+    	sad2 = 0
+    	sl2 = 0
+    fi
+    GdcWait()
+    port(0xa2) = al = 0x70
+    GdcWait()
+    port(0xa0) = al = sad1.l
+    GdcWait()
+    port(0xa0) = al = sad1.h
+    GdcWait()
+    al = bl; al <<= 4; port(0xa0) = al
+    GdcWait()
+    ax = bx; ax >>= 4; al += Gdc_sclDat; port(0xa0) = al
+    GdcWait()
+    port(0xa0) = al = sad2.l
+    GdcWait()
+    port(0xa0) = al = sad2.h
+    GdcWait()
+    al = sl2.l; al <<= 4; port(0xa0) = al
+    GdcWait()
+    ax = sl2; ax >>= 4; al += Gdc_sclDat; port(0xa0) = al
+    return
 endproc
 
 

@@ -1,325 +1,325 @@
 module VESA
-	c_name "VESA","_",1
+    c_name "VESA","_",1
 
 
 struct INFO
-	id:d			//00	'VESA'
-	version:w		//04
-	oemNames:d		//06
-	flags:b(4)		//0A
-	videoModeTbl:d	//0E
-	totalMem:w		//12
-	//rsv:b(242)	//14
+    id:d    	    //00    'VESA'
+    version:w	    //04
+    oemNames:d	    //06
+    flags:b(4)	    //0A
+    videoModeTbl:d  //0E
+    totalMem:w	    //12
+    //rsv:b(242)    //14
 endstruct
 
 struct MODEINFO
-	mode:w			//00
-	winAatr:b		//02
-	winBatr:b		//03
-	winPagSiz:w		//04	N Kbytes
-	winSiz:w		//06	N Kbytes
-	winAseg:w		//08
-	winBseg:w		//0A
-	winAdr:d		//0C
-	scanlineBytes:w	//10
-	gxsz:w			//12
-	gysz:w			//14
-	chrXsz:b		//16
-	chrYsz:b		//17
-	plnCnt:b		//18
-	pbits:b			//19
-	bnkCnt:b		//1A
-	type:b			//1B
-	bnkSz:b			//1C
-	imgPagCnt:b		//1D
-	rsv1:b			//1E = 1
-	mskBitsR:b		//1F
-	mskBitPosR:b	//20
-	mskBitsG:b		//21
-	mskBitPosG:b	//22
-	mskBitsB:b		//23
-	mskBitPosB:b	//24
-	mskBitsRSV:b	//25
-	mskBitPosRSV:b	//26
-	drctColAtr:b	//27
-	rsv:b(216)		//28
+    mode:w  	    //00
+    winAatr:b	    //02
+    winBatr:b	    //03
+    winPagSiz:w     //04    N Kbytes
+    winSiz:w	    //06    N Kbytes
+    winAseg:w	    //08
+    winBseg:w	    //0A
+    winAdr:d	    //0C
+    scanlineBytes:w //10
+    gxsz:w  	    //12
+    gysz:w  	    //14
+    chrXsz:b	    //16
+    chrYsz:b	    //17
+    plnCnt:b	    //18
+    pbits:b 	    //19
+    bnkCnt:b	    //1A
+    type:b  	    //1B
+    bnkSz:b 	    //1C
+    imgPagCnt:b     //1D
+    rsv1:b  	    //1E = 1
+    mskBitsR:b	    //1F
+    mskBitPosR:b    //20
+    mskBitsG:b	    //21
+    mskBitPosG:b    //22
+    mskBitsB:b	    //23
+    mskBitPosB:b    //24
+    mskBitsRSV:b    //25
+    mskBitPosRSV:b  //26
+    drctColAtr:b    //27
+    rsv:b(216)	    //28
 endstruct
 
 
 *proc GetInfo(infp:d);far;cdecl
 enter
-	save cx,si,di,es,ds
-	local buf:b(256)
-	
-	ax = 0x4F00
-	es.di = ww(ss, &buf)
-	intr 0x10
-	go (ax != 0x004f) ERR
+    save cx,si,di,es,ds
+    local buf:b(256)
 
-	es.di = infp
-	ds.si = ww(ss,&buf)
-	rep.cpy.w di, si, sizeof(INFO)/2
+    ax = 0x4F00
+    es.di = ww(ss, &buf)
+    intr 0x10
+    go (ax != 0x004f) ERR
 
-	ax = 0
+    es.di = infp
+    ds.si = ww(ss,&buf)
+    rep.cpy.w di, si, sizeof(INFO)/2
+
+    ax = 0
  RET:
-	return
+    return
  ERR:
-	ax = -1
-	goto RET
+    ax = -1
+    goto RET
 endproc
 
 
 *proc GetModeInfo(mode:w,minfp:d);cdecl;far
 enter
-	save cx,di,es
-	
-	cx = mode
-	ax = 0x4F01
-	es.di = minfp
-	intr 0x10
-	go (al != 0x4f) ERR
-	ax = 0
+    save cx,di,es
+
+    cx = mode
+    ax = 0x4F01
+    es.di = minfp
+    intr 0x10
+    go (al != 0x4f) ERR
+    ax = 0
  RET:
-	return
+    return
  ERR:
-	ax = -1
-	goto RET
+    ax = -1
+    goto RET
 endproc
 
 
 *proc SetMode(mode:w);cdecl;far
 enter
-	save bx
-	
-	bx = mode
-	ax = 0x4F02
-	intr 0x10
-	go (al != 0x4f) ERR
-	ax = 0
+    save bx
+
+    bx = mode
+    ax = 0x4F02
+    intr 0x10
+    go (al != 0x4f) ERR
+    ax = 0
  RET:
-	return
+    return
  ERR:
-	ax = -1
-	goto RET
+    ax = -1
+    goto RET
 endproc
 
 
 *proc GetMode();cdecl;far
 begin
-	save bx
-	
-	ax = 0x4F03
-	intr 0x10
-	go (al != 0x4f) ERR
-	ax = bx
+    save bx
+
+    ax = 0x4F03
+    intr 0x10
+    go (al != 0x4f) ERR
+    ax = bx
  RET:
-	return
+    return
  ERR:
-	ax = -1
-	goto RET
+    ax = -1
+    goto RET
 endproc
 
 
 
 *proc GetVideoStatSize(stt:w);cdecl;far
 enter
-	save bx,cx,dx
-	
-	cx = stt
-	ax = 0x4F04
-	dx = 0
-	intr 0x10
-	go (al != 0x4f) ERR
-	ax = bx
+    save bx,cx,dx
+
+    cx = stt
+    ax = 0x4F04
+    dx = 0
+    intr 0x10
+    go (al != 0x4f) ERR
+    ax = bx
  RET:
-	return
+    return
  ERR:
-	ax = -1
-	goto RET
+    ax = -1
+    goto RET
 endproc
 
 
 *proc GetVideoStat(stt:w,sttBuf:d);cdecl;far
 enter
-	save bx,cx,dx
-	
-	cx = stt
-	ax = 0x4F04
-	dx = 1
-	es.bx = sttBuf
-	intr 0x10
-	go (al != 0x4f) ERR
-	ax = 0
+    save bx,cx,dx
+
+    cx = stt
+    ax = 0x4F04
+    dx = 1
+    es.bx = sttBuf
+    intr 0x10
+    go (al != 0x4f) ERR
+    ax = 0
  RET:
-	return
+    return
  ERR:
-	ax = -1
-	goto RET
+    ax = -1
+    goto RET
 endproc
 
 *proc SetVideoStat(stt:w,sttBuf:d);cdecl;far
 enter
-	save cx,dx
-	
-	cx = stt
-	ax = 0x4F04
-	dx = 2
-	es.bx = sttBuf
-	intr 0x10
-	go (al != 0x4f) ERR
-	ax = 0
+    save cx,dx
+
+    cx = stt
+    ax = 0x4F04
+    dx = 2
+    es.bx = sttBuf
+    intr 0x10
+    go (al != 0x4f) ERR
+    ax = 0
  RET:
-	return
+    return
  ERR:
-	ax = -1
-	goto RET
+    ax = -1
+    goto RET
 endproc
 
 *proc SetWinPos(num:w, pos:w);cdecl;far
 enter
-	save bx,dx
-	
-	ax = 0x4F05
-	bh = 0
-	bl = num.l
-	dx =  pos
-	intr 0x10
-	go (al != 0x4f) ERR
-	ax = 0
+    save bx,dx
+
+    ax = 0x4F05
+    bh = 0
+    bl = num.l
+    dx =  pos
+    intr 0x10
+    go (al != 0x4f) ERR
+    ax = 0
  RET:
-	return
+    return
  ERR:
-	ax = -1
-	goto RET
+    ax = -1
+    goto RET
 endproc
 
 *proc GetWinPos(num:w);cdecl;far
 enter
-	save bx,dx
-	
-	ax = 0x4F05
-	bh = 0
-	bl = num.l
-	intr 0x10
-	go (al != 0x4f) ERR
-	ax = dx
+    save bx,dx
+
+    ax = 0x4F05
+    bh = 0
+    bl = num.l
+    intr 0x10
+    go (al != 0x4f) ERR
+    ax = dx
  RET:
-	return
+    return
  ERR:
-	ax = -1
-	goto RET
+    ax = -1
+    goto RET
 endproc
 
 *proc SetLogicalXsize(xsz:w);cdecl;far
-	// ret ax=表示xsz dx=論理xsz
+    // ret ax=表示xsz dx=論理xsz
 enter
-	save bx,cx
-	
-	cx = xsz
-	bx = 0
-	ax = 0x4F06
-	intr 0x10
-	go (al != 0x4f) ERR
-	ax = cx
+    save bx,cx
+
+    cx = xsz
+    bx = 0
+    ax = 0x4F06
+    intr 0x10
+    go (al != 0x4f) ERR
+    ax = cx
  RET:
-	return
+    return
  ERR:
-	ax = -1
-	goto RET
+    ax = -1
+    goto RET
 endproc
 
 
 *proc GetLogicalXsize();cdecl;far
-	// ret ax=表示xsz dx=論理xsz
+    // ret ax=表示xsz dx=論理xsz
 begin
-	save bx,cx
-	
-	bx = 1
-	ax = 0x4F06
-	intr 0x10
-	go (al != 0x4f) ERR
-	ax = cx
+    save bx,cx
+
+    bx = 1
+    ax = 0x4F06
+    intr 0x10
+    go (al != 0x4f) ERR
+    ax = cx
  RET:
-	return
+    return
  ERR:
-	ax = -1
-	goto RET
+    ax = -1
+    goto RET
 endproc
 
 
 *proc SetOrgPos(x0:w,y0:w);cdecl;far
 enter
-	save bx,cx
-	
-	bx = 0
-	ax = 0x4F07
-	cx = x0
-	dx = y0
-	intr 0x10
-	go (al != 0x4f) ERR
-	ax = 0
+    save bx,cx
+
+    bx = 0
+    ax = 0x4F07
+    cx = x0
+    dx = y0
+    intr 0x10
+    go (al != 0x4f) ERR
+    ax = 0
  RET:
-	return
+    return
  ERR:
-	ax = -1
-	goto RET
+    ax = -1
+    goto RET
 endproc
 
 
 *proc GetOrgPos();cdecl;far
-	// ret ax=x0 dx=y0
+    // ret ax=x0 dx=y0
 begin
-	save bx,cx
-	
-	bx = 1
-	ax = 0x4F07
-	intr 0x10
-	go (al != 0x4f) ERR
-	ax = cx
+    save bx,cx
+
+    bx = 1
+    ax = 0x4F07
+    intr 0x10
+    go (al != 0x4f) ERR
+    ax = cx
  RET:
-	return
+    return
  ERR:
-	ax = -1
-	goto RET
+    ax = -1
+    goto RET
 endproc
 
 
 *proc SetPalMode(palbit:w);cdecl;far
-	// ret ax=表示色のビット数
-	// ret ax=実際の表示色のビット数
+    // ret ax=表示色のビット数
+    // ret ax=実際の表示色のビット数
 enter
-	save bx,cx
-	
-	bx = 0
-	bh = palbit.l
-	ax = 0x4F08
-	intr 0x10
-	go (al != 0x4f) ERR
-	ax = 0
-	al = bh
+    save bx,cx
+
+    bx = 0
+    bh = palbit.l
+    ax = 0x4F08
+    intr 0x10
+    go (al != 0x4f) ERR
+    ax = 0
+    al = bh
  RET:
-	return
+    return
  ERR:
-	ax = -1
-	goto RET
+    ax = -1
+    goto RET
 endproc
 
 
 *proc GetPalMode();cdecl;far
-	// ret ax=表示色のビット数
+    // ret ax=表示色のビット数
 begin
-	save bx,cx
-	bx = 1
-	ax = 0x4F08
-	intr 0x10
-	go (al != 0x4f) ERR
-	ax = 0
-	al = bh
+    save bx,cx
+    bx = 1
+    ax = 0x4F08
+    intr 0x10
+    go (al != 0x4f) ERR
+    ax = 0
+    al = bh
  RET:
-	return
+    return
  ERR:
-	ax = -1
-	goto RET
+    ax = -1
+    goto RET
 endproc
 
 
@@ -332,21 +332,21 @@ endproc
 @if 0
 *const S320x200=0,S640x480,S800x600,S1024x768,S1280x1024
 strcut SMOD
-	/*txt:w*/
-	/*p4:w*/
-	p8:w
-	p15:w
-	p16:w
-	p24:w
-	/*dmy:d*/
+    /*txt:w*/
+    /*p4:w*/
+    p8:w
+    p15:w
+    p16:w
+    p24:w
+    /*dmy:d*/
 endstruct
 
 *cvar  smd:SMOD[6] = data
-	w(4)	/* 0x00, 0x0d,*/  0x13,0x10D,0x10E,0x10F	//320x200
-	w(4)	/*0x108, 0x12,*/ 0x101,0x110,0x111,0x112	//640x480
-	w(4)	/* 0x03,0x102,*/ 0x103,0x113,0x114,0x115	//800x600
-	w(4)	/* 0x03,0x104,*/ 0x105,0x116,0x117,0x118	//1024x768
-	w(4)	/* 0x03,0x106,*/ 0x107,0x119,0x11A,0x11B	//1280x1024
+    w(4)    /* 0x00, 0x0d,*/  0x13,0x10D,0x10E,0x10F	//320x200
+    w(4)    /*0x108, 0x12,*/ 0x101,0x110,0x111,0x112	//640x480
+    w(4)    /* 0x03,0x102,*/ 0x103,0x113,0x114,0x115	//800x600
+    w(4)    /* 0x03,0x104,*/ 0x105,0x116,0x117,0x118	//1024x768
+    w(4)    /* 0x03,0x106,*/ 0x107,0x119,0x11A,0x11B	//1280x1024
 enddata
 @endif
 
@@ -358,50 +358,50 @@ enddata
 
 *proc Init();far
 begin
-	save bx,cx,dx,si,di,es,ds
+    save bx,cx,dx,si,di,es,ds
 
-	m8s = al = 0
-	m15s = al
-	m16s = al
-	m24s = al
+    m8s = al = 0
+    m15s = al
+    m16s = al
+    m24s = al
 
-	// VESA-BIOSが存在するかどうか
-	GetInfo ww(cs,%info)
-	go.w (ax) ERR
+    // VESA-BIOSが存在するかどうか
+    GetInfo ww(cs,%info)
+    go.w (ax) ERR
 
-	// 利用できる画面モードを確認する
-	m8s |= M320x200
-	ds.si = info.videoModeTbl
-	loop.w
-		rep.load.w ax,si
-		if.w (ax == 0x101);		m8s  |= M640x480;
-		elsif (ax == 0x103);	m8s  |= M800x600;
-		elsif (ax == 0x105);	m8s  |= M1024x768;
-		elsif (ax == 0x107);	m8s  |= M1280x1024;
-		elsif (ax == 0x10D);	m15s |= M320x200;
-		elsif (ax == 0x110);	m15s |= M640x480;
-		elsif (ax == 0x113);	m15s |= M800x600;
-		elsif (ax == 0x116);	m15s |= M1024x768;
-		elsif (ax == 0x119);	m15s |= M1280x1024;
-		elsif (ax == 0x10E);	m16s |= M320x200;
-		elsif (ax == 0x111);	m16s |= M640x480;
-		elsif (ax == 0x114);	m16s |= M800x600;
-		elsif (ax == 0x117);	m16s |= M1024x768;
-		elsif (ax == 0x11A);	m16s |= M1280x1024;
-		elsif (ax == 0x10F);	m24s |= M320x200;
-		elsif (ax == 0x112);	m24s |= M640x480;
-		elsif (ax == 0x115);	m24s |= M800x600;
-		elsif (ax == 0x118);	m24s |= M1024x768;
-		elsif (ax == 0x11B);	m24s |= M1280x1024;
-		endif
-	endloop (ax != 0xffff)
+    // 利用できる画面モードを確認する
+    m8s |= M320x200
+    ds.si = info.videoModeTbl
+    loop.w
+    	rep.load.w ax,si
+    	if.w (ax == 0x101); 	m8s  |= M640x480;
+    	elsif (ax == 0x103);	m8s  |= M800x600;
+    	elsif (ax == 0x105);	m8s  |= M1024x768;
+    	elsif (ax == 0x107);	m8s  |= M1280x1024;
+    	elsif (ax == 0x10D);	m15s |= M320x200;
+    	elsif (ax == 0x110);	m15s |= M640x480;
+    	elsif (ax == 0x113);	m15s |= M800x600;
+    	elsif (ax == 0x116);	m15s |= M1024x768;
+    	elsif (ax == 0x119);	m15s |= M1280x1024;
+    	elsif (ax == 0x10E);	m16s |= M320x200;
+    	elsif (ax == 0x111);	m16s |= M640x480;
+    	elsif (ax == 0x114);	m16s |= M800x600;
+    	elsif (ax == 0x117);	m16s |= M1024x768;
+    	elsif (ax == 0x11A);	m16s |= M1280x1024;
+    	elsif (ax == 0x10F);	m24s |= M320x200;
+    	elsif (ax == 0x112);	m24s |= M640x480;
+    	elsif (ax == 0x115);	m24s |= M800x600;
+    	elsif (ax == 0x118);	m24s |= M1024x768;
+    	elsif (ax == 0x11B);	m24s |= M1280x1024;
+    	endif
+    endloop (ax != 0xffff)
 
-	ax = 0
+    ax = 0
  RET:
-	return
+    return
  ERR:
-	ax = -1
-	goto RET
+    ax = -1
+    goto RET
 endproc
 
 

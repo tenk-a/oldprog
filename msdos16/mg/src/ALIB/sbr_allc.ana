@@ -1,13 +1,13 @@
 submodule Subr
-	import ALLOCM
+    import ALLOCM
 
 *proc AllocM(ax,bx)
 begin
-	ALLOCM.AllocM ax,bx
-	if (cf)
-		Subr.PriExit "ƒƒ‚ƒŠ‚ª‘«‚è‚È‚¢\N"
-	fi
-	return
+    ALLOCM.AllocM ax,bx
+    if (cf)
+    	Subr.PriExit "ƒƒ‚ƒŠ‚ª‘«‚è‚È‚¢\N"
+    fi
+    return
 endproc
 
 endmodule

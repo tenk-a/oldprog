@@ -1,291 +1,291 @@
 module Alg
-	c_name "Alg","_",1
+    c_name "Alg","_",1
 /*
    Hsv<->Rgbは、マシーンＭ氏作のVHPローダ＆セーバのＣソースより拝借しました^^;
  */
 
 *proc Rgb2Hsv_sub(ax,cx,dx)
-	//RGB -> hsv
-	//arg	ax - R (0-15)
-	//arg	bx - G (0-15)
-	//arg	dx - B (0-15)
-	//out	ax - 色相     (0-360)
-	//out	cx - 色彩     (0-100)
-	//out	dx - 最大明度 (0-100)
+    //RGB -> hsv
+    //arg   ax - R (0-15)
+    //arg   bx - G (0-15)
+    //arg   dx - B (0-15)
+    //out   ax - 色相	  (0-360)
+    //out   cx - 色彩	  (0-100)
+    //out   dx - 最大明度 (0-100)
 begin
-	save bx,si,di
-	cvar h0:w, s0:w, v0:w, x0:w
-	push bp
+    save bx,si,di
+    cvar h0:w, s0:w, v0:w, x0:w
+    push bp
 
-	// si:R, di:G, bp:B
-	bp = 15
-	bx = dx
-	dx.ax = ax .*. 100			//si/*r*/ = ax * 100 / 15
-	idiv dx.ax, bp/*15*/
-	si/*r*/ = ax
-	dx.ax = cx .*. 100			//di/*g*/ = cx * 100 / 15
-	idiv dx.ax, bp/*15*/
-	di/*g*/ = ax
-	dx.ax = bx .*. 100			//bp/*b*/ = dx * 100 / 15
-	idiv dx.ax, bp/*15*/
-	bp/*b*/ = ax
+    // si:R, di:G, bp:B
+    bp = 15
+    bx = dx
+    dx.ax = ax .*. 100	    	//si/*r*/ = ax * 100 / 15
+    idiv dx.ax, bp/*15*/
+    si/*r*/ = ax
+    dx.ax = cx .*. 100	    	//di/*g*/ = cx * 100 / 15
+    idiv dx.ax, bp/*15*/
+    di/*g*/ = ax
+    dx.ax = bx .*. 100	    	//bp/*b*/ = dx * 100 / 15
+    idiv dx.ax, bp/*15*/
+    bp/*b*/ = ax
 
-	v0 = di/*g*/
-	if (si/*r*/ > di/*g*/)
-		v0 = si/*r*/
-	fi
-	if (v0 < bp/*b*/)
-		v0 = bp/*b*/
-	fi
+    v0 = di/*g*/
+    if (si/*r*/ > di/*g*/)
+    	v0 = si/*r*/
+    fi
+    if (v0 < bp/*b*/)
+    	v0 = bp/*b*/
+    fi
 
-	x0 = di/*g*/
-	if (si/*r*/ < di/*g*/)
-		x0 = si/*r*/
-	fi
-	if (x0 > bp/*b*/)
-		x0 = bp/*b*/
-	fi
+    x0 = di/*g*/
+    if (si/*r*/ < di/*g*/)
+    	x0 = si/*r*/
+    fi
+    if (x0 > bp/*b*/)
+    	x0 = bp/*b*/
+    fi
 
-	h0 = 0
-	s0 = 0
-	if.w (v0)
-		ax = v0
-		ax -= x0
-		dx.ax = ax .*. 100
-		idiv dx.ax, v0
-		s0 = ax
-	fi
-	if.w (s0 != 0)
-		bx = cx = v0
-		cx -= x0				// cx = x0 - v0
-			
-		ax = bx/*v0*/			// r1 = (v0-r)*60/(v0-x0)
-		ax -= si/*r*/
-		dx.ax = ax .*. 60
-		idiv dx.ax, cx
-		push ax	//r1 = ax
+    h0 = 0
+    s0 = 0
+    if.w (v0)
+    	ax = v0
+    	ax -= x0
+    	dx.ax = ax .*. 100
+    	idiv dx.ax, v0
+    	s0 = ax
+    fi
+    if.w (s0 != 0)
+    	bx = cx = v0
+    	cx -= x0    	    	// cx = x0 - v0
 
-		ax = bx					// g1 = (v0-g)*60/(v0-x0)
-		ax -= di/*g*/
-		dx.ax = ax .*. 60
-		idiv dx.ax, cx
-		push ax	//g1 = ax
-			
-		ax = bx					// b1 = (v0-b)*60/(v0-x0)
-		ax -= bp/*b*/
-		dx.ax = ax .*. 60
-		idiv dx.ax, cx
-		//b1 = ax
-		pop bx	//g1
-		pop cx	//r1
+    	ax = bx/*v0*/	    	// r1 = (v0-r)*60/(v0-x0)
+    	ax -= si/*r*/
+    	dx.ax = ax .*. 60
+    	idiv dx.ax, cx
+    	push ax //r1 = ax
 
-		dx/*h0*/ = 0
-		if (si/*r*/ == v0)
-			if (di/*g*/ == x0)
-				dx/*h0*/ = 300
-				dx/*h0*/ += ax/*b1*/
-			else
-				dx/*h0*/ = 60
-				dx/*h0*/ -= bx/*g1*/
-			fi
-		elsif (di/*g*/ == v0)
-			if (bp/*b*/ == x0)
-				dx/*h0*/ = 60
-				dx/*h0*/ += cx/*r1*/
-			else
-				dx/*h0*/ = 180
-				dx/*h0*/ -= ax/*b1*/
-			fi
-		else
-			if (si/*r*/ == x0)
-				dx/*h0*/ = 180
-				dx/*h0*/ += bx/*g1*/
-			else
-				dx/*h0*/ = 300
-				dx/*h0*/ -= cx/*r1*/
-			fi
-		fi
-		if (dx/*h0*/ .<. 0)
-			dx/*h0*/ += 360
-		fi
-		ax = dx/*h0*/
-		dx = 0
-		cx = 360
-		idiv dx.ax, cx
-		h0 = dx
-	fi
-	ax = h0
-	cx = s0
-	dx = v0
+    	ax = bx     	    	// g1 = (v0-g)*60/(v0-x0)
+    	ax -= di/*g*/
+    	dx.ax = ax .*. 60
+    	idiv dx.ax, cx
+    	push ax //g1 = ax
 
-	pop bp
-	return
+    	ax = bx     	    	// b1 = (v0-b)*60/(v0-x0)
+    	ax -= bp/*b*/
+    	dx.ax = ax .*. 60
+    	idiv dx.ax, cx
+    	//b1 = ax
+    	pop bx	//g1
+    	pop cx	//r1
+
+    	dx/*h0*/ = 0
+    	if (si/*r*/ == v0)
+    	    if (di/*g*/ == x0)
+    	    	dx/*h0*/ = 300
+    	    	dx/*h0*/ += ax/*b1*/
+    	    else
+    	    	dx/*h0*/ = 60
+    	    	dx/*h0*/ -= bx/*g1*/
+    	    fi
+    	elsif (di/*g*/ == v0)
+    	    if (bp/*b*/ == x0)
+    	    	dx/*h0*/ = 60
+    	    	dx/*h0*/ += cx/*r1*/
+    	    else
+    	    	dx/*h0*/ = 180
+    	    	dx/*h0*/ -= ax/*b1*/
+    	    fi
+    	else
+    	    if (si/*r*/ == x0)
+    	    	dx/*h0*/ = 180
+    	    	dx/*h0*/ += bx/*g1*/
+    	    else
+    	    	dx/*h0*/ = 300
+    	    	dx/*h0*/ -= cx/*r1*/
+    	    fi
+    	fi
+    	if (dx/*h0*/ .<. 0)
+    	    dx/*h0*/ += 360
+    	fi
+    	ax = dx/*h0*/
+    	dx = 0
+    	cx = 360
+    	idiv dx.ax, cx
+    	h0 = dx
+    fi
+    ax = h0
+    cx = s0
+    dx = v0
+
+    pop bp
+    return
 endproc
 
 @if 0
 *proc RgbToHsv(rr:w,gg:w,bb:w);cdecl
 enter
-	save bx,cx,si,di,es,ds
-	Rgb2Hsv_sub rr,gg,bb
-	dh = dl
-	dl = cl
-	return
+    save bx,cx,si,di,es,ds
+    Rgb2Hsv_sub rr,gg,bb
+    dh = dl
+    dl = cl
+    return
 endproc
 @fi
 
 *proc Rgb2Hsv(rgb:d, hsv:d);cdecl
 enter
-	save pusha,es,ds
-	cvar   ccv:w(16)  = {0*2,25*2,26*2,27*2,28*2,29*2,30*2,31*2,	\
-						24*2, 1*2, 2*2, 3*2, 4*2, 5*2, 6*2, 7*2}
-	//cvar ccv_org:w(16)  = {0, 9,10,11,12,13,14,15, 8, 1, 2, 3, 4, 5, 6, 7}
-	//cvar ccv0:w(16) = {0,24,24,24,24,24,24,24,24, 0, 0, 0, 0, 0, 0, 0}
-	//cvar ccv1:w(16) = {0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7}
+    save pusha,es,ds
+    cvar   ccv:w(16)  = {0*2,25*2,26*2,27*2,28*2,29*2,30*2,31*2,    \
+    	    	    	24*2, 1*2, 2*2, 3*2, 4*2, 5*2, 6*2, 7*2}
+    //cvar ccv_org:w(16)  = {0, 9,10,11,12,13,14,15, 8, 1, 2, 3, 4, 5, 6, 7}
+    //cvar ccv0:w(16) = {0,24,24,24,24,24,24,24,24, 0, 0, 0, 0, 0, 0, 0}
+    //cvar ccv1:w(16) = {0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7}
 
-	ds.si = rgb
-	es = hsv.h
-	bx = 0
-	loop
-		rep.load al,si
-		ah = al
-		rep.load al,si
-		cl = al; ch = 0
-		rep.load al,si
-		dl = al; dh = ch/*0*/
-		al = ah; ah = ch/*0*/
-		Rgb2Hsv_sub ax,cx,dx
-		di = hsv.l
-		di += ccv[bx]
-		w[es:di] = ax
-		di += 8*2
-		w[es:di] = cx
-		di += 8*2
-		w[es:di] = dx
-		bx += 2
-	endloop (bx < 16*2)
-	return
+    ds.si = rgb
+    es = hsv.h
+    bx = 0
+    loop
+    	rep.load al,si
+    	ah = al
+    	rep.load al,si
+    	cl = al; ch = 0
+    	rep.load al,si
+    	dl = al; dh = ch/*0*/
+    	al = ah; ah = ch/*0*/
+    	Rgb2Hsv_sub ax,cx,dx
+    	di = hsv.l
+    	di += ccv[bx]
+    	w[es:di] = ax
+    	di += 8*2
+    	w[es:di] = cx
+    	di += 8*2
+    	w[es:di] = dx
+    	bx += 2
+    endloop (bx < 16*2)
+    return
 endproc
 
 
 proc Hsv2Rgb_sub(ax,cx,dx)
-	 //in 	ax	h  - 色相	  (0-360)
-	 //		cx	s  - 色彩	  (0-100)
-	 //		dx	v  - 最大明度 (0-100)
-	 //out	ax	R(0-15)
-	 //		cx	G(0-15)
-	 //		dx	B(0-15)
-	 //
+     //in   ax	h  - 色相     (0-360)
+     //     cx	s  - 色彩     (0-100)
+     //     dx	v  - 最大明度 (0-100)
+     //out  ax	R(0-15)
+     //     cx	G(0-15)
+     //     dx	B(0-15)
+     //
 enter
-	save bx,si
-	local	a00:w(7)
-	local h0:w=ax, s0:w=cx, v0:w=dx
-	local i0:w,	f0:w, r0:w, g0:w, b0:w
+    save bx,si
+    local   a00:w(7)
+    local h0:w=ax, s0:w=cx, v0:w=dx
+    local i0:w, f0:w, r0:w, g0:w, b0:w
 
-	a00(0) = 0
-	a00(1) = dx						// a00(1) = v0
-	a00(2) = dx						// a00(2) = v0
-	bx = 60
-	dx = 0							// i0 = h0 / 60
-	idiv dx.ax/*h0*/, bx/*60*/
-	i0 = ax
-	
-	dx.ax = dx .*. 100				// f0 = (h0 % 60)*100 / 60
-	idiv dx.ax, bx/*60*/
-	f0 = ax
+    a00(0) = 0
+    a00(1) = dx     	    	    // a00(1) = v0
+    a00(2) = dx     	    	    // a00(2) = v0
+    bx = 60
+    dx = 0  	    	    	    // i0 = h0 / 60
+    idiv dx.ax/*h0*/, bx/*60*/
+    i0 = ax
 
-									// a00(3) = v0 * (100 - s0*f0/100) / 100
-	dx.ax = cx/*s0*/ .*. ax/*f0*/
-	bx = 100
-	idiv dx.ax, bx/*100*/
-	dx = bx/*100*/
-	dx -= ax
-	dx.ax = v0 .*. dx
-	idiv dx.ax, bx/*100*/
-	a00(3) = ax
-	
-									// a00(4) = a00(5) = v0 * (100 - s0) / 100
-	dx = bx/*100*/
-	dx -= s0
-	dx.ax = v0 .*. dx
-	idiv dx.ax, bx/*100*/
-	a00(4) = ax
-	a00(5) = ax
+    dx.ax = dx .*. 100	    	    // f0 = (h0 % 60)*100 / 60
+    idiv dx.ax, bx/*60*/
+    f0 = ax
 
-									// a00(6) = v0*(100-(s0*(100-f0))/100) /100
-	dx = bx/*100*/
-	dx -= f0
-	dx.ax = s0 .*. dx
-	idiv dx.ax, bx/*100*/
-	dx = bx/*100*/
-	dx -= ax
-	dx.ax = v0 .*. dx
-	idiv dx.ax, bx/*100*/
-	a00(6) = ax
-									// r0 = a00[i=(i>4)?i-4:i+2] * 16 / 100;
-	ax = i0; if (ax > 4); ax -= 4; else; ax += 2; fi; i0 = ax
-	ax += ax; si = ax
-	dx.ax = w[bp+%a00+si] .*. 16
-	idiv dx.ax, bx/*100*/
-	if (ax > 15); ax = 15; fi
-	r0 = ax
-									// b0 = a00[i=(i>4)?i-4:i+2] * 16 / 100;
-	ax = i0; if (ax > 4); ax -= 4; else; ax += 2; fi; i0 = ax
-	ax += ax; si = ax
-	dx.ax = w[bp+%a00+si] .*. 16
-	idiv dx.ax, bx/*100*/
-	if (ax > 15); ax = 15; fi
-	b0 = ax
-									// g0 = a00[i=(i>4)?i-4:i+2] * 16 / 100;
-	ax = i0; if (ax > 4); ax -= 4; else; ax += 2; fi//; i0 = ax
-	ax += ax; si = ax
-	dx.ax = w[bp+%a00+si] .*. 16
-	idiv dx.ax, bx/*100*/
-	if (ax > 15); ax = 15; fi
-	g0 = ax
+    	    	    	    	    // a00(3) = v0 * (100 - s0*f0/100) / 100
+    dx.ax = cx/*s0*/ .*. ax/*f0*/
+    bx = 100
+    idiv dx.ax, bx/*100*/
+    dx = bx/*100*/
+    dx -= ax
+    dx.ax = v0 .*. dx
+    idiv dx.ax, bx/*100*/
+    a00(3) = ax
 
-	ax = r0
-	cx = g0
-	dx = b0
-	return
+    	    	    	    	    // a00(4) = a00(5) = v0 * (100 - s0) / 100
+    dx = bx/*100*/
+    dx -= s0
+    dx.ax = v0 .*. dx
+    idiv dx.ax, bx/*100*/
+    a00(4) = ax
+    a00(5) = ax
+
+    	    	    	    	    // a00(6) = v0*(100-(s0*(100-f0))/100) /100
+    dx = bx/*100*/
+    dx -= f0
+    dx.ax = s0 .*. dx
+    idiv dx.ax, bx/*100*/
+    dx = bx/*100*/
+    dx -= ax
+    dx.ax = v0 .*. dx
+    idiv dx.ax, bx/*100*/
+    a00(6) = ax
+    	    	    	    	    // r0 = a00[i=(i>4)?i-4:i+2] * 16 / 100;
+    ax = i0; if (ax > 4); ax -= 4; else; ax += 2; fi; i0 = ax
+    ax += ax; si = ax
+    dx.ax = w[bp+%a00+si] .*. 16
+    idiv dx.ax, bx/*100*/
+    if (ax > 15); ax = 15; fi
+    r0 = ax
+    	    	    	    	    // b0 = a00[i=(i>4)?i-4:i+2] * 16 / 100;
+    ax = i0; if (ax > 4); ax -= 4; else; ax += 2; fi; i0 = ax
+    ax += ax; si = ax
+    dx.ax = w[bp+%a00+si] .*. 16
+    idiv dx.ax, bx/*100*/
+    if (ax > 15); ax = 15; fi
+    b0 = ax
+    	    	    	    	    // g0 = a00[i=(i>4)?i-4:i+2] * 16 / 100;
+    ax = i0; if (ax > 4); ax -= 4; else; ax += 2; fi//; i0 = ax
+    ax += ax; si = ax
+    dx.ax = w[bp+%a00+si] .*. 16
+    idiv dx.ax, bx/*100*/
+    if (ax > 15); ax = 15; fi
+    g0 = ax
+
+    ax = r0
+    cx = g0
+    dx = b0
+    return
 endproc
 
 @if 0
 *proc HsvToRgb(h0:w,s0:w,v0:w);cdecl
 enter
-	save bx,cx,si,di,es,ds
-	Hsv2Rgb_sub h0,s0,v0
-	ah = cl
-	return
+    save bx,cx,si,di,es,ds
+    Hsv2Rgb_sub h0,s0,v0
+    ah = cl
+    return
 endproc
 @fi
 
 *proc Hsv2Rgb(hsv:d, rgb:d);cdecl
 enter
-	save pusha,es,ds
-	cvar   ccv:w(16)  = {0*2,25*2,26*2,27*2,28*2,29*2,30*2,31*2,	\
-						24*2, 1*2, 2*2, 3*2, 4*2, 5*2, 6*2, 7*2}
-	//cvar ccv:w()  = {0, 9,10,11,12,13,14,15, 8, 1, 2, 3, 4, 5, 6, 7}
-	//cvar ccv0:w() = {0,24,24,24,24,24,24,24,24, 0, 0, 0, 0, 0, 0, 0}
-	//cvar ccv1:w() = {0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7}
+    save pusha,es,ds
+    cvar   ccv:w(16)  = {0*2,25*2,26*2,27*2,28*2,29*2,30*2,31*2,    \
+    	    	    	24*2, 1*2, 2*2, 3*2, 4*2, 5*2, 6*2, 7*2}
+    //cvar ccv:w()  = {0, 9,10,11,12,13,14,15, 8, 1, 2, 3, 4, 5, 6, 7}
+    //cvar ccv0:w() = {0,24,24,24,24,24,24,24,24, 0, 0, 0, 0, 0, 0, 0}
+    //cvar ccv1:w() = {0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7}
 
-	es.di = rgb
-	ds = hsv.h
-	bx = 0
-	loop
-		si = hsv.l
-		si += ccv[bx]
-		ax = w[si]
-		si += 8*2
-		cx = w[si]
-		si += 8*2
-		dx = w[si]
-		Hsv2Rgb_sub ax, cx, dx
-		rep.set di,al
-		rep.set di,cl
-		rep.set di,dl
-		bx += 2
-	endloop(bx < 16*2)
-	return
+    es.di = rgb
+    ds = hsv.h
+    bx = 0
+    loop
+    	si = hsv.l
+    	si += ccv[bx]
+    	ax = w[si]
+    	si += 8*2
+    	cx = w[si]
+    	si += 8*2
+    	dx = w[si]
+    	Hsv2Rgb_sub ax, cx, dx
+    	rep.set di,al
+    	rep.set di,cl
+    	rep.set di,dl
+    	bx += 2
+    endloop(bx < 16*2)
+    return
 endproc
 
 endmodule

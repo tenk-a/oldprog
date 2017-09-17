@@ -20,15 +20,15 @@ jstrtrim(jstr)
 
      q = p = jstr;
      while (*p != '\0') {
-          if (*p <= ' ')
-               ++p;
-          else if (*p == 0x81 && *(p+1) == 0x40)
-               p += 2;
-          else
-               q = (++p);
+    	  if (*p <= ' ')
+    	       ++p;
+    	  else if (*p == 0x81 && *(p+1) == 0x40)
+    	       p += 2;
+    	  else
+    	       q = (++p);
      }
      if (*(p - 1) == '\n')
-          *(q++) = '\n';
+    	  *(q++) = '\n';
      *q = '\0';
      return jstr;
 }

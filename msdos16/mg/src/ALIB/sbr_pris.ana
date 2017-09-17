@@ -1,13 +1,13 @@
 submodule Subr
-	import Dos
-	import Pri
+    import Dos
+    import Pri
 
 *proc PriS(ax)
 begin
-	save ds,bx,ax
-	ds = bx = %var
-	Pri.S ax
-	return
+    save ds,bx,ax
+    ds = bx = %var
+    Pri.S ax
+    return
 endproc
 
 endmodule

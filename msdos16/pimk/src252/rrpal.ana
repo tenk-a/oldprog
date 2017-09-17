@@ -1,27 +1,27 @@
 module RRPal
-	c_name "RRPal","_",1
+    c_name "RRPal","_",1
 
 cvar tone:w=100
 var pal:b(256*3)
 
 *proc GetPalAddr()
 begin
-	es = di = %var
-	di = &pal
-	return
+    es = di = %var
+    di = &pal
+    return
 endproc
 
 *proc SetTone(ton:w);cdecl
 enter
-	save ax
-	tone = ax = ton
-	return
+    save ax
+    tone = ax = ton
+    return
 endproc
 
 *proc GetTone();cdecl
 begin
-	ax = tone
-	return
+    ax = tone
+    return
 endproc
 
 endmodule

@@ -1,27 +1,27 @@
 submodule Subr
-	import Dos
-	import Lfn
-	import Pri
+    import Dos
+    import Lfn
+    import Pri
 
 *proc Rename(dx,es.di)
-//	dx を di に変名
-//	arg dx		旧ファイル名
-//	arg di		新ファイル名
+//  dx を di に変名
+//  arg dx  	旧ファイル名
+//  arg di  	新ファイル名
 begin
-	save pusha,es
+    save pusha,es
 
-	ax = 0
-	Lfn.Rename(dx,es.di)
-	if (cf)
-		ds = bx = %var
-		bx = ax
-		Pri.S "'"
-		Pri.S dx
-		Pri.S "'を'"
-		Pri.S bx
-		Subr.PriExit "'に変名できない\N"
-	fi
-	return
+    ax = 0
+    Lfn.Rename(dx,es.di)
+    if (cf)
+    	ds = bx = %var
+    	bx = ax
+    	Pri.S "'"
+    	Pri.S dx
+    	Pri.S "'を'"
+    	Pri.S bx
+    	Subr.PriExit "'に変名できない\N"
+    fi
+    return
 endproc
 
 endmodule

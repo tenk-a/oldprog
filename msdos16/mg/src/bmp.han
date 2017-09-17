@@ -1,53 +1,53 @@
 module Bmp
-	c_name "Bmp","_",1
+    c_name "Bmp","_",1
 
 *struct HDR
-				//ファイル・ヘッダ部
-	id:w			//+0	0x42,0x4d('BM')
-	fsize:d			//+2	ファイル・サイズ
-	rsv:b(4)		//+6	＜予約＞
-	pdataOfs:d		//+10	実際のデータへのオフセット
-				//情報ヘッダ部（Windows版）
-	infoHdrSiz:d	//+14	情報ヘッダのサイズ
-					//		40 = BMP画像（現状は 40固定）
-					//		12 = BITMAPCOREINFO
-	sizeX:d			//+18	横幅（ドット数）
-	sizeY:d			//+22	縦幅（ドット数）
-	plnSiz:w		//+26	プレーン数(=1)
-	picBit:w		//+28	1ﾋﾟｸｾﾙのﾋﾞｯﾄ数 1:mono 4:16色 8:256色 24:ﾌﾙｶﾗｰ
-	arcMode:d		//+30	圧縮モード   0:無圧縮	1:RLE8方式  2:RLE4方式
-	arcSize:d		//+34	圧縮時の画像データ本体のサイズ：無圧縮時０
-	dotX1m:d		//+38	１メートル当たりの横ドット数
-	dotY1m:d		//+42	１メートル当たりの縦ドット数
-	palSiz:d		//+46	色(パレット)の数（カラーテーブルの数）
-					//		1->2,4->16,8->256,24->0(ﾊﾟﾚｯﾄ無)
-					//      ﾊﾟﾚｯﾄがあっても 0 の場合があるので利用できない！
-	spCol:d			//+50	重要な色の数？
-				//
-  //bgraPal:b(0)	//+54	ﾌﾙｶﾗｰ以外のとき、パレット・データ
-					//色数(2,16,256)*4
-					//B G R Aの順  Aは予約(ｱﾄﾋﾞｭﾚｰﾄ?）
+    	    	//ファイル・ヘッダ部
+    id:w    	    //+0    0x42,0x4d('BM')
+    fsize:d 	    //+2    ファイル・サイズ
+    rsv:b(4)	    //+6    ＜予約＞
+    pdataOfs:d	    //+10   実際のデータへのオフセット
+    	    	//情報ヘッダ部（Windows版）
+    infoHdrSiz:d    //+14   情報ヘッダのサイズ
+    	    	    //	    40 = BMP画像（現状は 40固定）
+    	    	    //	    12 = BITMAPCOREINFO
+    sizeX:d 	    //+18   横幅（ドット数）
+    sizeY:d 	    //+22   縦幅（ドット数）
+    plnSiz:w	    //+26   プレーン数(=1)
+    picBit:w	    //+28   1ﾋﾟｸｾﾙのﾋﾞｯﾄ数 1:mono 4:16色 8:256色 24:ﾌﾙｶﾗｰ
+    arcMode:d	    //+30   圧縮モード	 0:無圧縮   1:RLE8方式	2:RLE4方式
+    arcSize:d	    //+34   圧縮時の画像データ本体のサイズ：無圧縮時０
+    dotX1m:d	    //+38   １メートル当たりの横ドット数
+    dotY1m:d	    //+42   １メートル当たりの縦ドット数
+    palSiz:d	    //+46   色(パレット)の数（カラーテーブルの数）
+    	    	    //	    1->2,4->16,8->256,24->0(ﾊﾟﾚｯﾄ無)
+    	    	    //	    ﾊﾟﾚｯﾄがあっても 0 の場合があるので利用できない！
+    spCol:d 	    //+50   重要な色の数？
+    	    	//
+  //bgraPal:b(0)    //+54   ﾌﾙｶﾗｰ以外のとき、パレット・データ
+    	    	    //色数(2,16,256)*4
+    	    	    //B G R Aの順  Aは予約(ｱﾄﾋﾞｭﾚｰﾄ?）
 endstruct
 
 @if 0
 *struct R
-	//dmy:b(%GH.T.rdWkArea)
-	pdataOfs:d
-	line:w
+    //dmy:b(%GH.T.rdWkArea)
+    pdataOfs:d
+    line:w
 endstruct
 
 *struct W
-	//dmy:b(%GH.T.wrtWkArea)
-	pdataOfs:d
-	line:w
+    //dmy:b(%GH.T.wrtWkArea)
+    pdataOfs:d
+    line:w
 endstruct
 @endif
 
 *proc InitW(GHTptr:d);cdecl
-	endproc
+    endproc
 
 *proc InitR(GHTptr:d);cdecl
-	endproc
+    endproc
 
 *proc Create(GHTptr:d,fileName:d);cdecl
   //Bmpヘッダを出力(16,256色用)
@@ -55,7 +55,7 @@ endstruct
 endproc
 
 *proc Open(GHTptr:d, fileName:d);cdecl
-//	Bmpファイルをオープンしてヘッダを読み込む
+//  Bmpファイルをオープンしてヘッダを読み込む
 //  out ax  0:成功  以外:エラー
 endproc
 
@@ -65,17 +65,17 @@ endproc
 endproc
 
 *proc ReadPDB(GHTptr:d, lineCnt:w);cdecl
-//	ピクセル・データをバッファに入力
+//  ピクセル・データをバッファに入力
 endproc
 
 *proc WritePDB(GHTptr:d,lineCnt:w);cdecl
-//	ピクセル・データをバッファに出力
+//  ピクセル・データをバッファに出力
 endproc
 
 *proc RevBuf(es.dx,ax,cx)
-	//arg	ds.dx	address
-	//arg	ax		sizeX
-	//arg	cx		sizeY
+    //arg   ds.dx   address
+    //arg   ax	    sizeX
+    //arg   cx	    sizeY
 endproc
 
 *proc N2B(es.dx, cx)

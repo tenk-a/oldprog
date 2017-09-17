@@ -1,100 +1,100 @@
 module	Text
-	// コンソール関係の関数
-	// 手続きは呼ばれるとき、tf = 0,df = 0,iif = 0 を前提。
-	// 手続きの復帰時, cf,sf,nf,pf,ovf は破壊。
-	c_name "","",1
-	model MODEL
+    // コンソール関係の関数
+    // 手続きは呼ばれるとき、tf = 0,df = 0,iif = 0 を前提。
+    // 手続きの復帰時, cf,sf,nf,pf,ovf は破壊。
+    c_name "","",1
+    model MODEL
 
-	import Std
+    import Std
 
 *proc Text_Sw(flg:w);cdecl
-	// テキスト表示 on(1)/off(0)
+    // テキスト表示 on(1)/off(0)
 enter
-	save ax
-	ah = 0x0C
-	if (flg.l==0)
-		ah = 0x0D
-	fi
-	intr 0x18
-	return
+    save ax
+    ah = 0x0C
+    if (flg.l==0)
+    	ah = 0x0D
+    fi
+    intr 0x18
+    return
 endproc
 
 *proc Text_CursorSw(flg:w);cdecl
-	// カーソル表示 1:on 0:off
+    // カーソル表示 1:on 0:off
 enter
-	save ax
-	if (flg.l)
-		ah = 0x11
-	else
-		ah = 0x12
-	fi
-	intr 0x18
-	return
+    save ax
+    if (flg.l)
+    	ah = 0x11
+    else
+    	ah = 0x12
+    fi
+    intr 0x18
+    return
 endproc
 
 *proc Text_CursorBlinkSw(flg:w);cdecl
-//	カーソルをブリンクする(1)/しない(0)
+//  カーソルをブリンクする(1)/しない(0)
 enter
-	save ax
-	ax = 0x10*0x100 + 0
-	if (flg.l == 0)
-		++al
-	fi
-	intr 0x18
-	return
+    save ax
+    ax = 0x10*0x100 + 0
+    if (flg.l == 0)
+    	++al
+    fi
+    intr 0x18
+    return
 endproc
 
 proc Text_ConPut(bx)
-//	in	ds
+//  in	ds
 begin
-	save ax, bx, dx
+    save ax, bx, dx
 
-	ah = 0x06
-	loop
-		dl = b[bx]; ++bx
-		exit (dl == 0xff || dl == 0)
-		intr 0x21
-	endloop
-	return
+    ah = 0x06
+    loop
+    	dl = b[bx]; ++bx
+    	exit (dl == 0xff || dl == 0)
+    	intr 0x21
+    endloop
+    return
 endproc
 
 @if 0
 *proc CurPosReport()
 begin
-	save bx,ds
-	cvar str:b() = "\[[6n"
+    save bx,ds
+    cvar str:b() = "\[[6n"
 
-	ds = bx = %cvar
-	bx = &str
-	Text_ConPut bx
-	return
+    ds = bx = %cvar
+    bx = &str
+    Text_ConPut bx
+    return
 endproc
 @fi
 
 *proc Text_PFKeySw(flg:w);cdecl
 enter
-	save ax,bx,ds
-	cvar str:b() = "\[[>1l"
-	cvar str2:b() = "\[[>1h"
+    save ax,bx,ds
+    cvar str:b() = "\[[>1l"
+    cvar str2:b() = "\[[>1h"
 
-	ds = bx = %cvar
-	bx = &str
-	if (flg.l == 0)
-		bx = &str2
-	fi
-	Text_ConPut bx
-	return
+    ds = bx = %cvar
+    bx = &str
+    if (flg.l == 0)
+    	bx = &str2
+    fi
+    Text_ConPut bx
+    return
 endproc
 
 *proc Text_Cls()
 begin
-	save ax,bx,ds
-	cvar str:b() = "\[[2J"
+    save ax,bx,ds
+    cvar str:b() = "\[[2J"
 
-	ds = bx = %cvar
-	bx = &str
-	Text_ConPut bx
-	return
+    ds = bx = %cvar
+    bx = &str
+    Text_ConPut bx
+    return
 endproc
 
 //////////////////////////////////////////////////////////////////////////////
@@ -107,206 +107,206 @@ cvar	attr:b = 0xe1
 //////////////////////////////////////////////////////////////////////////////
 proc Color_(ax)
 begin
-	ah = al
-	ah >>= 3
-	ah |= 0x01
-	ah &= 0x0f
-	al <<= 5
-	al |= ah
-	ah = 0
-	return
+    ah = al
+    ah >>= 3
+    ah |= 0x01
+    ah &= 0x0f
+    al <<= 5
+    al |= ah
+    ah = 0
+    return
 endproc
 
 *proc Text_Color(col:w);cdecl
-//	in ds
-//	ret ax
+//  in ds
+//  ret ax
 enter
-	ax = col
-	Color_ ax
-	attr = al
-	return
+    ax = col
+    Color_ ax
+    attr = al
+    return
 endproc
 
 *proc Text_BoxFull(x0:w,y0:w,x1:w,y1:w,chr:w,atr:w);cdecl
-	// chr は１バイト文字のみ
-	// chr == 0xffff ならキャラクタは無しで属性のみ
-	// atr < 0ならデフォルト属性
+    // chr は１バイト文字のみ
+    // chr == 0xffff ならキャラクタは無しで属性のみ
+    // atr < 0ならデフォルト属性
 enter
-	save bx,cx,si,di,es,ds
-	local xsz:w,ysz:w
+    save bx,cx,si,di,es,ds
+    local xsz:w,ysz:w
 
-	if (atr .<. 0)
-		al = attr
-		ah = 0
-		atr = ax
-	else
-		Color_ atr
-		atr = ax
-	fi
-	ax = x1; ++ax; ax -= x0; xsz = ax
-	ax = y1; ++ax; ax -= y0; ysz = ax
-	dx.ax = y0 * 160
-	bx = x0
-	bx += bx
-	bx += ax
-	loop
-		if (chr != 0xffff)
-			es = textSeg
-			di = bx
-			rep.set.w di,chr,xsz
-		fi
-		es = attrSeg
-		di = bx
-		rep.set.w di,atr,xsz
-		bx += 160
-	endloop (--ysz)
-	return
+    if (atr .<. 0)
+    	al = attr
+    	ah = 0
+    	atr = ax
+    else
+    	Color_ atr
+    	atr = ax
+    fi
+    ax = x1; ++ax; ax -= x0; xsz = ax
+    ax = y1; ++ax; ax -= y0; ysz = ax
+    dx.ax = y0 * 160
+    bx = x0
+    bx += bx
+    bx += ax
+    loop
+    	if (chr != 0xffff)
+    	    es = textSeg
+    	    di = bx
+    	    rep.set.w di,chr,xsz
+    	fi
+    	es = attrSeg
+    	di = bx
+    	rep.set.w di,atr,xsz
+    	bx += 160
+    endloop (--ysz)
+    return
 endproc
 
 *proc Text_Box(x0:w,y0:w,x1:w,y1:w,chr:w,atr:w);cdecl
-	// chr は１バイト文字のみ
-	// chr == 0xffff ならキャラクタは無しで属性のみ
-	// atr < 0ならデフォルト属性
+    // chr は１バイト文字のみ
+    // chr == 0xffff ならキャラクタは無しで属性のみ
+    // atr < 0ならデフォルト属性
 enter
-	save ax,bx,cx,dx,si,di,es,ds
-	local xsz:w,ysz:w
+    save ax,bx,cx,dx,si,di,es,ds
+    local xsz:w,ysz:w
 
-	if (atr .<. 0)
-		al = attr
-		ah = 0
-		atr = ax
-	else
-		Color_ atr
-		atr = ax
-	fi
-	ax = x1; ++ax; ax -= x0; xsz = ax
-	ax = y1; ++ax; ax -= y0; ysz = ax
-	dx.ax = y0 * 160
-	bx = x0
-	bx += bx
-	bx += ax
-	//上辺
-	if (chr != 0xffff)
-		es = textSeg
-		di = bx
-		rep.set.w di,chr,xsz
-	fi
-	es = attrSeg
-	di = bx
-	rep.set.w di,atr,xsz
-	//中(両端)
-	cx = ysz
-	if (cx > 2)
-		cx -= 2
-		si = xsz
-		--si
-		si += si
-		di = chr
-		ax = atr
-		loop
-			bx += 160
-			if (chr != 0xffff)
-				ds = textSeg
-				w[bx] = di	//chr
-				w[bx+si] = di//chr
-			fi
-			ds = attrSeg
-			w[bx] = ax		//atr
-			w[bx+si] = ax	//atr
-		endloop (--cx)
-	fi
-	//底辺
-	if (ysz > 1)
-		bx += 160
-		if (chr != 0xffff)
-			es = textSeg
-			di = bx
-			rep.set.w di,chr,xsz
-		fi
-		es = attrSeg
-		di = bx
-		rep.set.w di,atr,xsz
-	fi
-	return
+    if (atr .<. 0)
+    	al = attr
+    	ah = 0
+    	atr = ax
+    else
+    	Color_ atr
+    	atr = ax
+    fi
+    ax = x1; ++ax; ax -= x0; xsz = ax
+    ax = y1; ++ax; ax -= y0; ysz = ax
+    dx.ax = y0 * 160
+    bx = x0
+    bx += bx
+    bx += ax
+    //上辺
+    if (chr != 0xffff)
+    	es = textSeg
+    	di = bx
+    	rep.set.w di,chr,xsz
+    fi
+    es = attrSeg
+    di = bx
+    rep.set.w di,atr,xsz
+    //中(両端)
+    cx = ysz
+    if (cx > 2)
+    	cx -= 2
+    	si = xsz
+    	--si
+    	si += si
+    	di = chr
+    	ax = atr
+    	loop
+    	    bx += 160
+    	    if (chr != 0xffff)
+    	    	ds = textSeg
+    	    	w[bx] = di  //chr
+    	    	w[bx+si] = di//chr
+    	    fi
+    	    ds = attrSeg
+    	    w[bx] = ax	    //atr
+    	    w[bx+si] = ax   //atr
+    	endloop (--cx)
+    fi
+    //底辺
+    if (ysz > 1)
+    	bx += 160
+    	if (chr != 0xffff)
+    	    es = textSeg
+    	    di = bx
+    	    rep.set.w di,chr,xsz
+    	fi
+    	es = attrSeg
+    	di = bx
+    	rep.set.w di,atr,xsz
+    fi
+    return
 endproc
 
-			   // 横線 縦線 左上 右上 左下 右下 +	 左T  右T  上T	下T
+    	       // 横線 縦線 左上 右上 左下 右下 +    左T  右T  上T  下T
 cvar linChr:w()= {0x95,0x96,0x9c,0x9d,0x9e,0x9f,0x8f,0x93,0x92,0x91,0x90}
 
 @if 1
 *proc Text_BoxLine(x0:w,y0:w,x1:w,y1:w,flg:w,atr:w);cdecl
-	// flg = 0 四隅が丸, 1 角
-	// chr == 0xffff ならキャラクタは無しで属性のみ
-	// atr < 0ならデフォルト属性
+    // flg = 0 四隅が丸, 1 角
+    // chr == 0xffff ならキャラクタは無しで属性のみ
+    // atr < 0ならデフォルト属性
 enter
-	save ax,bx,cx,dx,si,di,es,ds
-	local xsz:w,ysz:w
+    save ax,bx,cx,dx,si,di,es,ds
+    local xsz:w,ysz:w
 
-	if (atr .<. 0)
-		al = attr
-		ah = 0
-		atr = ax
-	else
-		Color_ atr
-		atr = ax
-	fi
-	ax = x1; ++ax; ax -= x0; xsz = ax
-	go.w (ax < 3) RET
-	ax = y1; ++ax; ax -= y0; ysz = ax
-	go.w (ax < 3) RET
-	dx.ax = y0 * 160
-	bx = x0
-	bx += bx
-	bx += ax
-	//上辺
-	es = textSeg
-	di = bx
-	rep.set.w di,linChr(2)
-	cx = xsz
-	cx -= 2
-	if (cx)
-		rep.set.w di,linChr(0),cx
-	fi
-	rep.set.w di,linChr(3)
+    if (atr .<. 0)
+    	al = attr
+    	ah = 0
+    	atr = ax
+    else
+    	Color_ atr
+    	atr = ax
+    fi
+    ax = x1; ++ax; ax -= x0; xsz = ax
+    go.w (ax < 3) RET
+    ax = y1; ++ax; ax -= y0; ysz = ax
+    go.w (ax < 3) RET
+    dx.ax = y0 * 160
+    bx = x0
+    bx += bx
+    bx += ax
+    //上辺
+    es = textSeg
+    di = bx
+    rep.set.w di,linChr(2)
+    cx = xsz
+    cx -= 2
+    if (cx)
+    	rep.set.w di,linChr(0),cx
+    fi
+    rep.set.w di,linChr(3)
 
-	es = attrSeg
-	di = bx
-	rep.set.w di,atr,xsz
-	//中(両端)
-	cx = ysz
-	if (cx > 2)
-		cx -= 2
-		si = xsz
-		--si
-		si += si
-		di = linChr(1)
-		ax = atr
-		loop
-			bx += 160
-			ds = textSeg
-			w[bx] = di	//linChr(1)
-			w[bx+si] = di//linChr(1)
-			ds = attrSeg
-			w[bx] = ax		//atr
-			w[bx+si] = ax	//atr
-		endloop (--cx)
-	fi
-	//底辺
-	bx += 160
-	es = textSeg
-	di = bx
-	rep.set.w di,linChr(4)
-	cx = xsz
-	cx -= 2
-	if (cx)
-		rep.set.w di,linChr(0),cx
-	fi
-	rep.set.w di,linChr(5)
-	es = attrSeg
-	di = bx
-	rep.set.w di,atr,xsz
+    es = attrSeg
+    di = bx
+    rep.set.w di,atr,xsz
+    //中(両端)
+    cx = ysz
+    if (cx > 2)
+    	cx -= 2
+    	si = xsz
+    	--si
+    	si += si
+    	di = linChr(1)
+    	ax = atr
+    	loop
+    	    bx += 160
+    	    ds = textSeg
+    	    w[bx] = di	//linChr(1)
+    	    w[bx+si] = di//linChr(1)
+    	    ds = attrSeg
+    	    w[bx] = ax	    //atr
+    	    w[bx+si] = ax   //atr
+    	endloop (--cx)
+    fi
+    //底辺
+    bx += 160
+    es = textSeg
+    di = bx
+    rep.set.w di,linChr(4)
+    cx = xsz
+    cx -= 2
+    if (cx)
+    	rep.set.w di,linChr(0),cx
+    fi
+    rep.set.w di,linChr(5)
+    es = attrSeg
+    di = bx
+    rep.set.w di,atr,xsz
   RET:
-	return
+    return
 endproc
 @fi
 
@@ -314,117 +314,117 @@ endproc
 
 @if 0
 *proc GetPos();cdecl
-//	out  al: x = 0～79
-//	out  ah: y = 0～24
-//	out  大域変数 x,y
+//  out  al: x = 0～79
+//  out  ah: y = 0～24
+//  out  大域変数 x,y
 begin
-	save dx,cx
+    save dx,cx
 
-	ax = offs
-	ax >>= 1
-	dx = 0
-	cx = 80
-	div dx.ax, cx
-	ah = al
-	al = dl
-	return
+    ax = offs
+    ax >>= 1
+    dx = 0
+    cx = 80
+    div dx.ax, cx
+    ah = al
+    al = dl
+    return
 endproc
 @fi
 
 proc _PutC1(ax)
 ////	out   bx   新しいカーソルのアドレス
-//	break ax
+//  break ax
 begin
-	save es,bx,ax
+    save es,bx,ax
 
-	es = textSeg
-	bx = offs
-	w[es:bx] = ax
-	al = attr
-	es = attrSeg
-	b[es:bx] = al
-	bx += 2
-	offs = bx
-	return
+    es = textSeg
+    bx = offs
+    w[es:bx] = ax
+    al = attr
+    es = attrSeg
+    b[es:bx] = al
+    bx += 2
+    offs = bx
+    return
 endproc
 
 *proc _ZenToJis(ax)
-//	out  ax
+//  out  ax
 begin
-	if (ah >= 0xa0)
-		ah -= 0x40
-	fi
-	ah -= 0x70
-	|al |= al
-	if (sf == 1)	// al >= 0x80
-		--al
-	fi
-	ah <<= 1
-	if (al < 0x9e)
-		--ah
-	else
-		al -= 0x5e
-	fi
-	al -= 0x1f
-	//if ((al >= 0x20 && al <= 0x7e) && (ah >= 0x20 && ah <= 0x7e))
-	//	cf = 0
-	//else
-	//	cf = 1
-	//fi
-	return
+    if (ah >= 0xa0)
+    	ah -= 0x40
+    fi
+    ah -= 0x70
+    |al |= al
+    if (sf == 1)    // al >= 0x80
+    	--al
+    fi
+    ah <<= 1
+    if (al < 0x9e)
+    	--ah
+    else
+    	al -= 0x5e
+    fi
+    al -= 0x1f
+    //if ((al >= 0x20 && al <= 0x7e) && (ah >= 0x20 && ah <= 0x7e))
+    //	cf = 0
+    //else
+    //	cf = 1
+    //fi
+    return
 endproc
 
 proc _PutC2(ax)
-	//arg	ax	 シフトJISコード
-	//out	bx	 新しいカーソルのアドレス
-	//break ax
+    //arg   ax	 シフトJISコード
+    //out   bx	 新しいカーソルのアドレス
+    //break ax
 begin
-	save es,bx,ax
+    save es,bx,ax
 
-	_ZenToJis ax
-	ah <=> al
-	al -= 0x20
-	push ax
-		es = textSeg
-		bx = offs
-		w[es:bx] = ax
-		al = attr
-		es = attrSeg
-		b[es:bx] = al
-		bx += 2
-		b[es:bx] = al
-		es = textSeg
-	pop ax
-	ax |= 0x8080
-	w[es:bx] = ax
-	bx += 2
+    _ZenToJis ax
+    ah <=> al
+    al -= 0x20
+    push ax
+    	es = textSeg
+    	bx = offs
+    	w[es:bx] = ax
+    	al = attr
+    	es = attrSeg
+    	b[es:bx] = al
+    	bx += 2
+    	b[es:bx] = al
+    	es = textSeg
+    pop ax
+    ax |= 0x8080
+    w[es:bx] = ax
+    bx += 2
   @if 0
-	if (bx >= (80*25)*2)
-		bx = 0
-	fi
+    if (bx >= (80*25)*2)
+    	bx = 0
+    fi
   @fi
-	offs = bx
-	return
+    offs = bx
+    return
 endproc
 
 
 *proc Text_PutChr(chr:w);cdecl
 enter
-	save bx
+    save bx
 
-	ax = chr
-	if (ah == 0)
-		_PutC1 ax
-	else
-		_PutC2 ax
-	fi
+    ax = chr
+    if (ah == 0)
+    	_PutC1 ax
+    else
+    	_PutC2 ax
+    fi
   @if 0
-	if (curFlg)
-		ax = bx
-		_CurAddr ax
-	fi
+    if (curFlg)
+    	ax = bx
+    	_CurAddr ax
+    fi
   @fi
-	return
+    return
 endproc
 
 //----------------------------------------------------------------------------
@@ -433,164 +433,164 @@ cvar frm_x0:w=0, frm_y0:w=0, frm_x1:w=79, frm_y1:w=24
 cvar frm_x:w=0, frm_y:w=0
 
 *proc Text_LocateAbs(con_x:w, con_y:w);cdecl
-	// ret ax : offs
+    // ret ax : offs
 enter
-	frm_x = ax = con_x
-	frm_y = ax = con_y
-	ax = al * 80
-	ax += con_x
-	ax += ax
-	offs = ax
+    frm_x = ax = con_x
+    frm_y = ax = con_y
+    ax = al * 80
+    ax += con_x
+    ax += ax
+    offs = ax
   @if 0
-	if (curFlg)
-		_CurAddr ax
-	fi
+    if (curFlg)
+    	_CurAddr ax
+    fi
   @fi
-	return
+    return
 endproc
 
 *proc Text_Locate(con_x:w, con_y:w);cdecl
-	// ret ax : offs
+    // ret ax : offs
 enter
-	ax = con_x
-	ax += frm_x0
-	if (ax > 79)
-		ax = 79
-	fi
-	frm_x = ax
-	ax = con_y
-	ax += frm_y0
-	if (ax > 25)
-		ax = 25
-	fi
-	frm_y = ax
-	ax = al * 80
-	ax += frm_x
-	ax += ax
-	offs = ax
+    ax = con_x
+    ax += frm_x0
+    if (ax > 79)
+    	ax = 79
+    fi
+    frm_x = ax
+    ax = con_y
+    ax += frm_y0
+    if (ax > 25)
+    	ax = 25
+    fi
+    frm_y = ax
+    ax = al * 80
+    ax += frm_x
+    ax += ax
+    offs = ax
   @if 0
-	if (curFlg)
-		_CurAddr ax
-	fi
+    if (curFlg)
+    	_CurAddr ax
+    fi
   @fi
-	return
+    return
 endproc
 
 
 *proc Text_Range(xsz:w, ysz:w, x0:w, y0:w);cdecl
 enter
-	save bx,cx,dx,si,di,es,ds
+    save bx,cx,dx,si,di,es,ds
 
-	//フレーム範囲設定
-	frm_x0 = ax = x0
-	ah = xsz.l
-	if (ah > 80 || ah < 3)
-		ah = 80
-	fi
-	frm_xsize.l = ah
-	al += ah
-	--al
-	frm_x1.l = al
-	frm_y0.l = al = y0.l
-	ah = ysz.l
-	if (ah > 25 || ah < 3)
-		ah = 25
-	fi
-	frm_ysize.l = ah
-	al += ah
-	--al
-	frm_y1.l = al
+    //フレーム範囲設定
+    frm_x0 = ax = x0
+    ah = xsz.l
+    if (ah > 80 || ah < 3)
+    	ah = 80
+    fi
+    frm_xsize.l = ah
+    al += ah
+    --al
+    frm_x1.l = al
+    frm_y0.l = al = y0.l
+    ah = ysz.l
+    if (ah > 25 || ah < 3)
+    	ah = 25
+    fi
+    frm_ysize.l = ah
+    al += ah
+    --al
+    frm_y1.l = al
 
-	//カーソル位置設定
-	Text_LocateAbs frm_x0,frm_y0
-	return
+    //カーソル位置設定
+    Text_LocateAbs frm_x0,frm_y0
+    return
 endproc
 
 
 *proc Text_PutCr();cdecl
 begin
-	save dx
-	ah = frm_y.l
-	++ah
-	al = frm_x0.l
-	if (ah > frm_y1.l)
-		ah = frm_y1.l
-	fi
-	dl = ah
-	dh = ah = 0
-	if (al > frm_x1.l)
-		al = frm_x1.l
-	fi
-	Text_LocateAbs ax,dx
-	return
+    save dx
+    ah = frm_y.l
+    ++ah
+    al = frm_x0.l
+    if (ah > frm_y1.l)
+    	ah = frm_y1.l
+    fi
+    dl = ah
+    dh = ah = 0
+    if (al > frm_x1.l)
+    	al = frm_x1.l
+    fi
+    Text_LocateAbs ax,dx
+    return
 endproc
 
 *proc Text_PutStr(bufp:d);cdecl //CTRL文字LF改行対応. シフトJIS対応
-//	out dx.ax = bufp
+//  out dx.ax = bufp
 enter
-	save bx,cx,si,di,es,ds
+    save bx,cx,si,di,es,ds
 
-	rep.inc
-	es.si = bufp
-	cx = frm_x
-	loop
-		al = b[es:si];++si
-		ah = 0
-		exit (al == 0)
-		if (Std.IsKanji(al))
-			cx += 1
-			if (cx > frm_x1)
-				Text_PutCr
-				cx = frm_x0
-			else
-				cx += 1
-			fi
-			ah = al
-			al = b[es:si];++si
-			exit (al == 0)
-			_PutC2 ax
-		else
-			if (cx > frm_x1)
-				Text_PutCr
-				cx = frm_x0
-			else
-				cx += 1
-			fi
-			if (al == 0x0a)
-				Text_PutCr
-				cx = frm_x0
-			else
-				_PutC1 ax
-			fi
-		fi
-	endloop
+    rep.inc
+    es.si = bufp
+    cx = frm_x
+    loop
+    	al = b[es:si];++si
+    	ah = 0
+    	exit (al == 0)
+    	if (Std.IsKanji(al))
+    	    cx += 1
+    	    if (cx > frm_x1)
+    	    	Text_PutCr
+    	    	cx = frm_x0
+    	    else
+    	    	cx += 1
+    	    fi
+    	    ah = al
+    	    al = b[es:si];++si
+    	    exit (al == 0)
+    	    _PutC2 ax
+    	else
+    	    if (cx > frm_x1)
+    	    	Text_PutCr
+    	    	cx = frm_x0
+    	    else
+    	    	cx += 1
+    	    fi
+    	    if (al == 0x0a)
+    	    	Text_PutCr
+    	    	cx = frm_x0
+    	    else
+    	    	_PutC1 ax
+    	    fi
+    	fi
+    endloop
   @if 0
-	if (curFlg)
-		ax = bx
-		_CurAddr ax
-	fi
+    if (curFlg)
+    	ax = bx
+    	_CurAddr ax
+    fi
   @fi
-	dx.ax = bufp
-	return
+    dx.ax = bufp
+    return
 endproc
 
 *proc Text_PutCStr(col:w,str:d);cdecl
 enter
-	if (col .>=. 0)
-		Text_Color col
-	fi
-	Text_PutStr str
-	return
+    if (col .>=. 0)
+    	Text_Color col
+    fi
+    Text_PutStr str
+    return
 endproc
 
 *proc Text_PutXYCS(x0:w,y0:w,col:w,str:d);cdecl
 enter
-	Text_Locate x0,y0
-	if (col .>=. 0)
-		Text_Color col
-	fi
-	Text_PutStr str
-	return
+    Text_Locate x0,y0
+    if (col .>=. 0)
+    	Text_Color col
+    fi
+    Text_PutStr str
+    return
 endproc
 
 endmodule

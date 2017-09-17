@@ -1,15 +1,15 @@
 module VMP
-	c_name "VMP","_",1
+    c_name "VMP","_",1
 
-	import Pri
-	import Dos
-	import Vv
-	import RRPal
-	import RPAL
+    import Pri
+    import Dos
+    import Vv
+    import RRPal
+    import RPAL
 
 @define V() Vv.T[ds:0]
 
-@define RCL1(AL)	adc AL,AL
+@define RCL1(AL)    adc AL,AL
 
 
 cvar /*wlFlg:b = 0,*/ wlgFlg:b=0 // 1:力技２画面切替表示
@@ -17,57 +17,57 @@ cvar /*wlFlg:b = 0,*/ wlgFlg:b=0 // 1:力技２画面切替表示
 /*--------------------------------------------------------------------------*/
 *proc ShowOn()
 begin
-	save ax
-	ax = 0x4000
-	intr 0x18
-	return
+    save ax
+    ax = 0x4000
+    intr 0x18
+    return
 endproc
 
 *proc ShowOff()
 begin
-	save ax
-	ax = 0x4100
-	intr 0x18
-	return
+    save ax
+    ax = 0x4100
+    intr 0x18
+    return
 endproc
 
 *proc GCls();cdecl
-//	画面消去
+//  画面消去
 begin
-	save ax,cx,dx,di,es
+    save ax,cx,dx,di,es
 
-	port(0xA6) = al = 0 //ActGVPage
+    port(0xA6) = al = 0 //ActGVPage
 
-	port(0x7c) = al = 0x80
-	ax = 0
-	dx = 0x7e
-	port(dx) = al
-	port(dx) = al
-	port(dx) = al
-	port(dx) = al
-	es = dx = 0xA800
-	di = ax
-	cx = (80*400)/2
-	rep.set.w di,ax,cx
-	port(0x7c) = al
+    port(0x7c) = al = 0x80
+    ax = 0
+    dx = 0x7e
+    port(dx) = al
+    port(dx) = al
+    port(dx) = al
+    port(dx) = al
+    es = dx = 0xA800
+    di = ax
+    cx = (80*400)/2
+    rep.set.w di,ax,cx
+    port(0x7c) = al
 
-	port(0xA6) = al = 1 //ActGVPage
+    port(0xA6) = al = 1 //ActGVPage
 
-	port(0x7c) = al = 0x80
-	ax = 0
-	dx = 0x7e
-	port(dx) = al
-	port(dx) = al
-	port(dx) = al
-	port(dx) = al
-	es = dx = 0xA800
-	di = ax
-	cx = (80*400)/2
-	rep.set.w di,ax,cx
-	port(0x7c) = al
+    port(0x7c) = al = 0x80
+    ax = 0
+    dx = 0x7e
+    port(dx) = al
+    port(dx) = al
+    port(dx) = al
+    port(dx) = al
+    es = dx = 0xA800
+    di = ax
+    cx = (80*400)/2
+    rep.set.w di,ax,cx
+    port(0x7c) = al
 
-	port(0xA6) = al = 0 //ActGVPage
-	return
+    port(0xA6) = al = 0 //ActGVPage
+    return
 endproc
 
 
@@ -79,321 +79,321 @@ cvar gdcOfsX:w,gdcOfsY:w,gdcSclDat:w
 
 *proc MPgdcSclInit();cdecl
 enter
-	save pusha,es,ds
-	gdcOfsX = ax = 0
-	gdcOfsY = ax
-	gdcSclDat = ax
-	al = port(0x31)
-	if (al & 0x80)
-		gdcSclDat.l = 0x00	// + (Gv_btmLine == 200) ? 0x80 : 0;
-	else
-		gdcSclDat.l = 0x40	// + (Gv_btmLine == 200) ? 0x80 : 0;
-	fi
-	MPgdcWait2()
-	port(0xa2) = al = 0x70
-	//MPgdcWait()
-	port(0xa0) = al = 0x00
-	//MPgdcWait()
-	port(0xa0) = al = 0x00
-	//MPgdcWait()
-	port(0xa0) = al = (400 & 0x0f) << 4
-	//MPgdcWait()
-	al = gdcSclDat.l; al |= (400 >> 4); port(0xa0) = al
-	//MPgdcWait()
-	port(0xa0) = al = 0x00
-	//MPgdcWait()
-	port(0xa0) = al = 0x00
-	//MPgdcWait()
-	port(0xa0) = al = 0x00
-	//MPgdcWait()
-	port(0xa0) = al = gdcSclDat.l
-	//MPgdcWait2()
-	return
+    save pusha,es,ds
+    gdcOfsX = ax = 0
+    gdcOfsY = ax
+    gdcSclDat = ax
+    al = port(0x31)
+    if (al & 0x80)
+    	gdcSclDat.l = 0x00  // + (Gv_btmLine == 200) ? 0x80 : 0;
+    else
+    	gdcSclDat.l = 0x40  // + (Gv_btmLine == 200) ? 0x80 : 0;
+    fi
+    MPgdcWait2()
+    port(0xa2) = al = 0x70
+    //MPgdcWait()
+    port(0xa0) = al = 0x00
+    //MPgdcWait()
+    port(0xa0) = al = 0x00
+    //MPgdcWait()
+    port(0xa0) = al = (400 & 0x0f) << 4
+    //MPgdcWait()
+    al = gdcSclDat.l; al |= (400 >> 4); port(0xa0) = al
+    //MPgdcWait()
+    port(0xa0) = al = 0x00
+    //MPgdcWait()
+    port(0xa0) = al = 0x00
+    //MPgdcWait()
+    port(0xa0) = al = 0x00
+    //MPgdcWait()
+    port(0xa0) = al = gdcSclDat.l
+    //MPgdcWait2()
+    return
 endproc
 
 
 *proc MPgdcGetSclOfs();cdecl
 begin
-	ax = gdcOfsX
-	dx = gdcOfsY
-	return
+    ax = gdcOfsX
+    dx = gdcOfsY
+    return
 endproc
 
 proc MPgdcSclSub()
 begin
-	save dx,/*si,di,*/ ds,es
+    save dx,/*si,di,*/ ds,es
 
-	dx.ax = 400 * 80
-	bx = ax
-	dx = 0
+    dx.ax = 400 * 80
+    bx = ax
+    dx = 0
 
-	port(0xA6) = al = 0 //表VRAM
-	es = ax = 0xA800
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xB000
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xB800
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xE000
-	ds = ax
-	rep.cpy.w bx,dx,40
+    port(0xA6) = al = 0 //表VRAM
+    es = ax = 0xA800
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xB000
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xB800
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xE000
+    ds = ax
+    rep.cpy.w bx,dx,40
 
-	port(0xA6) = al = 1 //
-	es = ax = 0xA800
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xB000
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xB800
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xE000
-	ds = ax
-	rep.cpy.w bx,dx,40
+    port(0xA6) = al = 1 //
+    es = ax = 0xA800
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xB000
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xB800
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xE000
+    ds = ax
+    rep.cpy.w bx,dx,40
 
-	port(0xA6) = al = 0 //表VRAM
-	return
+    port(0xA6) = al = 0 //表VRAM
+    return
 endproc
 
 
 proc MPgdcSclSub2()
 begin
-	save dx,/*si,di,*/ ds,es
+    save dx,/*si,di,*/ ds,es
 
-	dx.ax = 400 * 80
-	dx = ax
+    dx.ax = 400 * 80
+    dx = ax
 
-	bx = 0
+    bx = 0
 
-	port(0xA6) = al = 0 //表VRAM
-	es = ax = 0xA800
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xB000
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xB800
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xE000
-	ds = ax
-	rep.cpy.w bx,dx,40
+    port(0xA6) = al = 0 //表VRAM
+    es = ax = 0xA800
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xB000
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xB800
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xE000
+    ds = ax
+    rep.cpy.w bx,dx,40
 
-	port(0xA6) = al = 1 //
-	es = ax = 0xA800
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xB000
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xB800
-	ds = ax
-	rep.cpy.w bx,dx,40
-	es = ax = 0xE000
-	ds = ax
-	rep.cpy.w bx,dx,40
-	port(0xA6) = al = 0 //表VRAM
-	return
+    port(0xA6) = al = 1 //
+    es = ax = 0xA800
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xB000
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xB800
+    ds = ax
+    rep.cpy.w bx,dx,40
+    es = ax = 0xE000
+    ds = ax
+    rep.cpy.w bx,dx,40
+    port(0xA6) = al = 0 //表VRAM
+    return
 endproc
 
 
 *proc MPgdcScl(ddx:w, ddy:w);cdecl
 enter
-	save bx,cx,si,di,es,ds
-	local sad1:w,/*sl1:w,*/sad2:w,sl2:w
-	local x:w//,btmLine:w
+    save bx,cx,si,di,es,ds
+    local sad1:w,/*sl1:w,*/sad2:w,sl2:w
+    local x:w//,btmLine:w
 
-	//btmLine = 400 //Gv_btmLine;
-	dx = gdcOfsX
-	dx += ddx
-	if (dx .<. 0)
-		MPgdcSclSub
-		dx += 80
-		--gdcOfsY
-	elsif (dx .>=. 80)
-		MPgdcSclSub2
-		dx -= 80
-		++gdcOfsY
-	fi
-	gdcOfsX = dx
-	dx >>= 1
-	x = dx
+    //btmLine = 400 //Gv_btmLine;
+    dx = gdcOfsX
+    dx += ddx
+    if (dx .<. 0)
+    	MPgdcSclSub
+    	dx += 80
+    	--gdcOfsY
+    elsif (dx .>=. 80)
+    	MPgdcSclSub2
+    	dx -= 80
+    	++gdcOfsY
+    fi
+    gdcOfsX = dx
+    dx >>= 1
+    x = dx
 
-	ax = gdcOfsY
-	ax += ddy
-	gdcOfsY = ax
-	bx = 400	//btmLine
-	if (ax .<. 0)
-		ax += bx
-		gdcOfsY = ax
-	elsif (ax .>=. bx)
-		ax -= bx
-		gdcOfsY = ax
-	fi
-	if (ax) //gdcOfsY
-		dx.ax = ax * 40
-		dx = x
-		ax += dx
-		sad1 = ax
-		sad2 = dx
-		sl2 = ax = gdcOfsY
-		bx -= ax//sl2	//ax = bx;ax -= sl2;sl1 = ax
-	else
-		sad1 = ax = x
-		//sl1 = bx
-		sad2 = 0
-		sl2 = 0
-	fi
-	MPgdcWait2()
-	port(0xa2) = al = 0x70
-	//MPgdcWait()
-	port(0xa0) = al = sad1.l
-	//MPgdcWait()
-	port(0xa0) = al = sad1.h
-	//MPgdcWait()
-	al = bl; al <<= 4; port(0xa0) = al
-	//MPgdcWait()
-	ax = bx; ax >>= 4; al |= gdcSclDat.l; port(0xa0) = al
-	//MPgdcWait()
-	port(0xa0) = al = sad2.l
-	//MPgdcWait()
-	port(0xa0) = al = sad2.h
-	//MPgdcWait()
-	al = sl2.l; al <<= 4; port(0xa0) = al
-	//MPgdcWait()
-	ax = sl2; ax >>= 4; al |= gdcSclDat.l; port(0xa0) = al
-	//MPgdcWait2()
-	ax = gdcOfsX
-	dx = gdcOfsY
-	return
+    ax = gdcOfsY
+    ax += ddy
+    gdcOfsY = ax
+    bx = 400	//btmLine
+    if (ax .<. 0)
+    	ax += bx
+    	gdcOfsY = ax
+    elsif (ax .>=. bx)
+    	ax -= bx
+    	gdcOfsY = ax
+    fi
+    if (ax) //gdcOfsY
+    	dx.ax = ax * 40
+    	dx = x
+    	ax += dx
+    	sad1 = ax
+    	sad2 = dx
+    	sl2 = ax = gdcOfsY
+    	bx -= ax//sl2	//ax = bx;ax -= sl2;sl1 = ax
+    else
+    	sad1 = ax = x
+    	//sl1 = bx
+    	sad2 = 0
+    	sl2 = 0
+    fi
+    MPgdcWait2()
+    port(0xa2) = al = 0x70
+    //MPgdcWait()
+    port(0xa0) = al = sad1.l
+    //MPgdcWait()
+    port(0xa0) = al = sad1.h
+    //MPgdcWait()
+    al = bl; al <<= 4; port(0xa0) = al
+    //MPgdcWait()
+    ax = bx; ax >>= 4; al |= gdcSclDat.l; port(0xa0) = al
+    //MPgdcWait()
+    port(0xa0) = al = sad2.l
+    //MPgdcWait()
+    port(0xa0) = al = sad2.h
+    //MPgdcWait()
+    al = sl2.l; al <<= 4; port(0xa0) = al
+    //MPgdcWait()
+    ax = sl2; ax >>= 4; al |= gdcSclDat.l; port(0xa0) = al
+    //MPgdcWait2()
+    ax = gdcOfsX
+    dx = gdcOfsY
+    return
 endproc
 
 //-----------------------------------------------------------------------------
 
 *proc SetRGB(tone:w, pal:d);cdecl
 enter
-	save pusha,es,ds
-	cx = 0
-	bx = 100
-	RRPal.SetTone tone
-	RRPal.GetPalAddr	//result es.di
-	ds.si = pal
-	loop
-		port(0xA8) = al = cl
+    save pusha,es,ds
+    cx = 0
+    bx = 100
+    RRPal.SetTone tone
+    RRPal.GetPalAddr	//result es.di
+    ds.si = pal
+    loop
+    	port(0xA8) = al = cl
 
-		rep.load al,si
-		rep.set di,al
-		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
-		ah = al
-		al >>= 4
-		ah <<= 4
-		al |= ah
-		port(0xAC) = al
-		rep.load al,si
-		rep.set di,al
-		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
-		ah = al
-		al >>= 4
-		ah <<= 4
-		al |= ah
-		port(0xAA) = al
-		rep.load al,si
-		rep.set di,al
-		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
-		ah = al
-		al >>= 4
-		ah <<= 4
-		al |= ah
-		port(0xAE) = al
-		cx += 1
-	endloop(cx < 256)
-	return
+    	rep.load al,si
+    	rep.set di,al
+    	ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+    	ah = al
+    	al >>= 4
+    	ah <<= 4
+    	al |= ah
+    	port(0xAC) = al
+    	rep.load al,si
+    	rep.set di,al
+    	ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+    	ah = al
+    	al >>= 4
+    	ah <<= 4
+    	al |= ah
+    	port(0xAA) = al
+    	rep.load al,si
+    	rep.set di,al
+    	ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+    	ah = al
+    	al >>= 4
+    	ah <<= 4
+    	al |= ah
+    	port(0xAE) = al
+    	cx += 1
+    endloop(cx < 256)
+    return
 endproc
 
 *proc SetTone(tone:w);cdecl
 enter
-	save bx,cx,dx,si,di,es,ds
-	cx = 0
-	bx = 100
-	RRPal.SetTone tone
-	RRPal.GetPalAddr
-	ds.si = es.di
-	loop
-		port(0xA8) = al = cl
-		rep.load al,si
-		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
-		ah = al
-		al >>= 4
-		ah <<= 4
-		al |= ah
-		port(0xAC) = al
-		rep.load al,si
-		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
-		ah = al
-		al >>= 4
-		ah <<= 4
-		al |= ah
-		port(0xAA) = al
-		rep.load al,si
-		ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
-		ah = al
-		al >>= 4
-		ah <<= 4
-		al |= ah
-		port(0xAE) = al
-		cx += 1
-	endloop(cx < 256)
-	ax = 0
-	return
+    save bx,cx,dx,si,di,es,ds
+    cx = 0
+    bx = 100
+    RRPal.SetTone tone
+    RRPal.GetPalAddr
+    ds.si = es.di
+    loop
+    	port(0xA8) = al = cl
+    	rep.load al,si
+    	ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+    	ah = al
+    	al >>= 4
+    	ah <<= 4
+    	al |= ah
+    	port(0xAC) = al
+    	rep.load al,si
+    	ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+    	ah = al
+    	al >>= 4
+    	ah <<= 4
+    	al |= ah
+    	port(0xAA) = al
+    	rep.load al,si
+    	ax = al * tone.l; dx=0; div dx.ax,bx;if (ah);al = 0xff;fi
+    	ah = al
+    	al >>= 4
+    	ah <<= 4
+    	al |= ah
+    	port(0xAE) = al
+    	cx += 1
+    endloop(cx < 256)
+    ax = 0
+    return
 endproc
 
 *proc SetPal(mpSeg:w, tone:w);cdecl
 enter
-	save pusha,es,ds
-	ds = mpSeg
-	SetRGB tone, V.palette
-	return
+    save pusha,es,ds
+    ds = mpSeg
+    SetRGB tone, V.palette
+    return
 endproc
 
 /*---------------------------------*/
 *proc GStart()
 begin
-	save dx,ax
-	/*PC98.*/MPgdcSclInit
+    save dx,ax
+    /*PC98.*/MPgdcSclInit
 
-	port(0xA6) = al = 0 //ActGVPage
+    port(0xA6) = al = 0 //ActGVPage
 
-	 dx = 0x0C06
-	 port(dx) = al = 0xD8
+     dx = 0x0C06
+     port(dx) = al = 0xD8
 
-	 dx = 0x0c07
-	 port(dx) = al = 0x0d8
+     dx = 0x0c07
+     port(dx) = al = 0x0d8
 
-	 port(0x6a) = al = 0x02
-	return
+     port(0x6a) = al = 0x02
+    return
 endproc
 
 *proc GEnd()
 begin
-	port(0xA6) = al = 0 //ActGVPage
-	port(0x6a) = al = 0x01
-	return
+    port(0xA6) = al = 0 //ActGVPage
+    port(0x6a) = al = 0x01
+    return
 endproc
 
 *proc End(tone:w);cdecl
 enter
-	port(0xA6) = al = 0 //ActGVPage
-	 dx = 0x0C06
-	 port(dx) = al = 0xD8
-	 dx = 0x0c07
-	 port(dx) = al = 0x0d8
-	 port(0x6a) = al = 0x02
-	SetTone tone
-	return
+    port(0xA6) = al = 0 //ActGVPage
+     dx = 0x0C06
+     port(dx) = al = 0xD8
+     dx = 0x0c07
+     port(dx) = al = 0x0d8
+     port(0x6a) = al = 0x02
+    SetTone tone
+    return
 endproc
 
 //-----------------------------------------------------------------------------
@@ -403,796 +403,796 @@ cvar savInt18vect:d = 0
 
 proc VsyncVectNew()
 begin
-	push ax
-	//loop;al = port(0x60);endloop(al & 0x20);
-	//loop;al = port(0x60);endloop((al & 0x20) == 0)
-	al = wlDspSw
-	++al
-	al &= 0x1
-	port(0xA4) = al
-	wlDspSw = al
-	port(0x64) = al
-	pop  ax
-	jmp savVsyncVect
+    push ax
+    //loop;al = port(0x60);endloop(al & 0x20);
+    //loop;al = port(0x60);endloop((al & 0x20) == 0)
+    al = wlDspSw
+    ++al
+    al &= 0x1
+    port(0xA4) = al
+    wlDspSw = al
+    port(0x64) = al
+    pop  ax
+    jmp savVsyncVect
 endproc
 
 proc NewInt18()
 begin
-	push fx
-	call savInt18vect
-	push ax
-	port(0x64) = al = 0
-	pop  ax
-	iret
+    push fx
+    call savInt18vect
+    push ax
+    port(0x64) = al = 0
+    pop  ax
+    iret
 endproc
 
 *proc GStartWl()
 enter
-	save pusha,es,ds
-	local msk0:b
+    save pusha,es,ds
+    local msk0:b
 
-	/*PC98.*/MPgdcSclInit
+    /*PC98.*/MPgdcSclInit
 
-	if (wlgFlg == 0)
-		wlgFlg = 1
+    if (wlgFlg == 0)
+    	wlgFlg = 1
 
-		intr.off
-	  @if 1
-		// vsync 非活性化
-		msk0 = al = port(0x02)	// 割り込みコントローラ･マスクポート
-		al |= 0x04
-		port(0x02) = al
+    	intr.off
+      @if 1
+    	// vsync 非活性化
+    	msk0 = al = port(0x02)	// 割り込みコントローラ･マスクポート
+    	al |= 0x04
+    	port(0x02) = al
 
-		Dos.GetVect 0x18
-		savInt18vect = es.bx
-		Dos.GetVect 0x0a
-		savVsyncVect = es.bx
+    	Dos.GetVect 0x18
+    	savInt18vect = es.bx
+    	Dos.GetVect 0x0a
+    	savVsyncVect = es.bx
 
-		dx = %VsyncVectNew
-		ds = cs
-		Dos.SetVect 0x0a ,dx
-		dx = %NewInt18
-		ds = cs
-		Dos.SetVect 0x18 ,dx
-		// vsync 活性化
-		al = msk0
-		al &= ~0x04
-		port (0x02) = al
-		port(0x64) = al = 0
-	  @fi
-		//
-		port(0x6a) = al = 0x01
-		port(0xA6) = al = 0 //ActGVPage
-		intr.on
-	fi
-	return
+    	dx = %VsyncVectNew
+    	ds = cs
+    	Dos.SetVect 0x0a ,dx
+    	dx = %NewInt18
+    	ds = cs
+    	Dos.SetVect 0x18 ,dx
+    	// vsync 活性化
+    	al = msk0
+    	al &= ~0x04
+    	port (0x02) = al
+    	port(0x64) = al = 0
+      @fi
+    	//
+    	port(0x6a) = al = 0x01
+    	port(0xA6) = al = 0 //ActGVPage
+    	intr.on
+    fi
+    return
 endproc
 
 *proc GEndWl()
 begin
-	save pusha,ds,es
-	//if (wlgFlg)
-		wlgFlg = 0
-		intr.off
-	  @if 1
-		ax.dx = savVsyncVect
-		if (ax || dx)
-			ds = ax
-			Dos.SetVect 0x0a ,dx
-		fi
-		savVsyncVect = 0
-		ax.dx = savInt18vect
-		if (ax || dx)
-			ds = ax
-			Dos.SetVect 0x18 ,dx
-		fi
-		savInt18vect = 0
-	  @fi
-		intr.on
-		//Cls
-		port(0xA6) = al = 0 //ActGVPage
-		port(0xA4) = al
-		port(0x6a) = al = 0x01
-	//fi
-	return
+    save pusha,ds,es
+    //if (wlgFlg)
+    	wlgFlg = 0
+    	intr.off
+      @if 1
+    	ax.dx = savVsyncVect
+    	if (ax || dx)
+    	    ds = ax
+    	    Dos.SetVect 0x0a ,dx
+    	fi
+    	savVsyncVect = 0
+    	ax.dx = savInt18vect
+    	if (ax || dx)
+    	    ds = ax
+    	    Dos.SetVect 0x18 ,dx
+    	fi
+    	savInt18vect = 0
+      @fi
+    	intr.on
+    	//Cls
+    	port(0xA6) = al = 0 //ActGVPage
+    	port(0xA4) = al
+    	port(0x6a) = al = 0x01
+    //fi
+    return
 endproc
 
 
 *proc SetPalWl(datSeg:w, tone:w);cdecl
 enter
-	save pusha,es,ds
-	cvar ditRGB:b(48) = data
-		b  0, 0, 0
-		b  5, 0, 0
-		b 10, 0, 0
-		b 15, 0, 0
-		b  0, 0, 7
-		b  5, 0, 7
-		b 10, 0, 7
-		b 15, 0, 7
-		b  0, 0,15
-		b  5, 0,15
-		b 10, 0,15
-		b 15, 0,15
-		b  0, 3, 0
-		b  0, 7, 0
-		b  0,11, 0
-		b  0,15, 0
-	enddata
-	cvar rgb:b(48)
+    save pusha,es,ds
+    cvar ditRGB:b(48) = data
+    	b  0, 0, 0
+    	b  5, 0, 0
+    	b 10, 0, 0
+    	b 15, 0, 0
+    	b  0, 0, 7
+    	b  5, 0, 7
+    	b 10, 0, 7
+    	b 15, 0, 7
+    	b  0, 0,15
+    	b  5, 0,15
+    	b 10, 0,15
+    	b 15, 0,15
+    	b  0, 3, 0
+    	b  0, 7, 0
+    	b  0,11, 0
+    	b  0,15, 0
+    enddata
+    cvar rgb:b(48)
 
-	//
-	bx = %ditRGB
-	RPAL.SetRGB tone, ww(cs,bx)
-	return
+    //
+    bx = %ditRGB
+    RPAL.SetRGB tone, ww(cs,bx)
+    return
 endproc
 
 *proc SetToneWl(tone:w);cdecl
 enter
-	RPAL.SetTone tone
-	return
+    RPAL.SetTone tone
+    return
 endproc
 
 *proc StartWl();cdecl
 enter
-	wlgFlg = 0
-	savVsyncVect = 0
-	savInt18vect = 0
-	return
+    wlgFlg = 0
+    savVsyncVect = 0
+    savInt18vect = 0
+    return
 endproc
 
 *proc EndWl(tone:w);cdecl
 enter
-	GEndWl
-	return
+    GEndWl
+    return
 endproc
 
 /*---------------------------------------------------------------------------*/
 *proc PutPx(datSeg:w, gxx:w, gy:w, xx0:w, y0:w, xxsz:w, ysz:w);cdecl
-	// xx0 は 8ドット単位の値
+    // xx0 は 8ドット単位の値
 enter
-	save pusha, es,ds
-	local xxsz2:w,ptr0:w,ysize:w
-	local xofsL:b,xofsR:b,xmskL:b,xmskR:b,gptr:w
+    save pusha, es,ds
+    local xxsz2:w,ptr0:w,ysize:w
+    local xofsL:b,xofsR:b,xmskL:b,xmskR:b,gptr:w
 
-	ds = datSeg
+    ds = datSeg
 
-	xxsz >>= 3
-	xx0 >>= 3
-	gxx >>= 3
-	ysize = ax = V.yvsize
-	xxsz2 = ax = 0
-	//port(0x7c) = al	// = 0
-	ax = xx0
-	ax += xxsz
-	if(ax > V.xxvsize)
-		ax = V.xxvsize
-		ax -= xx0
-		dx = xxsz
-		dx -= ax
-		xxsz = ax
-		xxsz2 = dx	//
-	fi
+    xxsz >>= 3
+    xx0 >>= 3
+    gxx >>= 3
+    ysize = ax = V.yvsize
+    xxsz2 = ax = 0
+    //port(0x7c) = al	// = 0
+    ax = xx0
+    ax += xxsz
+    if(ax > V.xxvsize)
+    	ax = V.xxvsize
+    	ax -= xx0
+    	dx = xxsz
+    	dx -= ax
+    	xxsz = ax
+    	xxsz2 = dx  //
+    fi
 
-	loop.w
-		ds = datSeg
-		ax = ysize
-		if (y0 == ax)
-			y0 = 0
-		fi
-		if (gy == 400)
-			gy = 0
-		fi
-		dx.ax = ww(0,y0)
-		div dx.ax, V.pgLine
-		Vv.PageSw ax
-		V.pgCurSeg = ax
+    loop.w
+    	ds = datSeg
+    	ax = ysize
+    	if (y0 == ax)
+    	    y0 = 0
+    	fi
+    	if (gy == 400)
+    	    gy = 0
+    	fi
+    	dx.ax = ww(0,y0)
+    	div dx.ax, V.pgLine
+    	Vv.PageSw ax
+    	V.pgCurSeg = ax
 
-		// ax = 点(xx0,y0)のアドレス
-		dx.ax = dx * V.pgXsize
-		ptr0 = ax
-		ax += xx0
-		bx = ax
+    	// ax = 点(xx0,y0)のアドレス
+    	dx.ax = dx * V.pgXsize
+    	ptr0 = ax
+    	ax += xx0
+    	bx = ax
 
-		//表VRAM
-		port(0xA6) = al = 0 //ActGVPage
-		dx.ax = gy * 80
-		ax += V.gvOfs
-		ax += gxx
-		gptr = ax
+    	//表VRAM
+    	port(0xA6) = al = 0 //ActGVPage
+    	dx.ax = gy * 80
+    	ax += V.gvOfs
+    	ax += gxx
+    	gptr = ax
 
-		dx = V.xxvsize
-		ds = V.pgCurSeg
-		es = cx = 0xA800
-		//intr.off
-		di = ax
-		si = bx
-		bx += dx
-		rep.cpy di,si,xxsz
-		if (xxsz2)
-			rep.cpy di,ptr0,xxsz2
-			ptr0 += dx
-		fi
-		es = di = 0xB000
-		di = ax
-		si = bx
-		bx += dx
-		rep.cpy di,si,xxsz
-		if (xxsz2)
-			rep.cpy di,ptr0,xxsz2
-			ptr0 += dx
-		fi
-		es = di = 0xB800
-		di = ax
-		si = bx
-		bx += dx
-		rep.cpy di,si,xxsz
-		if (xxsz2)
-			rep.cpy di,ptr0,xxsz2
-			ptr0 += dx
-		fi
-		es = di = 0xE000
-		di = ax
-		si = bx
-		bx += dx
-		rep.cpy di,si,xxsz
-		if (xxsz2)
-			rep.cpy di,ptr0,xxsz2
-			ptr0 += dx
-		fi
+    	dx = V.xxvsize
+    	ds = V.pgCurSeg
+    	es = cx = 0xA800
+    	//intr.off
+    	di = ax
+    	si = bx
+    	bx += dx
+    	rep.cpy di,si,xxsz
+    	if (xxsz2)
+    	    rep.cpy di,ptr0,xxsz2
+    	    ptr0 += dx
+    	fi
+    	es = di = 0xB000
+    	di = ax
+    	si = bx
+    	bx += dx
+    	rep.cpy di,si,xxsz
+    	if (xxsz2)
+    	    rep.cpy di,ptr0,xxsz2
+    	    ptr0 += dx
+    	fi
+    	es = di = 0xB800
+    	di = ax
+    	si = bx
+    	bx += dx
+    	rep.cpy di,si,xxsz
+    	if (xxsz2)
+    	    rep.cpy di,ptr0,xxsz2
+    	    ptr0 += dx
+    	fi
+    	es = di = 0xE000
+    	di = ax
+    	si = bx
+    	bx += dx
+    	rep.cpy di,si,xxsz
+    	if (xxsz2)
+    	    rep.cpy di,ptr0,xxsz2
+    	    ptr0 += dx
+    	fi
 
-		//裏VRAM
-		port(0xA6) = al = 1 //ActGVPage
-		ax = gptr
-		//intr.off
-		es = cx = 0xA800
-		di = ax
-		si = bx
-		bx += dx
-		rep.cpy di,si,xxsz
-		if (xxsz2)
-			rep.cpy di,ptr0,xxsz2
-			ptr0 += dx
-		fi
-		es = di = 0xB000
-		di = ax
-		si = bx
-		bx += dx
-		rep.cpy di,si,xxsz
-		if (xxsz2)
-			rep.cpy di,ptr0,xxsz2
-			ptr0 += dx
-		fi
-		es = di = 0xB800
-		di = ax
-		si = bx
-		bx += dx
-		rep.cpy di,si,xxsz
-		if (xxsz2)
-			rep.cpy di,ptr0,xxsz2
-			ptr0 += dx
-		fi
-		es = di = 0xE000
-		di = ax
-		si = bx
-		//bx += dx
-		rep.cpy di,si,xxsz
-		if (xxsz2)
-			rep.cpy di,ptr0,xxsz2
-			//ptr0 += dx
-		fi
+    	//裏VRAM
+    	port(0xA6) = al = 1 //ActGVPage
+    	ax = gptr
+    	//intr.off
+    	es = cx = 0xA800
+    	di = ax
+    	si = bx
+    	bx += dx
+    	rep.cpy di,si,xxsz
+    	if (xxsz2)
+    	    rep.cpy di,ptr0,xxsz2
+    	    ptr0 += dx
+    	fi
+    	es = di = 0xB000
+    	di = ax
+    	si = bx
+    	bx += dx
+    	rep.cpy di,si,xxsz
+    	if (xxsz2)
+    	    rep.cpy di,ptr0,xxsz2
+    	    ptr0 += dx
+    	fi
+    	es = di = 0xB800
+    	di = ax
+    	si = bx
+    	bx += dx
+    	rep.cpy di,si,xxsz
+    	if (xxsz2)
+    	    rep.cpy di,ptr0,xxsz2
+    	    ptr0 += dx
+    	fi
+    	es = di = 0xE000
+    	di = ax
+    	si = bx
+    	//bx += dx
+    	rep.cpy di,si,xxsz
+    	if (xxsz2)
+    	    rep.cpy di,ptr0,xxsz2
+    	    //ptr0 += dx
+    	fi
 
-		//intr.on
-		++y0
-		++gy
-	endloop (--ysz)
-	port(0xA6) = al = 0 //ActGVPage
-	return
+    	//intr.on
+    	++y0
+    	++gy
+    endloop (--ysz)
+    port(0xA6) = al = 0 //ActGVPage
+    return
 endproc
 
 *proc ResetScl(datSeg:w);cdecl
 enter
-	save pusha,ds
-	ds = datSeg
-	MPgdcSclInit
-	ax = 0
-	V.xvstart = ax
-	V.yvstart = ax
-	V.gvOfs = ax
-	return
+    save pusha,ds
+    ds = datSeg
+    MPgdcSclInit
+    ax = 0
+    V.xvstart = ax
+    V.yvstart = ax
+    V.gvOfs = ax
+    return
 endproc
 
 *proc PutPxPart(datSeg:w);cdecl
-	//部分セーブ画像の表示(始点が640*400以内のもの)
-	// xx0 は 8ドット単位の値
+    //部分セーブ画像の表示(始点が640*400以内のもの)
+    // xx0 は 8ドット単位の値
 enter
-	save pusha, es,ds
-	local /*xx0:w,*/ y0:w, xxsz:w, ysz:w, gxx:w,gy:w
-	local xofsL:b,xofsR:b,xmskL:b,xmskR:b,xmskLn:b,xmskRn:b,gptr:w
+    save pusha, es,ds
+    local /*xx0:w,*/ y0:w, xxsz:w, ysz:w, gxx:w,gy:w
+    local xofsL:b,xofsR:b,xmskL:b,xmskR:b,xmskLn:b,xmskRn:b,gptr:w
 
-	ds = datSeg
+    ds = datSeg
 
-	ResetScl ds
+    ResetScl ds
 
-	xofsL = al = V.xofsL.l
-	xofsR = al = V.xofsR.l
-	xmskL = al = V.xmskL.l
-	com al
-	xmskLn= al
-	xmskR = al = V.xmskR.l
-	com al
-	xmskRn= al
+    xofsL = al = V.xofsL.l
+    xofsR = al = V.xofsR.l
+    xmskL = al = V.xmskL.l
+    com al
+    xmskLn= al
+    xmskR = al = V.xmskR.l
+    com al
+    xmskRn= al
 
-	dx = V.ygstart
-	gy = dx
-	ax = V.yvsize
-	dx += ax
-	if (dx > 400)
-		dx -= 400
-		ax -= dx
-	fi
-	ysz = ax
+    dx = V.ygstart
+    gy = dx
+    ax = V.yvsize
+    dx += ax
+    if (dx > 400)
+    	dx -= 400
+    	ax -= dx
+    fi
+    ysz = ax
 
-	dx = V.xgstart
-	dx >>= 3
-	gxx = dx
-	ax = V.xxvsize
-	dx += ax
-	if (dx > 80)
-		dx -= 80
-		ax -= dx
-		xofsR = 0
-	fi
-	if (xofsL)
-		--ax
-	fi
-	if (xofsR)
-		if (ax == 0)
-			xofsR = 0
-		else
-			--ax
-		fi
-	fi
-	xxsz = ax
+    dx = V.xgstart
+    dx >>= 3
+    gxx = dx
+    ax = V.xxvsize
+    dx += ax
+    if (dx > 80)
+    	dx -= 80
+    	ax -= dx
+    	xofsR = 0
+    fi
+    if (xofsL)
+    	--ax
+    fi
+    if (xofsR)
+    	if (ax == 0)
+    	    xofsR = 0
+    	else
+    	    --ax
+    	fi
+    fi
+    xxsz = ax
 
-	//xx0 = 0
-	y0 = 0
-	loop.w
-		ds = datSeg
-		dx.ax = ww(0,y0)
-		div dx.ax, V.pgLine
-		Vv.PageSw ax
-		V.pgCurSeg = ax
+    //xx0 = 0
+    y0 = 0
+    loop.w
+    	ds = datSeg
+    	dx.ax = ww(0,y0)
+    	div dx.ax, V.pgLine
+    	Vv.PageSw ax
+    	V.pgCurSeg = ax
 
-		// ax = 点(xx0,y0)のアドレス
-		dx.ax = dx * V.pgXsize
-		//ax += xx0
-		bx = si = ax
+    	// ax = 点(xx0,y0)のアドレス
+    	dx.ax = dx * V.pgXsize
+    	//ax += xx0
+    	bx = si = ax
 
-		dx.ax = gy * 80
-		ax += V.gvOfs
-		ax += gxx
-		dx = V.xxvsize
-		ds = V.pgCurSeg
-		gptr = ax
+    	dx.ax = gy * 80
+    	ax += V.gvOfs
+    	ax += gxx
+    	dx = V.xxvsize
+    	ds = V.pgCurSeg
+    	gptr = ax
 
-		port(0xA6) = al = 0 //表VRAM
-		es = cx = 0xA800
-		gosub LIN
-		es = di = 0xB000
-		bx += dx
-		si = bx
-		gosub LIN
-		es = di = 0xB800
-		bx += dx
-		si = bx
-		gosub LIN
-		es = di = 0xE000
-		bx += dx
-		si = bx
-		gosub LIN
+    	port(0xA6) = al = 0 //表VRAM
+    	es = cx = 0xA800
+    	gosub LIN
+    	es = di = 0xB000
+    	bx += dx
+    	si = bx
+    	gosub LIN
+    	es = di = 0xB800
+    	bx += dx
+    	si = bx
+    	gosub LIN
+    	es = di = 0xE000
+    	bx += dx
+    	si = bx
+    	gosub LIN
 
-		port(0xA6) = al = 1 //裏VRAM
-		es = cx = 0xA800
-		bx += dx
-		si = bx
-		gosub LIN
-		es = di = 0xB000
-		bx += dx
-		si = bx
-		gosub LIN
-		es = di = 0xB800
-		bx += dx
-		si = bx
-		gosub LIN
-		es = di = 0xE000
-		bx += dx
-		si = bx
-		gosub LIN
+    	port(0xA6) = al = 1 //裏VRAM
+    	es = cx = 0xA800
+    	bx += dx
+    	si = bx
+    	gosub LIN
+    	es = di = 0xB000
+    	bx += dx
+    	si = bx
+    	gosub LIN
+    	es = di = 0xB800
+    	bx += dx
+    	si = bx
+    	gosub LIN
+    	es = di = 0xE000
+    	bx += dx
+    	si = bx
+    	gosub LIN
 
-		++y0
-		++gy
-	endloop (--ysz)
-	port(0xA6) = al = 0 //表VRAM
-	return
+    	++y0
+    	++gy
+    endloop (--ysz)
+    port(0xA6) = al = 0 //表VRAM
+    return
  LIN:
-	di = gptr
-	if (xofsL)
-		rep.load al,si
-		al &= xmskL
-		ah = b[es:di]
-		ah &= xmskLn
-		al |= ah
-		rep.set di,al
-	fi
-	cx = xxsz
-	if (cx)
-		rep.cpy di,si,cx
-	fi
-	if (xofsR)
-		rep.load al,si
-		al &= xmskR
-		ah = b[es:di]
-		ah &= xmskRn
-		al |= ah
-		rep.set di,al
-	fi
-	ret
+    di = gptr
+    if (xofsL)
+    	rep.load al,si
+    	al &= xmskL
+    	ah = b[es:di]
+    	ah &= xmskLn
+    	al |= ah
+    	rep.set di,al
+    fi
+    cx = xxsz
+    if (cx)
+    	rep.cpy di,si,cx
+    fi
+    if (xofsR)
+    	rep.load al,si
+    	al &= xmskR
+    	ah = b[es:di]
+    	ah &= xmskRn
+    	al |= ah
+    	rep.set di,al
+    fi
+    ret
 
 endproc
 
 *proc PutPxBColWl(datSeg:w,bcol:w);cdecl
-	//力技では透明色には未対応
+    //力技では透明色には未対応
 enter
-	PutPxPart(datSeg)
-	return
+    PutPxPart(datSeg)
+    return
 endproc
 
 *proc PutPxBCol(datSeg:w);cdecl
-	//透明色処理をする表示(始点が640*400以内のもの)
+    //透明色処理をする表示(始点が640*400以内のもの)
 enter
-	save pusha, es,ds
-	local /*xx0:w,*/ y0:w, xxsz:w, ysz:w, gxx:w,gy:w
-	local gptr:w,xxsizeX7:w,xxsizeX7M1:w,xxcnt:w
-	local bcol:b(8)
+    save pusha, es,ds
+    local /*xx0:w,*/ y0:w, xxsz:w, ysz:w, gxx:w,gy:w
+    local gptr:w,xxsizeX7:w,xxsizeX7M1:w,xxcnt:w
+    local bcol:b(8)
 
-	ds = datSeg
+    ds = datSeg
 
-	ResetScl ds
+    ResetScl ds
 
-	ah = 0
-	al = V.overlayColor.l
-	bcol(0) = ah; if ((al >>= 1) .cf. 0); com bcol(0);fi
-	bcol(1) = ah; if ((al >>= 1) .cf. 0); com bcol(1);fi
-	bcol(2) = ah; if ((al >>= 1) .cf. 0); com bcol(2);fi
-	bcol(3) = ah; if ((al >>= 1) .cf. 0); com bcol(3);fi
-	bcol(4) = ah; if ((al >>= 1) .cf. 0); com bcol(4);fi
-	bcol(5) = ah; if ((al >>= 1) .cf. 0); com bcol(5);fi
-	bcol(6) = ah; if ((al >>= 1) .cf. 0); com bcol(6);fi
-	bcol(7) = ah; if ((al >>= 1) .cf. 0); com bcol(7);fi
+    ah = 0
+    al = V.overlayColor.l
+    bcol(0) = ah; if ((al >>= 1) .cf. 0); com bcol(0);fi
+    bcol(1) = ah; if ((al >>= 1) .cf. 0); com bcol(1);fi
+    bcol(2) = ah; if ((al >>= 1) .cf. 0); com bcol(2);fi
+    bcol(3) = ah; if ((al >>= 1) .cf. 0); com bcol(3);fi
+    bcol(4) = ah; if ((al >>= 1) .cf. 0); com bcol(4);fi
+    bcol(5) = ah; if ((al >>= 1) .cf. 0); com bcol(5);fi
+    bcol(6) = ah; if ((al >>= 1) .cf. 0); com bcol(6);fi
+    bcol(7) = ah; if ((al >>= 1) .cf. 0); com bcol(7);fi
 
-	dx = V.ygstart
-	gy = dx
-	ax = V.yvsize
-	dx += ax
-	if (dx > 400)
-		dx -= 400
-		ax -= dx
-	fi
-	ysz = ax
+    dx = V.ygstart
+    gy = dx
+    ax = V.yvsize
+    dx += ax
+    if (dx > 400)
+    	dx -= 400
+    	ax -= dx
+    fi
+    ysz = ax
 
-	dx = V.xgstart
-	dx >>= 3
-	gxx = dx
-	ax = V.xxvsize
-	dx += ax
-	if (dx > 80)
-		dx -= 80
-		ax -= dx
-	fi
-	xxsz = ax
-	xxsizeX7M1 = ax = V.pgXsizeSubOfs
-	++ax
-	xxsizeX7 = ax
+    dx = V.xgstart
+    dx >>= 3
+    gxx = dx
+    ax = V.xxvsize
+    dx += ax
+    if (dx > 80)
+    	dx -= 80
+    	ax -= dx
+    fi
+    xxsz = ax
+    xxsizeX7M1 = ax = V.pgXsizeSubOfs
+    ++ax
+    xxsizeX7 = ax
 
-	//xx0 = 0
-	y0 = 0
-	loop.w
-		ds = datSeg
-		dx.ax = ww(0,y0)
-		div dx.ax, V.pgLine
-		Vv.PageSw ax
-		V.pgCurSeg = ax
+    //xx0 = 0
+    y0 = 0
+    loop.w
+    	ds = datSeg
+    	dx.ax = ww(0,y0)
+    	div dx.ax, V.pgLine
+    	Vv.PageSw ax
+    	V.pgCurSeg = ax
 
-		// ax = 点(xx0,y0)のアドレス
-		dx.ax = dx * V.pgXsize
-		//ax += xx0
-		si = ax
+    	// ax = 点(xx0,y0)のアドレス
+    	dx.ax = dx * V.pgXsize
+    	//ax += xx0
+    	si = ax
 
-		dx.ax = gy * 80
-		ax += V.gvOfs
-		ax += gxx
-		di = ax
+    	dx.ax = gy * 80
+    	ax += V.gvOfs
+    	ax += gxx
+    	di = ax
 
-		bx = V.xxvsize
-		cx = xxsz
-		ds = V.pgCurSeg
-		loop.w
-			dh = b[si]
-			dh ^= bcol(0)
-			si += bx	//xxvsize
-			al = b[si]
-			al ^= bcol(1)
-			dh &= al
-			si += bx	//xxvsize
-			al = b[si]
-			al ^= bcol(2)
-			dh &= al
-			si += bx	//xxvsize
-			al = b[si]
-			al ^= bcol(3)
-			dh &= al
-			//裏
-			si += bx	//xxvsize
-			al = b[si]
-			al ^= bcol(4)
-			dh &= al
-			si += bx	//xxvsize
-			al = b[si]
-			al ^= bcol(5)
-			dh &= al
-			si += bx	//xxvsize
-			al = b[si]
-			al ^= bcol(6)
-			dh &= al
-			si += bx	//xxvsize
-			al = b[si]
-			al ^= bcol(7)
-			dh &= al
+    	bx = V.xxvsize
+    	cx = xxsz
+    	ds = V.pgCurSeg
+    	loop.w
+    	    dh = b[si]
+    	    dh ^= bcol(0)
+    	    si += bx	//xxvsize
+    	    al = b[si]
+    	    al ^= bcol(1)
+    	    dh &= al
+    	    si += bx	//xxvsize
+    	    al = b[si]
+    	    al ^= bcol(2)
+    	    dh &= al
+    	    si += bx	//xxvsize
+    	    al = b[si]
+    	    al ^= bcol(3)
+    	    dh &= al
+    	    //裏
+    	    si += bx	//xxvsize
+    	    al = b[si]
+    	    al ^= bcol(4)
+    	    dh &= al
+    	    si += bx	//xxvsize
+    	    al = b[si]
+    	    al ^= bcol(5)
+    	    dh &= al
+    	    si += bx	//xxvsize
+    	    al = b[si]
+    	    al ^= bcol(6)
+    	    dh &= al
+    	    si += bx	//xxvsize
+    	    al = b[si]
+    	    al ^= bcol(7)
+    	    dh &= al
 
-			dl = dh
-			com dl
-			si -= xxsizeX7
+    	    dl = dh
+    	    com dl
+    	    si -= xxsizeX7
 
-			port(0xA6) = al = 0 //表VRAM
-			es = ax = 0xA800
-			al = b[si]
-			ah = b[es:di]
-			ax &= dx
-			al |= ah
-			b[es:di] = al
+    	    port(0xA6) = al = 0 //表VRAM
+    	    es = ax = 0xA800
+    	    al = b[si]
+    	    ah = b[es:di]
+    	    ax &= dx
+    	    al |= ah
+    	    b[es:di] = al
 
-			si += bx	//xxvsize
-			es = ax = 0xB000
-			al = b[si]
-			ah = b[es:di]
-			ax &= dx
-			al |= ah
-			b[es:di] = al
+    	    si += bx	//xxvsize
+    	    es = ax = 0xB000
+    	    al = b[si]
+    	    ah = b[es:di]
+    	    ax &= dx
+    	    al |= ah
+    	    b[es:di] = al
 
-			si += bx	//xxvsize
-			es = ax = 0xB800
-			al = b[si]
-			ah = b[es:di]
-			ax &= dx
-			al |= ah
-			b[es:di] = al
+    	    si += bx	//xxvsize
+    	    es = ax = 0xB800
+    	    al = b[si]
+    	    ah = b[es:di]
+    	    ax &= dx
+    	    al |= ah
+    	    b[es:di] = al
 
-			si += bx	//xxvsize
-			es = ax = 0xE000
-			al = b[si]
-			ah = b[es:di]
-			ax &= dx
-			al |= ah
-			b[es:di] = al
+    	    si += bx	//xxvsize
+    	    es = ax = 0xE000
+    	    al = b[si]
+    	    ah = b[es:di]
+    	    ax &= dx
+    	    al |= ah
+    	    b[es:di] = al
 
-			//
-			port(0xA6) = al = 1 //裏VRAM
-			si += bx	//xxvsize
-			es = ax = 0xA800
-			al = b[si]
-			ah = b[es:di]
-			ax &= dx
-			al |= ah
-			b[es:di] = al
+    	    //
+    	    port(0xA6) = al = 1 //裏VRAM
+    	    si += bx	//xxvsize
+    	    es = ax = 0xA800
+    	    al = b[si]
+    	    ah = b[es:di]
+    	    ax &= dx
+    	    al |= ah
+    	    b[es:di] = al
 
-			si += bx	//xxvsize
-			es = ax = 0xB000
-			al = b[si]
-			ah = b[es:di]
-			ax &= dx
-			al |= ah
-			b[es:di] = al
+    	    si += bx	//xxvsize
+    	    es = ax = 0xB000
+    	    al = b[si]
+    	    ah = b[es:di]
+    	    ax &= dx
+    	    al |= ah
+    	    b[es:di] = al
 
-			si += bx	//xxvsize
-			es = ax = 0xB800
-			al = b[si]
-			ah = b[es:di]
-			ax &= dx
-			al |= ah
-			b[es:di] = al
+    	    si += bx	//xxvsize
+    	    es = ax = 0xB800
+    	    al = b[si]
+    	    ah = b[es:di]
+    	    ax &= dx
+    	    al |= ah
+    	    b[es:di] = al
 
-			si += bx	//xxvsize
-			es = ax = 0xE000
-			al = b[si]
-			ah = b[es:di]
-			ax &= dx
-			al |= ah
-			b[es:di] = al
+    	    si += bx	//xxvsize
+    	    es = ax = 0xE000
+    	    al = b[si]
+    	    ah = b[es:di]
+    	    ax &= dx
+    	    al |= ah
+    	    b[es:di] = al
 
-			++di
-			si -= xxsizeX7M1
-		endloop (--cx)
-		++y0
-		++gy
-	endloop (--ysz)
-	port(0xA6) = al = 0 //表VRAM
-	return
+    	    ++di
+    	    si -= xxsizeX7M1
+    	endloop (--cx)
+    	++y0
+    	++gy
+    endloop (--ysz)
+    port(0xA6) = al = 0 //表VRAM
+    return
 endproc
 
 *proc PutPxLoop(datSeg:w);cdecl
 enter
-	save pusha, es,ds
-	local xxsz:w
-	local x_cnt:w,x_rst:w,y0:w,gy:w
+    save pusha, es,ds
+    local xxsz:w
+    local x_cnt:w,x_rst:w,y0:w,gy:w
 
-	ds = datSeg
-	ResetScl ds
-	bx = V.xvsize
-	bx >>= 3
-	xxsz = bx
-	dx.ax = ww(0, V.xgscrn)
-	ax >>= 3
-	div dx.ax, bx
-	x_cnt = ax
-	x_rst = dx
-	gy = 0
-	y0 = 0
-	loop.w
-		port(0xA6) = al = 0 //表VRAM
-		ds = datSeg
-		ax = V.yvsize
-		if (y0 == ax)
-			y0 = 0
-		fi
-		dx.ax = ww(0,y0)
-		div dx.ax, V.pgLine
-		Vv.PageSw ax
-		V.pgCurSeg = ax
+    ds = datSeg
+    ResetScl ds
+    bx = V.xvsize
+    bx >>= 3
+    xxsz = bx
+    dx.ax = ww(0, V.xgscrn)
+    ax >>= 3
+    div dx.ax, bx
+    x_cnt = ax
+    x_rst = dx
+    gy = 0
+    y0 = 0
+    loop.w
+    	port(0xA6) = al = 0 //表VRAM
+    	ds = datSeg
+    	ax = V.yvsize
+    	if (y0 == ax)
+    	    y0 = 0
+    	fi
+    	dx.ax = ww(0,y0)
+    	div dx.ax, V.pgLine
+    	Vv.PageSw ax
+    	V.pgCurSeg = ax
 
-		// ax = 点(xx0,y0)のアドレス
-		dx.ax = dx * V.pgXsize
-		bx = si = ax
+    	// ax = 点(xx0,y0)のアドレス
+    	dx.ax = dx * V.pgXsize
+    	bx = si = ax
 
-		dx.ax = gy * 80
-		ax += V.gvOfs
-		dx = V.xxvsize
-		ds = V.pgCurSeg
+    	dx.ax = gy * 80
+    	ax += V.gvOfs
+    	dx = V.xxvsize
+    	ds = V.pgCurSeg
 
-		es = cx = 0xA800
-		di = ax
-		cx = x_cnt
-		if (cx)
-			loop
-				push cx;rep.cpy di,bx,xxsz;pop cx
-			endloop (--cx)
-		fi
-		if (x_rst)
-			rep.cpy di, bx, x_rst
-		fi
+    	es = cx = 0xA800
+    	di = ax
+    	cx = x_cnt
+    	if (cx)
+    	    loop
+    	    	push cx;rep.cpy di,bx,xxsz;pop cx
+    	    endloop (--cx)
+    	fi
+    	if (x_rst)
+    	    rep.cpy di, bx, x_rst
+    	fi
 
-		es = di = 0xB000
-		di = ax
-		bx += dx
-		cx = x_cnt
-		if (cx)
-			loop
-				push cx;rep.cpy di,bx,xxsz;pop cx
-			endloop (--cx)
-		fi
-		if (x_rst)
-			rep.cpy di, bx, x_rst
-		fi
+    	es = di = 0xB000
+    	di = ax
+    	bx += dx
+    	cx = x_cnt
+    	if (cx)
+    	    loop
+    	    	push cx;rep.cpy di,bx,xxsz;pop cx
+    	    endloop (--cx)
+    	fi
+    	if (x_rst)
+    	    rep.cpy di, bx, x_rst
+    	fi
 
-		es = di = 0xB800
-		di = ax
-		bx += dx
-		cx = x_cnt
-		if (cx)
-			loop
-				push cx;rep.cpy di,bx,xxsz;pop cx
-			endloop (--cx)
-		fi
-		if (x_rst)
-			rep.cpy di, bx, x_rst
-		fi
+    	es = di = 0xB800
+    	di = ax
+    	bx += dx
+    	cx = x_cnt
+    	if (cx)
+    	    loop
+    	    	push cx;rep.cpy di,bx,xxsz;pop cx
+    	    endloop (--cx)
+    	fi
+    	if (x_rst)
+    	    rep.cpy di, bx, x_rst
+    	fi
 
-		es = di = 0xE000
-		di = ax
-		bx += dx
-		cx = x_cnt
-		if (cx)
-			loop
-				push cx;rep.cpy di,bx,xxsz;pop cx
-			endloop (--cx)
-		fi
-		if (x_rst)
-			rep.cpy di, bx, x_rst
-		fi
+    	es = di = 0xE000
+    	di = ax
+    	bx += dx
+    	cx = x_cnt
+    	if (cx)
+    	    loop
+    	    	push cx;rep.cpy di,bx,xxsz;pop cx
+    	    endloop (--cx)
+    	fi
+    	if (x_rst)
+    	    rep.cpy di, bx, x_rst
+    	fi
 
-		si = ax
-		port(0xA6) = al = 1 //ura-VRAM
-		ax = si
+    	si = ax
+    	port(0xA6) = al = 1 //ura-VRAM
+    	ax = si
 
-		es = cx = 0xA800
-		di = ax
-		bx += dx
-		cx = x_cnt
-		if (cx)
-			loop
-				push cx;rep.cpy di,bx,xxsz;pop cx
-			endloop (--cx)
-		fi
-		if (x_rst)
-			rep.cpy di, bx, x_rst
-		fi
+    	es = cx = 0xA800
+    	di = ax
+    	bx += dx
+    	cx = x_cnt
+    	if (cx)
+    	    loop
+    	    	push cx;rep.cpy di,bx,xxsz;pop cx
+    	    endloop (--cx)
+    	fi
+    	if (x_rst)
+    	    rep.cpy di, bx, x_rst
+    	fi
 
-		es = di = 0xB000
-		di = ax
-		bx += dx
-		cx = x_cnt
-		if (cx)
-			loop
-				push cx;rep.cpy di,bx,xxsz;pop cx
-			endloop (--cx)
-		fi
-		if (x_rst)
-			rep.cpy di, bx, x_rst
-		fi
+    	es = di = 0xB000
+    	di = ax
+    	bx += dx
+    	cx = x_cnt
+    	if (cx)
+    	    loop
+    	    	push cx;rep.cpy di,bx,xxsz;pop cx
+    	    endloop (--cx)
+    	fi
+    	if (x_rst)
+    	    rep.cpy di, bx, x_rst
+    	fi
 
-		es = di = 0xB800
-		di = ax
-		bx += dx
-		cx = x_cnt
-		if (cx)
-			loop
-				push cx;rep.cpy di,bx,xxsz;pop cx
-			endloop (--cx)
-		fi
-		if (x_rst)
-			rep.cpy di, bx, x_rst
-		fi
+    	es = di = 0xB800
+    	di = ax
+    	bx += dx
+    	cx = x_cnt
+    	if (cx)
+    	    loop
+    	    	push cx;rep.cpy di,bx,xxsz;pop cx
+    	    endloop (--cx)
+    	fi
+    	if (x_rst)
+    	    rep.cpy di, bx, x_rst
+    	fi
 
-		es = di = 0xE000
-		di = ax
-		bx += dx
-		cx = x_cnt
-		if (cx)
-			loop
-				push cx;rep.cpy di,bx,xxsz;pop cx
-			endloop (--cx)
-		fi
-		if (x_rst)
-			rep.cpy di, bx, x_rst
-		fi
+    	es = di = 0xE000
+    	di = ax
+    	bx += dx
+    	cx = x_cnt
+    	if (cx)
+    	    loop
+    	    	push cx;rep.cpy di,bx,xxsz;pop cx
+    	    endloop (--cx)
+    	fi
+    	if (x_rst)
+    	    rep.cpy di, bx, x_rst
+    	fi
 
-		++y0
-		++gy
-	endloop (gy < 400)
-	port(0xA6) = al = 0 //表VRAM
-	return
+    	++y0
+    	++gy
+    endloop (gy < 400)
+    port(0xA6) = al = 0 //表VRAM
+    return
 endproc
 
 *proc PutPxScrn(datSeg:w, x0:w, y0:w);cdecl
 enter
-	save ax,ds
+    save ax,ds
 
-	ds = datSeg
-	ResetScl ds
-	V.xvstart = ax = x0
-	V.yvstart = ax = y0
-	PutPx ds, 0,0, x0, y0, V.xgsize, V.ygsize
-	return
+    ds = datSeg
+    ResetScl ds
+    V.xvstart = ax = x0
+    V.yvstart = ax = y0
+    PutPx ds, 0,0, x0, y0, V.xgsize, V.ygsize
+    return
 endproc
 
 /*---------------------------------------------------------------------------*/
@@ -1200,334 +1200,334 @@ endproc
 *proc GetSclOfs(datSeg:w);cdecl
 //ret dx.ax
 enter
-	MPgdcGetSclOfs
-	ax <<= 3
-	return
+    MPgdcGetSclOfs
+    ax <<= 3
+    return
 endproc
 
 *proc SclUp(datSeg:w, nnn:w);cdecl
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	ds = datSeg
-	cx = nnn
-	di = V.yvsize
-	loop
-		--V.yvstart
-		if (V.yvstart .<. 0)
-			if (V.loopFlg == 0)
-				V.yvstart = 0
-				go.w RET
-			fi
-			V.yvstart += di
-		fi
-		MPgdcScl 0, -1
-		ax <<= 3
-		PutPx ds, ax/*gX*/,dx/*gY*/, V.xvstart, V.yvstart, V.xgsize, 1
-	endloop (--cx)
+    ds = datSeg
+    cx = nnn
+    di = V.yvsize
+    loop
+    	--V.yvstart
+    	if (V.yvstart .<. 0)
+    	    if (V.loopFlg == 0)
+    	    	V.yvstart = 0
+    	    	go.w RET
+    	    fi
+    	    V.yvstart += di
+    	fi
+    	MPgdcScl 0, -1
+    	ax <<= 3
+    	PutPx ds, ax/*gX*/,dx/*gY*/, V.xvstart, V.yvstart, V.xgsize, 1
+    endloop (--cx)
   RET:
-	return
+    return
 endproc
 
 *proc SclDw(datSeg:w, nnn:w);cdecl
 enter
-	save pusha,es,ds
-	local gX:w,gY:w
+    save pusha,es,ds
+    local gX:w,gY:w
 
-	ds = datSeg
-	cx = nnn
-	di = V.yvsize
-	loop
-		dx = V.yvstart
-		dx += 400
-		if (dx .>=. di/*V.yvsize*/ && V.loopFlg == 0)
-			ax = di/*V.yvsize*/
-			ax -= 400
-			V.yvstart = ax
-			go.w RET
-		fi
-		MPgdcScl 0, 1
-		ax <<= 3
-		gX = ax
-		gY = dx
-		// bx = (V.yvstart + 400) % di/*V.yvsize*/
-		ax = V.yvstart
-		ax += 400
-		dx = 0
-		div dx.ax, di/*V.yvsize*/
-		bx = dx
-		// dx = (gdcOfsY + 400 - 1) % 400
-		ax = gY
-		ax += 400 - 1
-		dx = 0
-		si = 400
-		div dx.ax,si
-		PutPx ds, gX, dx, V.xvstart, bx, V.xgsize, 1
-		++V.yvstart
-		if (V.yvstart .>=. di/*V.yvsize*/)
-			V.yvstart -= di/*V.yvsize*/
-		fi
-	endloop (--cx)
+    ds = datSeg
+    cx = nnn
+    di = V.yvsize
+    loop
+    	dx = V.yvstart
+    	dx += 400
+    	if (dx .>=. di/*V.yvsize*/ && V.loopFlg == 0)
+    	    ax = di/*V.yvsize*/
+    	    ax -= 400
+    	    V.yvstart = ax
+    	    go.w RET
+    	fi
+    	MPgdcScl 0, 1
+    	ax <<= 3
+    	gX = ax
+    	gY = dx
+    	// bx = (V.yvstart + 400) % di/*V.yvsize*/
+    	ax = V.yvstart
+    	ax += 400
+    	dx = 0
+    	div dx.ax, di/*V.yvsize*/
+    	bx = dx
+    	// dx = (gdcOfsY + 400 - 1) % 400
+    	ax = gY
+    	ax += 400 - 1
+    	dx = 0
+    	si = 400
+    	div dx.ax,si
+    	PutPx ds, gX, dx, V.xvstart, bx, V.xgsize, 1
+    	++V.yvstart
+    	if (V.yvstart .>=. di/*V.yvsize*/)
+    	    V.yvstart -= di/*V.yvsize*/
+    	fi
+    endloop (--cx)
   RET:
-	return
+    return
 endproc
 
 *proc SclLft(datSeg:w, nnn:w);cdecl
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	ds = datSeg
-	cx = nnn
-	cx >>= 4
-	di = V.xxvsize
-	loop
-		V.xvstart -= 2*8
-		if (V.xvstart .<. 0)
-			if (V.loopFlg == 0)
-				V.xvstart = 0
-				goto RET
-			fi
-			ax = di
-			ax <<= 3
-			V.xvstart += ax/*V.xxvsize*/
-		fi
-		MPgdcScl -2, 0
-		ax <<= 3
-		PutPx ds, ax/*gX*/,dx/*gY*/, V.xvstart, V.yvstart,16, V.ygsize
-	endloop (--cx)
+    ds = datSeg
+    cx = nnn
+    cx >>= 4
+    di = V.xxvsize
+    loop
+    	V.xvstart -= 2*8
+    	if (V.xvstart .<. 0)
+    	    if (V.loopFlg == 0)
+    	    	V.xvstart = 0
+    	    	goto RET
+    	    fi
+    	    ax = di
+    	    ax <<= 3
+    	    V.xvstart += ax/*V.xxvsize*/
+    	fi
+    	MPgdcScl -2, 0
+    	ax <<= 3
+    	PutPx ds, ax/*gX*/,dx/*gY*/, V.xvstart, V.yvstart,16, V.ygsize
+    endloop (--cx)
   RET:
-	return
+    return
 endproc
 
 *proc SclRig(datSeg:w, nnn:w);cdecl
 enter
-	save pusha,es,ds
-	local gX:w,gY:w,_80:w
+    save pusha,es,ds
+    local gX:w,gY:w,_80:w
 
-	ds = datSeg
-	cx = nnn
-	cx >>= 4
-	di = V.xxvsize
-	si = V.xvstart
-	si >>= 3
-	_80 = 80
-	loop
-		ax = si/*V.xxvstart*/
-		ax += 80
-		go (ax/*xxvstart+80*/ .>=. di/*xxvsize*/ && V.loopFlg == 0) RET2
-		MPgdcScl 2,0
-		gX = ax
-		gY = dx
-		V.gvOfs = 0
-		if (ax)
-			V.gvOfs = 80
-		fi
-		//bx = (V.xxvstart + 80) % V.xxvsize
-		ax = si
-		ax += 80
-		dx = 0
-		div dx.ax, di
-		bx = dx
-		// dx = (V.gdcOfsXX+80-2)%80
-		ax = gX
-		ax += 80 - 2
-		dx = 0
-		div dx.ax, _80
-		dx <<= 3
-		bx <<= 3
-		PutPx ds, dx, gY, bx, V.yvstart, 16, V.ygsize
-		V.gvOfs = 0
-		si += 2
-		if (si .>=. di)
-			si -= di
-		fi
-	endloop (--cx)
+    ds = datSeg
+    cx = nnn
+    cx >>= 4
+    di = V.xxvsize
+    si = V.xvstart
+    si >>= 3
+    _80 = 80
+    loop
+    	ax = si/*V.xxvstart*/
+    	ax += 80
+    	go (ax/*xxvstart+80*/ .>=. di/*xxvsize*/ && V.loopFlg == 0) RET2
+    	MPgdcScl 2,0
+    	gX = ax
+    	gY = dx
+    	V.gvOfs = 0
+    	if (ax)
+    	    V.gvOfs = 80
+    	fi
+    	//bx = (V.xxvstart + 80) % V.xxvsize
+    	ax = si
+    	ax += 80
+    	dx = 0
+    	div dx.ax, di
+    	bx = dx
+    	// dx = (V.gdcOfsXX+80-2)%80
+    	ax = gX
+    	ax += 80 - 2
+    	dx = 0
+    	div dx.ax, _80
+    	dx <<= 3
+    	bx <<= 3
+    	PutPx ds, dx, gY, bx, V.yvstart, 16, V.ygsize
+    	V.gvOfs = 0
+    	si += 2
+    	if (si .>=. di)
+    	    si -= di
+    	fi
+    endloop (--cx)
   RET:
-	si <<= 3
-	V.xvstart = si
-	return
+    si <<= 3
+    V.xvstart = si
+    return
 RET2:
-	if (di & 0x0001)
-		di += 1
-	fi
-	di -= 80
-	si = di
-	go RET
+    if (di & 0x0001)
+    	di += 1
+    fi
+    di -= 80
+    si = di
+    go RET
 endproc
 
 /*---------------------------------------------------------------------------*/
 
 *proc RevX(datSeg:w);cdecl
-	//左右反転
+    //左右反転
 enter
-	save pusha, es,ds
-	local y0:w, xxsz:w, xxszD2:w, ysz:w
+    save pusha, es,ds
+    local y0:w, xxsz:w, xxszD2:w, ysz:w
 
-	ds = datSeg
+    ds = datSeg
 
-	ax = V.yvsize
-	ysz = ax
+    ax = V.yvsize
+    ysz = ax
 
-	ax = V.xxvsize
-	xxsz = ax
-	|ax >>= 1; adc ax,0
-	xxszD2 = ax
+    ax = V.xxvsize
+    xxsz = ax
+    |ax >>= 1; adc ax,0
+    xxszD2 = ax
 
-	y0 = 0
-	loop.w
-		ds = datSeg
-		dx.ax = ww(0,y0)
-		div dx.ax, V.pgLine
-		Vv.PageSw ax
-		V.pgCurSeg = ax
+    y0 = 0
+    loop.w
+    	ds = datSeg
+    	dx.ax = ww(0,y0)
+    	div dx.ax, V.pgLine
+    	Vv.PageSw ax
+    	V.pgCurSeg = ax
 
-		// ax = 点(xx0,y0)のアドレス
-		dx.ax = dx * V.pgXsize
-		bx = ax
-		es = V.pgCurSeg
-		ds = V.pgCurSeg
+    	// ax = 点(xx0,y0)のアドレス
+    	dx.ax = dx * V.pgXsize
+    	bx = ax
+    	es = V.pgCurSeg
+    	ds = V.pgCurSeg
 
-		//B
-		cx = xxszD2
-		di = bx
-		bx += xxsz
-		si = bx
-		--si
-		loop
-			al = b[di]
-			ah = b[si]
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al
-			b[si] = ah; --si
-			rep.set di,al
-		endloop (--cx)
-		//R
-		cx = xxszD2
-		di = bx
-		bx += xxsz
-		si = bx
-		--si
-		loop
-			al = b[di]
-			ah = b[si]
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al
-			b[si] = ah; --si
-			rep.set di,al
-		endloop (--cx)
-		//G
-		cx = xxszD2
-		di = bx
-		bx += xxsz
-		si = bx
-		--si
-		loop
-			al = b[di]
-			ah = b[si]
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al
-			b[si] = ah; --si
-			rep.set di,al
-		endloop (--cx)
-		//E
-		cx = xxszD2
-		di = bx
-		bx += xxsz
-		si = bx
-		--si
-		loop
-			al = b[di]
-			ah = b[si]
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al
-			b[si] = ah; --si
-			rep.set di,al
-		endloop (--cx)
+    	//B
+    	cx = xxszD2
+    	di = bx
+    	bx += xxsz
+    	si = bx
+    	--si
+    	loop
+    	    al = b[di]
+    	    ah = b[si]
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al
+    	    b[si] = ah; --si
+    	    rep.set di,al
+    	endloop (--cx)
+    	//R
+    	cx = xxszD2
+    	di = bx
+    	bx += xxsz
+    	si = bx
+    	--si
+    	loop
+    	    al = b[di]
+    	    ah = b[si]
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al
+    	    b[si] = ah; --si
+    	    rep.set di,al
+    	endloop (--cx)
+    	//G
+    	cx = xxszD2
+    	di = bx
+    	bx += xxsz
+    	si = bx
+    	--si
+    	loop
+    	    al = b[di]
+    	    ah = b[si]
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al
+    	    b[si] = ah; --si
+    	    rep.set di,al
+    	endloop (--cx)
+    	//E
+    	cx = xxszD2
+    	di = bx
+    	bx += xxsz
+    	si = bx
+    	--si
+    	loop
+    	    al = b[di]
+    	    ah = b[si]
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al
+    	    b[si] = ah; --si
+    	    rep.set di,al
+    	endloop (--cx)
 
-		//B'
-		cx = xxszD2
-		di = bx
-		bx += xxsz
-		si = bx
-		--si
-		loop
-			al = b[di]
-			ah = b[si]
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al
-			b[si] = ah; --si
-			rep.set di,al
-		endloop (--cx)
-		//R'
-		cx = xxszD2
-		di = bx
-		bx += xxsz
-		si = bx
-		--si
-		loop
-			al = b[di]
-			ah = b[si]
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al
-			b[si] = ah; --si
-			rep.set di,al
-		endloop (--cx)
-		//G'
-		cx = xxszD2
-		di = bx
-		bx += xxsz
-		si = bx
-		--si
-		loop
-			al = b[di]
-			ah = b[si]
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al
-			b[si] = ah; --si
-			rep.set di,al
-		endloop (--cx)
-		//E'
-		cx = xxszD2
-		di = bx
-		bx += xxsz
-		si = bx
-		--si
-		loop
-			al = b[di]
-			ah = b[si]
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al; |rcr ah; |rcl al; |rcr ah
-			|rcl al
-			b[si] = ah; --si
-			rep.set di,al
-		endloop (--cx)
+    	//B'
+    	cx = xxszD2
+    	di = bx
+    	bx += xxsz
+    	si = bx
+    	--si
+    	loop
+    	    al = b[di]
+    	    ah = b[si]
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al
+    	    b[si] = ah; --si
+    	    rep.set di,al
+    	endloop (--cx)
+    	//R'
+    	cx = xxszD2
+    	di = bx
+    	bx += xxsz
+    	si = bx
+    	--si
+    	loop
+    	    al = b[di]
+    	    ah = b[si]
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al
+    	    b[si] = ah; --si
+    	    rep.set di,al
+    	endloop (--cx)
+    	//G'
+    	cx = xxszD2
+    	di = bx
+    	bx += xxsz
+    	si = bx
+    	--si
+    	loop
+    	    al = b[di]
+    	    ah = b[si]
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al
+    	    b[si] = ah; --si
+    	    rep.set di,al
+    	endloop (--cx)
+    	//E'
+    	cx = xxszD2
+    	di = bx
+    	bx += xxsz
+    	si = bx
+    	--si
+    	loop
+    	    al = b[di]
+    	    ah = b[si]
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al; |rcr ah; |rcl al; |rcr ah
+    	    |rcl al
+    	    b[si] = ah; --si
+    	    rep.set di,al
+    	endloop (--cx)
 
-		++y0
-	endloop (--ysz)
-	return
+    	++y0
+    endloop (--ysz)
+    return
 endproc
 
 
@@ -1535,546 +1535,546 @@ endproc
 @if 0	//---------------------------------------------------------------------
 
 @if 1
-	//256/5=51
-	@define D_G() 16/5
-	//256/4=64
-	@define D_R() 16/4
-	//256/3=85
-	@define D_B() 16/3
+    //256/5=51
+    @define D_G() 16/5
+    //256/4=64
+    @define D_R() 16/4
+    //256/3=85
+    @define D_B() 16/3
 
 proc WlLine (rbuf:d)
 enter
-	save ds
-	cvar t_g:b(5) = {  0,12,13,14,15 }
-	cvar t_r:b(4) = {  0, 1, 2, 3 }
-	cvar t_b:b(3) = {  0, 4, 8 }
-	cvar dit_g:b() = data
-		b	1	, 8*D_G, 2*D_G,10*D_G
-		b 12*D_G, 4*D_G,14*D_G, 6*D_G
-		b  3*D_G,11*D_G, 1*D_G, 9*D_G
-		b 15*D_G, 7*D_G,13*D_G, 5*D_G
-	enddata
-	cvar dit_r:b() = data
-		b	2	, 8*D_R, 2*D_R,10*D_R
-		b 12*D_R, 4*D_R,14*D_R, 6*D_R
-		b  3*D_R,11*D_R, 1*D_R, 9*D_R
-		b 15*D_R, 7*D_R,13*D_R, 5*D_R
-	enddata
-	cvar dit_b:b() = data
-		b	3	, 8*D_B, 2*D_B,10*D_B
-		b 12*D_B, 4*D_B,14*D_B, 6*D_B
-		b  3*D_B,11*D_B, 1*D_B, 9*D_B
-		b 15*D_B, 7*D_B,13*D_B, 5*D_B
-	enddata
-	local ddy:w
-	local rgbPal:d, xsz:w
-	local r0:w,g0:w,b0:w,vFF:w,flg:w
+    save ds
+    cvar t_g:b(5) = {  0,12,13,14,15 }
+    cvar t_r:b(4) = {  0, 1, 2, 3 }
+    cvar t_b:b(3) = {  0, 4, 8 }
+    cvar dit_g:b() = data
+    	b   1	, 8*D_G, 2*D_G,10*D_G
+    	b 12*D_G, 4*D_G,14*D_G, 6*D_G
+    	b  3*D_G,11*D_G, 1*D_G, 9*D_G
+    	b 15*D_G, 7*D_G,13*D_G, 5*D_G
+    enddata
+    cvar dit_r:b() = data
+    	b   2	, 8*D_R, 2*D_R,10*D_R
+    	b 12*D_R, 4*D_R,14*D_R, 6*D_R
+    	b  3*D_R,11*D_R, 1*D_R, 9*D_R
+    	b 15*D_R, 7*D_R,13*D_R, 5*D_R
+    enddata
+    cvar dit_b:b() = data
+    	b   3	, 8*D_B, 2*D_B,10*D_B
+    	b 12*D_B, 4*D_B,14*D_B, 6*D_B
+    	b  3*D_B,11*D_B, 1*D_B, 9*D_B
+    	b 15*D_B, 7*D_B,13*D_B, 5*D_B
+    enddata
+    local ddy:w
+    local rgbPal:d, xsz:w
+    local r0:w,g0:w,b0:w,vFF:w,flg:w
 
-	rgbPal = dx.ax = V.palette
-	es.di = ww(ds,%Vv.T.pbuf)
-	xsz = ax = V.xvsize
+    rgbPal = dx.ax = V.palette
+    es.di = ww(ds,%Vv.T.pbuf)
+    xsz = ax = V.xvsize
 
-	ax = V.ycur
-	ax &= 0x01
-	flg = ax
-	ax = V.ycur
-	ax &= 0x03
-	ax <<= 2
-	ddy = ax
-	vFF = 0xff
-	bx = cx = 0
-	r0 = cx
-	g0 = cx
-	loop.w
-		bx = cx
-		bx &= 0x3
-		bx |= ddy
+    ax = V.ycur
+    ax &= 0x01
+    flg = ax
+    ax = V.ycur
+    ax &= 0x03
+    ax <<= 2
+    ddy = ax
+    vFF = 0xff
+    bx = cx = 0
+    r0 = cx
+    g0 = cx
+    loop.w
+    	bx = cx
+    	bx &= 0x3
+    	bx |= ddy
 
-		ds = ax = cs
-		ds.si = rbuf
-		bh = dl = ah = 0
-		rep.load al,si
-		rbuf.l = si
-		ds.si = rgbPal
-		si += ax
-		si += ax
-		si += ax
+    	ds = ax = cs
+    	ds.si = rbuf
+    	bh = dl = ah = 0
+    	rep.load al,si
+    	rbuf.l = si
+    	ds.si = rgbPal
+    	si += ax
+    	si += ax
+    	si += ax
 
-		//R
-		//ah = 0
-		rep.load al,si
-		|al += dit_r[bx]
-		adc ah,0
-		dx = ax
-		ax += ax
-		ax += dx
-		dx = 0
-		div dx.ax, vFF
-		if (ax > 3)
-			ax = 3
-		fi
-		r0.l = al
+    	//R
+    	//ah = 0
+    	rep.load al,si
+    	|al += dit_r[bx]
+    	adc ah,0
+    	dx = ax
+    	ax += ax
+    	ax += dx
+    	dx = 0
+    	div dx.ax, vFF
+    	if (ax > 3)
+    	    ax = 3
+    	fi
+    	r0.l = al
 
-		//G
-		//ah = 0
-		rep.load al,si
-		|al += dit_g[bx]
-		adc ah,0
-		ax <<= 2
-		dx = 0
-		div dx.ax, vFF
-		if (ax > 4)
-			ax = 4
-		fi
-		g0.l = al
+    	//G
+    	//ah = 0
+    	rep.load al,si
+    	|al += dit_g[bx]
+    	adc ah,0
+    	ax <<= 2
+    	dx = 0
+    	div dx.ax, vFF
+    	if (ax > 4)
+    	    ax = 4
+    	fi
+    	g0.l = al
 
-		//B
-		//ah = 0
-		rep.load al,si
-		|al += dit_b[bx]
-		adc ah,0
-		ax += ax
-		dx = 0
-		div dx.ax, vFF
-		if (ax > 2)
-			ax = 2
-		fi
-		bx = ax
-		al = t_b[bx]
+    	//B
+    	//ah = 0
+    	rep.load al,si
+    	|al += dit_b[bx]
+    	adc ah,0
+    	ax += ax
+    	dx = 0
+    	div dx.ax, vFF
+    	if (ax > 2)
+    	    ax = 2
+    	fi
+    	bx = ax
+    	al = t_b[bx]
 
-		bx = r0
-		al += t_r[bx]
+    	bx = r0
+    	al += t_r[bx]
 
-		bx = g0
-		ah = t_g[bx]
+    	bx = g0
+    	ah = t_g[bx]
 
-		//if (cx & 0x0001)
-		//	al <=> ah
-		//fi
-		if (flg)	//(cx & 0x0001)
-			al <<= 4
-		else
-			ah <<= 4
-		fi
-		al |= ah
-		rep.set di,al
-		++cx
-	endloop (cx < xsz)
-	dx.ax = ww(es,%Vv.T.pbuf)
-	return
+    	//if (cx & 0x0001)
+    	//  al <=> ah
+    	//fi
+    	if (flg)    //(cx & 0x0001)
+    	    al <<= 4
+    	else
+    	    ah <<= 4
+    	fi
+    	al |= ah
+    	rep.set di,al
+    	++cx
+    endloop (cx < xsz)
+    dx.ax = ww(es,%Vv.T.pbuf)
+    return
 endproc
 
 @else
 
 proc WlLine (rbuf:d)
 enter
-	save ds
-	cvar t_r:b(16) = {	0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3 }
-	cvar t_g:b(16) = {	0, 0, 0,12,12,12,13,13,13,14,14,14,14,15,15,15 }
-	cvar t_b:b(16) = {	0, 0, 0, 0, 0, 4, 4, 4, 4, 4, 4, 8, 8, 8, 8, 8 }
-	cvar p_r:b(16) = {	0x00,0x00,0x00,0x00,0x50,0x55,0x5A,0x5F,\
-						0xA0,0xA5,0xAA,0xAF,0xF0,0xF5,0xFA,0xFF}
-	cvar p_g:b(16) = {	0x00,0x00,0x00,0x30,0x37,0x3f,0x70,0x77,\
-						0x7f,0xB0,0xB5,0xBA,0xBF,0xF0,0xF7,0xFF}
-	cvar p_b:b(16) = {	0x00,0x00,0x00,0x00,0x00,0x70,0x73,0x76,\
-						0x79,0x7C,0x7F,0xF0,0xF3,0xF7,0xFB,0xFF}
-	local gosa:b(3)
-	local rgbPal:d, xsz:w
+    save ds
+    cvar t_r:b(16) = {	0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3 }
+    cvar t_g:b(16) = {	0, 0, 0,12,12,12,13,13,13,14,14,14,14,15,15,15 }
+    cvar t_b:b(16) = {	0, 0, 0, 0, 0, 4, 4, 4, 4, 4, 4, 8, 8, 8, 8, 8 }
+    cvar p_r:b(16) = {	0x00,0x00,0x00,0x00,0x50,0x55,0x5A,0x5F,\
+    	    	    	0xA0,0xA5,0xAA,0xAF,0xF0,0xF5,0xFA,0xFF}
+    cvar p_g:b(16) = {	0x00,0x00,0x00,0x30,0x37,0x3f,0x70,0x77,\
+    	    	    	0x7f,0xB0,0xB5,0xBA,0xBF,0xF0,0xF7,0xFF}
+    cvar p_b:b(16) = {	0x00,0x00,0x00,0x00,0x00,0x70,0x73,0x76,\
+    	    	    	0x79,0x7C,0x7F,0xF0,0xF3,0xF7,0xFB,0xFF}
+    local gosa:b(3)
+    local rgbPal:d, xsz:w
 
-	rgbPal = dx.ax = V.palette
-	es.di = ww(ds,%T.pbuf)
-	xsz = ax = V.xvsize
-	gosa(0) = al = 0
-	gosa(1) = al
-	gosa(2) = al
-	bx = cx = 0
-	loop.w
-		bh = dl = ah = 0
-		ds.si = rbuf
-		rep.load al,si
-		rbuf.l = si
-		ds.si = rgbPal
-		si += ax
-		si += ax
-		si += ax
+    rgbPal = dx.ax = V.palette
+    es.di = ww(ds,%T.pbuf)
+    xsz = ax = V.xvsize
+    gosa(0) = al = 0
+    gosa(1) = al
+    gosa(2) = al
+    bx = cx = 0
+    loop.w
+    	bh = dl = ah = 0
+    	ds.si = rbuf
+    	rep.load al,si
+    	rbuf.l = si
+    	ds.si = rgbPal
+    	si += ax
+    	si += ax
+    	si += ax
 
-		rep.load al,si
-		//|al -= gosa(0)
-		//if (ovf)
-		//	al = 0
-		//elsif (cf)
-		//	al = 0xff
-		//fi
-		bl = al
-		bl >>= 4
-		ah = p_r[bx]
-		ah -= al
-		ah .>>= 7
-		gosa(0) = ah
-		dl = t_r[bx]
+    	rep.load al,si
+    	//|al -= gosa(0)
+    	//if (ovf)
+    	//  al = 0
+    	//elsif (cf)
+    	//  al = 0xff
+    	//fi
+    	bl = al
+    	bl >>= 4
+    	ah = p_r[bx]
+    	ah -= al
+    	ah .>>= 7
+    	gosa(0) = ah
+    	dl = t_r[bx]
 
-		rep.load al,si
-		//|al -= gosa(1)
-		//if (ovf)
-		//	al = 0
-		//elsif (cf)
-		//	al = 0xff
-		//fi
-		bl = al
-		bl >>= 4
-		ah = p_g[bx]
-		ah -= al
-		ah .>>= 7
-		gosa(1) = ah
-		dh = t_g[bx]
+    	rep.load al,si
+    	//|al -= gosa(1)
+    	//if (ovf)
+    	//  al = 0
+    	//elsif (cf)
+    	//  al = 0xff
+    	//fi
+    	bl = al
+    	bl >>= 4
+    	ah = p_g[bx]
+    	ah -= al
+    	ah .>>= 7
+    	gosa(1) = ah
+    	dh = t_g[bx]
 
-		rep.load al,si
-		//|al -= gosa(2)
-		//if (ovf)
-		//	al = 0
-		//elsif (cf)
-		//	al = 0xff
-		//fi
-		bl = al
-		bl >>= 4
-		ah = p_b[bx]
-		ah -= al
-		ah .>>= 7
-		gosa(2) = ah
-		dl += t_b[bx]
+    	rep.load al,si
+    	//|al -= gosa(2)
+    	//if (ovf)
+    	//  al = 0
+    	//elsif (cf)
+    	//  al = 0xff
+    	//fi
+    	bl = al
+    	bl >>= 4
+    	ah = p_b[bx]
+    	ah -= al
+    	ah .>>= 7
+    	gosa(2) = ah
+    	dl += t_b[bx]
 
-		if (cx & 0x01)
-			dl <<= 4
-		else
-			dh <<= 4
-		fi
-		dl |= dh
-		al = dl
-		rep.set di,al
-		++cx
-	endloop (cx < xsz)
-	dx.ax = ww(es,%T.pbuf)
-	return
+    	if (cx & 0x01)
+    	    dl <<= 4
+    	else
+    	    dh <<= 4
+    	fi
+    	dl |= dh
+    	al = dl
+    	rep.set di,al
+    	++cx
+    endloop (cx < xsz)
+    dx.ax = ww(es,%T.pbuf)
+    return
 endproc
 @fi
 @fi //-----------------------------------------------------------------------
 
 *proc GetLines(datOfs:w, datSeg:w, pixPtr0:d);cdecl;far
 enter
-	local xb:w, cnt:w, pixPtr:d
-	local uCx:w, uDx:w, xxvsize:w
+    local xb:w, cnt:w, pixPtr:d
+    local uCx:w, uDx:w, xxvsize:w
 
-	ds = datSeg
-	xb = ax = V.pgXsizeSubOfs
-	xxvsize = ax = V.xxvsize
-	dx.ax = pixPtr0
-	if (V.pln == 24)
-		Vv.Decol dx.ax, ww(%var,&Vv.decolLinBuf),V.xsize	//xxvsize
-		dx.ax = ww(%var,&Vv.decolLinBuf)
-		pixPtr0 = dx.ax
-	fi
-	go LOOP
+    ds = datSeg
+    xb = ax = V.pgXsizeSubOfs
+    xxvsize = ax = V.xxvsize
+    dx.ax = pixPtr0
+    if (V.pln == 24)
+    	Vv.Decol dx.ax, ww(%var,&Vv.decolLinBuf),V.xsize    //xxvsize
+    	dx.ax = ww(%var,&Vv.decolLinBuf)
+    	pixPtr0 = dx.ax
+    fi
+    go LOOP
 
-	  X68K:
-		Vv.X68line dx.ax/*pixPtr0*/, V.x68flg
-		/*pixPtr = dx.ax*/
-		go (V.reductFlg == 0) REDUCT_RET //REDUCT_2
+      X68K:
+    	Vv.X68line dx.ax/*pixPtr0*/, V.x68flg
+    	/*pixPtr = dx.ax*/
+    	go (V.reductFlg == 0) REDUCT_RET //REDUCT_2
 
-	  REDUCT:
-		if (V.reductFlgY)
-			++V.ycurReduct
-			cx = V.reductFlgY
-			go.w (V.ycurReduct & cx) NEXT		/////////// !!!!
-		fi
-		Vv.ReductLine dx.ax/*pixPtr*/
-		/*pixPtr = dx.ax*/
-	//REDUCT_2:
-	//	go (wlFlg == 0) DIT_RET
-		go REDUCT_RET
+      REDUCT:
+    	if (V.reductFlgY)
+    	    ++V.ycurReduct
+    	    cx = V.reductFlgY
+    	    go.w (V.ycurReduct & cx) NEXT   	/////////// !!!!
+    	fi
+    	Vv.ReductLine dx.ax/*pixPtr*/
+    	/*pixPtr = dx.ax*/
+    //REDUCT_2:
+    //	go (wlFlg == 0) DIT_RET
+    	go REDUCT_RET
 
-	 @if 0
-	  DIT:
-		WlLine dx.ax/*pixPtr*/
-		/*pixPtr = dx.ax*/
-		go DIT_RET
-	 @fi
+     @if 0
+      DIT:
+    	WlLine dx.ax/*pixPtr*/
+    	/*pixPtr = dx.ax*/
+    	go DIT_RET
+     @fi
 
-	  PGL:
-		++V.pgNo
-		Vv.PageSw V.pgNo
-		V.pgCurSeg = ax
-		es = ax
-		V.pglcnt = ax = V.pgLine
-		V.pgPtr = 0
-		//Pri.Fmt "page = %d %04x\N",V.pgNo, V.pgCurSeg
-		go PGL_RET
+      PGL:
+    	++V.pgNo
+    	Vv.PageSw V.pgNo
+    	V.pgCurSeg = ax
+    	es = ax
+    	V.pglcnt = ax = V.pgLine
+    	V.pgPtr = 0
+    	//Pri.Fmt "page = %d %04x\N",V.pgNo, V.pgCurSeg
+    	go PGL_RET
 
-	//loop.w
-	 LOOP:
-		//Pri.Fmt "\r%3d",V.ycur
-		go (V.x68flg) X68K
-		go (V.reductFlg) REDUCT
-	   REDUCT_RET:
-	  @if 0
-		go (wlFlg) DIT
-	   DIT_RET:
-	  @fi
-		si = ax; si -= V.xofsL; pixPtr.h = dx	//pixPtr = dx.ax
-		++V.ycur
-		//Pri.Fmt "\r%8lx %04x %3d(%3d)",pixPtr0,ds,V.ycur,V.pglcnt
+    //loop.w
+     LOOP:
+    	//Pri.Fmt "\r%3d",V.ycur
+    	go (V.x68flg) X68K
+    	go (V.reductFlg) REDUCT
+       REDUCT_RET:
+      @if 0
+    	go (wlFlg) DIT
+       DIT_RET:
+      @fi
+    	si = ax; si -= V.xofsL; pixPtr.h = dx	//pixPtr = dx.ax
+    	++V.ycur
+    	//Pri.Fmt "\r%8lx %04x %3d(%3d)",pixPtr0,ds,V.ycur,V.pglcnt
 
-		es = V.pgCurSeg
-		go (--V.pglcnt == 0) PGL
-	  PGL_RET:
+    	es = V.pgCurSeg
+    	go (--V.pglcnt == 0) PGL
+      PGL_RET:
 
-		//１行変換
-			//si = pixPtr.l;si -= V.xofsL
-		di = ax = V.pgPtr
-		cnt = ax = xxvsize
-		ds = pixPtr.h
-		loop.w
-			rep.load.w ax,si
-			|al>>=1; |RCL1(cl); 	//B
-			|al>>=1; |RCL1(ch); 	//R
-			|al>>=1; |RCL1(dl); 	//G
-			|al>>=1; |RCL1(dh); 	//I
-			|al>>=1; |RCL1(bl); 	//B'
-			|al>>=1; |RCL1(bh); 	//R'
-			|al>>=1; |rcl uDx.l;	//G'
-			|al>>=1; |rcl uDx.h;	//I'
-			|ah>>=1; |RCL1(cl); 	//B
-			|ah>>=1; |RCL1(ch); 	//R
-			|ah>>=1; |RCL1(dl); 	//G
-			|ah>>=1; |RCL1(dh); 	//I
-			|ah>>=1; |RCL1(bl); 	//B'
-			|ah>>=1; |RCL1(bh); 	//R'
-			|ah>>=1; |rcl uDx.l;	//G'
-			|ah>>=1; |rcl uDx.h;	//I'
-			rep.load.w ax,si
-			|al>>=1; |RCL1(cl); 	//B
-			|al>>=1; |RCL1(ch); 	//R
-			|al>>=1; |RCL1(dl); 	//G
-			|al>>=1; |RCL1(dh); 	//I
-			|al>>=1; |RCL1(bl); 	//B'
-			|al>>=1; |RCL1(bh); 	//R'
-			|al>>=1; |rcl uDx.l;	//G'
-			|al>>=1; |rcl uDx.h;	//I'
-			|ah>>=1; |RCL1(cl); 	//B
-			|ah>>=1; |RCL1(ch); 	//R
-			|ah>>=1; |RCL1(dl); 	//G
-			|ah>>=1; |RCL1(dh); 	//I
-			|ah>>=1; |RCL1(bl); 	//B'
-			|ah>>=1; |RCL1(bh); 	//R'
-			|ah>>=1; |rcl uDx.l;	//G'
-			|ah>>=1; |rcl uDx.h;	//I'
-			rep.load.w ax,si
-			|al>>=1; |RCL1(cl); 	//B
-			|al>>=1; |RCL1(ch); 	//R
-			|al>>=1; |RCL1(dl); 	//G
-			|al>>=1; |RCL1(dh); 	//I
-			|al>>=1; |RCL1(bl); 	//B'
-			|al>>=1; |RCL1(bh); 	//R'
-			|al>>=1; |rcl uDx.l;	//G'
-			|al>>=1; |rcl uDx.h;	//I'
-			|ah>>=1; |RCL1(cl); 	//B
-			|ah>>=1; |RCL1(ch); 	//R
-			|ah>>=1; |RCL1(dl); 	//G
-			|ah>>=1; |RCL1(dh); 	//I
-			|ah>>=1; |RCL1(bl); 	//B'
-			|ah>>=1; |RCL1(bh); 	//R'
-			|ah>>=1; |rcl uDx.l;	//G'
-			|ah>>=1; |rcl uDx.h;	//I'
-			rep.load.w ax,si
-			|al>>=1; |RCL1(cl); 	//B
-			|al>>=1; |RCL1(ch); 	//R
-			|al>>=1; |RCL1(dl); 	//G
-			|al>>=1; |RCL1(dh); 	//I
-			|al>>=1; |RCL1(bl); 	//B'
-			|al>>=1; |RCL1(bh); 	//R'
-			|al>>=1; |rcl uDx.l;	//G'
-			|al>>=1; |rcl uDx.h;	//I'
-			|ah>>=1; |RCL1(cl); 	//B
-			|ah>>=1; |RCL1(ch); 	//R
-			|ah>>=1; |RCL1(dl); 	//G
-			|ah>>=1; |RCL1(dh); 	//I
-			|ah>>=1; |RCL1(bl); 	//B'
-			|ah>>=1; |RCL1(bh); 	//R'
-			|ah>>=1; |rcl uDx.l;	//G'
-			|ah>>=1; |rcl uDx.h;	//I'
-			ax = xxvsize
-			b[es:di] = cl
-			di += ax
-			b[es:di] = ch
-			di += ax
-			b[es:di] = dl
-			di += ax
-			b[es:di] = dh
-			dx = uDx
-			di += ax
-			b[es:di] = bl
-			di += ax
-			b[es:di] = bh
-			di += ax
-			b[es:di] = dl
-			di += ax
-			b[es:di] = dh
-			di -= xb
-		endloop (--cnt)
+    	//１行変換
+    	    //si = pixPtr.l;si -= V.xofsL
+    	di = ax = V.pgPtr
+    	cnt = ax = xxvsize
+    	ds = pixPtr.h
+    	loop.w
+    	    rep.load.w ax,si
+    	    |al>>=1; |RCL1(cl);     //B
+    	    |al>>=1; |RCL1(ch);     //R
+    	    |al>>=1; |RCL1(dl);     //G
+    	    |al>>=1; |RCL1(dh);     //I
+    	    |al>>=1; |RCL1(bl);     //B'
+    	    |al>>=1; |RCL1(bh);     //R'
+    	    |al>>=1; |rcl uDx.l;    //G'
+    	    |al>>=1; |rcl uDx.h;    //I'
+    	    |ah>>=1; |RCL1(cl);     //B
+    	    |ah>>=1; |RCL1(ch);     //R
+    	    |ah>>=1; |RCL1(dl);     //G
+    	    |ah>>=1; |RCL1(dh);     //I
+    	    |ah>>=1; |RCL1(bl);     //B'
+    	    |ah>>=1; |RCL1(bh);     //R'
+    	    |ah>>=1; |rcl uDx.l;    //G'
+    	    |ah>>=1; |rcl uDx.h;    //I'
+    	    rep.load.w ax,si
+    	    |al>>=1; |RCL1(cl);     //B
+    	    |al>>=1; |RCL1(ch);     //R
+    	    |al>>=1; |RCL1(dl);     //G
+    	    |al>>=1; |RCL1(dh);     //I
+    	    |al>>=1; |RCL1(bl);     //B'
+    	    |al>>=1; |RCL1(bh);     //R'
+    	    |al>>=1; |rcl uDx.l;    //G'
+    	    |al>>=1; |rcl uDx.h;    //I'
+    	    |ah>>=1; |RCL1(cl);     //B
+    	    |ah>>=1; |RCL1(ch);     //R
+    	    |ah>>=1; |RCL1(dl);     //G
+    	    |ah>>=1; |RCL1(dh);     //I
+    	    |ah>>=1; |RCL1(bl);     //B'
+    	    |ah>>=1; |RCL1(bh);     //R'
+    	    |ah>>=1; |rcl uDx.l;    //G'
+    	    |ah>>=1; |rcl uDx.h;    //I'
+    	    rep.load.w ax,si
+    	    |al>>=1; |RCL1(cl);     //B
+    	    |al>>=1; |RCL1(ch);     //R
+    	    |al>>=1; |RCL1(dl);     //G
+    	    |al>>=1; |RCL1(dh);     //I
+    	    |al>>=1; |RCL1(bl);     //B'
+    	    |al>>=1; |RCL1(bh);     //R'
+    	    |al>>=1; |rcl uDx.l;    //G'
+    	    |al>>=1; |rcl uDx.h;    //I'
+    	    |ah>>=1; |RCL1(cl);     //B
+    	    |ah>>=1; |RCL1(ch);     //R
+    	    |ah>>=1; |RCL1(dl);     //G
+    	    |ah>>=1; |RCL1(dh);     //I
+    	    |ah>>=1; |RCL1(bl);     //B'
+    	    |ah>>=1; |RCL1(bh);     //R'
+    	    |ah>>=1; |rcl uDx.l;    //G'
+    	    |ah>>=1; |rcl uDx.h;    //I'
+    	    rep.load.w ax,si
+    	    |al>>=1; |RCL1(cl);     //B
+    	    |al>>=1; |RCL1(ch);     //R
+    	    |al>>=1; |RCL1(dl);     //G
+    	    |al>>=1; |RCL1(dh);     //I
+    	    |al>>=1; |RCL1(bl);     //B'
+    	    |al>>=1; |RCL1(bh);     //R'
+    	    |al>>=1; |rcl uDx.l;    //G'
+    	    |al>>=1; |rcl uDx.h;    //I'
+    	    |ah>>=1; |RCL1(cl);     //B
+    	    |ah>>=1; |RCL1(ch);     //R
+    	    |ah>>=1; |RCL1(dl);     //G
+    	    |ah>>=1; |RCL1(dh);     //I
+    	    |ah>>=1; |RCL1(bl);     //B'
+    	    |ah>>=1; |RCL1(bh);     //R'
+    	    |ah>>=1; |rcl uDx.l;    //G'
+    	    |ah>>=1; |rcl uDx.h;    //I'
+    	    ax = xxvsize
+    	    b[es:di] = cl
+    	    di += ax
+    	    b[es:di] = ch
+    	    di += ax
+    	    b[es:di] = dl
+    	    di += ax
+    	    b[es:di] = dh
+    	    dx = uDx
+    	    di += ax
+    	    b[es:di] = bl
+    	    di += ax
+    	    b[es:di] = bh
+    	    di += ax
+    	    b[es:di] = dl
+    	    di += ax
+    	    b[es:di] = dh
+    	    di -= xb
+    	endloop (--cnt)
 
-		ds = datSeg
-		di = V.pgPtr
-		//if (di == 0);Pri.Fmt "es:di=%lx %d\t", es.di, bx;fi
+    	ds = datSeg
+    	di = V.pgPtr
+    	//if (di == 0);Pri.Fmt "es:di=%lx %d\t", es.di, bx;fi
 
-		//両端の調整
-		go (V.xmskFlg.l) XMSK
-		di += V.pgXsize
-		V.pgPtr = di
-	  XMSK_RET:
-	NEXT:
-		ds = datSeg
-		dx.ax = pixPtr0
-		go.w (V.l200flg && V.ycur & 0x0001) LOOP
-		ax += V.xsize
-		pixPtr0.l = ax
-	//endloop (--lincnt)
-	return
+    	//両端の調整
+    	go (V.xmskFlg.l) XMSK
+    	di += V.pgXsize
+    	V.pgPtr = di
+      XMSK_RET:
+    NEXT:
+    	ds = datSeg
+    	dx.ax = pixPtr0
+    	go.w (V.l200flg && V.ycur & 0x0001) LOOP
+    	ax += V.xsize
+    	pixPtr0.l = ax
+    //endloop (--lincnt)
+    return
 
   XMSK:
-		bx = xxvsize
-		bx -= 2 	//= V.xxvsize - 2
-		//B
-		al = b[es:di]
-		ah = V.xmskL.l
-		al &= ah//V.xmskL.l
-		com ah
-		ah &= V.bcolptn(0)	//4)
-		al |= ah
-		rep.set di,al
-		di += bx
-		al = b[es:di]
-		ah = V.xmskR.l
-		al &= ah//V.xmskR.l
-		com ah
-		ah &= V.bcolptn(0)	//4)
-		al |= ah
-		rep.set di,al
-		//R
-		al = b[es:di]
-		ah = V.xmskL.l
-		al &= ah//V.xmskL.l
-		com ah
-		ah &= V.bcolptn(1)	//5)
-		al |= ah
-		rep.set di,al
-		di += bx
-		al = b[es:di]
-		ah = V.xmskR.l
-		al &= ah//V.xmskR.l
-		com ah
-		ah &= V.bcolptn(1)	//5)
-		al |= ah
-		rep.set di,al
-		//G
-		al = b[es:di]
-		ah = V.xmskL.l
-		al &= ah//V.xmskL.l
-		com ah
-		ah &= V.bcolptn(2)	//6)
-		al |= ah
-		rep.set di,al
-		di += bx
-		al = b[es:di]
-		ah = V.xmskR.l
-		al &= ah//V.xmskR.l
-		com ah
-		ah &= V.bcolptn(2)	//6)
-		al |= ah
-		rep.set di,al
-		//E
-		al = b[es:di]
-		ah = V.xmskL.l
-		al &= ah//V.xmskL.l
-		com ah
-		ah &= V.bcolptn(3)	//7)
-		al |= ah
-		rep.set di,al
-		di += bx
-		al = b[es:di]
-		ah = V.xmskR.l
-		al &= ah//V.xmskR.l
-		com ah
-		ah &= V.bcolptn(3)	//7)
-		al |= ah
-		rep.set di,al
-		//B'
-		al = b[es:di]
-		ah = V.xmskL.l
-		al &= ah//V.xmskL.l
-		com ah
-		ah &= V.bcolptn(4)	//0)
-		al |= ah
-		rep.set di,al
-		di += bx
-		al = b[es:di]
-		ah = V.xmskR.l
-		al &= ah//V.xmskR.l
-		com ah
-		ah &= V.bcolptn(4)	//0)
-		al |= ah
-		rep.set di,al
-		//R'
-		al = b[es:di]
-		ah = V.xmskL.l
-		al &= ah//V.xmskL.l
-		com ah
-		ah &= V.bcolptn(5)	//1)
-		al |= ah
-		rep.set di,al
-		di += bx
-		al = b[es:di]
-		ah = V.xmskR.l
-		al &= ah//V.xmskR.l
-		com ah
-		ah &= V.bcolptn(5)	//1)
-		al |= ah
-		rep.set di,al
-		//G'
-		al = b[es:di]
-		ah = V.xmskL.l
-		al &= ah//V.xmskL.l
-		com ah
-		ah &= V.bcolptn(6)	//2)
-		al |= ah
-		rep.set di,al
-		di += bx
-		al = b[es:di]
-		ah = V.xmskR.l
-		al &= ah//V.xmskR.l
-		com ah
-		ah &= V.bcolptn(6)	//2)
-		al |= ah
-		rep.set di,al
-		//E'
-		al = b[es:di]
-		ah = V.xmskL.l
-		al &= ah//V.xmskL.l
-		com ah
-		ah &= V.bcolptn(7)	//3)
-		al |= ah
-		rep.set di,al
-		di += bx
-		al = b[es:di]
-		ah = V.xmskR.l
-		al &= ah//V.xmskR.l
-		com ah
-		ah &= V.bcolptn(7)	//3)
-		al |= ah
-		rep.set di,al
+    	bx = xxvsize
+    	bx -= 2     //= V.xxvsize - 2
+    	//B
+    	al = b[es:di]
+    	ah = V.xmskL.l
+    	al &= ah//V.xmskL.l
+    	com ah
+    	ah &= V.bcolptn(0)  //4)
+    	al |= ah
+    	rep.set di,al
+    	di += bx
+    	al = b[es:di]
+    	ah = V.xmskR.l
+    	al &= ah//V.xmskR.l
+    	com ah
+    	ah &= V.bcolptn(0)  //4)
+    	al |= ah
+    	rep.set di,al
+    	//R
+    	al = b[es:di]
+    	ah = V.xmskL.l
+    	al &= ah//V.xmskL.l
+    	com ah
+    	ah &= V.bcolptn(1)  //5)
+    	al |= ah
+    	rep.set di,al
+    	di += bx
+    	al = b[es:di]
+    	ah = V.xmskR.l
+    	al &= ah//V.xmskR.l
+    	com ah
+    	ah &= V.bcolptn(1)  //5)
+    	al |= ah
+    	rep.set di,al
+    	//G
+    	al = b[es:di]
+    	ah = V.xmskL.l
+    	al &= ah//V.xmskL.l
+    	com ah
+    	ah &= V.bcolptn(2)  //6)
+    	al |= ah
+    	rep.set di,al
+    	di += bx
+    	al = b[es:di]
+    	ah = V.xmskR.l
+    	al &= ah//V.xmskR.l
+    	com ah
+    	ah &= V.bcolptn(2)  //6)
+    	al |= ah
+    	rep.set di,al
+    	//E
+    	al = b[es:di]
+    	ah = V.xmskL.l
+    	al &= ah//V.xmskL.l
+    	com ah
+    	ah &= V.bcolptn(3)  //7)
+    	al |= ah
+    	rep.set di,al
+    	di += bx
+    	al = b[es:di]
+    	ah = V.xmskR.l
+    	al &= ah//V.xmskR.l
+    	com ah
+    	ah &= V.bcolptn(3)  //7)
+    	al |= ah
+    	rep.set di,al
+    	//B'
+    	al = b[es:di]
+    	ah = V.xmskL.l
+    	al &= ah//V.xmskL.l
+    	com ah
+    	ah &= V.bcolptn(4)  //0)
+    	al |= ah
+    	rep.set di,al
+    	di += bx
+    	al = b[es:di]
+    	ah = V.xmskR.l
+    	al &= ah//V.xmskR.l
+    	com ah
+    	ah &= V.bcolptn(4)  //0)
+    	al |= ah
+    	rep.set di,al
+    	//R'
+    	al = b[es:di]
+    	ah = V.xmskL.l
+    	al &= ah//V.xmskL.l
+    	com ah
+    	ah &= V.bcolptn(5)  //1)
+    	al |= ah
+    	rep.set di,al
+    	di += bx
+    	al = b[es:di]
+    	ah = V.xmskR.l
+    	al &= ah//V.xmskR.l
+    	com ah
+    	ah &= V.bcolptn(5)  //1)
+    	al |= ah
+    	rep.set di,al
+    	//G'
+    	al = b[es:di]
+    	ah = V.xmskL.l
+    	al &= ah//V.xmskL.l
+    	com ah
+    	ah &= V.bcolptn(6)  //2)
+    	al |= ah
+    	rep.set di,al
+    	di += bx
+    	al = b[es:di]
+    	ah = V.xmskR.l
+    	al &= ah//V.xmskR.l
+    	com ah
+    	ah &= V.bcolptn(6)  //2)
+    	al |= ah
+    	rep.set di,al
+    	//E'
+    	al = b[es:di]
+    	ah = V.xmskL.l
+    	al &= ah//V.xmskL.l
+    	com ah
+    	ah &= V.bcolptn(7)  //3)
+    	al |= ah
+    	rep.set di,al
+    	di += bx
+    	al = b[es:di]
+    	ah = V.xmskR.l
+    	al &= ah//V.xmskR.l
+    	com ah
+    	ah &= V.bcolptn(7)  //3)
+    	al |= ah
+    	rep.set di,al
 
-		//si = V.pgPtr
-		V.pgPtr = di
-		//if (si == 0);Pri.Fmt "es:di=%lx  %d %d\N", es.di,bx,V.xxvsize;fi
-	go.w XMSK_RET
+    	//si = V.pgPtr
+    	V.pgPtr = di
+    	//if (si == 0);Pri.Fmt "es:di=%lx  %d %d\N", es.di,bx,V.xxvsize;fi
+    go.w XMSK_RET
 endproc
 
 
@@ -2090,433 +2090,433 @@ endproc
 
 proc WlLine24 (rbuf:d,xsz:w)
 enter
-	save ds
-	cvar t_g:b(5) = {  0,12,13,14,15 }
-	cvar t_r:b(4) = {  0, 1, 2, 3 }
-	cvar t_b:b(3) = {  0, 4, 8 }
-	cvar dit_g:b() = data
-		b	1	 , 8*DI_G, 2*DI_G,10*DI_G
-		b 12*DI_G, 4*DI_G,14*DI_G, 6*DI_G
-		b  3*DI_G,11*DI_G, 1*DI_G, 9*DI_G
-		b 15*DI_G, 7*DI_G,13*DI_G, 5*DI_G
-	enddata
-	cvar dit_r:b() = data
-		b	2	 , 8*DI_R, 2*DI_R,10*DI_R
-		b 12*DI_R, 4*DI_R,14*DI_R, 6*DI_R
-		b  3*DI_R,11*DI_R, 1*DI_R, 9*DI_R
-		b 15*DI_R, 7*DI_R,13*DI_R, 5*DI_R
-	enddata
-	cvar dit_b:b() = data
-		b	3	 , 8*DI_B, 2*DI_B,10*DI_B
-		b 12*DI_B, 4*DI_B,14*DI_B, 6*DI_B
-		b  3*DI_B,11*DI_B, 1*DI_B, 9*DI_B
-		b 15*DI_B, 7*DI_B,13*DI_B, 5*DI_B
-	enddata
-	local ddy:w
-	local r0:w,g0:w,b0:w,vFF:w,flg:w
+    save ds
+    cvar t_g:b(5) = {  0,12,13,14,15 }
+    cvar t_r:b(4) = {  0, 1, 2, 3 }
+    cvar t_b:b(3) = {  0, 4, 8 }
+    cvar dit_g:b() = data
+    	b   1	 , 8*DI_G, 2*DI_G,10*DI_G
+    	b 12*DI_G, 4*DI_G,14*DI_G, 6*DI_G
+    	b  3*DI_G,11*DI_G, 1*DI_G, 9*DI_G
+    	b 15*DI_G, 7*DI_G,13*DI_G, 5*DI_G
+    enddata
+    cvar dit_r:b() = data
+    	b   2	 , 8*DI_R, 2*DI_R,10*DI_R
+    	b 12*DI_R, 4*DI_R,14*DI_R, 6*DI_R
+    	b  3*DI_R,11*DI_R, 1*DI_R, 9*DI_R
+    	b 15*DI_R, 7*DI_R,13*DI_R, 5*DI_R
+    enddata
+    cvar dit_b:b() = data
+    	b   3	 , 8*DI_B, 2*DI_B,10*DI_B
+    	b 12*DI_B, 4*DI_B,14*DI_B, 6*DI_B
+    	b  3*DI_B,11*DI_B, 1*DI_B, 9*DI_B
+    	b 15*DI_B, 7*DI_B,13*DI_B, 5*DI_B
+    enddata
+    local ddy:w
+    local r0:w,g0:w,b0:w,vFF:w,flg:w
 
-	es.di = ww(ds,%Vv.T.pbuf)
+    es.di = ww(ds,%Vv.T.pbuf)
 
-	ax = V.ycur
-	ax &= 0x01
-	flg = ax
-	ax = V.ycur
-	ax &= 0x03
-	ax <<= 2
-	ddy = ax
-	vFF = 0xff
-	bx = cx = 0
-	r0 = cx
-	g0 = cx
-	ds.si = rbuf
-	loop.w
-		bx = cx
-		bx &= 0x3
-		bx |= ddy
+    ax = V.ycur
+    ax &= 0x01
+    flg = ax
+    ax = V.ycur
+    ax &= 0x03
+    ax <<= 2
+    ddy = ax
+    vFF = 0xff
+    bx = cx = 0
+    r0 = cx
+    g0 = cx
+    ds.si = rbuf
+    loop.w
+    	bx = cx
+    	bx &= 0x3
+    	bx |= ddy
 
-		bh = ah = 0
-		//R
-		//ah = 0
-		rep.load al,si
-		|al += dit_r[bx]
-		adc ah,0
-		dx = ax
-		ax += ax
-		ax += dx
-		dx = 0
-		div dx.ax, vFF
-		if (ax > 3)
-			ax = 3
-		fi
-		r0.l = al
+    	bh = ah = 0
+    	//R
+    	//ah = 0
+    	rep.load al,si
+    	|al += dit_r[bx]
+    	adc ah,0
+    	dx = ax
+    	ax += ax
+    	ax += dx
+    	dx = 0
+    	div dx.ax, vFF
+    	if (ax > 3)
+    	    ax = 3
+    	fi
+    	r0.l = al
 
-		//G
-		//ah = 0
-		rep.load al,si
-		|al += dit_g[bx]
-		adc ah,0
-		ax <<= 2
-		dx = 0
-		div dx.ax, vFF
-		if (ax > 4)
-			ax = 4
-		fi
-		g0.l = al
+    	//G
+    	//ah = 0
+    	rep.load al,si
+    	|al += dit_g[bx]
+    	adc ah,0
+    	ax <<= 2
+    	dx = 0
+    	div dx.ax, vFF
+    	if (ax > 4)
+    	    ax = 4
+    	fi
+    	g0.l = al
 
-		//B
-		//ah = 0
-		rep.load al,si
-		|al += dit_b[bx]
-		adc ah,0
-		ax += ax
-		dx = 0
-		div dx.ax, vFF
-		if (ax > 2)
-			ax = 2
-		fi
+    	//B
+    	//ah = 0
+    	rep.load al,si
+    	|al += dit_b[bx]
+    	adc ah,0
+    	ax += ax
+    	dx = 0
+    	div dx.ax, vFF
+    	if (ax > 2)
+    	    ax = 2
+    	fi
 
-		bx = ax
-		al = t_b[bx]
+    	bx = ax
+    	al = t_b[bx]
 
-		bx = r0
-		al += t_r[bx]
+    	bx = r0
+    	al += t_r[bx]
 
-		bx = g0
-		ah = t_g[bx]
+    	bx = g0
+    	ah = t_g[bx]
 
-		if (flg)	//(cx & 0x0001)
-			al <<= 4
-		else
-			ah <<= 4
-		fi
-		al |= ah
-		rep.set di,al
-		++cx
-	endloop (cx < xsz)
-	dx.ax = ww(es,%Vv.T.pbuf)
-	return
+    	if (flg)    //(cx & 0x0001)
+    	    al <<= 4
+    	else
+    	    ah <<= 4
+    	fi
+    	al |= ah
+    	rep.set di,al
+    	++cx
+    endloop (cx < xsz)
+    dx.ax = ww(es,%Vv.T.pbuf)
+    return
 endproc
 
 *proc GetLineWl(datOfs:w, datSeg:w, pixPtr0:d);cdecl;far
 enter
-	local xb:w, cnt:w, pixPtr:d
-	local uCx:w, uDx:w, xxvsize:w
+    local xb:w, cnt:w, pixPtr:d
+    local uCx:w, uDx:w, xxvsize:w
 
-	ds = datSeg
-	xb = ax = V.pgXsizeSubOfs
-	xxvsize = ax = V.xxvsize
-	if (V.pln != 24)
-		es.di = ww(ds, %Vv.T.END)
-		cx = V.xsize
-		push ds
-			bx = pixPtr0.l
-			ds.dx = V.palette
-			loop
-				push ds
-				ds = pixPtr0.h
-				al = b[bx];++bx
-				pop  ds
-				ah = 0
-				si = ax
-				ax += ax
-				ax += dx
-				si += ax
-				rep.cpy.w di,si
-				rep.cpy.b di,si
-			endloop (--cx)
-		pop ds
-		pixPtr0 = dx.ax = ww(ds, %Vv.T.END)
-	fi
-	dx.ax = pixPtr0
-	go LOOP
+    ds = datSeg
+    xb = ax = V.pgXsizeSubOfs
+    xxvsize = ax = V.xxvsize
+    if (V.pln != 24)
+    	es.di = ww(ds, %Vv.T.END)
+    	cx = V.xsize
+    	push ds
+    	    bx = pixPtr0.l
+    	    ds.dx = V.palette
+    	    loop
+    	    	push ds
+    	    	ds = pixPtr0.h
+    	    	al = b[bx];++bx
+    	    	pop  ds
+    	    	ah = 0
+    	    	si = ax
+    	    	ax += ax
+    	    	ax += dx
+    	    	si += ax
+    	    	rep.cpy.w di,si
+    	    	rep.cpy.b di,si
+    	    endloop (--cx)
+    	pop ds
+    	pixPtr0 = dx.ax = ww(ds, %Vv.T.END)
+    fi
+    dx.ax = pixPtr0
+    go LOOP
 
-	  REDUCT:
-		if (V.reductFlgY)
-			++V.ycurReduct
-			cx = V.reductFlgY
-			go.w (V.ycurReduct & cx) NEXT		/////////// !!!!
-		fi
-		Vv.ReductLine dx.ax/*pixPtr*/
-		go REDUCT_RET
+      REDUCT:
+    	if (V.reductFlgY)
+    	    ++V.ycurReduct
+    	    cx = V.reductFlgY
+    	    go.w (V.ycurReduct & cx) NEXT   	/////////// !!!!
+    	fi
+    	Vv.ReductLine dx.ax/*pixPtr*/
+    	go REDUCT_RET
 
-	  PGL:
-		++V.pgNo
-		Vv.PageSw V.pgNo
-		V.pgCurSeg = ax
-		es = ax
-		V.pglcnt = ax = V.pgLine
-		V.pgPtr = 0
-		//Pri.Fmt "page = %d %04x\N",V.pgNo, V.pgCurSeg
-		go PGL_RET
+      PGL:
+    	++V.pgNo
+    	Vv.PageSw V.pgNo
+    	V.pgCurSeg = ax
+    	es = ax
+    	V.pglcnt = ax = V.pgLine
+    	V.pgPtr = 0
+    	//Pri.Fmt "page = %d %04x\N",V.pgNo, V.pgCurSeg
+    	go PGL_RET
 
-	//loop.w
-	 LOOP:
-		//Pri.Fmt "\r%3d",V.ycur
-		if (V.x68flg)
-			Vv.X68line24 dx.ax, V.x68flg, ww(datSeg, (%Vv.T.END + 0x3010))
-			WlLine24 dx.ax,V.xvsize	// go (wlFlg) DIT
-		else
-			WlLine24 dx.ax,V.xsize	// go (wlFlg) DIT
-		fi
+    //loop.w
+     LOOP:
+    	//Pri.Fmt "\r%3d",V.ycur
+    	if (V.x68flg)
+    	    Vv.X68line24 dx.ax, V.x68flg, ww(datSeg, (%Vv.T.END + 0x3010))
+    	    WlLine24 dx.ax,V.xvsize // go (wlFlg) DIT
+    	else
+    	    WlLine24 dx.ax,V.xsize  // go (wlFlg) DIT
+    	fi
 
-		go (V.reductFlg) REDUCT
-	   REDUCT_RET:
-		si = ax; si -= V.xofsL; pixPtr.h = dx	//pixPtr = dx.ax
-		++V.ycur
-		//Pri.Fmt "\r%8lx %04x %3d(%3d)",pixPtr0,ds,V.ycur,V.pglcnt
+    	go (V.reductFlg) REDUCT
+       REDUCT_RET:
+    	si = ax; si -= V.xofsL; pixPtr.h = dx	//pixPtr = dx.ax
+    	++V.ycur
+    	//Pri.Fmt "\r%8lx %04x %3d(%3d)",pixPtr0,ds,V.ycur,V.pglcnt
 
-		es = V.pgCurSeg
-		go (--V.pglcnt == 0) PGL
-	  PGL_RET:
+    	es = V.pgCurSeg
+    	go (--V.pglcnt == 0) PGL
+      PGL_RET:
 
-		//１行変換
-			//si = pixPtr.l;si -= V.xofsL
-		di = ax = V.pgPtr
-		cnt = ax = xxvsize
-		ds = pixPtr.h
-		loop.w
-			rep.load.w ax,si
-			|al>>=1; |RCL1(cl); 	//B
-			|al>>=1; |RCL1(ch); 	//R
-			|al>>=1; |RCL1(dl); 	//G
-			|al>>=1; |RCL1(dh); 	//I
-			|al>>=1; |RCL1(bl); 	//B'
-			|al>>=1; |RCL1(bh); 	//R'
-			|al>>=1; |rcl uDx.l;	//G'
-			|al>>=1; |rcl uDx.h;	//I'
-			|ah>>=1; |RCL1(cl); 	//B
-			|ah>>=1; |RCL1(ch); 	//R
-			|ah>>=1; |RCL1(dl); 	//G
-			|ah>>=1; |RCL1(dh); 	//I
-			|ah>>=1; |RCL1(bl); 	//B'
-			|ah>>=1; |RCL1(bh); 	//R'
-			|ah>>=1; |rcl uDx.l;	//G'
-			|ah>>=1; |rcl uDx.h;	//I'
-			rep.load.w ax,si
-			|al>>=1; |RCL1(cl); 	//B
-			|al>>=1; |RCL1(ch); 	//R
-			|al>>=1; |RCL1(dl); 	//G
-			|al>>=1; |RCL1(dh); 	//I
-			|al>>=1; |RCL1(bl); 	//B'
-			|al>>=1; |RCL1(bh); 	//R'
-			|al>>=1; |rcl uDx.l;	//G'
-			|al>>=1; |rcl uDx.h;	//I'
-			|ah>>=1; |RCL1(cl); 	//B
-			|ah>>=1; |RCL1(ch); 	//R
-			|ah>>=1; |RCL1(dl); 	//G
-			|ah>>=1; |RCL1(dh); 	//I
-			|ah>>=1; |RCL1(bl); 	//B'
-			|ah>>=1; |RCL1(bh); 	//R'
-			|ah>>=1; |rcl uDx.l;	//G'
-			|ah>>=1; |rcl uDx.h;	//I'
-			rep.load.w ax,si
-			|al>>=1; |RCL1(cl); 	//B
-			|al>>=1; |RCL1(ch); 	//R
-			|al>>=1; |RCL1(dl); 	//G
-			|al>>=1; |RCL1(dh); 	//I
-			|al>>=1; |RCL1(bl); 	//B'
-			|al>>=1; |RCL1(bh); 	//R'
-			|al>>=1; |rcl uDx.l;	//G'
-			|al>>=1; |rcl uDx.h;	//I'
-			|ah>>=1; |RCL1(cl); 	//B
-			|ah>>=1; |RCL1(ch); 	//R
-			|ah>>=1; |RCL1(dl); 	//G
-			|ah>>=1; |RCL1(dh); 	//I
-			|ah>>=1; |RCL1(bl); 	//B'
-			|ah>>=1; |RCL1(bh); 	//R'
-			|ah>>=1; |rcl uDx.l;	//G'
-			|ah>>=1; |rcl uDx.h;	//I'
-			rep.load.w ax,si
-			|al>>=1; |RCL1(cl); 	//B
-			|al>>=1; |RCL1(ch); 	//R
-			|al>>=1; |RCL1(dl); 	//G
-			|al>>=1; |RCL1(dh); 	//I
-			|al>>=1; |RCL1(bl); 	//B'
-			|al>>=1; |RCL1(bh); 	//R'
-			|al>>=1; |rcl uDx.l;	//G'
-			|al>>=1; |rcl uDx.h;	//I'
-			|ah>>=1; |RCL1(cl); 	//B
-			|ah>>=1; |RCL1(ch); 	//R
-			|ah>>=1; |RCL1(dl); 	//G
-			|ah>>=1; |RCL1(dh); 	//I
-			|ah>>=1; |RCL1(bl); 	//B'
-			|ah>>=1; |RCL1(bh); 	//R'
-			|ah>>=1; |rcl uDx.l;	//G'
-			|ah>>=1; |rcl uDx.h;	//I'
-			ax = xxvsize
-			b[es:di] = cl
-			di += ax
-			b[es:di] = ch
-			di += ax
-			b[es:di] = dl
-			di += ax
-			b[es:di] = dh
-			dx = uDx
-			di += ax
-			b[es:di] = bl
-			di += ax
-			b[es:di] = bh
-			di += ax
-			b[es:di] = dl
-			di += ax
-			b[es:di] = dh
-			di -= xb
-		endloop (--cnt)
+    	//１行変換
+    	    //si = pixPtr.l;si -= V.xofsL
+    	di = ax = V.pgPtr
+    	cnt = ax = xxvsize
+    	ds = pixPtr.h
+    	loop.w
+    	    rep.load.w ax,si
+    	    |al>>=1; |RCL1(cl);     //B
+    	    |al>>=1; |RCL1(ch);     //R
+    	    |al>>=1; |RCL1(dl);     //G
+    	    |al>>=1; |RCL1(dh);     //I
+    	    |al>>=1; |RCL1(bl);     //B'
+    	    |al>>=1; |RCL1(bh);     //R'
+    	    |al>>=1; |rcl uDx.l;    //G'
+    	    |al>>=1; |rcl uDx.h;    //I'
+    	    |ah>>=1; |RCL1(cl);     //B
+    	    |ah>>=1; |RCL1(ch);     //R
+    	    |ah>>=1; |RCL1(dl);     //G
+    	    |ah>>=1; |RCL1(dh);     //I
+    	    |ah>>=1; |RCL1(bl);     //B'
+    	    |ah>>=1; |RCL1(bh);     //R'
+    	    |ah>>=1; |rcl uDx.l;    //G'
+    	    |ah>>=1; |rcl uDx.h;    //I'
+    	    rep.load.w ax,si
+    	    |al>>=1; |RCL1(cl);     //B
+    	    |al>>=1; |RCL1(ch);     //R
+    	    |al>>=1; |RCL1(dl);     //G
+    	    |al>>=1; |RCL1(dh);     //I
+    	    |al>>=1; |RCL1(bl);     //B'
+    	    |al>>=1; |RCL1(bh);     //R'
+    	    |al>>=1; |rcl uDx.l;    //G'
+    	    |al>>=1; |rcl uDx.h;    //I'
+    	    |ah>>=1; |RCL1(cl);     //B
+    	    |ah>>=1; |RCL1(ch);     //R
+    	    |ah>>=1; |RCL1(dl);     //G
+    	    |ah>>=1; |RCL1(dh);     //I
+    	    |ah>>=1; |RCL1(bl);     //B'
+    	    |ah>>=1; |RCL1(bh);     //R'
+    	    |ah>>=1; |rcl uDx.l;    //G'
+    	    |ah>>=1; |rcl uDx.h;    //I'
+    	    rep.load.w ax,si
+    	    |al>>=1; |RCL1(cl);     //B
+    	    |al>>=1; |RCL1(ch);     //R
+    	    |al>>=1; |RCL1(dl);     //G
+    	    |al>>=1; |RCL1(dh);     //I
+    	    |al>>=1; |RCL1(bl);     //B'
+    	    |al>>=1; |RCL1(bh);     //R'
+    	    |al>>=1; |rcl uDx.l;    //G'
+    	    |al>>=1; |rcl uDx.h;    //I'
+    	    |ah>>=1; |RCL1(cl);     //B
+    	    |ah>>=1; |RCL1(ch);     //R
+    	    |ah>>=1; |RCL1(dl);     //G
+    	    |ah>>=1; |RCL1(dh);     //I
+    	    |ah>>=1; |RCL1(bl);     //B'
+    	    |ah>>=1; |RCL1(bh);     //R'
+    	    |ah>>=1; |rcl uDx.l;    //G'
+    	    |ah>>=1; |rcl uDx.h;    //I'
+    	    rep.load.w ax,si
+    	    |al>>=1; |RCL1(cl);     //B
+    	    |al>>=1; |RCL1(ch);     //R
+    	    |al>>=1; |RCL1(dl);     //G
+    	    |al>>=1; |RCL1(dh);     //I
+    	    |al>>=1; |RCL1(bl);     //B'
+    	    |al>>=1; |RCL1(bh);     //R'
+    	    |al>>=1; |rcl uDx.l;    //G'
+    	    |al>>=1; |rcl uDx.h;    //I'
+    	    |ah>>=1; |RCL1(cl);     //B
+    	    |ah>>=1; |RCL1(ch);     //R
+    	    |ah>>=1; |RCL1(dl);     //G
+    	    |ah>>=1; |RCL1(dh);     //I
+    	    |ah>>=1; |RCL1(bl);     //B'
+    	    |ah>>=1; |RCL1(bh);     //R'
+    	    |ah>>=1; |rcl uDx.l;    //G'
+    	    |ah>>=1; |rcl uDx.h;    //I'
+    	    ax = xxvsize
+    	    b[es:di] = cl
+    	    di += ax
+    	    b[es:di] = ch
+    	    di += ax
+    	    b[es:di] = dl
+    	    di += ax
+    	    b[es:di] = dh
+    	    dx = uDx
+    	    di += ax
+    	    b[es:di] = bl
+    	    di += ax
+    	    b[es:di] = bh
+    	    di += ax
+    	    b[es:di] = dl
+    	    di += ax
+    	    b[es:di] = dh
+    	    di -= xb
+    	endloop (--cnt)
 
-		ds = datSeg
-		di = V.pgPtr
-		//if (di == 0);Pri.Fmt "es:di=%lx %d\t", es.di, bx;fi
+    	ds = datSeg
+    	di = V.pgPtr
+    	//if (di == 0);Pri.Fmt "es:di=%lx %d\t", es.di, bx;fi
 
-		//両端の調整
-		go (V.xmskFlg.l) XMSK
-		di += V.pgXsize
-		V.pgPtr = di
-	  XMSK_RET:
-	NEXT:
-		ds = datSeg
-		dx.ax = pixPtr0
-		go.w (V.l200flg && V.ycur & 0x0001) LOOP
-		//ax += V.xsize
-		//pixPtr0.l = ax
-	//endloop (--lincnt)
-	return
+    	//両端の調整
+    	go (V.xmskFlg.l) XMSK
+    	di += V.pgXsize
+    	V.pgPtr = di
+      XMSK_RET:
+    NEXT:
+    	ds = datSeg
+    	dx.ax = pixPtr0
+    	go.w (V.l200flg && V.ycur & 0x0001) LOOP
+    	//ax += V.xsize
+    	//pixPtr0.l = ax
+    //endloop (--lincnt)
+    return
 
   XMSK:
-		bx = xxvsize
-		bx -= 2 	//= V.xxvsize - 2
-		//B
-		al = b[es:di]
-		ah = V.xmskL.l
-		al &= ah//V.xmskL.l
-		com ah
-		ah &= V.bcolptn(0)	//4)
-		al |= ah
-		rep.set di,al
-		di += bx
-		al = b[es:di]
-		ah = V.xmskR.l
-		al &= ah//V.xmskR.l
-		com ah
-		ah &= V.bcolptn(0)	//4)
-		al |= ah
-		rep.set di,al
-		//R
-		al = b[es:di]
-		ah = V.xmskL.l
-		al &= ah//V.xmskL.l
-		com ah
-		ah &= V.bcolptn(1)	//5)
-		al |= ah
-		rep.set di,al
-		di += bx
-		al = b[es:di]
-		ah = V.xmskR.l
-		al &= ah//V.xmskR.l
-		com ah
-		ah &= V.bcolptn(1)	//5)
-		al |= ah
-		rep.set di,al
-		//G
-		al = b[es:di]
-		ah = V.xmskL.l
-		al &= ah//V.xmskL.l
-		com ah
-		ah &= V.bcolptn(2)	//6)
-		al |= ah
-		rep.set di,al
-		di += bx
-		al = b[es:di]
-		ah = V.xmskR.l
-		al &= ah//V.xmskR.l
-		com ah
-		ah &= V.bcolptn(2)	//6)
-		al |= ah
-		rep.set di,al
-		//E
-		al = b[es:di]
-		ah = V.xmskL.l
-		al &= ah//V.xmskL.l
-		com ah
-		ah &= V.bcolptn(3)	//7)
-		al |= ah
-		rep.set di,al
-		di += bx
-		al = b[es:di]
-		ah = V.xmskR.l
-		al &= ah//V.xmskR.l
-		com ah
-		ah &= V.bcolptn(3)	//7)
-		al |= ah
-		rep.set di,al
-		//B'
-		al = b[es:di]
-		ah = V.xmskL.l
-		al &= ah//V.xmskL.l
-		com ah
-		ah &= V.bcolptn(4)	//0)
-		al |= ah
-		rep.set di,al
-		di += bx
-		al = b[es:di]
-		ah = V.xmskR.l
-		al &= ah//V.xmskR.l
-		com ah
-		ah &= V.bcolptn(4)	//0)
-		al |= ah
-		rep.set di,al
-		//R'
-		al = b[es:di]
-		ah = V.xmskL.l
-		al &= ah//V.xmskL.l
-		com ah
-		ah &= V.bcolptn(5)	//1)
-		al |= ah
-		rep.set di,al
-		di += bx
-		al = b[es:di]
-		ah = V.xmskR.l
-		al &= ah//V.xmskR.l
-		com ah
-		ah &= V.bcolptn(5)	//1)
-		al |= ah
-		rep.set di,al
-		//G'
-		al = b[es:di]
-		ah = V.xmskL.l
-		al &= ah//V.xmskL.l
-		com ah
-		ah &= V.bcolptn(6)	//2)
-		al |= ah
-		rep.set di,al
-		di += bx
-		al = b[es:di]
-		ah = V.xmskR.l
-		al &= ah//V.xmskR.l
-		com ah
-		ah &= V.bcolptn(6)	//2)
-		al |= ah
-		rep.set di,al
-		//E'
-		al = b[es:di]
-		ah = V.xmskL.l
-		al &= ah//V.xmskL.l
-		com ah
-		ah &= V.bcolptn(7)	//3)
-		al |= ah
-		rep.set di,al
-		di += bx
-		al = b[es:di]
-		ah = V.xmskR.l
-		al &= ah//V.xmskR.l
-		com ah
-		ah &= V.bcolptn(7)	//3)
-		al |= ah
-		rep.set di,al
+    	bx = xxvsize
+    	bx -= 2     //= V.xxvsize - 2
+    	//B
+    	al = b[es:di]
+    	ah = V.xmskL.l
+    	al &= ah//V.xmskL.l
+    	com ah
+    	ah &= V.bcolptn(0)  //4)
+    	al |= ah
+    	rep.set di,al
+    	di += bx
+    	al = b[es:di]
+    	ah = V.xmskR.l
+    	al &= ah//V.xmskR.l
+    	com ah
+    	ah &= V.bcolptn(0)  //4)
+    	al |= ah
+    	rep.set di,al
+    	//R
+    	al = b[es:di]
+    	ah = V.xmskL.l
+    	al &= ah//V.xmskL.l
+    	com ah
+    	ah &= V.bcolptn(1)  //5)
+    	al |= ah
+    	rep.set di,al
+    	di += bx
+    	al = b[es:di]
+    	ah = V.xmskR.l
+    	al &= ah//V.xmskR.l
+    	com ah
+    	ah &= V.bcolptn(1)  //5)
+    	al |= ah
+    	rep.set di,al
+    	//G
+    	al = b[es:di]
+    	ah = V.xmskL.l
+    	al &= ah//V.xmskL.l
+    	com ah
+    	ah &= V.bcolptn(2)  //6)
+    	al |= ah
+    	rep.set di,al
+    	di += bx
+    	al = b[es:di]
+    	ah = V.xmskR.l
+    	al &= ah//V.xmskR.l
+    	com ah
+    	ah &= V.bcolptn(2)  //6)
+    	al |= ah
+    	rep.set di,al
+    	//E
+    	al = b[es:di]
+    	ah = V.xmskL.l
+    	al &= ah//V.xmskL.l
+    	com ah
+    	ah &= V.bcolptn(3)  //7)
+    	al |= ah
+    	rep.set di,al
+    	di += bx
+    	al = b[es:di]
+    	ah = V.xmskR.l
+    	al &= ah//V.xmskR.l
+    	com ah
+    	ah &= V.bcolptn(3)  //7)
+    	al |= ah
+    	rep.set di,al
+    	//B'
+    	al = b[es:di]
+    	ah = V.xmskL.l
+    	al &= ah//V.xmskL.l
+    	com ah
+    	ah &= V.bcolptn(4)  //0)
+    	al |= ah
+    	rep.set di,al
+    	di += bx
+    	al = b[es:di]
+    	ah = V.xmskR.l
+    	al &= ah//V.xmskR.l
+    	com ah
+    	ah &= V.bcolptn(4)  //0)
+    	al |= ah
+    	rep.set di,al
+    	//R'
+    	al = b[es:di]
+    	ah = V.xmskL.l
+    	al &= ah//V.xmskL.l
+    	com ah
+    	ah &= V.bcolptn(5)  //1)
+    	al |= ah
+    	rep.set di,al
+    	di += bx
+    	al = b[es:di]
+    	ah = V.xmskR.l
+    	al &= ah//V.xmskR.l
+    	com ah
+    	ah &= V.bcolptn(5)  //1)
+    	al |= ah
+    	rep.set di,al
+    	//G'
+    	al = b[es:di]
+    	ah = V.xmskL.l
+    	al &= ah//V.xmskL.l
+    	com ah
+    	ah &= V.bcolptn(6)  //2)
+    	al |= ah
+    	rep.set di,al
+    	di += bx
+    	al = b[es:di]
+    	ah = V.xmskR.l
+    	al &= ah//V.xmskR.l
+    	com ah
+    	ah &= V.bcolptn(6)  //2)
+    	al |= ah
+    	rep.set di,al
+    	//E'
+    	al = b[es:di]
+    	ah = V.xmskL.l
+    	al &= ah//V.xmskL.l
+    	com ah
+    	ah &= V.bcolptn(7)  //3)
+    	al |= ah
+    	rep.set di,al
+    	di += bx
+    	al = b[es:di]
+    	ah = V.xmskR.l
+    	al &= ah//V.xmskR.l
+    	com ah
+    	ah &= V.bcolptn(7)  //3)
+    	al |= ah
+    	rep.set di,al
 
-		//si = V.pgPtr
-		V.pgPtr = di
-		//if (si == 0);Pri.Fmt "es:di=%lx  %d %d\N", es.di,bx,V.xxvsize;fi
-	go.w XMSK_RET
+    	//si = V.pgPtr
+    	V.pgPtr = di
+    	//if (si == 0);Pri.Fmt "es:di=%lx  %d %d\N", es.di,bx,V.xxvsize;fi
+    go.w XMSK_RET
 endproc
 
 
@@ -2524,43 +2524,43 @@ endproc
 
 //-----------------------------------------------------------------------------
 
-*proc InitWl(vvSeg:w,mmSeg:w,mmSzs:w,emsHdl:w,emsSeg:w,emsCnt:w,			\
-			pln:w,xsz:w,ysz:w,xstart:w,ystart:w,pal:d,asp1:w,asp2:w,bcol:w, \
-			reductFlg:w,loopFlg:w\
-			)
-	cdecl
+*proc InitWl(vvSeg:w,mmSeg:w,mmSzs:w,emsHdl:w,emsSeg:w,emsCnt:w,    	    \
+    	    pln:w,xsz:w,ysz:w,xstart:w,ystart:w,pal:d,asp1:w,asp2:w,bcol:w, \
+    	    reductFlg:w,loopFlg:w\
+    	    )
+    cdecl
 enter
-	save bx,cx,dx,si,di,es,ds
-	ds = vvSeg
-	//wlFlg = 1
-	Vv.Init 2, vvSeg,mmSeg,mmSzs,emsHdl,emsSeg,emsCnt,pln,640,400,\
-			xsz,ysz,xstart,ystart,pal,asp1,asp2,bcol,reductFlg,loopFlg
-	V.overlayColor = 0
-	V.bcolptn(0) = al = 0
-	V.bcolptn(1) = al
-	V.bcolptn(2) = al
-	V.bcolptn(3) = al
-	V.bcolptn(4) = al
-	V.bcolptn(5) = al
-	V.bcolptn(6) = al
-	V.bcolptn(7) = al
-	ax = V.maxLine
-	return
+    save bx,cx,dx,si,di,es,ds
+    ds = vvSeg
+    //wlFlg = 1
+    Vv.Init 2, vvSeg,mmSeg,mmSzs,emsHdl,emsSeg,emsCnt,pln,640,400,\
+    	    xsz,ysz,xstart,ystart,pal,asp1,asp2,bcol,reductFlg,loopFlg
+    V.overlayColor = 0
+    V.bcolptn(0) = al = 0
+    V.bcolptn(1) = al
+    V.bcolptn(2) = al
+    V.bcolptn(3) = al
+    V.bcolptn(4) = al
+    V.bcolptn(5) = al
+    V.bcolptn(6) = al
+    V.bcolptn(7) = al
+    ax = V.maxLine
+    return
 endproc
 
 *proc Init(vvSeg:w,mmSeg:w,mmSzs:w,emsHdl:w,emsSeg:w,emsCnt:w,	\
-			pln:w,xsz:w,ysz:w,xstart:w,ystart:w,pal:d,asp1:w,asp2:w,bcol:w, \
-			reductFlg:w,loopFlg:w\
-			)
-	cdecl
+    	    pln:w,xsz:w,ysz:w,xstart:w,ystart:w,pal:d,asp1:w,asp2:w,bcol:w, \
+    	    reductFlg:w,loopFlg:w\
+    	    )
+    cdecl
 enter
-	save bx,cx,dx,si,di,es,ds
-	ds = vvSeg
-	Vv.Init 3, vvSeg,mmSeg,mmSzs,emsHdl,emsSeg,emsCnt,pln,640,400,\
-			xsz,ysz,xstart,ystart,pal,asp1,asp2,bcol,reductFlg,loopFlg
-	//wlFlg = 0
-	ax = V.maxLine
-	return
+    save bx,cx,dx,si,di,es,ds
+    ds = vvSeg
+    Vv.Init 3, vvSeg,mmSeg,mmSzs,emsHdl,emsSeg,emsCnt,pln,640,400,\
+    	    xsz,ysz,xstart,ystart,pal,asp1,asp2,bcol,reductFlg,loopFlg
+    //wlFlg = 0
+    ax = V.maxLine
+    return
 endproc
 
 //-----------------------------------------------------------------------------

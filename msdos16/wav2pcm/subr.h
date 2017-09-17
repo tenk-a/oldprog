@@ -1,5 +1,5 @@
 /*--------------------------------------------------------------------------*/
-/* サブルーチンいろいろ														*/
+/* サブルーチンいろいろ     	    	    	    	    	    	    */
 /*--------------------------------------------------------------------------*/
 
 #ifndef SUBR_H
@@ -17,18 +17,18 @@ char *StrDelLf(char *s);
 void *MemSearch(void *area0, int asiz, void *ptn0, int ptnlen);
 
 typedef struct slist_t {
-	struct slist_t	*link;
-	char			*s;
+    struct slist_t  *link;
+    char    	    *s;
 } slist_t;
 
 slist_t *slist_add(slist_t **root, char *s);
-void     slist_free(slist_t **root);
+void	 slist_free(slist_t **root);
 
 
 #if 0
 int Vsprintf(char *dst, const char *fmt, void *args);	/* なぜか、ターゲットのライブラリに vsprintfが存在しなかった場合の交代として */
 #endif
-unsigned long	crc32_calc(void *dat, int sz);			/* CCITT 32ビット CRC の計算 */
+unsigned long	crc32_calc(void *dat, int sz);	    	/* CCITT 32ビット CRC の計算 */
 
 
 /*--------------------------------------------------------------------------*/
@@ -50,13 +50,13 @@ void *mallocMaE(int sz, int minSz, int algn);
 extern int  FIL_sjisFlag;
 #define FIL_ISKANJI(c)	(FIL_sjisFlag && ISKANJI(c))
 
-int	  FIL_SetSjisMode(int sw);												// ファイル名はMS全角(SJIS)を対応する(1)か否(0)か
+int   FIL_SetSjisMode(int sw);	    	    	    	    	    	    // ファイル名はMS全角(SJIS)を対応する(1)か否(0)か
 char *FIL_BaseName(char *adr);
 char *FIL_ExtPtr(char *name);
 char *FIL_ChgExt(char filename[], char *ext);
 char *FIL_AddExt(char filename[], char *ext);
 char *FIL_DelLastDirSep(char *dir);
-int   FIL_Rename(char *oldname, char *newname);								// rename改. newname.bakを作成してから、変名
+int   FIL_Rename(char *oldname, char *newname);     	    	    	    // rename改. newname.bakを作成してから、変名
 char *FIL_DirNameDup(char *dir, char *name);
 char *FIL_DirNameDupE(char *dir, char *name);
 
@@ -83,8 +83,8 @@ int 	 FIL_TimeSet(char *dstname, FIL_TIME fdt);
 
 FILE *fopenE(char *name, char *mod);
 void fcloseE(FILE *fp);
-size_t  fwriteE(void *buf, size_t sz, size_t num, FILE *fp);
-size_t  freadE(void *buf, size_t sz, size_t num, FILE *fp);
+size_t	fwriteE(void *buf, size_t sz, size_t num, FILE *fp);
+size_t	freadE(void *buf, size_t sz, size_t num, FILE *fp);
 size_t	flength(FILE *fp);
 
 
@@ -114,9 +114,9 @@ int STBL_Search(void *tbl[], int nn, void *key);
 /*--------------------------------------------------------------------------*/
 /* 式計算 */
 
-int StrExpr(char *s_old, char **s_new, long *val);		/* 戻り値0:no error  !0:error */
+int StrExpr(char *s_old, char **s_new, long *val);  	/* 戻り値0:no error  !0:error */
 void StrExpr_SetNameChkFunc(int (*name2valFnc)(char *name, long *valp));
-	/* name2valFnc は、名前が渡され、正常なら0を返しその名前の値を *valpにいれる. 異常なら-1を返す関数を設定すること */
+    /* name2valFnc は、名前が渡され、正常なら0を返しその名前の値を *valpにいれる. 異常なら-1を返す関数を設定すること */
 
 
 
@@ -130,8 +130,8 @@ char *TXT1_GetsE(char *buf, int sz);
 void TXT1_Error(char *fmt, ...);
 void TXT1_ErrorE(char *fmt, ...);
 extern uint32	TXT1_line;
-extern char		TXT1_name[FIL_NMSZ];
-extern FILE		*TXT1_fp;
+extern char 	TXT1_name[FIL_NMSZ];
+extern FILE 	*TXT1_fp;
 
 
 

@@ -1,57 +1,57 @@
 module Tif
-	c_name "Tif","_",1
+    c_name "Tif","_",1
 
 *struct HDR
-	id:b(2)		//'II':値はインテル方式  'MM':値はモトローラ方式
-	ver:w		//バージョン(10で割った商)
-	IFDofs:d	//先頭からIFD までのオフセット。通常は８
+    id:b(2) 	//'II':値はインテル方式  'MM':値はモトローラ方式
+    ver:w   	//バージョン(10で割った商)
+    IFDofs:d	//先頭からIFD までのオフセット。通常は８
 endstruct
 
 *struct IFDTBL
-	cnt:w		//IFDの個数
-	top:b(0)	//最初のIFD(オフセットのため)
+    cnt:w   	//IFDの個数
+    top:b(0)	//最初のIFD(オフセットのため)
 endstruct
 
-*struct IFD		//12ﾊﾞｲﾄ
-	tag:w		//タグ		   0xFE～(0x140)
-	typ:w		//データの型   1:ﾊﾞｲﾄ型 2:ASCII文字列 3:16ﾋﾞｯﾄ整数 4:32ﾋﾞｯﾄ整数
-				//			   5:分数(分子DWORD/分母DWORD)
-	siz:d		//データの個数
-	val:d		//データのサイズが4バイト以上なら、オフセット.
+*struct IFD 	//12ﾊﾞｲﾄ
+    tag:w   	//タグ	       0xFE～(0x140)
+    typ:w   	//データの型   1:ﾊﾞｲﾄ型 2:ASCII文字列 3:16ﾋﾞｯﾄ整数 4:32ﾋﾞｯﾄ整数
+    	    	//  	       5:分数(分子DWORD/分母DWORD)
+    siz:d   	//データの個数
+    val:d   	//データのサイズが4バイト以上なら、オフセット.
 endstruct
 
 
 /*** IFD のタグ ***/
-*const T_End       = 0x00	//  終了ｺｰﾄﾞ
-*const T_SubFilTyp = 0xfe	//x 格納ﾋﾞｯﾄﾏｯﾌﾟの構成を保持	1:単一  2:複数
-*const T_ImgTyp    = 0xff	//  画像ﾃﾞｰﾀの種類			   *1: ﾌﾙ解像度ﾃﾞｰﾀ
-*const T_ImgWid    = 0x100	//  画像横ﾄﾞｯﾄ数
-*const T_ImgLen    = 0x101	//  画像縦ﾄﾞｯﾄ数
-*const T_BitPerPix = 0x102	//  1ﾋﾟｸｾﾙ当たりのﾋﾞｯﾄ数
-							//    1:2値 4:16色 8:256色 16:65536色 3*8:16777216色
-*const T_Comp      = 0x103	//  圧縮  *1:圧縮無し		2:Huffman法
-							//		3:CCITT FAX Group3	4:CCITT FAX Group4
-							//		5:LZW法				6:JPEG
-							//		32773:PackBits
-*const T_Photo     = 0x106	//  色ﾓｰﾄﾞ 0:2値(ﾃﾞｰﾀ0=白)			4:透明ﾏｽｸ
-							//	   *1:ﾚﾍﾞﾙで格納(ﾃﾞｰﾀ0=黒)		5:CMYKで格納
-							//		2:RGBで格納(ﾃﾞｰﾀ0,0,0=黒)	6:YCbCrで格納
-							//	   *3:ﾊﾟﾚｯﾄ有り					8:CIELabで格納
-*const T_Thresh    = 0x107	//x 閾値 1:そのまま 2:ｵｰﾀﾞｰﾄﾞ･ﾃﾞｨｻﾞ法 3:誤差拡散法
-*const T_FilOdr    = 0x10a	//  ﾌｨﾙｵｰﾀﾞ(16色時のﾃﾞｰﾀ格納順序)
-						 	//	1: 上位ﾆﾌﾞﾙが先		2:下位ﾆﾌﾞﾙが先
-*const T_StripOfs  = 0x111	//  画像ﾃﾞｰﾀへのｵﾌｾｯﾄ
-*const T_ImgPos	   = 0x112	//  画像ﾃﾞｰﾀの開始位置	*1:左上
-*const T_SmpPerPix = 0x115	//  1ﾋﾟｸｾﾙ当たりのｻﾝﾌﾟﾙ数
-*const T_RowPerStrp= 0x116	//x 画像当たりの縦ﾄﾞｯﾄ数
-*const T_StrpBytCnt= 0x117	//x 画像ﾃﾞｰﾀ本体のサイズ
-*const T_MinSmpVal = 0x118	//  1ﾋﾟｸｾﾙの最小ﾃﾞｰﾀ
-*const T_MaxSmpVal = 0x119	//  1ﾋﾟｸｾﾙの最大ﾃﾞｰﾀ	(色数-1)
-*const T_Xdpi	   = 0x11a	//x 横方向解像度(dpi)
-*const T_Ydpi	   = 0x11b	//x 縦方向解像度(dpi)
-*const T_PlnCfg	   = 0x11c	//  ｸﾞﾗﾌｨｯｸﾌﾟﾚｰﾝの状態 *1:ﾊﾟｯｸﾄﾞﾋﾟｸｾﾙ  2:ﾌﾟﾚｰﾝﾋﾟｸｾﾙ
-*const T_ResolUnit = 0x128	//  解像度値の単位  1:?  2:inch  3:cm
-*const T_PalOfs	   = 0x140	//  ﾊﾟﾚｯﾄﾃﾞｰﾀへのｵﾌｾｯﾄ
+*const T_End	   = 0x00   //	終了ｺｰﾄﾞ
+*const T_SubFilTyp = 0xfe   //x 格納ﾋﾞｯﾄﾏｯﾌﾟの構成を保持    1:単一  2:複数
+*const T_ImgTyp    = 0xff   //	画像ﾃﾞｰﾀの種類	    	   *1: ﾌﾙ解像度ﾃﾞｰﾀ
+*const T_ImgWid    = 0x100  //	画像横ﾄﾞｯﾄ数
+*const T_ImgLen    = 0x101  //	画像縦ﾄﾞｯﾄ数
+*const T_BitPerPix = 0x102  //	1ﾋﾟｸｾﾙ当たりのﾋﾞｯﾄ数
+    	    	    	    //	  1:2値 4:16色 8:256色 16:65536色 3*8:16777216色
+*const T_Comp	   = 0x103  //	圧縮  *1:圧縮無し   	2:Huffman法
+    	    	    	    //	    3:CCITT FAX Group3	4:CCITT FAX Group4
+    	    	    	    //	    5:LZW法 	    	6:JPEG
+    	    	    	    //	    32773:PackBits
+*const T_Photo	   = 0x106  //	色ﾓｰﾄﾞ 0:2値(ﾃﾞｰﾀ0=白)	    	4:透明ﾏｽｸ
+    	    	    	    //	   *1:ﾚﾍﾞﾙで格納(ﾃﾞｰﾀ0=黒)  	5:CMYKで格納
+    	    	    	    //	    2:RGBで格納(ﾃﾞｰﾀ0,0,0=黒)	6:YCbCrで格納
+    	    	    	    //	   *3:ﾊﾟﾚｯﾄ有り     	    	8:CIELabで格納
+*const T_Thresh    = 0x107  //x 閾値 1:そのまま 2:ｵｰﾀﾞｰﾄﾞ･ﾃﾞｨｻﾞ法 3:誤差拡散法
+*const T_FilOdr    = 0x10a  //	ﾌｨﾙｵｰﾀﾞ(16色時のﾃﾞｰﾀ格納順序)
+    	    	    	    //	1: 上位ﾆﾌﾞﾙが先     2:下位ﾆﾌﾞﾙが先
+*const T_StripOfs  = 0x111  //	画像ﾃﾞｰﾀへのｵﾌｾｯﾄ
+*const T_ImgPos    = 0x112  //	画像ﾃﾞｰﾀの開始位置  *1:左上
+*const T_SmpPerPix = 0x115  //	1ﾋﾟｸｾﾙ当たりのｻﾝﾌﾟﾙ数
+*const T_RowPerStrp= 0x116  //x 画像当たりの縦ﾄﾞｯﾄ数
+*const T_StrpBytCnt= 0x117  //x 画像ﾃﾞｰﾀ本体のサイズ
+*const T_MinSmpVal = 0x118  //	1ﾋﾟｸｾﾙの最小ﾃﾞｰﾀ
+*const T_MaxSmpVal = 0x119  //	1ﾋﾟｸｾﾙの最大ﾃﾞｰﾀ    (色数-1)
+*const T_Xdpi	   = 0x11a  //x 横方向解像度(dpi)
+*const T_Ydpi	   = 0x11b  //x 縦方向解像度(dpi)
+*const T_PlnCfg    = 0x11c  //	ｸﾞﾗﾌｨｯｸﾌﾟﾚｰﾝの状態 *1:ﾊﾟｯｸﾄﾞﾋﾟｸｾﾙ  2:ﾌﾟﾚｰﾝﾋﾟｸｾﾙ
+*const T_ResolUnit = 0x128  //	解像度値の単位	1:?  2:inch  3:cm
+*const T_PalOfs    = 0x140  //	ﾊﾟﾚｯﾄﾃﾞｰﾀへのｵﾌｾｯﾄ
 
 /* IFDのデータ型 */
 *const TT_B = 1, TT_A	= 2, TT_W = 3, TT_D = 4, TT_F = 5
@@ -59,14 +59,14 @@ endstruct
 //
 @if 0
 *struct R
-	filOdr:w
-	ver:w
-	pdataOfs:w
-	palOfs:w
+    filOdr:w
+    ver:w
+    pdataOfs:w
+    palOfs:w
 endstruct
 
 *struct W
-	filOdr:w
+    filOdr:w
 endstruct
 @fi
 

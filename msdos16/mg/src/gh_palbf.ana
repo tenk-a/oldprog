@@ -1,128 +1,128 @@
 submodule GH
-	import Subr
-	import Pri
+    import Subr
+    import Pri
 
-@define	GHT()	GH.T[ds:0]
+@define GHT()	GH.T[ds:0]
 
 cvar dfltPal:b(48) = data
-	b 0x00,0x00,0x00
-	b 0x00,0x00,0xFF
-	b 0xFF,0x00,0x00
-	b 0xFF,0x00,0xFF
-	b 0x00,0xFF,0x00
-	b 0x00,0xFF,0xFF
-	b 0xFF,0xFF,0x00
-	b 0xFF,0xFF,0xFF
-	b 0x00,0x00,0x00
-	b 0x00,0x00,0xFF
-	b 0xFF,0x00,0x00
-	b 0xFF,0x00,0xFF
-	b 0x00,0xFF,0x00
-	b 0x00,0xFF,0xFF
-	b 0xFF,0xFF,0x00
-	b 0xFF,0xFF,0xFF
+    b 0x00,0x00,0x00
+    b 0x00,0x00,0xFF
+    b 0xFF,0x00,0x00
+    b 0xFF,0x00,0xFF
+    b 0x00,0xFF,0x00
+    b 0x00,0xFF,0xFF
+    b 0xFF,0xFF,0x00
+    b 0xFF,0xFF,0xFF
+    b 0x00,0x00,0x00
+    b 0x00,0x00,0xFF
+    b 0xFF,0x00,0x00
+    b 0xFF,0x00,0xFF
+    b 0x00,0xFF,0x00
+    b 0x00,0xFF,0xFF
+    b 0xFF,0xFF,0x00
+    b 0xFF,0xFF,0xFF
 enddata
 
 *proc SetMonoPal(ght:d);cdecl
-	//デフォルト・パレットをモノクロ階調にする
+    //デフォルト・パレットをモノクロ階調にする
 enter
-	save pusha, es, ds
-	
-	ds.bx = ght
-	es.di = GHT.rgbPal
-	if (GHT.pln == 4)
-		cx = 16
-		ax = 0
-		loop
-			al = ah
-			al <<= 4
-			al |= ah
-			rep.set di,al
-			rep.set di,al
-			rep.set di,al
-			ah += 1
-		endloop (--cx)
-	else
-		cx = 256
-		ax = 0
-		loop
-			rep.set di,al
-			rep.set di,al
-			rep.set di,al
-			ax += 1
-		endloop (--cx)
-	fi
-	return
+    save pusha, es, ds
+
+    ds.bx = ght
+    es.di = GHT.rgbPal
+    if (GHT.pln == 4)
+    	cx = 16
+    	ax = 0
+    	loop
+    	    al = ah
+    	    al <<= 4
+    	    al |= ah
+    	    rep.set di,al
+    	    rep.set di,al
+    	    rep.set di,al
+    	    ah += 1
+    	endloop (--cx)
+    else
+    	cx = 256
+    	ax = 0
+    	loop
+    	    rep.set di,al
+    	    rep.set di,al
+    	    rep.set di,al
+    	    ax += 1
+    	endloop (--cx)
+    fi
+    return
 endproc
 
 *proc SetDigPal(GHTptr:d);cdecl
-	//パレットをデジタル8色・パレットにする
+    //パレットをデジタル8色・パレットにする
 enter
-	save pusha, es, ds
+    save pusha, es, ds
 
-	ds.bx = GHTptr
-	es.di = GHT.rgbPal
-	if (GHT.pln != 8)
-		cx = 48
-		push ds
-			ds = cs
-			rep.cpy di, &dfltPal, cx
-		pop  ds
-	else
-		dh = 0
-		loop	//G
-			dl = 0
-			loop	//R
-				ah = 0
-				loop	//B
-					al = dl; if (al); al |= 0x1f; fi	//R
-					rep.set di,al
-					al = dh; if (al); al |= 0x1f; fi	//G
-					rep.set di,al
-					al = ah; if (al); al |= 0x3f; fi	//B
-					rep.set di,al
-					ah += 64
-				endloop (ah)
-				dl += 32
-			endloop (dl)
-			dh += 32
-		endloop(dh)
-	fi
-	return
+    ds.bx = GHTptr
+    es.di = GHT.rgbPal
+    if (GHT.pln != 8)
+    	cx = 48
+    	push ds
+    	    ds = cs
+    	    rep.cpy di, &dfltPal, cx
+    	pop  ds
+    else
+    	dh = 0
+    	loop	//G
+    	    dl = 0
+    	    loop    //R
+    	    	ah = 0
+    	    	loop	//B
+    	    	    al = dl; if (al); al |= 0x1f; fi	//R
+    	    	    rep.set di,al
+    	    	    al = dh; if (al); al |= 0x1f; fi	//G
+    	    	    rep.set di,al
+    	    	    al = ah; if (al); al |= 0x3f; fi	//B
+    	    	    rep.set di,al
+    	    	    ah += 64
+    	    	endloop (ah)
+    	    	dl += 32
+    	    endloop (dl)
+    	    dh += 32
+    	endloop(dh)
+    fi
+    return
 endproc
 
 cvar dfltPalFlg:w = 0
 
 *proc Df_DfltPalMode (flg:w);cdecl
-	//1:デフォルト・パレットをモノクロ階調にする
+    //1:デフォルト・パレットをモノクロ階調にする
 enter
-	save ax
-	dfltPalFlg = ax = flg
-	return
+    save ax
+    dfltPalFlg = ax = flg
+    return
 endproc
 
 *proc GetPalBuf(bx)
 enter
-	save pusha, es,ds
-	//if (GHT.pln == 4)
-	//	cx = 48 >> 4
-	//	ax = 16 * 3
-	//else
-		ax = 256 * 3
-		cx = (3 * 256) >> 4
-	//fi
-	GHT.rgbPalSiz = ax
-	ax = cx
-	GH.GetMem bx, ax, cx
-	GHT.rgbPal = ww(ax,0)
-	es.di = GHT.rgbPal		//
-	rep.set.w di,0,(3*256)/2	//
-	if (dfltPalFlg == 0)
-		SetDigPal ds.bx
-	else
-		SetMonoPal ds.bx
-	fi
-	return
+    save pusha, es,ds
+    //if (GHT.pln == 4)
+    //	cx = 48 >> 4
+    //	ax = 16 * 3
+    //else
+    	ax = 256 * 3
+    	cx = (3 * 256) >> 4
+    //fi
+    GHT.rgbPalSiz = ax
+    ax = cx
+    GH.GetMem bx, ax, cx
+    GHT.rgbPal = ww(ax,0)
+    es.di = GHT.rgbPal	    //
+    rep.set.w di,0,(3*256)/2	//
+    if (dfltPalFlg == 0)
+    	SetDigPal ds.bx
+    else
+    	SetMonoPal ds.bx
+    fi
+    return
 endproc
 
 endmodule

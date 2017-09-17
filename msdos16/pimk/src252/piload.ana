@@ -1,13 +1,13 @@
 /*
-	Pi 展開
-		writen by M.Kitamura(Tenk*)
-		1993/12/11
+    Pi 展開
+    	writen by M.Kitamura(Tenk*)
+    	1993/12/11
  */
 module PI
-	c_name "PI","_",1
-	import Std
-	import Dos
-	//import Pri
+    c_name "PI","_",1
+    import Std
+    import Dos
+    //import Pri
 
 //@define DEBUG() 1
 
@@ -20,54 +20,54 @@ module PI
 @define PIT()	PI.T[ds:0]
 
 *struct T
-	//dummy:b(16)		// セグメント境界調整用
-	/*-------------*/
-	pln:w				// 色のビット数(4 or 8)
-	xsize:w				// 横幅(ドット)
-	ysize:w				// 縦幅(ドット)
-	xstart:w			// 始点x
-	ystart:w			// 始点y
-	aspect1:w			// アスペクト比x
-	aspect2:w			// アスペクト比y
-	overlayColor:w		// 透明色
-	color:w				// パレットの使用個数
-	palBit:w			// パレットのビット数
-	exSize:w			// pi拡張領域サイズ
-	dfltPalFlg:w		// piデフォルトパレットフラグ
-	loopMode:w			// piループモード(pimkの実験/隠しTAG)
-	filHdl:w			// ファイル・ハンドル
-	saverName:b(4+2)	// 機種名
-	artist:b(18+2)		// 作者名
-	/*-------------*/
-	putLin:d			// 出力手続きのアドレス
-	putLinDt:d			// 出力手続きへわたすデータ
-	pixStart:w			// ピクセルバッファ中の解凍開始位置
-	pixEnd:w			//                         終了位置
-	pixHisSrc:w			// バッファ更新でヒストリバッファへのコピー元
-	pixHisSiz:w			// ヒストリ・サイズ
-	ymax:w				// 展開する最大行数
-	/*-------------*/
-	readPtr:w			// 読み込みバッファ中のポインタ
-	ofs:w				// 比較点への相対位置
-	ofs1:w
-	ofs2:w
-	ofs3:w
-	//ofs4:w
-	readColor:w			// 色データ展開ルーチンへのポインタ
-	pixBlkCnt:w			// 展開バッファ関係
-	pixBlkLin:w
-	pixEndLin:w
-	/*-------------*/
-	dummy2:b( 256 /* -16*/ - (14*2+6+20) - (2*4+5*2) - (9*2) )
-	/*-------------*/
-	palette:b(256*3)
-	fileName:b(254+2)
-	comment:b(COMMENT_SIZE+2)
-	/*--------------------------------------------------------*/
-	colorTable:b(16*16)
-	/*------------------------- ここまでで 4Kバイト ---*/
-	pixBuf:b(PIXBUF_SIZE)
-	readBuffer:b(READBUFFER_SIZE)
+    //dummy:b(16)   	// セグメント境界調整用
+    /*-------------*/
+    pln:w   	    	// 色のビット数(4 or 8)
+    xsize:w 	    	// 横幅(ドット)
+    ysize:w 	    	// 縦幅(ドット)
+    xstart:w	    	// 始点x
+    ystart:w	    	// 始点y
+    aspect1:w	    	// アスペクト比x
+    aspect2:w	    	// アスペクト比y
+    overlayColor:w  	// 透明色
+    color:w 	    	// パレットの使用個数
+    palBit:w	    	// パレットのビット数
+    exSize:w	    	// pi拡張領域サイズ
+    dfltPalFlg:w    	// piデフォルトパレットフラグ
+    loopMode:w	    	// piループモード(pimkの実験/隠しTAG)
+    filHdl:w	    	// ファイル・ハンドル
+    saverName:b(4+2)	// 機種名
+    artist:b(18+2)  	// 作者名
+    /*-------------*/
+    putLin:d	    	// 出力手続きのアドレス
+    putLinDt:d	    	// 出力手続きへわたすデータ
+    pixStart:w	    	// ピクセルバッファ中の解凍開始位置
+    pixEnd:w	    	//  	    	    	   終了位置
+    pixHisSrc:w     	// バッファ更新でヒストリバッファへのコピー元
+    pixHisSiz:w     	// ヒストリ・サイズ
+    ymax:w  	    	// 展開する最大行数
+    /*-------------*/
+    readPtr:w	    	// 読み込みバッファ中のポインタ
+    ofs:w   	    	// 比較点への相対位置
+    ofs1:w
+    ofs2:w
+    ofs3:w
+    //ofs4:w
+    readColor:w     	// 色データ展開ルーチンへのポインタ
+    pixBlkCnt:w     	// 展開バッファ関係
+    pixBlkLin:w
+    pixEndLin:w
+    /*-------------*/
+    dummy2:b( 256 /* -16*/ - (14*2+6+20) - (2*4+5*2) - (9*2) )
+    /*-------------*/
+    palette:b(256*3)
+    fileName:b(254+2)
+    comment:b(COMMENT_SIZE+2)
+    /*--------------------------------------------------------*/
+    colorTable:b(16*16)
+    /*------------------------- ここまでで 4Kバイト ---*/
+    pixBuf:b(PIXBUF_SIZE)
+    readBuffer:b(READBUFFER_SIZE)
 endstruct
 
 *const RDBUF_END = %PI.T.readBuffer + READBUFFER_SIZE
@@ -77,88 +77,88 @@ endstruct
 cvar sav_sp:w
 
 proc Exit(ax)
-	far
-	// Pi_Load,Pi_Open 終了
-	// dx.ax 復帰コード
-	//	0:正常
-	//	1:読み込みエラー
-	//	2:データを読み込みすぎた
-	//	3:横幅が 2以下または 大きすぎる
-	//	4:PRGERR:256色画の読み込みなのに色表バッファが確保されてない
+    far
+    // Pi_Load,Pi_Open 終了
+    // dx.ax 復帰コード
+    //	0:正常
+    //	1:読み込みエラー
+    //	2:データを読み込みすぎた
+    //	3:横幅が 2以下または 大きすぎる
+    //	4:PRGERR:256色画の読み込みなのに色表バッファが確保されてない
 begin
-	intr.off
-	sp = sav_sp
-	intr.on
+    intr.off
+    sp = sav_sp
+    intr.on
 
-	dx = 0
+    dx = 0
 
-	pop bp
-	pop es
-	pop ds
-	pop di
-	pop si
-	pop bx
-	pop cx
-	return
+    pop bp
+    pop es
+    pop ds
+    pop di
+    pop si
+    pop bx
+    pop cx
+    return
 endproc
 
 proc ReadBuf(si)
-//	ファイルよりデータを読み込む
-//	in	ds
-//	out si
+//  ファイルよりデータを読み込む
+//  in	ds
+//  out si
 begin
-	save ax,bx,cx,dx
+    save ax,bx,cx,dx
 
-	si = %PI.T.readBuffer
-	PIT.readPtr = si
-	Dos.Read PIT.filHdl, si, PI.READBUFFER_SIZE
-	if (cf)
-		ax = 1
-		jmp Exit
-	fi
-	if (ax == 0)
-		//Pri.Fmt "読み込みでエラーが発生したよお(T^T)\n"
-		//Dos.Exit 1
-		ax = 2
-		jmp Exit
-	fi
-	return
+    si = %PI.T.readBuffer
+    PIT.readPtr = si
+    Dos.Read PIT.filHdl, si, PI.READBUFFER_SIZE
+    if (cf)
+    	ax = 1
+    	jmp Exit
+    fi
+    if (ax == 0)
+    	//Pri.Fmt "読み込みでエラーが発生したよお(T^T)\n"
+    	//Dos.Exit 1
+    	ax = 2
+    	jmp Exit
+    fi
+    return
 endproc
 
 proc ReadB(si)
 begin
-	if (si == PI.RDBUF_END-1)
-		ReadBuf si
-	fi
-	rep.load al,si
-	return
+    if (si == PI.RDBUF_END-1)
+    	ReadBuf si
+    fi
+    rep.load al,si
+    return
 endproc
 
 proc ReadW_sub(si)
-	// out si,ax
+    // out si,ax
 begin
-	if (si == PI.RDBUF_END-2)
-		ax = w[si]
-		ah <=> al
-		ReadBuf si
-	else
-		ah = b[si]
-		ReadBuf si
-		al = b[si]
-		++si
-	fi
-	return
+    if (si == PI.RDBUF_END-2)
+    	ax = w[si]
+    	ah <=> al
+    	ReadBuf si
+    else
+    	ah = b[si]
+    	ReadBuf si
+    	al = b[si]
+    	++si
+    fi
+    return
 endproc
 
 proc ReadW(si)
 begin
-	if (si < PI.RDBUF_END-2);
-		rep.load.w ax,si;
-	else;
-		ReadW_sub si;
-	fi;
-	ah<=>al
-	return
+    if (si < PI.RDBUF_END-2);
+    	rep.load.w ax,si;
+    else;
+    	ReadW_sub si;
+    fi;
+    ah<=>al
+    return
 endproc
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -169,1151 +169,1151 @@ cvar apicgFlg:w = 1
 cvar c256bufSeg:w = 0
 
 *proc SetExAreaFlg (flg:w)
-	cdecl
-	//far
+    cdecl
+    //far
 enter
-	save ax
-	exAreaFlg = ax = flg
-	return
+    save ax
+    exAreaFlg = ax = flg
+    return
 endproc
 
 *proc SetUserLineFlg (flg:w)
-	cdecl
-	//far
+    cdecl
+    //far
 enter
-	save ax
-	userLinFlg = ax = flg
-	return
+    save ax
+    userLinFlg = ax = flg
+    return
 endproc
 
 *proc SetApicgFlg(flg:w)
-	cdecl
-	//far
+    cdecl
+    //far
 enter
-	save ax
-	apicgFlg = ax = flg
-	return
+    save ax
+    apicgFlg = ax = flg
+    return
 endproc
 
 @if 0
 *proc SetC256buf(bufSeg:w)
-	cdecl
-	far
+    cdecl
+    far
  /* 256色展開時に必要な64Kﾊﾞｲﾄ色表のﾒﾓﾘを指定.
-	ﾒﾓﾘは事前に確保すること. PI_Load を実行する前に設定すること.
-	ret ax:error no
+    ﾒﾓﾘは事前に確保すること. PI_Load を実行する前に設定すること.
+    ret ax:error no
   */
 enter
-	save ax
-	c256bufSeg = ax = bufSeg
-	return
+    save ax
+    c256bufSeg = ax = bufSeg
+    return
 endproc
 @endif
 
 proc StrCpy(es.di,si)
-//	arg es.di	コピー先
-//	arg si		コピー元
+//  arg es.di	コピー先
+//  arg si  	コピー元
 begin
-	save ax,cx,si,di,es
+    save ax,cx,si,di,es
 
-	push es,di
-	es = cx = ds
-	di = si
-	cx = 0xffff
-	al = 0
-	repn.scan di,al,cx
-	++cx
-	com cx
-	++cx
-	pop es,di
+    push es,di
+    es = cx = ds
+    di = si
+    cx = 0xffff
+    al = 0
+    repn.scan di,al,cx
+    ++cx
+    com cx
+    ++cx
+    pop es,di
 
-	rep.cpy   di,si,cx
-	//--di
-	return
+    rep.cpy   di,si,cx
+    //--di
+    return
 endproc
 
 proc GetUserName()
-//	in	ds,es
+//  in	ds,es
 enter
-	save pusha
-	cvar user:b() = "User:"
+    save pusha
+    cvar user:b() = "User:"
 
-	di = %PI.T.comment
-	go.w (b[di] == '\0') RET
-	//go (userLinFlg) J1
-	push ds
-		ds = cs
-		rep.cmp di,&user,5
-	|pop ds
-	if (==)
+    di = %PI.T.comment
+    go.w (b[di] == '\0') RET
+    //go (userLinFlg) J1
+    push ds
+    	ds = cs
+    	rep.cmp di,&user,5
+    |pop ds
+    if (==)
   J1:
-		si = di
-		di = %PI.T.artist
-		cx = 0
-		loop
-			rep.load al,si
-			exit(al == '\0'|| al == 0x1a|| al == '\r'|| al == '\n')
-			next (cx >= 31)
-			rep.set  di,al
-			++cx
-		endloop
-		if (al == '\r' && b[si] == '\n')
-			++si
-		fi
-		if (al == '\0')
-			--si
-		fi
-		rep.set di,'\0'
-		di = %PI.T.comment
-		
-		StrCpy es.di, si
-	fi
+    	si = di
+    	di = %PI.T.artist
+    	cx = 0
+    	loop
+    	    rep.load al,si
+    	    exit(al == '\0'|| al == 0x1a|| al == '\r'|| al == '\n')
+    	    next (cx >= 31)
+    	    rep.set  di,al
+    	    ++cx
+    	endloop
+    	if (al == '\r' && b[si] == '\n')
+    	    ++si
+    	fi
+    	if (al == '\0')
+    	    --si
+    	fi
+    	rep.set di,'\0'
+    	di = %PI.T.comment
+
+    	StrCpy es.di, si
+    fi
  RET:
-	return
+    return
 endproc
 
 proc GetExData(si,cx)
-	// in ds,es
-	// break ax,bx,cx,dx,di
+    // in ds,es
+    // break ax,bx,cx,dx,di
 begin
-	loop.w (cx >= 5)
-		--cx
-		ReadB si
-		if (al == 0x01) /* 始点 */
-			ReadW si;	PIT.xstart = ax
-			ReadW si;	PIT.ystart = ax
-			cx -= 4
-		elsif (al == 0x02)	/* 透明色 */
-			ReadW si
-			ReadW si
-			++ax
-			PIT.overlayColor = ax
-			cx -= 4
-		elsif (al == 0x03)	/* パレットの有効ビット数 */
-			ReadW si
-			ReadW si
-			PIT.palBit = ax
-			cx -= 4
-		elsif (al == 0x04)	/* パレットの使用個数 */
-			ReadW si
-			ReadW si
-			PIT.color = ax
-			cx -= 4
-		elsif (al <= 0x1f)
-			ReadW si
-			ReadW si
-			cx -= 4
-		elsif (al == 'A' && apicgFlg)	//APICG(X68K)でセーブされた PI対策
-			di = %PI.T.artist
-			dx = 0
-			loop
-				ReadB si
-				--cx
-				exit (al == 0)
-				rep.set di,al
-				++dx
-			endloop (dx<18 && cx)
-			rep.set di,0
-		elsif (Std.IsAlpha(al))
-			exit (cx < 5)
-			bh = al
-			ReadB si	//TAG 2
-			bl = al
-			ReadW si	//TAG 3,4
-			dx = ax
-			ReadW si	//ax=ｻｲｽﾞ
-			cx -= 5
-			exit (cx == 0 || ax > cx)
-			cx -= ax
-			if (ax == 1 && bx == 'l'*0x100+'o' && dx == 'o'*0x100+'p')
-				//ループ画像
-				dx.ax = d[ds:%PI.T.saverName]
-				if (ax == 'M' + 'G'*0x100 && dx == ' '+' '*0x100)
-					ReadB si
-					PIT.loopMode = ax
-				fi
-			else
-				if (ax)
-					dx = ax
-					loop
-						ReadB si
-					endloop (--dx)
-				fi
-			fi
-		else
-			exit
-		fi
-	endloop
-	return
+    loop.w (cx >= 5)
+    	--cx
+    	ReadB si
+    	if (al == 0x01) /* 始点 */
+    	    ReadW si;	PIT.xstart = ax
+    	    ReadW si;	PIT.ystart = ax
+    	    cx -= 4
+    	elsif (al == 0x02)  /* 透明色 */
+    	    ReadW si
+    	    ReadW si
+    	    ++ax
+    	    PIT.overlayColor = ax
+    	    cx -= 4
+    	elsif (al == 0x03)  /* パレットの有効ビット数 */
+    	    ReadW si
+    	    ReadW si
+    	    PIT.palBit = ax
+    	    cx -= 4
+    	elsif (al == 0x04)  /* パレットの使用個数 */
+    	    ReadW si
+    	    ReadW si
+    	    PIT.color = ax
+    	    cx -= 4
+    	elsif (al <= 0x1f)
+    	    ReadW si
+    	    ReadW si
+    	    cx -= 4
+    	elsif (al == 'A' && apicgFlg)	//APICG(X68K)でセーブされた PI対策
+    	    di = %PI.T.artist
+    	    dx = 0
+    	    loop
+    	    	ReadB si
+    	    	--cx
+    	    	exit (al == 0)
+    	    	rep.set di,al
+    	    	++dx
+    	    endloop (dx<18 && cx)
+    	    rep.set di,0
+    	elsif (Std.IsAlpha(al))
+    	    exit (cx < 5)
+    	    bh = al
+    	    ReadB si	//TAG 2
+    	    bl = al
+    	    ReadW si	//TAG 3,4
+    	    dx = ax
+    	    ReadW si	//ax=ｻｲｽﾞ
+    	    cx -= 5
+    	    exit (cx == 0 || ax > cx)
+    	    cx -= ax
+    	    if (ax == 1 && bx == 'l'*0x100+'o' && dx == 'o'*0x100+'p')
+    	    	//ループ画像
+    	    	dx.ax = d[ds:%PI.T.saverName]
+    	    	if (ax == 'M' + 'G'*0x100 && dx == ' '+' '*0x100)
+    	    	    ReadB si
+    	    	    PIT.loopMode = ax
+    	    	fi
+    	    else
+    	    	if (ax)
+    	    	    dx = ax
+    	    	    loop
+    	    	    	ReadB si
+    	    	    endloop (--dx)
+    	    	fi
+    	    fi
+    	else
+    	    exit
+    	fi
+    endloop
+    return
 endproc
 
 proc GetPal(al,si,di)
 begin
-	save ax,bx,cx,dx
-	cvar dfltPalRGB:b(16*3) = data	// 省略時の16色パレット
-		b	   0,	0,	 0
-		b	   0,	0,0x70
-		b	0x70,	0,	 0
-		b	0x70,	0,0x70
-		b	   0,0x70,	 0
-		b	   0,0x70,0x70
-		b	0x70,0x70,	 0
-		b	0x70,0x70,0x70
-		b	   0,	0,	 0
-		b	   0,	0,0xf0
-		b	0xf0,	0,	 0
-		b	0xf0,	0,0xf0
-		b	   0,0xf0,	 0
-		b	   0,0xf0,0xf0
-		b	0xf0,0xf0,	 0
-		b	0xf0,0xf0,0xf0
-	enddata
+    save ax,bx,cx,dx
+    cvar dfltPalRGB:b(16*3) = data  // 省略時の16色パレット
+    	b      0,   0,	 0
+    	b      0,   0,0x70
+    	b   0x70,   0,	 0
+    	b   0x70,   0,0x70
+    	b      0,0x70,	 0
+    	b      0,0x70,0x70
+    	b   0x70,0x70,	 0
+    	b   0x70,0x70,0x70
+    	b      0,   0,	 0
+    	b      0,   0,0xf0
+    	b   0xf0,   0,	 0
+    	b   0xf0,   0,0xf0
+    	b      0,0xf0,	 0
+    	b      0,0xf0,0xf0
+    	b   0xf0,0xf0,	 0
+    	b   0xf0,0xf0,0xf0
+    enddata
 
-	di = %PI.T.palette
-	if (PIT.pln != 8)
-		if (al)
-			push ds,si
-				ds = cs
-				si = &dfltPalRGB
-				rep.cpy.w di,si,48/2
-			pop  ds,si
-		else
-			ah = 16*3
-			loop
-				ReadB si
-				rep.set di,al
-			endloop (--ah)
-		fi
-		push ds
-			ds = cs
-			rep.set.w di,0,(256*3-16*3)/2
-		pop  ds
-	else
-		if (al)
-			push si
-			dh = 0
-			loop	//G
-				dl = 0
-				loop	//R
-					ah = 0
-					loop	//B
-						al = dl; if (al); al |= 0x1f; fi	//R
-						rep.set di,al
-						al = dh; if (al); al |= 0x1f; fi	//G
-						rep.set di,al
-						al = ah; if (al); al |= 0x3f; fi	//B
-						rep.set di,al
-						ah += 64
-					endloop (ah)
-					dl += 32
-				endloop (dl)
-				dh += 32
-			endloop(dh)
-			pop si
-		else
-			cx = 256
-			loop
-				ReadB si
-				rep.set di,al
-				ReadB si
-				rep.set di,al
-				ReadB si
-				rep.set di,al
-			endloop (--cx)
-		fi
-	fi
-	return
+    di = %PI.T.palette
+    if (PIT.pln != 8)
+    	if (al)
+    	    push ds,si
+    	    	ds = cs
+    	    	si = &dfltPalRGB
+    	    	rep.cpy.w di,si,48/2
+    	    pop  ds,si
+    	else
+    	    ah = 16*3
+    	    loop
+    	    	ReadB si
+    	    	rep.set di,al
+    	    endloop (--ah)
+    	fi
+    	push ds
+    	    ds = cs
+    	    rep.set.w di,0,(256*3-16*3)/2
+    	pop  ds
+    else
+    	if (al)
+    	    push si
+    	    dh = 0
+    	    loop    //G
+    	    	dl = 0
+    	    	loop	//R
+    	    	    ah = 0
+    	    	    loop    //B
+    	    	    	al = dl; if (al); al |= 0x1f; fi    //R
+    	    	    	rep.set di,al
+    	    	    	al = dh; if (al); al |= 0x1f; fi    //G
+    	    	    	rep.set di,al
+    	    	    	al = ah; if (al); al |= 0x3f; fi    //B
+    	    	    	rep.set di,al
+    	    	    	ah += 64
+    	    	    endloop (ah)
+    	    	    dl += 32
+    	    	endloop (dl)
+    	    	dh += 32
+    	    endloop(dh)
+    	    pop si
+    	else
+    	    cx = 256
+    	    loop
+    	    	ReadB si
+    	    	rep.set di,al
+    	    	ReadB si
+    	    	rep.set di,al
+    	    	ReadB si
+    	    	rep.set di,al
+    	    endloop (--cx)
+    	fi
+    fi
+    return
 endproc
 
 *proc Open(piPtr:d, fileName:d);cdecl ;far
-	//fileNameをopen して、ヘッダを読み込む. piPtr で使用するメモリを指定.
-	//ﾒﾓﾘは呼び出し側で事前に確保しておくこと.
-	//必要ﾒﾓﾘは64Kﾊﾞｲﾄ.
-	//256色画のﾛｰﾄﾞではさらに64Kﾊﾞｲﾄ確保してPI_SetC256bufで設定する必要がある
-	//ret dx.ax:構造体へのポインタ(ｵﾌｾｯﾄ0) ｾｸﾞﾒﾝﾄが0ならｴﾗｰ(ｵﾌｾｯﾄ値がｴﾗｰNo)
+    //fileNameをopen して、ヘッダを読み込む. piPtr で使用するメモリを指定.
+    //ﾒﾓﾘは呼び出し側で事前に確保しておくこと.
+    //必要ﾒﾓﾘは64Kﾊﾞｲﾄ.
+    //256色画のﾛｰﾄﾞではさらに64Kﾊﾞｲﾄ確保してPI_SetC256bufで設定する必要がある
+    //ret dx.ax:構造体へのポインタ(ｵﾌｾｯﾄ0) ｾｸﾞﾒﾝﾄが0ならｴﾗｰ(ｵﾌｾｯﾄ値がｴﾗｰNo)
 enter
-	save bx,cx,si,di,es,ds
+    save bx,cx,si,di,es,ds
 
-	// 設定
-	rep.inc
-	sav_sp = sp
-	
-	bx.ax = piPtr
-	piPtr = 0
-	Std.FpToHp bx,ax,cx
-	go.w (bx == 0 && ax == 0) RTS
-	if (ax)
-		++bx
-	fi
-	ax = 0
-	piPtr = bx.ax
-	es = bx
-	//ds = bx
+    // 設定
+    rep.inc
+    sav_sp = sp
 
-	rep.set.w 0, 0x0000, %PI.T.dummy2
+    bx.ax = piPtr
+    piPtr = 0
+    Std.FpToHp bx,ax,cx
+    go.w (bx == 0 && ax == 0) RTS
+    if (ax)
+    	++bx
+    fi
+    ax = 0
+    piPtr = bx.ax
+    es = bx
+    //ds = bx
 
-	// ファイル名コピー
-	ds.si = fileName
-	di = %PI.T.fileName
-	StrCpy es.di, si
+    rep.set.w 0, 0x0000, %PI.T.dummy2
+
+    // ファイル名コピー
+    ds.si = fileName
+    di = %PI.T.fileName
+    StrCpy es.di, si
 //Pri.Fmt "%Fs:%Fs\n", fileName, ww(es,%PI.T.fileName)
-	//ファイル・オープン
-	ds = bx
-	Dos.Open %PI.T.fileName, 0x00
-	go.w (cf) ERR
-	PIT.filHdl = ax
+    //ファイル・オープン
+    ds = bx
+    Dos.Open %PI.T.fileName, 0x00
+    go.w (cf) ERR
+    PIT.filHdl = ax
 
-	//バッファ読み込み
-	ReadBuf si
+    //バッファ読み込み
+    ReadBuf si
 
-	// 'Pi'チェック
-	ReadW si
+    // 'Pi'チェック
+    ReadW si
  //Pri.Fmt "AX=%x\n", ax
-	go.w (ax != 'P'*0x100 + 'i') HDR_ERR
+    go.w (ax != 'P'*0x100 + 'i') HDR_ERR
 
-	// コメント取得
-	cx = PI.COMMENT_SIZE
-	di = %PI.T.comment
-	loop
-		ReadB si
-		exit (al == 0x1a)
-		next (cx == 0)
-		next (al == '\0')
-		rep.set di,al
-		--cx
-	endloop
-	//if (cx == 0)
-	//	Pri.Fmt "コメントが長すぎたので途中で切りました\N"
-	//fi
-	b[di] = 0
-	//Pri.Fmt "comment:%Fs\N", ww(ds, %PI.T.comment)
+    // コメント取得
+    cx = PI.COMMENT_SIZE
+    di = %PI.T.comment
+    loop
+    	ReadB si
+    	exit (al == 0x1a)
+    	next (cx == 0)
+    	next (al == '\0')
+    	rep.set di,al
+    	--cx
+    endloop
+    //if (cx == 0)
+    //	Pri.Fmt "コメントが長すぎたので途中で切りました\N"
+    //fi
+    b[di] = 0
+    //Pri.Fmt "comment:%Fs\N", ww(ds, %PI.T.comment)
 
-	//コメントがあるとき、作者名があるかどうか調べる
-	GetUserName
+    //コメントがあるとき、作者名があるかどうか調べる
+    GetUserName
 
-	// ダミーコメントをスキップ
-	loop
-		ReadB si
-	endloop (al)
+    // ダミーコメントをスキップ
+    loop
+    	ReadB si
+    endloop (al)
 
-	//---- 各種パラメータ取得 ----
-	// パレット・モード
-	ReadB si
-	if ((al &= 0x80) != 0)
-		PIT.dfltPalFlg.l = al
-	fi
+    //---- 各種パラメータ取得 ----
+    // パレット・モード
+    ReadB si
+    if ((al &= 0x80) != 0)
+    	PIT.dfltPalFlg.l = al
+    fi
 
-	//アスペクト比を拾得
-	ah = 0
-	ReadB si;  PIT.aspect2 = ax
-	ReadB si;  PIT.aspect1 = ax
-	if (PIT.aspect2 == 0 || PIT.aspect1 == 0)
-		PIT.aspect1 = 1
-		PIT.aspect2 = 1
-	fi
+    //アスペクト比を拾得
+    ah = 0
+    ReadB si;  PIT.aspect2 = ax
+    ReadB si;  PIT.aspect1 = ax
+    if (PIT.aspect2 == 0 || PIT.aspect1 == 0)
+    	PIT.aspect1 = 1
+    	PIT.aspect2 = 1
+    fi
 
-	//色数を取得
-	ReadB si;  PIT.pln = ax
-	PIT.color = 16
-	if (al == 8)
-		PIT.color = 256
-	else
-		go.w (al != 4) VAL_ERR
-	fi
+    //色数を取得
+    ReadB si;  PIT.pln = ax
+    PIT.color = 16
+    if (al == 8)
+    	PIT.color = 256
+    else
+    	go.w (al != 4) VAL_ERR
+    fi
 
-	// セーバ機種名を取得
-	ReadB si;  PIT.saverName(0) = al
-	ReadB si;  PIT.saverName(1) = al
-	ReadB si;  PIT.saverName(2) = al
-	ReadB si;  PIT.saverName(3) = al
-	PIT.saverName(4) = 0
+    // セーバ機種名を取得
+    ReadB si;  PIT.saverName(0) = al
+    ReadB si;  PIT.saverName(1) = al
+    ReadB si;  PIT.saverName(2) = al
+    ReadB si;  PIT.saverName(3) = al
+    PIT.saverName(4) = 0
 
-	// 機種依存データの処理
-	ReadW si
-	cx = ax
-	PIT.exSize = ax
-	PIT.xstart = 0
-	PIT.ystart = 0
-	if.w (exAreaFlg==0)//拡張領域のデータを取得
-		GetExData si,cx
-	fi
-	if (cx) // 残りの機種依存データを読み飛ばす
-		loop
-			ReadB si
-		endloop (--cx)
-	fi
+    // 機種依存データの処理
+    ReadW si
+    cx = ax
+    PIT.exSize = ax
+    PIT.xstart = 0
+    PIT.ystart = 0
+    if.w (exAreaFlg==0)//拡張領域のデータを取得
+    	GetExData si,cx
+    fi
+    if (cx) // 残りの機種依存データを読み飛ばす
+    	loop
+    	    ReadB si
+    	endloop (--cx)
+    fi
 
-	// 画像サイズ(X*Y)を拾得
-	ReadW si;	PIT.xsize = ax; go.w (ax == 0) VAL_ERR
-	ReadW si;	PIT.ysize = ax; go (ax == 0) VAL_ERR
+    // 画像サイズ(X*Y)を拾得
+    ReadW si;	PIT.xsize = ax; go.w (ax == 0) VAL_ERR
+    ReadW si;	PIT.ysize = ax; go (ax == 0) VAL_ERR
 
-	// パレットを拾得
-	GetPal PIT.dfltPalFlg.l, si, di
+    // パレットを拾得
+    GetPal PIT.dfltPalFlg.l, si, di
 
-	//終了
-	PIT.readPtr = si	//read pointer を保存
+    //終了
+    PIT.readPtr = si	//read pointer を保存
 
-	// エラー無し
+    // エラー無し
  //Pri.Fmt "comment:%Fs\N", ww(ds, %PI.T.comment)
-	dx.ax = piPtr
+    dx.ax = piPtr
 RTS:
-	return
+    return
 
-ERR:		//ファイル・オープンできなかった
-	dx.ax = 1
-	go RTS
+ERR:	    //ファイル・オープンできなかった
+    dx.ax = 1
+    go RTS
 
-HDR_ERR:	//Pri.Fmt "Piのヘッダでない\N"
-	dx.ax = 2
-	go RTS
+HDR_ERR:    //Pri.Fmt "Piのヘッダでない\N"
+    dx.ax = 2
+    go RTS
 
-VAL_ERR:	//Pri.Fmt "ヘッダに矛盾がある\N"
-	dx.ax = 3
-	go RTS
+VAL_ERR:    //Pri.Fmt "ヘッダに矛盾がある\N"
+    dx.ax = 3
+    go RTS
 endproc
 
 *proc Close(piPtr:d)
-	cdecl
-	far
+    cdecl
+    far
  /* PI ﾌｧｲﾙのclose
-	piPtr の解放はユーザが行なうこと
-	ret ax:error no
+    piPtr の解放はユーザが行なうこと
+    ret ax:error no
   */
 enter
-	save bx,ax,dx,ds
-	rep.inc
-	bx.ax = piPtr
-	piPtr = 0
-	Std.FpToHp bx,ax,dx
-	go.w (bx == 0 && ax == 0) RTS
-	if (ax)
-		++bx
-	fi
-	ds = bx
-	bx = PIT.filHdl
-	Dos.Close bx
+    save bx,ax,dx,ds
+    rep.inc
+    bx.ax = piPtr
+    piPtr = 0
+    Std.FpToHp bx,ax,dx
+    go.w (bx == 0 && ax == 0) RTS
+    if (ax)
+    	++bx
+    fi
+    ds = bx
+    bx = PIT.filHdl
+    Dos.Close bx
   RTS:
-	return
+    return
 endproc
 
 ///////////////////////////////////////////////////////////////////////////////
 
 proc RdBit_ReadBuf(bx)
-	// out si,dx
+    // out si,dx
 begin
-	save si
-	ReadBuf bx
-	bx = si
-	return
+    save si
+    ReadBuf bx
+    bx = si
+    return
 endproc
 
 
-@define RdBit(NO)				\
-	go (--dl == 0) NO@@_RDB;	\
-NO@@_RDBRET:;					\
-	|dh <<= 1;
+@define RdBit(NO)   	    	\
+    go (--dl == 0) NO@@_RDB;	\
+NO@@_RDBRET:;	    	    	\
+    |dh <<= 1;
 
-@define RDB(NO) 	NO@@_RDB:;						\
-	dl = 8; 										\
-	dh = b[bx]; 									\
-	++bx;											\
-	@if (PI.RDBUF_END&0xFFFF);						\
-		go(bx != (PI.RDBUF_END&0xFFFF)) NO@@_RDBRET;\
-	@else;											\
-		go(!=) NO@@_RDBRET; 						\
-	@fi;											\
-	call RdBit_ReadBuf; 							\
-	go NO@@_RDBRET;
+@define RDB(NO)     NO@@_RDB:;	    	    	    \
+    dl = 8; 	    	    	    	    	    \
+    dh = b[bx];     	    	    	    	    \
+    ++bx;   	    	    	    	    	    \
+    @if (PI.RDBUF_END&0xFFFF);	    	    	    \
+    	go(bx != (PI.RDBUF_END&0xFFFF)) NO@@_RDBRET;\
+    @else;  	    	    	    	    	    \
+    	go(!=) NO@@_RDBRET; 	    	    	    \
+    @fi;    	    	    	    	    	    \
+    call RdBit_ReadBuf;     	    	    	    \
+    go NO@@_RDBRET;
 
 //-----------------------------------------------------------------------------
 
 *proc InitColTbl16()
-//	色表(16色*16通り) の初期化
-//	in	rep.inc,ds,es
+//  色表(16色*16通り) の初期化
+//  in	rep.inc,ds,es
 begin
-	save pusha
+    save pusha
 
-	ax = 0
-	di = %PI.T.colorTable
-	bx = 16
-	loop
-		cx = 16
-		loop
-			al &= 0x0f
-			rep.set di,al
-			--al
-		endloop (--cx)
-		++al
-	endloop (--bx)
-	return
+    ax = 0
+    di = %PI.T.colorTable
+    bx = 16
+    loop
+    	cx = 16
+    	loop
+    	    al &= 0x0f
+    	    rep.set di,al
+    	    --al
+    	endloop (--cx)
+    	++al
+    endloop (--bx)
+    return
 endproc
 
 
 @if defined(DEBUG)
 proc Deb_Cn(cx)
 begin
-	Pri.Fmt "Cn %d\N",cx
-	return
+    Pri.Fmt "Cn %d\N",cx
+    return
 endproc
 @fi
 
 proc ReadColor16(al)
-//	色データを１つ読み込む
-//	arg al = 1ﾋﾟｸｾﾙ(２ﾄﾞｯﾄ)
-//	in	ds,es,bx,dx
-//	out ax	,bx,dx
-//	break cx,si
+//  色データを１つ読み込む
+//  arg al = 1ﾋﾟｸｾﾙ(２ﾄﾞｯﾄ)
+//  in	ds,es,bx,dx
+//  out ax  ,bx,dx
+//  break cx,si
 begin
-	bp = di
+    bp = di
 
-	ah = 0
-	al <<= 4
-	si = ax
-	si += %PI.T.colorTable
+    ah = 0
+    al <<= 4
+    si = ax
+    si += %PI.T.colorTable
 
-	RdBit(C1)
-	go (cf) CP0or1
-	cx = 1
-	RdBit(C2)
-	if (cf)
-		RdBit(C3)
-		if (cf)
-			RdBit(C4);rcl cx
-		fi
-		RdBit(C5);rcl cx
-	fi
-	RdBit(C6);rcl cx
-	@if defined(DEBUG);Deb_Cn cx;@fi
-	si += cx
-	di = si
-	--si
-	al = b[di]
-	rep.dec
-	rep.cpy di,si,cx
-	rep.set di,al
-	rep.inc
-	go NEXTCOLOR
-	RDB(C1)
-	RDB(C2)
-	RDB(C3)
-	RDB(C4)
-	RDB(C5)
+    RdBit(C1)
+    go (cf) CP0or1
+    cx = 1
+    RdBit(C2)
+    if (cf)
+    	RdBit(C3)
+    	if (cf)
+    	    RdBit(C4);rcl cx
+    	fi
+    	RdBit(C5);rcl cx
+    fi
+    RdBit(C6);rcl cx
+    @if defined(DEBUG);Deb_Cn cx;@fi
+    si += cx
+    di = si
+    --si
+    al = b[di]
+    rep.dec
+    rep.cpy di,si,cx
+    rep.set di,al
+    rep.inc
+    go NEXTCOLOR
+    RDB(C1)
+    RDB(C2)
+    RDB(C3)
+    RDB(C4)
+    RDB(C5)
   CP0or1:
-	RdBit(C7)	//in bx,dx	out cf
-	if (cf)
-		rep.load.w ax,si
-		@if defined(DEBUG);Pri.Fmt "Cn 1\N";@fi
-		ah <=> al
-		w[si-2] = ax
-		go NEXTCOLOR
-		RDB(C6)
-		RDB(C7)
-	fi
-	@if defined(DEBUG);Pri.Fmt "Cn 0\N";@fi
-	rep.load al,si
-	//go NEXTCOLOR
+    RdBit(C7)	//in bx,dx  out cf
+    if (cf)
+    	rep.load.w ax,si
+    	@if defined(DEBUG);Pri.Fmt "Cn 1\N";@fi
+    	ah <=> al
+    	w[si-2] = ax
+    	go NEXTCOLOR
+    	RDB(C6)
+    	RDB(C7)
+    fi
+    @if defined(DEBUG);Pri.Fmt "Cn 0\N";@fi
+    rep.load al,si
+    //go NEXTCOLOR
 
 NEXTCOLOR:
-	ah = 0
-	si = ax
-	si <<= 4
-	si += %PI.T.colorTable
+    ah = 0
+    si = ax
+    si <<= 4
+    si += %PI.T.colorTable
 
-	RdBit(D1)
-	go (cf) D0or1
-	ah = al
-	cx = 1
-	RdBit(D2)
-	if (cf)
-		RdBit(D3)
-		if (cf)
-			RdBit(D4);rcl cx
-		fi
-		RdBit(D5);rcl cx
-	fi
-	RdBit(D6);rcl cx
-	@if defined(DEBUG);Deb_Cn cx;@fi
-	si += cx
-	di = si
-	--si
-	al = b[di]
-	rep.dec
-	rep.cpy di,si,cx
-	rep.set di,al
-	rep.inc
-	al <=> ah
-	di = bp
-	return
+    RdBit(D1)
+    go (cf) D0or1
+    ah = al
+    cx = 1
+    RdBit(D2)
+    if (cf)
+    	RdBit(D3)
+    	if (cf)
+    	    RdBit(D4);rcl cx
+    	fi
+    	RdBit(D5);rcl cx
+    fi
+    RdBit(D6);rcl cx
+    @if defined(DEBUG);Deb_Cn cx;@fi
+    si += cx
+    di = si
+    --si
+    al = b[di]
+    rep.dec
+    rep.cpy di,si,cx
+    rep.set di,al
+    rep.inc
+    al <=> ah
+    di = bp
+    return
 
-	RDB(D1)
-	RDB(D2)
-	RDB(D3)
-	RDB(D4)
+    RDB(D1)
+    RDB(D2)
+    RDB(D3)
+    RDB(D4)
   D0or1:
-	RdBit(D7)	//in bx,dx	out cf
-	if (cf)
-		cl = al
-		rep.load.w ax,si
-		ah <=> al
-		w[si-2] = ax
-		ah = al
-		al = cl
-		di = bp
-		@if defined(DEBUG);Pri.Fmt "Cn 1\N";@fi
-		return
-		RDB(D5)
-		RDB(D6)
-		RDB(D7)
-	fi
-	ah = al
-	rep.load al,si
-	al <=> ah
-	di = bp
-	@if defined(DEBUG);Pri.Fmt "Cn 0\N";@fi
-	return
+    RdBit(D7)	//in bx,dx  out cf
+    if (cf)
+    	cl = al
+    	rep.load.w ax,si
+    	ah <=> al
+    	w[si-2] = ax
+    	ah = al
+    	al = cl
+    	di = bp
+    	@if defined(DEBUG);Pri.Fmt "Cn 1\N";@fi
+    	return
+    	RDB(D5)
+    	RDB(D6)
+    	RDB(D7)
+    fi
+    ah = al
+    rep.load al,si
+    al <=> ah
+    di = bp
+    @if defined(DEBUG);Pri.Fmt "Cn 0\N";@fi
+    return
 endproc
 
 
 *proc InitColTbl256()
-//	色表(256色*256通り) の初期化
-//	in	rep.inc
+//  色表(256色*256通り) の初期化
+//  in	rep.inc
 begin
-	save pusha,es
+    save pusha,es
 
-	es = c256bufSeg
-	di = ax = 0
-	bx = 256
-	loop
-		cx = 256
-		loop
-			rep.set di,al
-			--al
-		endloop (--cx)
-		++al
-	endloop (--bx)
-	return
+    es = c256bufSeg
+    di = ax = 0
+    bx = 256
+    loop
+    	cx = 256
+    	loop
+    	    rep.set di,al
+    	    --al
+    	endloop (--cx)
+    	++al
+    endloop (--bx)
+    return
 endproc
 
 
 proc ReadColor256(al)
-//	色データを１つ読み込む
-//	arg al = 1ﾋﾟｸｾﾙ(２ﾄﾞｯﾄ)
-//	in	ds,es,bx,dx
-//	out ax	,bx,dx
-//	break cx,si,bp
+//  色データを１つ読み込む
+//  arg al = 1ﾋﾟｸｾﾙ(２ﾄﾞｯﾄ)
+//  in	ds,es,bx,dx
+//  out ax  ,bx,dx
+//  break cx,si,bp
 begin
-	save es,di
-	es = bp = c256bufSeg
-	push ds
+    save es,di
+    es = bp = c256bufSeg
+    push ds
 
-	ah = al
-	al = 0
-	si = ax
+    ah = al
+    al = 0
+    si = ax
 
-	RdBit(C0)
-	if (cf)
-		RdBit(Ce)	//in bx,dx	out cf
-		ds = bp
-		if (cf)
-			rep.load.w ax,si
-			ah <=> al
-			w[si-2] = ax
-			go.w NEXTCOLOR
-			RDB(Ce)
-		fi
-		rep.load al,si
-		go.w NEXTCOLOR
-	////
-		RDB(C0)
-		RDB(C1)
-		RDB(C2)
-		RDB(C3)
-		RDB(C4)
-		RDB(C5)
-	fi
-	cx = 1
-	RdBit(C1)
-	if (cf)
-		RdBit(C2)
-		if (cf)
-			RdBit(C3)
-			if (cf)
-				RdBit(C4)
-				if (cf)
-					RdBit(C5)
-					if (cf)
-						RdBit(C6)
-						if (cf)
-							RdBit(C7);rcl cx
-							//go J1
-						fi
-					  //J1:
-						RdBit(C8);rcl cx
-					fi
-					RdBit(C9);rcl cx
-				fi
-				RdBit(Ca);rcl cx
-			fi
-			RdBit(Cb);rcl cx
-		fi
-		RdBit(Cc);rcl cx
-	fi
-	RdBit(Cd);rcl cx
-	si += cx
-	di = si
-	--si
-	ds = bp
-	al = b[di]
-	rep.dec
-	rep.cpy di,si,cx
-	rep.set di,al
-	rep.inc
-	go NEXTCOLOR
-	RDB(C6)
-	RDB(C7)
-	RDB(C8)
-	RDB(C9)
-	RDB(Ca)
-	RDB(Cb)
-	RDB(Cc)
-	RDB(Cd)
+    RdBit(C0)
+    if (cf)
+    	RdBit(Ce)   //in bx,dx	out cf
+    	ds = bp
+    	if (cf)
+    	    rep.load.w ax,si
+    	    ah <=> al
+    	    w[si-2] = ax
+    	    go.w NEXTCOLOR
+    	    RDB(Ce)
+    	fi
+    	rep.load al,si
+    	go.w NEXTCOLOR
+    ////
+    	RDB(C0)
+    	RDB(C1)
+    	RDB(C2)
+    	RDB(C3)
+    	RDB(C4)
+    	RDB(C5)
+    fi
+    cx = 1
+    RdBit(C1)
+    if (cf)
+    	RdBit(C2)
+    	if (cf)
+    	    RdBit(C3)
+    	    if (cf)
+    	    	RdBit(C4)
+    	    	if (cf)
+    	    	    RdBit(C5)
+    	    	    if (cf)
+    	    	    	RdBit(C6)
+    	    	    	if (cf)
+    	    	    	    RdBit(C7);rcl cx
+    	    	    	    //go J1
+    	    	    	fi
+    	    	      //J1:
+    	    	    	RdBit(C8);rcl cx
+    	    	    fi
+    	    	    RdBit(C9);rcl cx
+    	    	fi
+    	    	RdBit(Ca);rcl cx
+    	    fi
+    	    RdBit(Cb);rcl cx
+    	fi
+    	RdBit(Cc);rcl cx
+    fi
+    RdBit(Cd);rcl cx
+    si += cx
+    di = si
+    --si
+    ds = bp
+    al = b[di]
+    rep.dec
+    rep.cpy di,si,cx
+    rep.set di,al
+    rep.inc
+    go NEXTCOLOR
+    RDB(C6)
+    RDB(C7)
+    RDB(C8)
+    RDB(C9)
+    RDB(Ca)
+    RDB(Cb)
+    RDB(Cc)
+    RDB(Cd)
 
 NEXTCOLOR:
-	pop  ds
-	push ds
+    pop  ds
+    push ds
 
-	ah = al
-	al = 0
-	si = ax
+    ah = al
+    al = 0
+    si = ax
 
-	RdBit(D0)
-	if (cf)
-		RdBit(De)	//in bx,dx	out cf
-		|ds = bp
-		if (cf)
-			cl = ah
-			rep.load.w ax,si
-			ah <=> al
-			w[si-2] = ax
-			ah = al
-			al = cl
-			pop  ds
-			return
-			RDB(De)
-		fi
-		rep.load al,si
-		al <=> ah
-		pop  ds
-		return
-	////
-		RDB(D0)
-		RDB(D1)
-		RDB(D2)
-		RDB(D3)
-		RDB(D4)
-		RDB(D5)
-	fi
-	cx = 1
-	RdBit(D1)
-	if (cf)
-		RdBit(D2)
-		if (cf)
-			RdBit(D3)
-			if (cf)
-				RdBit(D4)
-				if (cf)
-					RdBit(D5)
-					if (cf)
-						RdBit(D6)
-						if (cf)
-							RdBit(D7);rcl cx
-						fi
-						RdBit(D8);rcl cx
-					fi
-					RdBit(D9);rcl cx
-				fi
-				RdBit(Da);rcl cx
-			fi
-			RdBit(Db);rcl cx
-		fi
-		RdBit(Dc);rcl cx
-	fi
-	RdBit(Dd);rcl cx
-	si += cx
-	di = si
-	--si
-	ds = bp
-	al = b[di]
-	rep.dec
-	rep.cpy di,si,cx
-	rep.set di,al
-	rep.inc
-	al <=> ah
-	pop  ds
-	return
+    RdBit(D0)
+    if (cf)
+    	RdBit(De)   //in bx,dx	out cf
+    	|ds = bp
+    	if (cf)
+    	    cl = ah
+    	    rep.load.w ax,si
+    	    ah <=> al
+    	    w[si-2] = ax
+    	    ah = al
+    	    al = cl
+    	    pop  ds
+    	    return
+    	    RDB(De)
+    	fi
+    	rep.load al,si
+    	al <=> ah
+    	pop  ds
+    	return
+    ////
+    	RDB(D0)
+    	RDB(D1)
+    	RDB(D2)
+    	RDB(D3)
+    	RDB(D4)
+    	RDB(D5)
+    fi
+    cx = 1
+    RdBit(D1)
+    if (cf)
+    	RdBit(D2)
+    	if (cf)
+    	    RdBit(D3)
+    	    if (cf)
+    	    	RdBit(D4)
+    	    	if (cf)
+    	    	    RdBit(D5)
+    	    	    if (cf)
+    	    	    	RdBit(D6)
+    	    	    	if (cf)
+    	    	    	    RdBit(D7);rcl cx
+    	    	    	fi
+    	    	    	RdBit(D8);rcl cx
+    	    	    fi
+    	    	    RdBit(D9);rcl cx
+    	    	fi
+    	    	RdBit(Da);rcl cx
+    	    fi
+    	    RdBit(Db);rcl cx
+    	fi
+    	RdBit(Dc);rcl cx
+    fi
+    RdBit(Dd);rcl cx
+    si += cx
+    di = si
+    --si
+    ds = bp
+    al = b[di]
+    rep.dec
+    rep.cpy di,si,cx
+    rep.set di,al
+    rep.inc
+    al <=> ah
+    pop  ds
+    return
 
-	RDB(D6)
-	RDB(D7)
-	RDB(D8)
-	RDB(D9)
-	RDB(Da)
-	RDB(Db)
-	RDB(Dc)
-	RDB(Dd)
+    RDB(D6)
+    RDB(D7)
+    RDB(D8)
+    RDB(D9)
+    RDB(Da)
+    RDB(Db)
+    RDB(Dc)
+    RDB(Dd)
 endproc
 
 //-----------------------------------------------------------------------------
 
 proc PiLoad0(ds,es)
-	endproc
+    endproc
 
 *proc Load(piPtr:d, putLinFunc:d, putLinDat:d, linCnt:w);cdecl;far
-	//Pi画像の展開.
-	//putLinFuncは16色/256色対応の１行出力ﾙｰﾁﾝのｱﾄﾞﾚｽ
-	//linCnt は展開する最大行数. 0なら ysizeとなる
-	//putLinDat は １行出力ﾙｰﾁﾝに渡される。そのﾙｰﾁﾝのﾃﾞｰﾀ領域へのポインタを想定
-	//ret ax:error no
+    //Pi画像の展開.
+    //putLinFuncは16色/256色対応の１行出力ﾙｰﾁﾝのｱﾄﾞﾚｽ
+    //linCnt は展開する最大行数. 0なら ysizeとなる
+    //putLinDat は １行出力ﾙｰﾁﾝに渡される。そのﾙｰﾁﾝのﾃﾞｰﾀ領域へのポインタを想定
+    //ret ax:error no
 enter
-	save bx,cx,si,di,es,ds
+    save bx,cx,si,di,es,ds
 
-	// 設定
-	rep.inc
-	sav_sp = sp
-	
-	dx.ax = piPtr
-	Std.FpToHp dx,ax,cx
-	if (dx == 0 && ax == 0)
-		ax = 4
-		jmp Exit
-	fi
-	if (ax)
-		++dx
-	fi
-	ds = dx
-	es = dx
-	PIT.putLinDt = dx.ax = putLinDat
+    // 設定
+    rep.inc
+    sav_sp = sp
 
-	ax = linCnt
-	if (ax == 0 || ax > PIT.ysize)
-		ax = PIT.ysize
-	fi
-	PIT.ymax = ax
+    dx.ax = piPtr
+    Std.FpToHp dx,ax,cx
+    if (dx == 0 && ax == 0)
+    	ax = 4
+    	jmp Exit
+    fi
+    if (ax)
+    	++dx
+    fi
+    ds = dx
+    es = dx
+    PIT.putLinDt = dx.ax = putLinDat
 
-	//出力関数の用意
-	if (PIT.pln == 4)
-		PIT.readColor = ax = &ReadColor16
-		PIT.putLin = dx.ax = putLinFunc
-		InitColTbl16		//色表の初期化
-	else	//256色
-		PIT.readColor = ax = &ReadColor256
-		PIT.putLin = dx.ax = putLinFunc
-	  @if 1
-		if (dx == 0)
-			ax = 4
-			jmp Exit
-		fi
-		ax = ds
-		ax += 0x1000
-		c256bufSeg = ax
-	  @else
-		if (c256bufSeg == 0 || (dx == 0 /*&& ax == 0*/))
-			ax = 4
-			jmp Exit
-		fi
-	  @fi
-		InitColTbl256		//色表の初期化
-	fi
+    ax = linCnt
+    if (ax == 0 || ax > PIT.ysize)
+    	ax = PIT.ysize
+    fi
+    PIT.ymax = ax
 
-	//初期設定
-	cx = ax = PIT.xsize
-	if (cx > PI.PIXLINSIZ|| cx <= 2)
-		ax = 3
-		jmp Exit
-	fi
+    //出力関数の用意
+    if (PIT.pln == 4)
+    	PIT.readColor = ax = &ReadColor16
+    	PIT.putLin = dx.ax = putLinFunc
+    	InitColTbl16	    //色表の初期化
+    else    //256色
+    	PIT.readColor = ax = &ReadColor256
+    	PIT.putLin = dx.ax = putLinFunc
+      @if 1
+    	if (dx == 0)
+    	    ax = 4
+    	    jmp Exit
+    	fi
+    	ax = ds
+    	ax += 0x1000
+    	c256bufSeg = ax
+      @else
+    	if (c256bufSeg == 0 || (dx == 0 /*&& ax == 0*/))
+    	    ax = 4
+    	    jmp Exit
+    	fi
+      @fi
+    	InitColTbl256	    //色表の初期化
+    fi
+
+    //初期設定
+    cx = ax = PIT.xsize
+    if (cx > PI.PIXLINSIZ|| cx <= 2)
+    	ax = 3
+    	jmp Exit
+    fi
 
 
-	//pixBuf関係設定
-	cx = ax = PIT.xsize
-	ax += ax
-	bx = %PI.T.pixBuf
-	ax += bx			// ax = xsize * 2 + %PI.T.pixBuf
-	PIT.pixStart = ax
-	dx.ax = ww(0, PI.PIXBUF_SIZE)
-	div dx.ax , cx
-	ax -= 2
-	ax &= 0xFFFE
-	//if ((cx & 0x0001) && (ax & 0x0001))
-	//	ax -= 1
-	//fi
-	PIT.pixBlkLin = ax		//pixBlkLin = (PIXBUF_SIZE / xsize - 2)&0xfffe
-	dx.ax = cx * ax
-	ax += bx
-	PIT.pixHisSrc = ax		//pixHisSrc = %PI.T.pixBuf + xsize * pixBlkLin
-	ax += cx
-	ax += cx
+    //pixBuf関係設定
+    cx = ax = PIT.xsize
+    ax += ax
+    bx = %PI.T.pixBuf
+    ax += bx	    	// ax = xsize * 2 + %PI.T.pixBuf
+    PIT.pixStart = ax
+    dx.ax = ww(0, PI.PIXBUF_SIZE)
+    div dx.ax , cx
+    ax -= 2
+    ax &= 0xFFFE
+    //if ((cx & 0x0001) && (ax & 0x0001))
+    //	ax -= 1
+    //fi
+    PIT.pixBlkLin = ax	    //pixBlkLin = (PIXBUF_SIZE / xsize - 2)&0xfffe
+    dx.ax = cx * ax
+    ax += bx
+    PIT.pixHisSrc = ax	    //pixHisSrc = %PI.T.pixBuf + xsize * pixBlkLin
+    ax += cx
+    ax += cx
   @if 0
-	++ax
-	ax &= ~1
+    ++ax
+    ax &= ~1
   @endif
-	PIT.pixEnd = ax		//pixEnd = %PI.T.pixBuf + xsize * (pixBlkLin+2)
-	
-	//
-	ax = PIT.ymax
-	dx = 0
-	div dx.ax, PIT.pixBlkLin
-	PIT.pixEndLin = dx
-	if (dx == 0)
-		PIT.pixEndLin = dx = PIT.pixBlkLin
-		--ax
-	fi
-	PIT.pixBlkCnt = ax
+    PIT.pixEnd = ax 	//pixEnd = %PI.T.pixBuf + xsize * (pixBlkLin+2)
 
-	PiLoad0 ds,es
-	return
+    //
+    ax = PIT.ymax
+    dx = 0
+    div dx.ax, PIT.pixBlkLin
+    PIT.pixEndLin = dx
+    if (dx == 0)
+    	PIT.pixEndLin = dx = PIT.pixBlkLin
+    	--ax
+    fi
+    PIT.pixBlkCnt = ax
+
+    PiLoad0 ds,es
+    return
 endproc
 
 @if defined(DEBUG)
 proc Deb_Col(ax)
 begin
-	save ax
-	ah&=0x0f;al<<=4;al|=ah;ah=0;Pri.Fmt ".%02X\N",ax
-	return
+    save ax
+    ah&=0x0f;al<<=4;al|=ah;ah=0;Pri.Fmt ".%02X\N",ax
+    return
 endproc
 @fi
 
 proc PiLoad0(ds,es)
 begin
 
-	//位置番号1～4 のオフセット値を設定
-	ax = PIT.xsize
-	neg ax
-	cx = ax
-	PIT.ofs1 = ax	//( 0,-1)
-	ax += ax
-	PIT.ofs2 = ax	//( 0,-2)
-	cx += 1
-	PIT.ofs3 = cx	//( 1,-1)
+    //位置番号1～4 のオフセット値を設定
+    ax = PIT.xsize
+    neg ax
+    cx = ax
+    PIT.ofs1 = ax   //( 0,-1)
+    ax += ax
+    PIT.ofs2 = ax   //( 0,-2)
+    cx += 1
+    PIT.ofs3 = cx   //( 1,-1)
 
-	gosub JIKOKAKIKAE
+    gosub JIKOKAKIKAE
 
-	// 読み込みスタート
-	bx = PIT.readPtr
-	dl = 1
+    // 読み込みスタート
+    bx = PIT.readPtr
+    dl = 1
 
-	// １番左上のピクセルを取り出して、仮想上の前２ラインを塗りつぶす
-	ax = 0
-	call PIT.readColor
-	rep.set.w %PI.T.pixBuf, ax, PIT.xsize
-	@if defined(DEBUG);al <<= 4; al |= ah; ah = 0;Pri.Fmt "Lc%02X\N",ax;@fi
+    // １番左上のピクセルを取り出して、仮想上の前２ラインを塗りつぶす
+    ax = 0
+    call PIT.readColor
+    rep.set.w %PI.T.pixBuf, ax, PIT.xsize
+    @if defined(DEBUG);al <<= 4; al |= ah; ah = 0;Pri.Fmt "Lc%02X\N",ax;@fi
 
-	//メイン・ループ
-	bp = 0			//bp 前回のオフセット値(位置情報)
-	go MAINLOOP
+    //メイン・ループ
+    bp = 0  	    //bp 前回のオフセット値(位置情報)
+    go MAINLOOP
 
-		RDB(P0)
-		RDB(P1)
+    	RDB(P0)
+    	RDB(P1)
 
-	  POS01:
-			RdBit(P1)	//in bx,dx	out cf
-			if (cf == 0)
-				si = -4
-				ax = w[di-2]
-				|al -= ah
-				@if defined(DEBUG);|ax = 0;@fi
-				if (==)
-					si += 2
-					go (bp != -4) J1
-					go.w LOOP_COL
-				fi
-				go (bp != -2) J1
-				go.w LOOP_COL
-			else
-				//si = PIT.ofs1
-				data;b 0xbe;enddata; ofs1:	;data;w 0;enddata
-				@if defined(DEBUG);ax = 1;@fi
-				go J1
-			fi
+      POS01:
+    	    RdBit(P1)	//in bx,dx  out cf
+    	    if (cf == 0)
+    	    	si = -4
+    	    	ax = w[di-2]
+    	    	|al -= ah
+    	    	@if defined(DEBUG);|ax = 0;@fi
+    	    	if (==)
+    	    	    si += 2
+    	    	    go (bp != -4) J1
+    	    	    go.w LOOP_COL
+    	    	fi
+    	    	go (bp != -2) J1
+    	    	go.w LOOP_COL
+    	    else
+    	    	//si = PIT.ofs1
+    	    	data;b 0xbe;enddata; ofs1:  ;data;w 0;enddata
+    	    	@if defined(DEBUG);ax = 1;@fi
+    	    	go J1
+    	    fi
 
-	MAINLOOP:
-		//位置情報(0-4)を得、それに対応するオフセット値を得る
-		RdBit(P0)
-		go (cf == 0) POS01
-		RdBit(P2)	//in bx,dx	out cf
-		if (cf == 1)
-			//si = PIT.ofs3
-			data;b 0xbe;enddata; ofs3:;data;w 0;enddata
-			@if defined(DEBUG);ax = 3;@fi
-			RdBit(P3)	//in bx,dx	out cf
-			if (cf)
-				si -= 2
-				@if defined(DEBUG);ax = 4;@fi
-			fi
-			go J1
-			RDB (P2)
-			RDB (P3)
-		else
-			@if defined(DEBUG);ax = 2;@fi
-			//si = PIT.ofs2
-			data;b 0xbe;enddata; ofs2:;data;w 0;enddata
-		fi
-	  J1:
+    MAINLOOP:
+    	//位置情報(0-4)を得、それに対応するオフセット値を得る
+    	RdBit(P0)
+    	go (cf == 0) POS01
+    	RdBit(P2)   //in bx,dx	out cf
+    	if (cf == 1)
+    	    //si = PIT.ofs3
+    	    data;b 0xbe;enddata; ofs3:;data;w 0;enddata
+    	    @if defined(DEBUG);ax = 3;@fi
+    	    RdBit(P3)	//in bx,dx  out cf
+    	    if (cf)
+    	    	si -= 2
+    	    	@if defined(DEBUG);ax = 4;@fi
+    	    fi
+    	    go J1
+    	    RDB (P2)
+    	    RDB (P3)
+    	else
+    	    @if defined(DEBUG);ax = 2;@fi
+    	    //si = PIT.ofs2
+    	    data;b 0xbe;enddata; ofs2:;data;w 0;enddata
+    	fi
+      J1:
 
-		//前回の位置と同じなら色展開のループへ移行
-		if (si == bp)
-		  LOOP_COL:
-			loop
-				al = b[di - 1]
-				@if defined(DEBUG);ah=0;Pri.Fmt"Lc%02X\N",ax;@fi
-				call PIT.readColor
-				@if defined(DEBUG);Deb_Col ax;@fi
-				rep.set.w di,ax
-				//al = ah
-				go (di >= PIT.pixEnd) COL_PUTLIN
-			  COL_PUTLIN_RET:
-				RdBit(CO)	//in bx,dx	out cf //result cf
-			endloop (cf)
-			bp = 0
-			go MAINLOOP
-		///////////////////////////////
-			RDB(CO)
-		CPY1:
-			rep.cpy.w di,si
-		  @if defined(DEBUG)
-			Pri.Fmt "1\N"
-			go.w (di </*!=*/ PIT.pixEnd) MAINLOOP
-		  @else
-			go (di </*!=*/ PIT.pixEnd) MAINLOOP
-		  @fi
-			gosub PutPixBuf
-		  @if defined(DEBUG)
-			go.w MAINLOOP
-		  @else
-			go MAINLOOP
-		  @fi
-		COL_PUTLIN:
-			gosub PutPixBuf
-			go COL_PUTLIN_RET
-		/////////////////
-		fi
-	  J2:
-		@if defined(DEBUG); Pri.Fmt "@%d ",ax; @fi
-		// 今回の位置番号を設定
-		bp = si
-		// コピー元アドレスの設定
-		si += di
+    	//前回の位置と同じなら色展開のループへ移行
+    	if (si == bp)
+    	  LOOP_COL:
+    	    loop
+    	    	al = b[di - 1]
+    	    	@if defined(DEBUG);ah=0;Pri.Fmt"Lc%02X\N",ax;@fi
+    	    	call PIT.readColor
+    	    	@if defined(DEBUG);Deb_Col ax;@fi
+    	    	rep.set.w di,ax
+    	    	//al = ah
+    	    	go (di >= PIT.pixEnd) COL_PUTLIN
+    	      COL_PUTLIN_RET:
+    	    	RdBit(CO)   //in bx,dx	out cf //result cf
+    	    endloop (cf)
+    	    bp = 0
+    	    go MAINLOOP
+    	///////////////////////////////
+    	    RDB(CO)
+    	CPY1:
+    	    rep.cpy.w di,si
+    	  @if defined(DEBUG)
+    	    Pri.Fmt "1\N"
+    	    go.w (di </*!=*/ PIT.pixEnd) MAINLOOP
+    	  @else
+    	    go (di </*!=*/ PIT.pixEnd) MAINLOOP
+    	  @fi
+    	    gosub PutPixBuf
+    	  @if defined(DEBUG)
+    	    go.w MAINLOOP
+    	  @else
+    	    go MAINLOOP
+    	  @fi
+    	COL_PUTLIN:
+    	    gosub PutPixBuf
+    	    go COL_PUTLIN_RET
+    	/////////////////
+    	fi
+      J2:
+    	@if defined(DEBUG); Pri.Fmt "@%d ",ax; @fi
+    	// 今回の位置番号を設定
+    	bp = si
+    	// コピー元アドレスの設定
+    	si += di
 
-		//長さを読み込む
-		RdBit(L1)	//in bx,dx	out cf
-		go (cf == 0) CPY1	//１ピクセル(2ﾄﾞｯﾄ)・コピー
-		cx = 0
-		loop
-			++cx
-			RdBit(L2)	//in bx,dx	out cf
-		endloop(cf)
-		go (cx > 15) LPCPY	//長さが 2ﾊﾞｲﾄ正数におさまらないとき LCPYへ
-		ax = 1
-		loop
-			RdBit(L3)	//in bx,dx	out cf
-			rcl ax
-		endloop (--cx)
+    	//長さを読み込む
+    	RdBit(L1)   //in bx,dx	out cf
+    	go (cf == 0) CPY1   //１ピクセル(2ﾄﾞｯﾄ)・コピー
+    	cx = 0
+    	loop
+    	    ++cx
+    	    RdBit(L2)	//in bx,dx  out cf
+    	endloop(cf)
+    	go (cx > 15) LPCPY  //長さが 2ﾊﾞｲﾄ正数におさまらないとき LCPYへ
+    	ax = 1
+    	loop
+    	    RdBit(L3)	//in bx,dx  out cf
+    	    rcl ax
+    	endloop (--cx)
 
-		@if defined(DEBUG); Pri.Fmt "%d\N",ax; @fi
-		// 長さ分、相対位置よりコピー
-	  PCPY:
-		loop
-			cx = ax
-			ax = PIT.pixEnd
-			ax -= di
-			ax >>= 1
-			if (cx < ax)
-				rep.cpy.w di,si,cx
-				go.w MAINLOOP
-			fi
-			cx -= ax
-			cx <=> ax
-			rep.cpy.w di,si,cx
-			si -= di
-			gosub PutPixBuf
-			si += di
-		endloop
-	///////////////////////////
-		RDB(L1)
-		RDB(L2)
-		RDB(L3)
-		RDB(L4)
-	LPCPY:	// 長さ分、相対位置よりコピー
-		push bp
-			bp.ax = 1
-			loop
-				RdBit(L4)	//in bx,dx	out cf
-				rcl bp.ax
-			endloop (--cx)
-			@if defined(DEBUG); Pri.Fmt "%ld\N",bp.cx; @fi
+    	@if defined(DEBUG); Pri.Fmt "%d\N",ax; @fi
+    	// 長さ分、相対位置よりコピー
+      PCPY:
+    	loop
+    	    cx = ax
+    	    ax = PIT.pixEnd
+    	    ax -= di
+    	    ax >>= 1
+    	    if (cx < ax)
+    	    	rep.cpy.w di,si,cx
+    	    	go.w MAINLOOP
+    	    fi
+    	    cx -= ax
+    	    cx <=> ax
+    	    rep.cpy.w di,si,cx
+    	    si -= di
+    	    gosub PutPixBuf
+    	    si += di
+    	endloop
+    ///////////////////////////
+    	RDB(L1)
+    	RDB(L2)
+    	RDB(L3)
+    	RDB(L4)
+    LPCPY:  // 長さ分、相対位置よりコピー
+    	push bp
+    	    bp.ax = 1
+    	    loop
+    	    	RdBit(L4)   //in bx,dx	out cf
+    	    	rcl bp.ax
+    	    endloop (--cx)
+    	    @if defined(DEBUG); Pri.Fmt "%ld\N",bp.cx; @fi
 
-			loop
-				cx = 0
-				loop
-					rep.cpy.w di,si
-					if (di >= PIT.pixEnd)
-						si -= di
-						gosub PutPixBuf
-						si += di
-					fi
-				endloop (--cx)
-			endloop (--bp)
-		pop bp
-	  @if defined(DEBUG)
-		go.w PCPY
-	  @else
-		go PCPY
-	  @fi
-	return
+    	    loop
+    	    	cx = 0
+    	    	loop
+    	    	    rep.cpy.w di,si
+    	    	    if (di >= PIT.pixEnd)
+    	    	    	si -= di
+    	    	    	gosub PutPixBuf
+    	    	    	si += di
+    	    	    fi
+    	    	endloop (--cx)
+    	    endloop (--bp)
+    	pop bp
+      @if defined(DEBUG)
+    	go.w PCPY
+      @else
+    	go PCPY
+      @fi
+    return
 
 PutPixBuf:
-	pusha
-	push es
-	rep.cpy.w %PI.T.pixBuf, PIT.pixHisSrc, PIT.xsize
-	cx = PIT.pixBlkLin
-	if (PIT.pixBlkCnt == 0)
-		cx = PIT.pixEndLin
-	fi
-	loop
-		push di,cx
-		push ds
-		push PIT.putLinDt, ds.di
-			call PIT.putLin
-		sp += 8
-		pop  ds
-		pop  di,cx
-		di += PIT.xsize
-	endloop (--cx)
-	if (PIT.pixBlkCnt == 0)
-		ax = 0
-		jmp Exit
-	fi
-	--PIT.pixBlkCnt
-	if (PIT.pixBlkCnt == 0)
-		cx = PIT.xsize
-		dx.ax = PIT.pixEndLin * cx
-		ax += cx
-		ax += cx
-		ax += %PI.T.pixBuf
-	  @if 10
-		++ax
-		ax &= ~1
-	  @endif
-		PIT.pixEnd = ax
-	fi
-	pop es
-	popa
-	di = PIT.pixStart
-	ret
+    pusha
+    push es
+    rep.cpy.w %PI.T.pixBuf, PIT.pixHisSrc, PIT.xsize
+    cx = PIT.pixBlkLin
+    if (PIT.pixBlkCnt == 0)
+    	cx = PIT.pixEndLin
+    fi
+    loop
+    	push di,cx
+    	push ds
+    	push PIT.putLinDt, ds.di
+    	    call PIT.putLin
+    	sp += 8
+    	pop  ds
+    	pop  di,cx
+    	di += PIT.xsize
+    endloop (--cx)
+    if (PIT.pixBlkCnt == 0)
+    	ax = 0
+    	jmp Exit
+    fi
+    --PIT.pixBlkCnt
+    if (PIT.pixBlkCnt == 0)
+    	cx = PIT.xsize
+    	dx.ax = PIT.pixEndLin * cx
+    	ax += cx
+    	ax += cx
+    	ax += %PI.T.pixBuf
+      @if 10
+    	++ax
+    	ax &= ~1
+      @endif
+    	PIT.pixEnd = ax
+    fi
+    pop es
+    popa
+    di = PIT.pixStart
+    ret
 
 JIKOKAKIKAE:
-	w[cs:%ofs1] = ax = PIT.ofs1
-	w[cs:%ofs2] = ax = PIT.ofs2
-	w[cs:%ofs3] = ax = PIT.ofs3
-	ret
+    w[cs:%ofs1] = ax = PIT.ofs1
+    w[cs:%ofs2] = ax = PIT.ofs2
+    w[cs:%ofs3] = ax = PIT.ofs3
+    ret
 
 endproc
 

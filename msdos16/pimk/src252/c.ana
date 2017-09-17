@@ -1,14 +1,13 @@
 module C
-	c_name "","",1
+    c_name "","",1
 
 *proc Exit(dat:w);cdecl
-	endproc
+    endproc
 
 *proc vprintf(fmt:w,av:w);cdecl
-	endproc
+    endproc
 
 *proc printf(fmt:w, ...av:w(0));cdecl
-	endproc
+    endproc
 
 endmodule
-

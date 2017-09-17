@@ -11,4 +11,3 @@ void WAB256_Cls(void);
 void WAB256_SetPal(int tone, unsigned char far *pal);
 void WAB256_SetTone(int tone);
 unsigned char far *WAB256_PutXYN(int x,int y,int len, void far *pix);
-

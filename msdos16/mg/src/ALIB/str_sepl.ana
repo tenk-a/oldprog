@@ -1,73 +1,73 @@
 submodule Str
-	//	1992	writen by M.Kitamura
+    //	1992	writen by M.Kitamura
 
 *proc SepLine(es.di,si,cx)
-//	文字列を空白(タブ)で区切りトークンのアドレスをテーブルに登録。
-//	" か ' で囲まれた文字列中の空白は置き換えない。その場合の" や ' は取除く。
-//	ただし "" や '' のように二重にすると、それぞれ " や ' １つとなる。
-//	arg es.di	トークン表の先頭
-//	arg si		文字列
-//	arg cx		トークン表に格納できるポインタの数
-//	in	ds		siのセブメント
-//	out cx		実際のポインタの数
-//	out ax		0:Ok   以外:error
+//  文字列を空白(タブ)で区切りトークンのアドレスをテーブルに登録。
+//  " か ' で囲まれた文字列中の空白は置き換えない。その場合の" や ' は取除く。
+//  ただし "" や '' のように二重にすると、それぞれ " や ' １つとなる。
+//  arg es.di	トークン表の先頭
+//  arg si  	文字列
+//  arg cx  	トークン表に格納できるポインタの数
+//  in	ds  	siのセブメント
+//  out cx  	実際のポインタの数
+//  out ax  	0:Ok   以外:error
 enter
-	save bx,dx,si,di,fx
+    save bx,dx,si,di,fx
 
-	dx = cx
-	cx = 0
-	rep.inc
-	loop LLL
-		loop
-			rep.load al,si
-			exit (al > ' ')
-			exit (al == 0x00) LLL
-			b[si-1] = 0
-		endloop
-		--si
-		go (cx >= dx) ERR
-		ax = si
-		rep.set.w di,ax
-		++cx
-		ah = 0
-		push es.di
-			es.di = ds.si
-			//al = b[si]
-			//bl = '-'
-			//bl -= al
-			loop
-				rep.load al,si
-				if (/*bl == 0 &&*/ (al == '"'||al == '\''))
-					if (ah == 0)
-						if (al != b[si])
-							ah = al
-							go J1
-						else
-							++si
-						endif
-					elsif (ah == al)
-						ah = 0
-						go J1
-					fi
-				fi
-				rep.set  di,al
-			  J1:
-				//if (al == '\0')
-				//	exit LLL
-				//endif
-			endloop ((ah || al > ' '))
-			if (di < si)
-				b[di]=0
-			fi
-		pop  es.di
-		--si
-	endloop
-	ax = 0
+    dx = cx
+    cx = 0
+    rep.inc
+    loop LLL
+    	loop
+    	    rep.load al,si
+    	    exit (al > ' ')
+    	    exit (al == 0x00) LLL
+    	    b[si-1] = 0
+    	endloop
+    	--si
+    	go (cx >= dx) ERR
+    	ax = si
+    	rep.set.w di,ax
+    	++cx
+    	ah = 0
+    	push es.di
+    	    es.di = ds.si
+    	    //al = b[si]
+    	    //bl = '-'
+    	    //bl -= al
+    	    loop
+    	    	rep.load al,si
+    	    	if (/*bl == 0 &&*/ (al == '"'||al == '\''))
+    	    	    if (ah == 0)
+    	    	    	if (al != b[si])
+    	    	    	    ah = al
+    	    	    	    go J1
+    	    	    	else
+    	    	    	    ++si
+    	    	    	endif
+    	    	    elsif (ah == al)
+    	    	    	ah = 0
+    	    	    	go J1
+    	    	    fi
+    	    	fi
+    	    	rep.set  di,al
+    	      J1:
+    	    	//if (al == '\0')
+    	    	//  exit LLL
+    	    	//endif
+    	    endloop ((ah || al > ' '))
+    	    if (di < si)
+    	    	b[di]=0
+    	    fi
+    	pop  es.di
+    	--si
+    endloop
+    ax = 0
   RET:
-	return
+    return
   ERR:
-	ax = -1
-	go RET
+    ax = -1
+    go RET
 endproc
 
 endmodule

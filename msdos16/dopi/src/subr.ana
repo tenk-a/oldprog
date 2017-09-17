@@ -1,93 +1,93 @@
 module SUBR
-	model SMALL
-	c_name "","",1  //defined(TURBO_C)+defined(LSI_C)*2
+    model SMALL
+    c_name "","",1  //defined(TURBO_C)+defined(LSI_C)*2
 
-	import	Std
-	import Dbg
-	import Bios98Key:"Bios_Key"
+    import  Std
+    import Dbg
+    import Bios98Key:"Bios_Key"
 
-	type WD:SUBR
+    type WD:SUBR
 
 //-----------------------------------------------------------------------------
 //module LTOFP
-	//model SMALL
-	//c_name "","",1
-	//import Dbg:DBG
+    //model SMALL
+    //c_name "","",1
+    //import Dbg:DBG
 
 *proc PutWord(i:w);cdecl
-	//デバッグ用
+    //デバッグ用
 enter
-	save pusha,es,ds
-	ds = ax = %var
-	ax = i
-	Dbg.DbgPutWord ax
-	return
+    save pusha,es,ds
+    ds = ax = %var
+    ax = i
+    Dbg.DbgPutWord ax
+    return
 endproc
 
 ///////////////////////////
 *proc Chk86()
-//	CPUが 8086(V30)なら 0, 186以上なら 1
-//	out	ax
+//  CPUが 8086(V30)なら 0, 186以上なら 1
+//  out ax
 begin
-	save cx
-	ax = 1
-	cl = 32
-	|shr ax,cl
-	return
+    save cx
+    ax = 1
+    cl = 32
+    |shr ax,cl
+    return
 endproc
 
 *proc CntVsync()
 //  port 0x60 に出ているVSYNCの信号が１の間に何回ループできるかカウントする
-//	out dx.ax
+//  out dx.ax
 begin
-	save bx,cx,si,di,fx
+    save bx,cx,si,di,fx
 
-	dx.cx = 0
-	intr.off
-	loop
-		al = port(0x60)
-	endloop(al & 0x20)
-	loop
-		al = port(0x60)
-	endloop !(al & 0x20)
-	loop
-		jmp *+2
-		jmp *+2
-		jmp *+2
-		++cx
-		al = port(0x60)
-	endloop (al & 0x20)
-	intr.on
-	ax = cx
-	return
+    dx.cx = 0
+    intr.off
+    loop
+    	al = port(0x60)
+    endloop(al & 0x20)
+    loop
+    	al = port(0x60)
+    endloop !(al & 0x20)
+    loop
+    	jmp *+2
+    	jmp *+2
+    	jmp *+2
+    	++cx
+    	al = port(0x60)
+    endloop (al & 0x20)
+    intr.on
+    ax = cx
+    return
 endproc
 
 ///////////////////////////
 *proc LtoFP(lll:d);cdecl
-//	long で表されるアドレスを far ポインタに変換
-//	out	dx.ax
+//  long で表されるアドレスを far ポインタに変換
+//  out dx.ax
 enter
-	dx = lll.h
-	dx <<= 12
-	ax = lll.l
-	ax >>= 4
-	dx |= ax
-	ax = lll.l
-	ax &= 0x000f
-	return
+    dx = lll.h
+    dx <<= 12
+    ax = lll.l
+    ax >>= 4
+    dx |= ax
+    ax = lll.l
+    ax &= 0x000f
+    return
 endproc
 
 *proc FPtoFP(lll:d);cdecl
 //  far ポインタの正規化
-//	out	dx.ax
+//  out dx.ax
 enter
-	dx = lll.h
-	ax = lll.l
-	ax >>= 4
-	dx += ax
-	ax = lll.l
-	ax &= 0x000f
-	return
+    dx = lll.h
+    ax = lll.l
+    ax >>= 4
+    dx += ax
+    ax = lll.l
+    ax &= 0x000f
+    return
 endproc
 //endmodule
 
@@ -95,117 +95,117 @@ endproc
 *proc ror8x8(qp:d);cdecl
 //   1バイト×8バイトの 8*8ドットを９０度右回転する
 enter
-	save pusha,ds
-	
-	dx.si = qp
-	Std.FpToHp dx,si,ax
-	ds = dx
+    save pusha,ds
 
-	ax = w[si]
-	bx = w[si+2]
-	cx = w[si+4]
-	dx = w[si+6]
+    dx.si = qp
+    Std.FpToHp dx,si,ax
+    ds = dx
 
-	|dh <<= 1;|rcl b[si+0];|dh <<= 1;|rcl b[si+1]
-	|dh <<= 1;|rcl b[si+2];|dh <<= 1;|rcl b[si+3]
-	|dh <<= 1;|rcl b[si+4];|dh <<= 1;|rcl b[si+5]
-	|dh <<= 1;|rcl b[si+6];|dh <<= 1;|rcl b[si+7]
+    ax = w[si]
+    bx = w[si+2]
+    cx = w[si+4]
+    dx = w[si+6]
 
-	|dl <<= 1;|rcl b[si+0];|dl <<= 1;|rcl b[si+1]
-	|dl <<= 1;|rcl b[si+2];|dl <<= 1;|rcl b[si+3]
-	|dl <<= 1;|rcl b[si+4];|dl <<= 1;|rcl b[si+5]
-	|dl <<= 1;|rcl b[si+6];|dl <<= 1;|rcl b[si+7]
+    |dh <<= 1;|rcl b[si+0];|dh <<= 1;|rcl b[si+1]
+    |dh <<= 1;|rcl b[si+2];|dh <<= 1;|rcl b[si+3]
+    |dh <<= 1;|rcl b[si+4];|dh <<= 1;|rcl b[si+5]
+    |dh <<= 1;|rcl b[si+6];|dh <<= 1;|rcl b[si+7]
 
-	|ch <<= 1;|rcl b[si+0];|ch <<= 1;|rcl b[si+1]
-	|ch <<= 1;|rcl b[si+2];|ch <<= 1;|rcl b[si+3]
-	|ch <<= 1;|rcl b[si+4];|ch <<= 1;|rcl b[si+5]
-	|ch <<= 1;|rcl b[si+6];|ch <<= 1;|rcl b[si+7]
+    |dl <<= 1;|rcl b[si+0];|dl <<= 1;|rcl b[si+1]
+    |dl <<= 1;|rcl b[si+2];|dl <<= 1;|rcl b[si+3]
+    |dl <<= 1;|rcl b[si+4];|dl <<= 1;|rcl b[si+5]
+    |dl <<= 1;|rcl b[si+6];|dl <<= 1;|rcl b[si+7]
 
-	|cl <<= 1;|rcl b[si+0];|cl <<= 1;|rcl b[si+1]
-	|cl <<= 1;|rcl b[si+2];|cl <<= 1;|rcl b[si+3]
-	|cl <<= 1;|rcl b[si+4];|cl <<= 1;|rcl b[si+5]
-	|cl <<= 1;|rcl b[si+6];|cl <<= 1;|rcl b[si+7]
+    |ch <<= 1;|rcl b[si+0];|ch <<= 1;|rcl b[si+1]
+    |ch <<= 1;|rcl b[si+2];|ch <<= 1;|rcl b[si+3]
+    |ch <<= 1;|rcl b[si+4];|ch <<= 1;|rcl b[si+5]
+    |ch <<= 1;|rcl b[si+6];|ch <<= 1;|rcl b[si+7]
 
-	|bh <<= 1;|rcl b[si+0];|bh <<= 1;|rcl b[si+1]
-	|bh <<= 1;|rcl b[si+2];|bh <<= 1;|rcl b[si+3]
-	|bh <<= 1;|rcl b[si+4];|bh <<= 1;|rcl b[si+5]
-	|bh <<= 1;|rcl b[si+6];|bh <<= 1;|rcl b[si+7]
+    |cl <<= 1;|rcl b[si+0];|cl <<= 1;|rcl b[si+1]
+    |cl <<= 1;|rcl b[si+2];|cl <<= 1;|rcl b[si+3]
+    |cl <<= 1;|rcl b[si+4];|cl <<= 1;|rcl b[si+5]
+    |cl <<= 1;|rcl b[si+6];|cl <<= 1;|rcl b[si+7]
 
-	|bl <<= 1;|rcl b[si+0];|bl <<= 1;|rcl b[si+1]
-	|bl <<= 1;|rcl b[si+2];|bl <<= 1;|rcl b[si+3]
-	|bl <<= 1;|rcl b[si+4];|bl <<= 1;|rcl b[si+5]
-	|bl <<= 1;|rcl b[si+6];|bl <<= 1;|rcl b[si+7]
+    |bh <<= 1;|rcl b[si+0];|bh <<= 1;|rcl b[si+1]
+    |bh <<= 1;|rcl b[si+2];|bh <<= 1;|rcl b[si+3]
+    |bh <<= 1;|rcl b[si+4];|bh <<= 1;|rcl b[si+5]
+    |bh <<= 1;|rcl b[si+6];|bh <<= 1;|rcl b[si+7]
 
-	|ah <<= 1;|rcl b[si+0];|ah <<= 1;|rcl b[si+1]
-	|ah <<= 1;|rcl b[si+2];|ah <<= 1;|rcl b[si+3]
-	|ah <<= 1;|rcl b[si+4];|ah <<= 1;|rcl b[si+5]
-	|ah <<= 1;|rcl b[si+6];|ah <<= 1;|rcl b[si+7]
+    |bl <<= 1;|rcl b[si+0];|bl <<= 1;|rcl b[si+1]
+    |bl <<= 1;|rcl b[si+2];|bl <<= 1;|rcl b[si+3]
+    |bl <<= 1;|rcl b[si+4];|bl <<= 1;|rcl b[si+5]
+    |bl <<= 1;|rcl b[si+6];|bl <<= 1;|rcl b[si+7]
 
-	|al <<= 1;|rcl b[si+0];|al <<= 1;|rcl b[si+1]
-	|al <<= 1;|rcl b[si+2];|al <<= 1;|rcl b[si+3]
-	|al <<= 1;|rcl b[si+4];|al <<= 1;|rcl b[si+5]
-	|al <<= 1;|rcl b[si+6];|al <<= 1;|rcl b[si+7]
+    |ah <<= 1;|rcl b[si+0];|ah <<= 1;|rcl b[si+1]
+    |ah <<= 1;|rcl b[si+2];|ah <<= 1;|rcl b[si+3]
+    |ah <<= 1;|rcl b[si+4];|ah <<= 1;|rcl b[si+5]
+    |ah <<= 1;|rcl b[si+6];|ah <<= 1;|rcl b[si+7]
 
-	return
+    |al <<= 1;|rcl b[si+0];|al <<= 1;|rcl b[si+1]
+    |al <<= 1;|rcl b[si+2];|al <<= 1;|rcl b[si+3]
+    |al <<= 1;|rcl b[si+4];|al <<= 1;|rcl b[si+5]
+    |al <<= 1;|rcl b[si+6];|al <<= 1;|rcl b[si+7]
+
+    return
 endproc
 
 //-----------------------------------------------------------------------------
-//module	KEY
+//module    KEY
 
-	// キー入力関係の関数
-	// 手続きは呼ばれるとき、tf = 0,df = 0,iif = 0 を前提。
-	// 手続きの復帰時, cf,sf,nf,pf,ovf は不定。
+    // キー入力関係の関数
+    // 手続きは呼ばれるとき、tf = 0,df = 0,iif = 0 を前提。
+    // 手続きの復帰時, cf,sf,nf,pf,ovf は不定。
 
-	//c_name "","",1
-	//model MODEL  //SMALL～LARGE対応
+    //c_name "","",1
+    //model MODEL  //SMALL～LARGE対応
 
-	//import Bios98Key:BIOS_KEY
+    //import Bios98Key:BIOS_KEY
 
 
 *proc Key_Init()
 begin
-	save ax
+    save ax
 
-	Bios98Key.Init
-	return
+    Bios98Key.Init
+    return
 endproc
 
 @if 1
 *proc Key_Get()
-	//out dx.ax   dx  0:ﾃﾞｰﾀ無効  1:ﾃﾞｰﾀ有効   ax:キーコード・データ
+    //out dx.ax   dx  0:ﾃﾞｰﾀ無効  1:ﾃﾞｰﾀ有効   ax:キーコード・データ
 begin
-	save bx
+    save bx
 
-	Bios98Key.Read
-	dl = bh
-	dh = 0
-	return
+    Bios98Key.Read
+    dl = bh
+    dh = 0
+    return
 endproc
 @fi
 
 *proc Key_GetWait()
-	//out ax	キーコード・データ
+    //out ax	キーコード・データ
 begin
-	Bios98Key.ReadWait
-	return
+    Bios98Key.ReadWait
+    return
 endproc
 
 
 @if 0
 *proc Key_GetShift()
-	//out ax	b0:ｼﾌﾄ  b1:CAPS  b2:ｶﾅ  b3:GRPH  b4:CTRL
+    //out ax	b0:ｼﾌﾄ	b1:CAPS  b2:ｶﾅ	b3:GRPH  b4:CTRL
 begin
-	Bios98Key.ShiftKeyRead
-	ah = 0
-	return
+    Bios98Key.ShiftKeyRead
+    ah = 0
+    return
 endproc
 @fi
 
 *proc Key_BufClr()
 begin
-	save ax
-	Bios98Key.BufClr
-	return
+    save ax
+    Bios98Key.BufClr
+    return
 endproc
 //endmodule
 

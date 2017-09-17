@@ -1,46 +1,46 @@
 submodule Fname
-	//	1992	writen by M.Kitamura
+    //	1992	writen by M.Kitamura
 
 
 *proc AddExt(es.di,si)
-//	es.diで示されるファイル名の拡張子をsiで示されるものにadd
-//	arg es.di	ファイル名
-//	arg si		拡張子名
-//	in	ds		データ・セグメント
+//  es.diで示されるファイル名の拡張子をsiで示されるものにadd
+//  arg es.di	ファイル名
+//  arg si  	拡張子名
+//  in	ds  	データ・セグメント
 begin
-	save ax,bx,di,si,ds
+    save ax,bx,di,si,ds
 
-	ds = bx = es
-	bx = si
-	si = di
-	if (b[si] == '.')
-		++si
-	fi
-	if (b[si] == '.')
-		++si
-	fi
-	ah = 0
-	loop
-		rep.load al,si
-		if (al == '.')
-			ah = 1
-		fi
-	endloop (al != 0)
-	if (ah == 0 && bx)
-		--si
-		di = si
-		si = bx
-		al = '.'
-		rep.set di,al
-		b[di] = 0
-		if (b[si])
-			loop
-				rep.load al,si
-				rep.set  di,al
-			endloop (al != 0)
-		fi
-	fi
-	return
+    ds = bx = es
+    bx = si
+    si = di
+    if (b[si] == '.')
+    	++si
+    fi
+    if (b[si] == '.')
+    	++si
+    fi
+    ah = 0
+    loop
+    	rep.load al,si
+    	if (al == '.')
+    	    ah = 1
+    	fi
+    endloop (al != 0)
+    if (ah == 0 && bx)
+    	--si
+    	di = si
+    	si = bx
+    	al = '.'
+    	rep.set di,al
+    	b[di] = 0
+    	if (b[si])
+    	    loop
+    	    	rep.load al,si
+    	    	rep.set  di,al
+    	    endloop (al != 0)
+    	fi
+    fi
+    return
 endproc
 
 endmodule

@@ -13,23 +13,23 @@
 #ifdef PC88VA
   #include "va.h"
   #define setGRB(n,g,r,b) Va_PalGRB((n),(g),(r),(b))
-  #define puts(n)         Va_puts(n)
+  #define puts(n)   	  Va_puts(n)
   void vaInit(void);
   void vaEnd(void);
-	#ifdef KAIHATU
-	  EXTERN int vaVramModeFlg;
-	#endif
+    #ifdef KAIHATU
+      EXTERN int vaVramModeFlg;
+    #endif
 #else /* 98 */
   #define setGRB(n,g,r,b) do{\
-			  outp(0xa8, (n));\
-			  outp(0xaa, (g));\
-			  outp(0xac, (r));\
-			  outp(0xae, (b));\
-		  }while(0)
-  #define VRAM_B 0xa8000000L    /* Vram Blue  Base Pointer */
-  #define VRAM_R 0xb0000000L    /* Vram Red   Base Pointer */
-  #define VRAM_G 0xb8000000L    /* Vram Green Base Pointer */
-  #define VRAM_I 0xe0000000L    /* Vram I     Base Pointer */
+    	      outp(0xa8, (n));\
+    	      outp(0xaa, (g));\
+    	      outp(0xac, (r));\
+    	      outp(0xae, (b));\
+    	  }while(0)
+  #define VRAM_B 0xa8000000L	/* Vram Blue  Base Pointer */
+  #define VRAM_R 0xb0000000L	/* Vram Red   Base Pointer */
+  #define VRAM_G 0xb8000000L	/* Vram Green Base Pointer */
+  #define VRAM_I 0xe0000000L	/* Vram I     Base Pointer */
 #endif
 
 void dspSwitch(int t, int g);
@@ -48,17 +48,17 @@ EXTERN int  Color16;
 EXTERN int  Offy;
 /* ビットマップテーブル */
 EXTERN int  Ly;
-#ifdef TST8BIT  /* tiny modelでのｺﾝﾊﾟｲﾙを試してみるとき */
+#ifdef TST8BIT	/* tiny modelでのｺﾝﾊﾟｲﾙを試してみるとき */
   #ifdef EX_IN_BUF
   #undef EX_IN_BUF
   #endif
   /* Vbufは実際には下2bitsしか使われていないので、それをつめてVbufのサイズを
-	小さく(1/4)する。ただしVbufに対するｱｸｾｽが余計に時間がかかることになる。*/
+    小さく(1/4)する。ただしVbufに対するｱｸｾｽが余計に時間がかかることになる。*/
   EXTERN byte Vbuf[LMAXY][LMAXX/4];
   int  getVb(int x,int y);
 #else
-  EXTERN byte Vbuf[LMAXY][LMAXX];               /* 4*2 ビットマップバッファ */
-  #define getVb(x,y)    (Vbuf[y][x])
+  EXTERN byte Vbuf[LMAXY][LMAXX];   	    	/* 4*2 ビットマップバッファ */
+  #define getVb(x,y)	(Vbuf[y][x])
 #endif
 
 void get4bitpat(int x, int y, int w, byte *pb, byte *pr, byte *pg, byte *pi);

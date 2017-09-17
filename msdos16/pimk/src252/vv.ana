@@ -1,109 +1,109 @@
 module Vv
-	c_name "Vv","_",1
+    c_name "Vv","_",1
 
-	import Std
-	import Pri
-	import EMS
-	import Vvw
+    import Std
+    import Pri
+    import EMS
+    import Vvw
 
 @define V() Vv.T[ds:0]
 
 *struct T
-	pln:w			//4:16	8:256色	(24:16万色)
-	xsize:w 		//画像横幅
-	ysize:w 		//	  縦幅
-	xstart:w		//表示開始座標	X
-	ystart:w		//				Y
-	xgscrn:w		//画面横幅
-	ygscrn:w		//	  縦幅
-	xgsize:w		//実際に表示するときの横幅	xxgsize
-	ygsize:w		//							ygsize
-	xgstart:w		//画面での実際の表示開始座標  X
-	ygstart:w		//							　Y
-	xvsize:w		//仮想VRAM横幅
-	yvsize:w		//		  縦幅
-	xvstart:w		//仮想VRAMの表示(転送)開始位置(ｽｸﾛｰﾙしたときの) X
-	yvstart:w		//												Y
-	//-------------------------------------------------------
-	palette:d		//パレット・テーブルへのアドレス
-	aspect1:w		//ドットの横比
-	aspect2:w		//ドットの縦比
-	overlayColor:w	//背景色
+    pln:w   	    //4:16  8:256色 (24:16万色)
+    xsize:w 	    //画像横幅
+    ysize:w 	    //	  縦幅
+    xstart:w	    //表示開始座標  X
+    ystart:w	    //	    	    Y
+    xgscrn:w	    //画面横幅
+    ygscrn:w	    //	  縦幅
+    xgsize:w	    //実際に表示するときの横幅	xxgsize
+    ygsize:w	    //	    	    	    	ygsize
+    xgstart:w	    //画面での実際の表示開始座標  X
+    ygstart:w	    //	    	    	    	　Y
+    xvsize:w	    //仮想VRAM横幅
+    yvsize:w	    //	      縦幅
+    xvstart:w	    //仮想VRAMの表示(転送)開始位置(ｽｸﾛｰﾙしたときの) X
+    yvstart:w	    //	    	    	    	    	    	    Y
+    //-------------------------------------------------------
+    palette:d	    //パレット・テーブルへのアドレス
+    aspect1:w	    //ドットの横比
+    aspect2:w	    //ドットの縦比
+    overlayColor:w  //背景色
 
-	ycur:w			//PutLine での現在の Y 座標
-	l200flg:w		//いわゆる 200L 画像か
-	x68flg:w		//アスペクト比が x68 の場合か
-	reductFlg:w 	//縮小モード	 0x02:1/4  0x06:1/16
-	reductFlgY:w	//縮小モード時のYスキップ用マスク
-	ycurReduct:w	//1/16縮小モードでのPutLine での現在の Y 座標
-	loopFlg:w		//ずりずりループ・モードか
-	maxLine:w		//展開ﾙｰﾁﾝが展開できる最大行数
-	//-------------------------------------------------------
-	pgLine:w		//ページ当りの行数
-	pgNo:w			//ページ番号
-	pgCnt:w 		//必要ページ数
-	pgCurSeg:w		//現在のページのセグメント
-	pgMmSeg:w		//ページに使うメインメモリの先頭
-	pgMmSzs:w		//ページに使えるメイン・メモリのパラグラフ数
-	pgMmCnt:w		//ページ数
-	pgEmsHdl:w		//EMS のハンドル
-	pgEmsSeg:w		//EMS のセグメント
-	pgEmsCnt:w		//EMS のページ数
-	pgEmsNo:w		//EMS の現在のページ番号
-	pgMaxLine:w 	//最大行数
-	pglcnt:w		//行カウンタ
-	pgPtr:w 		//ページ中のポインタ
-	pgXsize:w		//１行のサイズ(バイト数)
-	pgXsizeSubOfs:w //=xxsize*3-1(xxsize*7-1)
-	//-------------------------------------------------------
-	// 8ドット間隔の座標
-	//xxscrn:w		//画面横幅
-	//xxsize:w		//画像横幅
-	//xxstart:w 	//画面での表示開始座標	X
-	xxvsize:w		//仮想VRAM横幅
-	//xxvstart:w	//仮想VRAMの表示(転送)開始位置 X	xxvstart
-	//xxgsize:w 	//実際に表示するときの横幅	xxgsize
-	xofsL:w
-	xofsR:w
-	xmskL:w
-	xmskR:w
-	xmskFlg:w
-	bcolptn:b(8)	//背景色のパターン
-	//-------------------------------------------------------
-	ditFlg:w		//減色するかどうか
-	gvOfs:w 		//ズリズリで使う(表示位置の調整)
-	//--------------------------------------------------
-	dummy:b(10/*8*/)
-	pbuf:b(1280*4+2)
-	pbuf2:b(1280*4+10)
-	END:b()
+    ycur:w  	    //PutLine での現在の Y 座標
+    l200flg:w	    //いわゆる 200L 画像か
+    x68flg:w	    //アスペクト比が x68 の場合か
+    reductFlg:w     //縮小モード     0x02:1/4  0x06:1/16
+    reductFlgY:w    //縮小モード時のYスキップ用マスク
+    ycurReduct:w    //1/16縮小モードでのPutLine での現在の Y 座標
+    loopFlg:w	    //ずりずりループ・モードか
+    maxLine:w	    //展開ﾙｰﾁﾝが展開できる最大行数
+    //-------------------------------------------------------
+    pgLine:w	    //ページ当りの行数
+    pgNo:w  	    //ページ番号
+    pgCnt:w 	    //必要ページ数
+    pgCurSeg:w	    //現在のページのセグメント
+    pgMmSeg:w	    //ページに使うメインメモリの先頭
+    pgMmSzs:w	    //ページに使えるメイン・メモリのパラグラフ数
+    pgMmCnt:w	    //ページ数
+    pgEmsHdl:w	    //EMS のハンドル
+    pgEmsSeg:w	    //EMS のセグメント
+    pgEmsCnt:w	    //EMS のページ数
+    pgEmsNo:w	    //EMS の現在のページ番号
+    pgMaxLine:w     //最大行数
+    pglcnt:w	    //行カウンタ
+    pgPtr:w 	    //ページ中のポインタ
+    pgXsize:w	    //１行のサイズ(バイト数)
+    pgXsizeSubOfs:w //=xxsize*3-1(xxsize*7-1)
+    //-------------------------------------------------------
+    // 8ドット間隔の座標
+    //xxscrn:w	    //画面横幅
+    //xxsize:w	    //画像横幅
+    //xxstart:w     //画面での表示開始座標  X
+    xxvsize:w	    //仮想VRAM横幅
+    //xxvstart:w    //仮想VRAMの表示(転送)開始位置 X	xxvstart
+    //xxgsize:w     //実際に表示するときの横幅	xxgsize
+    xofsL:w
+    xofsR:w
+    xmskL:w
+    xmskR:w
+    xmskFlg:w
+    bcolptn:b(8)    //背景色のパターン
+    //-------------------------------------------------------
+    ditFlg:w	    //減色するかどうか
+    gvOfs:w 	    //ズリズリで使う(表示位置の調整)
+    //--------------------------------------------------
+    dummy:b(10/*8*/)
+    pbuf:b(1280*4+2)
+    pbuf2:b(1280*4+10)
+    END:b()
 endstruct
 
 //-----------------------------------------------------------------------------
 *proc PriInfo(datSeg:w);cdecl
 enter
-	save pusha,es,ds
-	//デバッグ
-	ds = datSeg
+    save pusha,es,ds
+    //デバッグ
+    ds = datSeg
   @if 1
-	Pri.Fmt "pln=%d %3d*%-3d (%3d,%3d)\N",\
-		V.pln,V.xsize,V.ysize,V.xstart,V.ystart
-	Pri.Fmt "gscrn%3d*%-3d gsize%d*%d gstart(%d,%d)\N",\
-		V.xgscrn,V.ygscrn,V.xgsize,V.ygsize,V.xgstart,V.ygstart
-	Pri.Fmt "vsize%3d*%-3d (%3d,%-3d)\N",\
-		V.xvsize,V.yvsize,V.xvstart,V.yvstart
-	Pri.Fmt "pal=%lx asp%d:%d bcol=%d\N",\
-		V.palette,V.aspect1,V.aspect2,V.overlayColor
-	Pri.Fmt "l2=%d x68=%d 縮小:%d,%d loop:%d maxLine=%d\N",\
-		V.l200flg,V.x68flg,V.reductFlg,V.reductFlgY,V.loopFlg,V.maxLine
-	Pri.Fmt "必要ページ数=%d,MM:Seg=%4x Sz=%d P=%d EMS:H=%d Seg=%4x P=%d\N",\
-		V.pgCnt,V.pgMmSeg,V.pgMmSzs,V.pgMmCnt,V.pgEmsHdl,V.pgEmsSeg,V.pgEmsCnt
-	Pri.Fmt "PG:Lin=%d MaxLin=%u xsiz=%d(%d), xsizOfs=%d\N",\
-		V.pgLine,V.pgMaxLine,V.pgXsize, V.xxvsize, V.pgXsizeSubOfs
-	Pri.Fmt "Xofs(%d):L=%d(%02x) R=%d(%02x)\N",\
-		V.xmskFlg,V.xofsL,V.xmskL,V.xofsR,V.xmskR
+    Pri.Fmt "pln=%d %3d*%-3d (%3d,%3d)\N",\
+    	V.pln,V.xsize,V.ysize,V.xstart,V.ystart
+    Pri.Fmt "gscrn%3d*%-3d gsize%d*%d gstart(%d,%d)\N",\
+    	V.xgscrn,V.ygscrn,V.xgsize,V.ygsize,V.xgstart,V.ygstart
+    Pri.Fmt "vsize%3d*%-3d (%3d,%-3d)\N",\
+    	V.xvsize,V.yvsize,V.xvstart,V.yvstart
+    Pri.Fmt "pal=%lx asp%d:%d bcol=%d\N",\
+    	V.palette,V.aspect1,V.aspect2,V.overlayColor
+    Pri.Fmt "l2=%d x68=%d 縮小:%d,%d loop:%d maxLine=%d\N",\
+    	V.l200flg,V.x68flg,V.reductFlg,V.reductFlgY,V.loopFlg,V.maxLine
+    Pri.Fmt "必要ページ数=%d,MM:Seg=%4x Sz=%d P=%d EMS:H=%d Seg=%4x P=%d\N",\
+    	V.pgCnt,V.pgMmSeg,V.pgMmSzs,V.pgMmCnt,V.pgEmsHdl,V.pgEmsSeg,V.pgEmsCnt
+    Pri.Fmt "PG:Lin=%d MaxLin=%u xsiz=%d(%d), xsizOfs=%d\N",\
+    	V.pgLine,V.pgMaxLine,V.pgXsize, V.xxvsize, V.pgXsizeSubOfs
+    Pri.Fmt "Xofs(%d):L=%d(%02x) R=%d(%02x)\N",\
+    	V.xmskFlg,V.xofsL,V.xmskL,V.xofsR,V.xmskR
   @fi
-	return
+    return
 endproc
 
 @if 0
@@ -111,567 +111,567 @@ cvar auto16flg:w = 1
 
 *proc AutoChk16(sw:w); cdecl; far
 enter
-	push sw
-	pop  auto16flg
-	return
+    push sw
+    pop  auto16flg
+    return
 endproc
 @fi
 
 
 proc InitAspect(asp1:w,asp2:w,reductFlg:w)
 enter
-	//アスペクト比
-	ax = asp1
-	if (ax == 0)
-		++ax
-	fi
-	V.aspect1 = ax
-	bx = asp2
-	if (bx == 0)
-		++bx
-	fi
-	V.aspect2 = bx
-	V.x68flg = 0
-	V.l200flg = 0
-	if (ax == bx)
-		if (ax == 2 && reductFlg == 0 && V.xsize <= 2048)	//2*2倍モード
-			V.xvsize <<= 1
-			V.x68flg = 1
-			V.l200flg = 1
-			V.yvsize <<= 1
-			V.ygstart <<= 1
-		else
-			ax = 1
-			V.aspect1 = ax
-			V.aspect2 = ax
-		fi
-	else
-		if (ax > bx)
-			dx.ax = ax * 100
-			div dx.ax, bx
-			if (ax < 133)
-				;
-			elsif (ax < 140 && V.xsize <= 3*1024)
-				ax = V.xvsize
-				dx = 0
-				bx = 3
-				div dx.ax, bx
-				V.xvsize += ax
-				ax = 3
-			elsif (ax <= 180 && V.xsize <= 3*1024)
-				ax = V.xvsize
-				ax >>= 1
-				V.xvsize += ax
-				ax = 2
-			else
-				ax = V.xvsize
-				V.xvsize += ax
-				ax = 1
-			fi
-			V.x68flg = ax
-		else
-			ax <=> bx
-			dx.ax = ax * 100
-			div dx.ax, bx
-			V.l200flg = 0
-			if (ax > 170)
-				V.l200flg = 1
-				V.yvsize <<= 1
-				V.ygstart <<= 1
-			fi
-		fi
-	fi
-	//縮小モード
-	V.reductFlg = 0
-	if (reductFlg)
-		if (reductFlg == 1)
-			V.reductFlg = ax = 0x02
-			if (V.l200flg)
-				ax = 0
-				V.l200flg = ax
-			fi
-			V.reductFlgY = ax
-			V.yvsize >>= 1
-			V.ygstart >>= 1
-			V.xvsize >>= 1
-			V.xgstart >>= 1
-		else
-			ax = 0x06
-			V.reductFlg = ax
-			if (V.l200flg)
-				ax = 0x02
-				V.l200flg = 0
-			fi
-			V.reductFlgY = ax
-			V.yvsize >>= 2
-			V.ygstart >>= 2
-			V.xvsize >>= 2
-			V.xgstart >>= 2
-		fi
-	fi
-	return
+    //アスペクト比
+    ax = asp1
+    if (ax == 0)
+    	++ax
+    fi
+    V.aspect1 = ax
+    bx = asp2
+    if (bx == 0)
+    	++bx
+    fi
+    V.aspect2 = bx
+    V.x68flg = 0
+    V.l200flg = 0
+    if (ax == bx)
+    	if (ax == 2 && reductFlg == 0 && V.xsize <= 2048)   //2*2倍モード
+    	    V.xvsize <<= 1
+    	    V.x68flg = 1
+    	    V.l200flg = 1
+    	    V.yvsize <<= 1
+    	    V.ygstart <<= 1
+    	else
+    	    ax = 1
+    	    V.aspect1 = ax
+    	    V.aspect2 = ax
+    	fi
+    else
+    	if (ax > bx)
+    	    dx.ax = ax * 100
+    	    div dx.ax, bx
+    	    if (ax < 133)
+    	    	;
+    	    elsif (ax < 140 && V.xsize <= 3*1024)
+    	    	ax = V.xvsize
+    	    	dx = 0
+    	    	bx = 3
+    	    	div dx.ax, bx
+    	    	V.xvsize += ax
+    	    	ax = 3
+    	    elsif (ax <= 180 && V.xsize <= 3*1024)
+    	    	ax = V.xvsize
+    	    	ax >>= 1
+    	    	V.xvsize += ax
+    	    	ax = 2
+    	    else
+    	    	ax = V.xvsize
+    	    	V.xvsize += ax
+    	    	ax = 1
+    	    fi
+    	    V.x68flg = ax
+    	else
+    	    ax <=> bx
+    	    dx.ax = ax * 100
+    	    div dx.ax, bx
+    	    V.l200flg = 0
+    	    if (ax > 170)
+    	    	V.l200flg = 1
+    	    	V.yvsize <<= 1
+    	    	V.ygstart <<= 1
+    	    fi
+    	fi
+    fi
+    //縮小モード
+    V.reductFlg = 0
+    if (reductFlg)
+    	if (reductFlg == 1)
+    	    V.reductFlg = ax = 0x02
+    	    if (V.l200flg)
+    	    	ax = 0
+    	    	V.l200flg = ax
+    	    fi
+    	    V.reductFlgY = ax
+    	    V.yvsize >>= 1
+    	    V.ygstart >>= 1
+    	    V.xvsize >>= 1
+    	    V.xgstart >>= 1
+    	else
+    	    ax = 0x06
+    	    V.reductFlg = ax
+    	    if (V.l200flg)
+    	    	ax = 0x02
+    	    	V.l200flg = 0
+    	    fi
+    	    V.reductFlgY = ax
+    	    V.yvsize >>= 2
+    	    V.ygstart >>= 2
+    	    V.xvsize >>= 2
+    	    V.xgstart >>= 2
+    	fi
+    fi
+    return
 endproc
 
 *proc InitOverlayColor(dx)
 begin
-	//背景色
-	V.overlayColor = dx
-	//if (dx)
-	//	--dx
-	//fi
-	al = 0; |rcr dl; if (cf); --al; fi; V.bcolptn(0) = al
-	al = 0; |rcr dl; if (cf); --al; fi; V.bcolptn(1) = al
-	al = 0; |rcr dl; if (cf); --al; fi; V.bcolptn(2) = al
-	al = 0; |rcr dl; if (cf); --al; fi; V.bcolptn(3) = al
-	al = 0; |rcr dl; if (cf); --al; fi; V.bcolptn(4) = al
-	al = 0; |rcr dl; if (cf); --al; fi; V.bcolptn(5) = al
-	al = 0; |rcr dl; if (cf); --al; fi; V.bcolptn(6) = al
-	al = 0; |rcr dl; if (cf); --al; fi; V.bcolptn(7) = al
-	return
+    //背景色
+    V.overlayColor = dx
+    //if (dx)
+    //	--dx
+    //fi
+    al = 0; |rcr dl; if (cf); --al; fi; V.bcolptn(0) = al
+    al = 0; |rcr dl; if (cf); --al; fi; V.bcolptn(1) = al
+    al = 0; |rcr dl; if (cf); --al; fi; V.bcolptn(2) = al
+    al = 0; |rcr dl; if (cf); --al; fi; V.bcolptn(3) = al
+    al = 0; |rcr dl; if (cf); --al; fi; V.bcolptn(4) = al
+    al = 0; |rcr dl; if (cf); --al; fi; V.bcolptn(5) = al
+    al = 0; |rcr dl; if (cf); --al; fi; V.bcolptn(6) = al
+    al = 0; |rcr dl; if (cf); --al; fi; V.bcolptn(7) = al
+    return
 endproc
 
 proc InitXXsize(initMode:w,xsz:w,xsst:w)
-	//横幅調整
+    //横幅調整
 enter
-	cvar ptnL:b() = {0xFF,0x7F,0x3F,0x1F,0x0F,0x07,0x03,0x01}
-	cvar ptnR:b() = {0xFF,0xFE,0xFC,0xF8,0xF0,0xE0,0xC0,0x80}
-	local xxstart:w
+    cvar ptnL:b() = {0xFF,0x7F,0x3F,0x1F,0x0F,0x07,0x03,0x01}
+    cvar ptnR:b() = {0xFF,0xFE,0xFC,0xF8,0xF0,0xE0,0xC0,0x80}
+    local xxstart:w
 
-	//if.w (initMode)
+    //if.w (initMode)
 
-		ax = xsz
-		dx = xsst
-		ax += dx
-		--ax
+    	ax = xsz
+    	dx = xsst
+    	ax += dx
+    	--ax
 
-		// 左端の準備
-		si = dx
-		dx >>= 3
-		xxstart = dx
-		dx <<= 3
-		V.xgstart = dx
+    	// 左端の準備
+    	si = dx
+    	dx >>= 3
+    	xxstart = dx
+    	dx <<= 3
+    	V.xgstart = dx
 
-		V.xmskFlg = 0
-		if ((si &= 0x07) != 0)
-			V.xmskFlg.l = 1
-		fi
-		V.xofsL = si
-		V.xmskL.l = dl = ptnL[si]
+    	V.xmskFlg = 0
+    	if ((si &= 0x07) != 0)
+    	    V.xmskFlg.l = 1
+    	fi
+    	V.xofsL = si
+    	V.xmskL.l = dl = ptnL[si]
 
-		// 右端の準備
-		si = ax
-		V.xofsR = 0
-		si &= 0x07
-		V.xofsR = 7
-		V.xofsR -= si
-		si = V.xofsR
-		V.xmskR.l = dl = ptnR[si]
-		++ax
-		if (ax & 0x07)
-			ax += 8
-			V.xmskFlg.l = 1
-		fi
-		ax >>= 3
-		ax -= xxstart
-		V.xxvsize = ax
-		ax <<= 3
-		V.xvsize = ax
+    	// 右端の準備
+    	si = ax
+    	V.xofsR = 0
+    	si &= 0x07
+    	V.xofsR = 7
+    	V.xofsR -= si
+    	si = V.xofsR
+    	V.xmskR.l = dl = ptnR[si]
+    	++ax
+    	if (ax & 0x07)
+    	    ax += 8
+    	    V.xmskFlg.l = 1
+    	fi
+    	ax >>= 3
+    	ax -= xxstart
+    	V.xxvsize = ax
+    	ax <<= 3
+    	V.xvsize = ax
 
-		dx = ax = V.xxvsize
-		ax <<= 2
-		if (initMode == 2 || initMode == 3)
-			ax <<= 1
-		fi
-		V.pgXsize = ax
-		//
-		ax -= dx
-		ax -= 1
-		V.pgXsizeSubOfs = ax
-	//fi
-	return
+    	dx = ax = V.xxvsize
+    	ax <<= 2
+    	if (initMode == 2 || initMode == 3)
+    	    ax <<= 1
+    	fi
+    	V.pgXsize = ax
+    	//
+    	ax -= dx
+    	ax -= 1
+    	V.pgXsizeSubOfs = ax
+    //fi
+    return
 endproc
 
 proc InitMem(mmSeg:w,mmSzs:w,emsHdl:w,emsSeg:w,emsCnt:w,pgXsize:w)
 enter
-	//EMSの設定
-	V.pgEmsHdl = ax = 0
-	V.pgEmsSeg = ax
-	V.pgEmsCnt = ax
-	V.pgEmsNo = -1
-	if (emsCnt && emsSeg >= 0xC000)
-		V.pgEmsHdl = ax = emsHdl
-		V.pgEmsSeg = ax = emsSeg
-		V.pgEmsCnt = ax = emsCnt
-	fi
+    //EMSの設定
+    V.pgEmsHdl = ax = 0
+    V.pgEmsSeg = ax
+    V.pgEmsCnt = ax
+    V.pgEmsNo = -1
+    if (emsCnt && emsSeg >= 0xC000)
+    	V.pgEmsHdl = ax = emsHdl
+    	V.pgEmsSeg = ax = emsSeg
+    	V.pgEmsCnt = ax = emsCnt
+    fi
 
-	//ピクセル・バッファを構成するページ(16Kﾊﾞｲﾄ)の設定
-	V.pgMmSeg = ax = mmSeg
-	V.pgCurSeg = ax
-	V.pgMmSzs = ax = mmSzs
+    //ピクセル・バッファを構成するページ(16Kﾊﾞｲﾄ)の設定
+    V.pgMmSeg = ax = mmSeg
+    V.pgCurSeg = ax
+    V.pgMmSzs = ax = mmSzs
 
-	dx.ax = 0x4000
-	div dx.ax, pgXsize
-	V.pgLine = ax
-	V.pglcnt = 1	//ax
-	//
-	V.pgNo = -1 	//0
-	V.pgPtr = dx
-	//
-	dx.ax = ww(0, V.pgMmSzs)
-	cx = 0x400	//16*1024 / 16
-	div dx.ax, cx
-	V.pgMmCnt = ax
-	ax += V.pgEmsCnt
-	dx.ax = ax * V.pgLine
-	if (dx || ax .<. 0)
-		ax = 0x7fff
-	fi
-	V.pgMaxLine = ax
-	return
+    dx.ax = 0x4000
+    div dx.ax, pgXsize
+    V.pgLine = ax
+    V.pglcnt = 1    //ax
+    //
+    V.pgNo = -1     //0
+    V.pgPtr = dx
+    //
+    dx.ax = ww(0, V.pgMmSzs)
+    cx = 0x400	//16*1024 / 16
+    div dx.ax, cx
+    V.pgMmCnt = ax
+    ax += V.pgEmsCnt
+    dx.ax = ax * V.pgLine
+    if (dx || ax .<. 0)
+    	ax = 0x7fff
+    fi
+    V.pgMaxLine = ax
+    return
 endproc
 
-*proc Init( initMode:w, 		/*0:ｼﾝｸﾞﾙﾌﾟﾚｰﾝ 1:4ﾏﾙﾁﾌﾟﾚｰﾝ 2,3:8ﾏﾙﾁ 4:ﾌﾙ*/\
-			vvSeg:w,													\
-			mmSeg:w,mmSzs:w,											\
-			emsHdl:w,emsSeg:w,emsCnt:w, 								\
-			pln:w,														\
-			xgscrn:w,ygscrn:w,	/**/									\
-			xsz:w,ysz:w,												\
-			xstart:w,ystart:w,											\
-			pal:d,														\
-			asp1:w,asp2:w,												\
-			bcol:w, 													\
-			reductFlg:w,												\
-			loopFlg:w													\
-			)
-	cdecl
-	//ret  ax	展開可能行数. 0:メモリがない
+*proc Init( initMode:w,     	/*0:ｼﾝｸﾞﾙﾌﾟﾚｰﾝ 1:4ﾏﾙﾁﾌﾟﾚｰﾝ 2,3:8ﾏﾙﾁ 4:ﾌﾙ*/\
+    	    vvSeg:w,	    	    	    	    	    	    	\
+    	    mmSeg:w,mmSzs:w,	    	    	    	    	    	\
+    	    emsHdl:w,emsSeg:w,emsCnt:w,     	    	    	    	\
+    	    pln:w,  	    	    	    	    	    	    	\
+    	    xgscrn:w,ygscrn:w,	/**/	    	    	    	    	\
+    	    xsz:w,ysz:w,    	    	    	    	    	    	\
+    	    xstart:w,ystart:w,	    	    	    	    	    	\
+    	    pal:d,  	    	    	    	    	    	    	\
+    	    asp1:w,asp2:w,  	    	    	    	    	    	\
+    	    bcol:w, 	    	    	    	    	    	    	\
+    	    reductFlg:w,    	    	    	    	    	    	\
+    	    loopFlg:w	    	    	    	    	    	    	\
+    	    )
+    cdecl
+    //ret  ax	展開可能行数. 0:メモリがない
 enter
-	save bx,cx,dx,si,di,es,ds
+    save bx,cx,dx,si,di,es,ds
 
-	//データ・セグメント
-	ds = ax = vvSeg
-	es = ax
-	rep.set 0, 0, sizeof(T)
+    //データ・セグメント
+    ds = ax = vvSeg
+    es = ax
+    rep.set 0, 0, sizeof(T)
 
-	V.pln = ax = pln
-	V.palette = dx.ax = pal
+    V.pln = ax = pln
+    V.palette = dx.ax = pal
   @if 0
-	if (auto16flg && pln == 8)
-		es.si = dx.ax
-		cx = (256-16)*3/2
-		ax = 0
-		loop
-			ax |= w[es:si]
-			si += 2
-		endloop (--cx)
-		if (ax == 0)
-			V.pln = 4
-		fi
-	fi
+    if (auto16flg && pln == 8)
+    	es.si = dx.ax
+    	cx = (256-16)*3/2
+    	ax = 0
+    	loop
+    	    ax |= w[es:si]
+    	    si += 2
+    	endloop (--cx)
+    	if (ax == 0)
+    	    V.pln = 4
+    	fi
+    fi
   @fi
 
-	V.loopFlg = dx = loopFlg
-	ax = 0
-	V.ycur = ax 	/////////
-	V.ycurReduct = ax	/////
+    V.loopFlg = dx = loopFlg
+    ax = 0
+    V.ycur = ax     /////////
+    V.ycurReduct = ax	/////
 
-	//画像サイズ関係
-	V.xgscrn = ax = xgscrn
-	V.ygscrn = ax = ygscrn
+    //画像サイズ関係
+    V.xgscrn = ax = xgscrn
+    V.ygscrn = ax = ygscrn
 
-	V.xsize = ax = xsz
-	V.xvsize = ax
-	V.ysize = ax = ysz
-	V.yvsize = ax
+    V.xsize = ax = xsz
+    V.xvsize = ax
+    V.ysize = ax = ysz
+    V.yvsize = ax
 
-	V.xstart = ax = xstart
-	V.xgstart = ax
-	V.ystart = ax = ystart
-	V.ygstart = ax
+    V.xstart = ax = xstart
+    V.xgstart = ax
+    V.ystart = ax = ystart
+    V.ygstart = ax
 
-	//アスペクト比、拡大縮小の調整
-	InitAspect asp1,asp2,reductFlg
-	V.pgXsize = ax = V.xvsize
+    //アスペクト比、拡大縮小の調整
+    InitAspect asp1,asp2,reductFlg
+    V.pgXsize = ax = V.xvsize
 
-	// フルカラー画像か力技表示のときは、減色
-	if (V.pln == 24/* || initMode == 2*/)
-		if (mmSzs >= 0x602)	// 減色用に12Kbyte * 2のバッファを確保
-			Vvw.DecolInit pal, ystart, ww(mmSeg,0)
-			mmSzs -= 0x602
-			mmSeg += 0x602
-		else
-			ax = 0
-			go.w RET
-		fi
-	fi
+    // フルカラー画像か力技表示のときは、減色
+    if (V.pln == 24/* || initMode == 2*/)
+    	if (mmSzs >= 0x602) // 減色用に12Kbyte * 2のバッファを確保
+    	    Vvw.DecolInit pal, ystart, ww(mmSeg,0)
+    	    mmSzs -= 0x602
+    	    mmSeg += 0x602
+    	else
+    	    ax = 0
+    	    go.w RET
+    	fi
+    fi
 
   @if 1
-	if (initMode == 1 || initMode == 2 || initMode == 3)
-		//マルチプレーン画面なら、横８ドット単位化
-		InitXXsize initMode, V.xvsize, V.xgstart
-	elsif (initMode == 4)
-		//フルカラー画面なら、１ピクセルは３バイト
-		ax = V.xvsize
-		ax += ax
-		ax += V.xvsize
-		V.pgXsize = ax
-	fi
+    if (initMode == 1 || initMode == 2 || initMode == 3)
+    	//マルチプレーン画面なら、横８ドット単位化
+    	InitXXsize initMode, V.xvsize, V.xgstart
+    elsif (initMode == 4)
+    	//フルカラー画面なら、１ピクセルは３バイト
+    	ax = V.xvsize
+    	ax += ax
+    	ax += V.xvsize
+    	V.pgXsize = ax
+    fi
   @else
-	//マルチプレーン画面なら、横８ドット単位化
-	if (initMode)
-		InitXXsize initMode, V.xvsize, V.xgstart
-	fi
+    //マルチプレーン画面なら、横８ドット単位化
+    if (initMode)
+    	InitXXsize initMode, V.xvsize, V.xgstart
+    fi
   @fi
 
-	//背景色の準備
-	if (bcol)
-		--bcol
-	fi
-	InitOverlayColor bcol
+    //背景色の準備
+    if (bcol)
+    	--bcol
+    fi
+    InitOverlayColor bcol
 
-	//メモリの準備
-	InitMem mmSeg,mmSzs, emsHdl, emsSeg, emsCnt, V.pgXsize
-	ax = V.pgMaxLine
-	if (ax < V.yvsize)
-		V.yvsize = ax
-	fi
-	dx.ax = ww(0,V.yvsize)
-	cx = V.pgLine
-	div dx.ax , cx
-	if (dx)
-		++ax
-	fi
-	V.pgCnt = ax
+    //メモリの準備
+    InitMem mmSeg,mmSzs, emsHdl, emsSeg, emsCnt, V.pgXsize
+    ax = V.pgMaxLine
+    if (ax < V.yvsize)
+    	V.yvsize = ax
+    fi
+    dx.ax = ww(0,V.yvsize)
+    cx = V.pgLine
+    div dx.ax , cx
+    if (dx)
+    	++ax
+    fi
+    V.pgCnt = ax
 
-	//実際に表示するサイズを求める
-	ax = V.xvsize
-	if (ax > V.xgscrn)
-		ax = V.xgscrn
-	fi
-	V.xgsize = ax
-	ax = V.yvsize
-	if (ax > V.ygscrn)
-		ax = V.ygscrn
-	fi
-	V.ygsize = ax
+    //実際に表示するサイズを求める
+    ax = V.xvsize
+    if (ax > V.xgscrn)
+    	ax = V.xgscrn
+    fi
+    V.xgsize = ax
+    ax = V.yvsize
+    if (ax > V.ygscrn)
+    	ax = V.ygscrn
+    fi
+    V.ygsize = ax
 
-	//展開できる行数を求める
-	ax = V.pgMaxLine
-	if (V.reductFlgY)
-		ax <<= 1
-		if (V.reductFlgY == 0x06)
-			ax <<= 1
-		fi
-	fi
-	if (V.l200flg)
-		ax >>= 1
-	fi
-	if (ax .<. 0)	// 0x7fff以上の行数があるとき
-		ax = 0x7FFF
-	fi
+    //展開できる行数を求める
+    ax = V.pgMaxLine
+    if (V.reductFlgY)
+    	ax <<= 1
+    	if (V.reductFlgY == 0x06)
+    	    ax <<= 1
+    	fi
+    fi
+    if (V.l200flg)
+    	ax >>= 1
+    fi
+    if (ax .<. 0)   // 0x7fff以上の行数があるとき
+    	ax = 0x7FFF
+    fi
   RET:
-	V.maxLine = ax
-	return	//ax
+    V.maxLine = ax
+    return  //ax
 endproc
 
 *proc SclLoopMode(datSeg:w,loopFlg:w);cdecl
 enter
-	save ax,ds
-	ds = datSeg
-	V.loopFlg = ax = loopFlg
-	return
+    save ax,ds
+    ds = datSeg
+    V.loopFlg = ax = loopFlg
+    return
 endproc
 
 //-----------------------------------------------------------------------------
 
 *proc PageSw(ax)
 begin
-	if (ax >= V.pgMmCnt)
-		//Pri.Fmt"メモリが足りないよ--- %d,%d,%d\N",ax,V.pgMmCnt,V.pgEmsCnt
-		if (V.pgEmsSeg)
-			if (ax != V.pgEmsNo)
-				//EMS 切り替え
-				V.pgEmsNo = ax
-				ax -= V.pgMmCnt
-				if (ax >= V.pgEmsCnt)
-					Pri.Fmt "メモリが足りないよ---\N"
-					ax = V.pgEmsCnt
-				else
-					EMS.Page V.pgEmsHdl, ax
-				fi
-			fi
-			ax = V.pgEmsSeg
-		else
-			Pri.Fmt "PRGerr:EMSﾊﾞｯﾌｧ管理 (%d,%d)\N", ax , V.pgMmCnt
-			ax = V.pgMmCnt
-			--ax
-			ax <<= 10
-			ax += V.pgMmSeg
-		fi
-	else
-		ax <<= 10	//ax *= 0x400
-		ax += V.pgMmSeg
-	fi
-	return
+    if (ax >= V.pgMmCnt)
+    	//Pri.Fmt"メモリが足りないよ--- %d,%d,%d\N",ax,V.pgMmCnt,V.pgEmsCnt
+    	if (V.pgEmsSeg)
+    	    if (ax != V.pgEmsNo)
+    	    	//EMS 切り替え
+    	    	V.pgEmsNo = ax
+    	    	ax -= V.pgMmCnt
+    	    	if (ax >= V.pgEmsCnt)
+    	    	    Pri.Fmt "メモリが足りないよ---\N"
+    	    	    ax = V.pgEmsCnt
+    	    	else
+    	    	    EMS.Page V.pgEmsHdl, ax
+    	    	fi
+    	    fi
+    	    ax = V.pgEmsSeg
+    	else
+    	    Pri.Fmt "PRGerr:EMSﾊﾞｯﾌｧ管理 (%d,%d)\N", ax , V.pgMmCnt
+    	    ax = V.pgMmCnt
+    	    --ax
+    	    ax <<= 10
+    	    ax += V.pgMmSeg
+    	fi
+    else
+    	ax <<= 10   //ax *= 0x400
+    	ax += V.pgMmSeg
+    fi
+    return
 endproc
 
 *proc X68line(rbuf:d,stp:w)
 enter
-	save ds
+    save ds
 
-	dx = V.xsize
-	es.di = ww(ds,%T.pbuf)
-	ds.si = rbuf
-	cx = bx = stp
-	//if (V.ycur & 0x0001)
-	//	|cx >>= 1
-	//	adc cx,0
-	//fi
-	loop
-		rep.load al,si
-		rep.set  di,al
-		//rep.cpy di,si
-		go (--cx == 0) J1
-	  J_RET:
-	endloop (--dx)
-	dx.ax = ww(es,%T.pbuf)
-	return
+    dx = V.xsize
+    es.di = ww(ds,%T.pbuf)
+    ds.si = rbuf
+    cx = bx = stp
+    //if (V.ycur & 0x0001)
+    //	|cx >>= 1
+    //	adc cx,0
+    //fi
+    loop
+    	rep.load al,si
+    	rep.set  di,al
+    	//rep.cpy di,si
+    	go (--cx == 0) J1
+      J_RET:
+    endloop (--dx)
+    dx.ax = ww(es,%T.pbuf)
+    return
   J1:
-	//al = b[si-1]
-	rep.set di,al
-	cx = bx
-	go J_RET
+    //al = b[si-1]
+    rep.set di,al
+    cx = bx
+    go J_RET
 endproc
 
 *proc ReductLine(dx.ax)
 begin
-	save ds
+    save ds
 
-	bx = V.xvsize
-	bx += bx
-	cx = V.reductFlg
-	if (cx & 0x04)	// 1/16縮小のとき
-		bx += bx
-	fi
-	es.di = ww(ds,%T.pbuf)
-	ds.si = dx.ax
-	dx = cx
-	cx = 0
-	loop
-		rep.load al,si
-		if ((cx & dx) == 0)
-			rep.set di,al
-		fi
-		++cx
-	endloop (cx < bx)
-	dx.ax = ww(es,%T.pbuf)
-	return
+    bx = V.xvsize
+    bx += bx
+    cx = V.reductFlg
+    if (cx & 0x04)  // 1/16縮小のとき
+    	bx += bx
+    fi
+    es.di = ww(ds,%T.pbuf)
+    ds.si = dx.ax
+    dx = cx
+    cx = 0
+    loop
+    	rep.load al,si
+    	if ((cx & dx) == 0)
+    	    rep.set di,al
+    	fi
+    	++cx
+    endloop (cx < bx)
+    dx.ax = ww(es,%T.pbuf)
+    return
 endproc
 
 
 *proc LineAddr(datSeg:w,yy:w);cdecl
-	// ret dx.ax	address
+    // ret dx.ax    address
 enter
-	save cx,es,ds
+    save cx,es,ds
 
-	ds = datSeg
-	dx.ax = ww(0,yy)
-	div dx.ax, V.pgLine
-	PageSw ax
-	V.pgCurSeg = cx = ax
-	dx.ax = dx * V.xvsize
-	dx = cx
-	return
+    ds = datSeg
+    dx.ax = ww(0,yy)
+    div dx.ax, V.pgLine
+    PageSw ax
+    V.pgCurSeg = cx = ax
+    dx.ax = dx * V.xvsize
+    dx = cx
+    return
 endproc
 
 /*---------------------------------------------------------------------------*/
 
 *proc RevY(datSeg:w);cdecl
-	//上下反転
+    //上下反転
 enter
-	save pusha, es,ds
-	local y0:w, y1:w, xxsz:w, ycnt:w, ptr:w, ptr2:w
+    save pusha, es,ds
+    local y0:w, y1:w, xxsz:w, ycnt:w, ptr:w, ptr2:w
 
-	ds = datSeg
+    ds = datSeg
 
-	ax = V.xxvsize
-	xxsz = ax
+    ax = V.xxvsize
+    xxsz = ax
 
-	ax = V.yvsize
-	|ax >>= 1; adc ax,0
-	ycnt = ax
-	ax = V.yvsize
-	--ax
-	y1 = ax
-	y0 = 0
+    ax = V.yvsize
+    |ax >>= 1; adc ax,0
+    ycnt = ax
+    ax = V.yvsize
+    --ax
+    y1 = ax
+    y0 = 0
 
-	loop.w
-		// y0 ラインをpbufにコピー
-		ds = datSeg
-		dx.ax = ww(0,y0)
-		div dx.ax, V.pgLine
-		PageSw ax
-		V.pgCurSeg = ax
+    loop.w
+    	// y0 ラインをpbufにコピー
+    	ds = datSeg
+    	dx.ax = ww(0,y0)
+    	div dx.ax, V.pgLine
+    	PageSw ax
+    	V.pgCurSeg = ax
 
-		dx.ax = dx * V.pgXsize
-		ptr = si = ax
-		es = ax = ds
-		di = %T.pbuf
-		cx = V.pgXsize
-		ds = V.pgCurSeg
-		rep.cpy di,si, cx
+    	dx.ax = dx * V.pgXsize
+    	ptr = si = ax
+    	es = ax = ds
+    	di = %T.pbuf
+    	cx = V.pgXsize
+    	ds = V.pgCurSeg
+    	rep.cpy di,si, cx
 
-		// y1 ラインをpbuf2にコピー
-		ds = datSeg
-		dx.ax = ww(0,y1)
-		div dx.ax, V.pgLine
-		PageSw ax
-		V.pgCurSeg = ax
+    	// y1 ラインをpbuf2にコピー
+    	ds = datSeg
+    	dx.ax = ww(0,y1)
+    	div dx.ax, V.pgLine
+    	PageSw ax
+    	V.pgCurSeg = ax
 
-		dx.ax = dx * V.pgXsize
-		ptr2 = si = ax
-		es = ax = ds
-		di = %T.pbuf2
-		cx = V.pgXsize
-		ds = V.pgCurSeg
-		rep.cpy di,si, cx
+    	dx.ax = dx * V.pgXsize
+    	ptr2 = si = ax
+    	es = ax = ds
+    	di = %T.pbuf2
+    	cx = V.pgXsize
+    	ds = V.pgCurSeg
+    	rep.cpy di,si, cx
 
-		// pbuf2を y1 ラインにコピー
-		ds = datSeg
-		es = V.pgCurSeg
-		rep.cpy ptr2, %T.pbuf, V.pgXsize
+    	// pbuf2を y1 ラインにコピー
+    	ds = datSeg
+    	es = V.pgCurSeg
+    	rep.cpy ptr2, %T.pbuf, V.pgXsize
 
-		// pbufを y0 ラインにコピー
-		dx.ax = ww(0,y0)
-		div dx.ax, V.pgLine
-		PageSw ax
-		V.pgCurSeg = ax
-		es = ax
-		rep.cpy ptr, %T.pbuf2, V.pgXsize
-		++y0
-		--y1
-	endloop (--ycnt)
-	return
+    	// pbufを y0 ラインにコピー
+    	dx.ax = ww(0,y0)
+    	div dx.ax, V.pgLine
+    	PageSw ax
+    	V.pgCurSeg = ax
+    	es = ax
+    	rep.cpy ptr, %T.pbuf2, V.pgXsize
+    	++y0
+    	--y1
+    endloop (--ycnt)
+    return
 endproc
 
 *proc Non()
 begin
-	return
+    return
 endproc
 
 *proc SetDecolPal(palptr:d);cdecl;far
-	endproc
+    endproc
 *proc DecolInit(palptr:d,y0:w,buf:d);cdecl;far
-	endproc
+    endproc
 *proc Decol(pix3:d, pix1:d, xsz:w);cdecl;far
-	endproc
+    endproc
 *proc Decol0(pix3:d, pix1:d,xsz:w);cdecl;far
-	endproc
+    endproc
 *proc GetLine24(datOfs:w, datSeg:w, pixPtr0:d);cdecl;far
-	endproc
+    endproc
 *proc X68line24(rbuf:d,stp:w,lbuf:d)
-	endproc
+    endproc
 *var  decolLinBuf:b(4096)
 
 endmodule

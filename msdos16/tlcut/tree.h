@@ -1,7 +1,7 @@
 typedef struct TREENODE {
-	struct TREENODE *Link[2];
-	int   AvltFlg;
-	void *Element;
+    struct TREENODE *Link[2];
+    int   AvltFlg;
+    void *Element;
 } TREENODE;
 
 typedef void *(*TREENEW)(void *);
@@ -9,12 +9,12 @@ typedef void (*TREEDEL)(void *);
 typedef int  (*TREECMP)(void *,void *);
 
 typedef struct TREE {
-	TREENODE *Root;
-	TREENODE *Node;
-	int      Flag;
-	TREENEW  NewElement;
-	TREEDEL  DelElement;
-	TREECMP  CmpElement;
+    TREENODE *Root;
+    TREENODE *Node;
+    int      Flag;
+    TREENEW  NewElement;
+    TREEDEL  DelElement;
+    TREECMP  CmpElement;
 } TREE;
 
 TREE *treeMake(TREENEW NewElement,TREEDEL DelElement,TREECMP CmpElement);

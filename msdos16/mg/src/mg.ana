@@ -1,978 +1,978 @@
 module MG
-	/*
-		MG
-		1993	writen by M.Kitamura（てんかﾐ☆）
-	 */
-	model SMALL
-	stack 0x8000
-	start Main
+    /*
+    	MG
+    	1993	writen by M.Kitamura（てんかﾐ☆）
+     */
+    model SMALL
+    stack 0x8000
+    start Main
 
-	import GH
-	import CNVG
-	import Lfn
+    import GH
+    import CNVG
+    import Lfn
 
-	import B1
-	import Bmp
-	import Mag
-	import Pi
-	import Q0
-	import Tif
-	import Pmt
-	import Djp
+    import B1
+    import Bmp
+    import Mag
+    import Pi
+    import Q0
+    import Tif
+    import Pmt
+    import Djp
 
-	import Subr
-	import Std
-	import Str
-	import Dos
-	import CmdLineB
-	import Fname
-	import DirEntry
-	import Pri
-	import FPal
-	import Deb
-	import Usage
-	import RPal
+    import Subr
+    import Std
+    import Str
+    import Dos
+    import CmdLineB
+    import Fname
+    import DirEntry
+    import Pri
+    import FPal
+    import Deb
+    import Usage
+    import RPal
 
-var __NIL__:w = 0	//他の変数のアドレスがNULLにならないようにするためのダミー
+var __NIL__:w = 0   //他の変数のアドレスがNULLにならないようにするためのダミー
 
 proc Zero()
 begin
-	Subr.PriExit "ERROR: Address CS:0000 へ Jmp または call したぞぉ\N"
+    Subr.PriExit "ERROR: Address CS:0000 へ Jmp または call したぞぉ\N"
 endproc
 
 proc Nop()
 begin
-	Subr.PriExit "ごめん。この変換はできないのな(T_T)\N"
+    Subr.PriExit "ごめん。この変換はできないのな(T_T)\N"
 endproc
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
 struct FMT
-	ext:b(4)
-	initR:w
-	open:w
-	closeR:w
-	readPDB:w
-	initW:w
-	create:w
-	closeW:w
-	writePDB:w
+    ext:b(4)
+    initR:w
+    open:w
+    closeR:w
+    readPDB:w
+    initW:w
+    create:w
+    closeW:w
+    writePDB:w
 endstruct
 
 var fm:FMT(15) = data
-	b	"#",0,0,0
-		w	&B1.InitR,	&B1.OpenGv, &B1.CloseGvR,&B1.ReadPDB
-		w	&B1.InitW,  &B1.CreatGv,&B1.CloseGvW,&B1.WritePDB
-	b	"#98",0
-		w	&B1.InitR,	&B1.OpenGv, &B1.CloseGvR,&B1.ReadPDB98
-		w	&B1.InitW,  &B1.CreatGv,&B1.CloseGvW,&B1.WritePDB
-	b	"B1",0,0
-		w	&B1.InitR,	&B1.Open,   &B1.CloseR,  &B1.ReadPDB
-		w	&B1.InitW,  &B1.Create, &B1.CloseW,  &B1.WritePDB
-	b	"BLK",0
-		w	&B1.InitR,	&B1.OpenBlk,&B1.CloseR,  &B1.ReadPDB
-		w	&B1.InitW,	&B1.CreaBlk,&B1.ClosBlkW,&B1.WritePDB
-	b	"BMP",0
-		w	&Bmp.InitR,	&Bmp.Open,	&Bmp.CloseR, &Bmp.ReadPDB
-		w	&Bmp.InitW,	&Bmp.Create,&GH.CloseW,  &Bmp.WritePDB
-	b	"DJP",0
-		w	&Djp.InitR,	&Djp.Open,	&Djp.CloseR, &Djp.ReadPDB
-		w	&Djp.InitW,	&Djp.Create,&Djp.CloseW, &Djp.WritePDB
-	b	"FRM",0
-		w	&B1.InitR,	&B1.OpenFrm,&B1.CloseR,  &B1.ReadPDB
-		w	&B1.InitW,	&B1.CreaFrm,&B1.ClosFrmW,&B1.WritePDB
-	b	"MAG",0
-		w	&Mag.InitR,	&Mag.Open,	&Mag.CloseR, &Mag.ReadPDB
-		w	&Mag.InitW,	&Mag.Create,&Mag.CloseW, &Mag.WritePDB
-	b	"PI",0,0
-		w	&Pi.InitR,	&Pi.Open,	&Pi.CloseR,  &Pi.ReadPDB
-		w	&Pi.InitW,	&Pi.Create, &GH.CloseW,  &Pi.Conv
-	b	"PMT",0
-		w	&Pmt.InitR,	&Pmt.Open,	&Pmt.CloseR, &Pmt.ReadPDB
-		w	&Pmt.InitW,	&Pmt.Create,&Pmt.CloseW, &Pmt.WritePDB
+    b	"#",0,0,0
+    	w   &B1.InitR,	&B1.OpenGv, &B1.CloseGvR,&B1.ReadPDB
+    	w   &B1.InitW,	&B1.CreatGv,&B1.CloseGvW,&B1.WritePDB
+    b	"#98",0
+    	w   &B1.InitR,	&B1.OpenGv, &B1.CloseGvR,&B1.ReadPDB98
+    	w   &B1.InitW,	&B1.CreatGv,&B1.CloseGvW,&B1.WritePDB
+    b	"B1",0,0
+    	w   &B1.InitR,	&B1.Open,   &B1.CloseR,  &B1.ReadPDB
+    	w   &B1.InitW,	&B1.Create, &B1.CloseW,  &B1.WritePDB
+    b	"BLK",0
+    	w   &B1.InitR,	&B1.OpenBlk,&B1.CloseR,  &B1.ReadPDB
+    	w   &B1.InitW,	&B1.CreaBlk,&B1.ClosBlkW,&B1.WritePDB
+    b	"BMP",0
+    	w   &Bmp.InitR, &Bmp.Open,  &Bmp.CloseR, &Bmp.ReadPDB
+    	w   &Bmp.InitW, &Bmp.Create,&GH.CloseW,  &Bmp.WritePDB
+    b	"DJP",0
+    	w   &Djp.InitR, &Djp.Open,  &Djp.CloseR, &Djp.ReadPDB
+    	w   &Djp.InitW, &Djp.Create,&Djp.CloseW, &Djp.WritePDB
+    b	"FRM",0
+    	w   &B1.InitR,	&B1.OpenFrm,&B1.CloseR,  &B1.ReadPDB
+    	w   &B1.InitW,	&B1.CreaFrm,&B1.ClosFrmW,&B1.WritePDB
+    b	"MAG",0
+    	w   &Mag.InitR, &Mag.Open,  &Mag.CloseR, &Mag.ReadPDB
+    	w   &Mag.InitW, &Mag.Create,&Mag.CloseW, &Mag.WritePDB
+    b	"PI",0,0
+    	w   &Pi.InitR,	&Pi.Open,   &Pi.CloseR,  &Pi.ReadPDB
+    	w   &Pi.InitW,	&Pi.Create, &GH.CloseW,  &Pi.Conv
+    b	"PMT",0
+    	w   &Pmt.InitR, &Pmt.Open,  &Pmt.CloseR, &Pmt.ReadPDB
+    	w   &Pmt.InitW, &Pmt.Create,&Pmt.CloseW, &Pmt.WritePDB
   #if 1
-	b	"PMY",0
-		w	&Pmt.InitR,	&Pmt.Open,	&Pmt.CloseR, &Pmt.ReadPDB
-		w	&Pmt.InitW,	&Pmt.CreatY,&Pmt.CloseW, &Pmt.WritePDB
+    b	"PMY",0
+    	w   &Pmt.InitR, &Pmt.Open,  &Pmt.CloseR, &Pmt.ReadPDB
+    	w   &Pmt.InitW, &Pmt.CreatY,&Pmt.CloseW, &Pmt.WritePDB
   #endif
-	b	"Q0",0,0
-		w	&Nop,       &Nop,       &Nop,        &Nop
-		w	&Q0.Init,	&Q0.Create, &Q0.CloseW,  &Q0.WritePDB
-	b	"RGB",0
-		w	&Nop,       &Nop,       &Nop,        &Nop
-		w	&Q0.InitRGB,&Q0.Create, &Q0.CloseW,  &Q0.WritePDB
-	b	"TIF",0
-		w	&Tif.InitR,	&Tif.Open,	&Tif.CloseR, &Tif.ReadPDB
-		w	&Tif.InitW,	&Tif.Create,&Tif.CloseW, &Tif.WritePDB
-	b	0,0,0,0
-		w	0,0,0,0
-		w	0,0,0,0
+    b	"Q0",0,0
+    	w   &Nop,   	&Nop,	    &Nop,   	 &Nop
+    	w   &Q0.Init,	&Q0.Create, &Q0.CloseW,  &Q0.WritePDB
+    b	"RGB",0
+    	w   &Nop,   	&Nop,	    &Nop,   	 &Nop
+    	w   &Q0.InitRGB,&Q0.Create, &Q0.CloseW,  &Q0.WritePDB
+    b	"TIF",0
+    	w   &Tif.InitR, &Tif.Open,  &Tif.CloseR, &Tif.ReadPDB
+    	w   &Tif.InitW, &Tif.Create,&Tif.CloseW, &Tif.WritePDB
+    b	0,0,0,0
+    	w   0,0,0,0
+    	w   0,0,0,0
 enddata
 
 proc ChkFmt(ax)
 begin
-	save bx,cx,dx,di,si
+    save bx,cx,dx,di,si
 
-	if (ax)
-		di = &fm
-		si = ax
-		loop
-			//Pri.Fmt "%Fs ? %s\N", es.di, si
-			Str.ICmp es.di, si
-			if (ax == 0)
-				ax = di
-				return
-			fi
-			di += sizeof(FMT)
-		endloop (b[di])
-	fi
-	//Subr.PriExit "FORMAT NAME ERROR\N"
-	ax = 0
-	return
+    if (ax)
+    	di = &fm
+    	si = ax
+    	loop
+    	    //Pri.Fmt "%Fs ? %s\N", es.di, si
+    	    Str.ICmp es.di, si
+    	    if (ax == 0)
+    	    	ax = di
+    	    	return
+    	    fi
+    	    di += sizeof(FMT)
+    	endloop (b[di])
+    fi
+    //Subr.PriExit "FORMAT NAME ERROR\N"
+    ax = 0
+    return
 endproc
 
 proc GetFmt(ax)
 begin
-	save ax,cx,di,si,es
-	var buf1:b(6), buf2:b(6)
+    save ax,cx,di,si,es
+    var buf1:b(6), buf2:b(6)
 
-	es = ds
-	rep.inc
-	bx = dx = 0
-	si = ax
-	rep.load al,si
-	if (al != '.')
-		Pri.Fmt "フォーマットの指定方法がおかしい\N"
-	fi
-	bx = di = &buf1
-	cx = 4
-	loop
-		rep.load al,si
-		break (al == '.' || al == '\0')
-		rep.set di,al
-	endloop (--cx)
-	ah = al
-	rep.set di,0
-	if (ah == '.')
-		bx = di = &buf2
-		dx = &buf1
-		cx = 4
-		loop
-			rep.load al,si
-			break (al == '\0')
-			rep.set di,al
-		endloop (--cx)
-		rep.set di,0
-	fi
-	ChkFmt bx
-	go (ax == 0) ERR
-	bx = ax
-	if (dx)
-		ChkFmt dx
-		go (ax == 0) ERR
-		dx = ax
-	fi
-	return
+    es = ds
+    rep.inc
+    bx = dx = 0
+    si = ax
+    rep.load al,si
+    if (al != '.')
+    	Pri.Fmt "フォーマットの指定方法がおかしい\N"
+    fi
+    bx = di = &buf1
+    cx = 4
+    loop
+    	rep.load al,si
+    	break (al == '.' || al == '\0')
+    	rep.set di,al
+    endloop (--cx)
+    ah = al
+    rep.set di,0
+    if (ah == '.')
+    	bx = di = &buf2
+    	dx = &buf1
+    	cx = 4
+    	loop
+    	    rep.load al,si
+    	    break (al == '\0')
+    	    rep.set di,al
+    	endloop (--cx)
+    	rep.set di,0
+    fi
+    ChkFmt bx
+    go (ax == 0) ERR
+    bx = ax
+    if (dx)
+    	ChkFmt dx
+    	go (ax == 0) ERR
+    	dx = ax
+    fi
+    return
 ERR:
-	Subr.PriExit "指定されたフォーマット名(拡張子名)には対応していません.\N"
+    Subr.PriExit "指定されたフォーマット名(拡張子名)には対応していません.\N"
 endproc
 
 ///////////////////////////////////////////////////////////////////////////////
 //オプション変数
-	var inFmt:w 		= 0
-	var outFmt:w 		= 0
-	var asExt:w 		= 0
-	var outDir:w 		= 0
-	var	outOneName:w 	= 0
-	var usageLine:w 	= 22
-	var gv:w(4) 		= 0
-	var infoFlg:w 		= 0
-	var ncnvflg:w 		= 0
-	var expln:w 		= 0
-	var clsFlg:w 		= 0
-	var x8flg:w 		= 0
-	var wrt24flg:w 		= 0
-	var user:d 			= 0
-	var aspFlg:w 		= 0
-	var asp:w 			= 0
-	var rdPalF:d 		= 0
-	var wrtPalF:d 		= 0
-	var cmt:d 			= 0
-	var savFlg:w 		= 0
-	var cmtBuf:b(2090)
-	var keyWaitFlg:b 	= 0
-	var savNam:d 		= 0
-	var bcol:w 			= 0
-	var xf_flg:w 		= 0
-	var p24Flg:w 		= 0
-	var delChgExt:w 	= 0
+    var inFmt:w     	= 0
+    var outFmt:w    	= 0
+    var asExt:w     	= 0
+    var outDir:w    	= 0
+    var outOneName:w	= 0
+    var usageLine:w 	= 22
+    var gv:w(4)     	= 0
+    var infoFlg:w   	= 0
+    var ncnvflg:w   	= 0
+    var expln:w     	= 0
+    var clsFlg:w    	= 0
+    var x8flg:w     	= 0
+    var wrt24flg:w  	= 0
+    var user:d	    	= 0
+    var aspFlg:w    	= 0
+    var asp:w	    	= 0
+    var rdPalF:d    	= 0
+    var wrtPalF:d   	= 0
+    var cmt:d	    	= 0
+    var savFlg:w    	= 0
+    var cmtBuf:b(2090)
+    var keyWaitFlg:b	= 0
+    var savNam:d    	= 0
+    var bcol:w	    	= 0
+    var xf_flg:w    	= 0
+    var p24Flg:w    	= 0
+    var delChgExt:w 	= 0
 
 
 
 proc KeyWait98()
 begin
-	save pusha
-	var tflg:b = 0x0d,vflg:w = 100
+    save pusha
+    var tflg:b = 0x0d,vflg:w = 100
 
-	tflg = ah = 0x0d; intr 0x18	//98 text on/off
-	vflg = ax = 100
-	RPal.SetTone ax
-	loop
-		Dos.KbdIn
-		if (al == 0x1b)
-			ah = 0x0C; intr 0x18	//98 text on
-			RPal.SetTone 50
-			stc
-			return
-		elsif (al == 'T' || al == 't')
-			if (tflg == 0x0d)
-				tflg = ah = 0x0c; intr 0x18
-				ax = 50
-			else
-				tflg = ah = 0x0d; intr 0x18
-				ax = 100
-			fi
-			RPal.SetTone ax
-		elsif (al == 'V' || al == 'v')
-			if (vflg == 50)
-				vflg = 100
-			else
-				vflg = 50
-			fi
-			RPal.SetTone vflg
-		elsif (al == ' ' || al == '\r' || al == '\t')
-			break
-		fi
-	endloop
-	ah = 0x0c; intr 0x18	//98 text on
-	clc
-	return
+    tflg = ah = 0x0d; intr 0x18 //98 text on/off
+    vflg = ax = 100
+    RPal.SetTone ax
+    loop
+    	Dos.KbdIn
+    	if (al == 0x1b)
+    	    ah = 0x0C; intr 0x18    //98 text on
+    	    RPal.SetTone 50
+    	    stc
+    	    return
+    	elsif (al == 'T' || al == 't')
+    	    if (tflg == 0x0d)
+    	    	tflg = ah = 0x0c; intr 0x18
+    	    	ax = 50
+    	    else
+    	    	tflg = ah = 0x0d; intr 0x18
+    	    	ax = 100
+    	    fi
+    	    RPal.SetTone ax
+    	elsif (al == 'V' || al == 'v')
+    	    if (vflg == 50)
+    	    	vflg = 100
+    	    else
+    	    	vflg = 50
+    	    fi
+    	    RPal.SetTone vflg
+    	elsif (al == ' ' || al == '\r' || al == '\t')
+    	    break
+    	fi
+    endloop
+    ah = 0x0c; intr 0x18    //98 text on
+    clc
+    return
 endproc
 
 proc GetCmtLine(si,al)
 begin
-	save pusha,es,ds
+    save pusha,es,ds
 
-	bh = al
-	es = cx = %var
-	di = &cmtBuf
-	cmt = es.di
-	cx = sizeof(cmtBuf) - 2
-	loop
-		rep.load al,si
-		break (al == 0 || al == bh)
-		rep.set  di,al
-	endloop(--cx)
-	rep.set di,0
-	return
+    bh = al
+    es = cx = %var
+    di = &cmtBuf
+    cmt = es.di
+    cx = sizeof(cmtBuf) - 2
+    loop
+    	rep.load al,si
+    	break (al == 0 || al == bh)
+    	rep.set  di,al
+    endloop(--cx)
+    rep.set di,0
+    return
 endproc
 
 proc GetCmtFile(si)
 //ds = es = %var
 begin
-	save pusha,es,ds
+    save pusha,es,ds
 
-	di = &cmtBuf
-	b[di] = 0
-	Lfn.Open si,0
-	if (_nc_)
-		cmt = ds.di
-		bx = ax
-		Subr.Read bx, di, sizeof(cmtBuf)-2
-		di += ax
-		b[di] = 0
-		if (ax)
-			--di
-			if (b[di] == 0x1a)
-				b[di] = 0
-			fi
-		fi
-	fi
-	return
+    di = &cmtBuf
+    b[di] = 0
+    Lfn.Open si,0
+    if (_nc_)
+    	cmt = ds.di
+    	bx = ax
+    	Subr.Read bx, di, sizeof(cmtBuf)-2
+    	di += ax
+    	b[di] = 0
+    	if (ax)
+    	    --di
+    	    if (b[di] == 0x1a)
+    	    	b[di] = 0
+    	    fi
+    	fi
+    fi
+    return
 endproc
 
 proc AtoLO(si,bl)
-//	座標値用の文字列->数値変換
+//  座標値用の文字列->数値変換
 begin
-	save bx
-	bh = b[si]
-	if (Std.IsDigit(bh))
-		Str.AtoL si
-		bh = b[si]
-		if (bh == 'o' || bh == 'O')
-			ax <<= 3
-			bh = 0
-			ax += bx
-			++si
-		fi
-		clc
-	else
-		stc
-	fi
-	return
+    save bx
+    bh = b[si]
+    if (Std.IsDigit(bh))
+    	Str.AtoL si
+    	bh = b[si]
+    	if (bh == 'o' || bh == 'O')
+    	    ax <<= 3
+    	    bh = 0
+    	    ax += bx
+    	    ++si
+    	fi
+    	clc
+    else
+    	stc
+    fi
+    return
 endproc
 
 proc Option(si)
-	//オプションの処理
-	//in ds,es,si	ds = es = %var
+    //オプションの処理
+    //in ds,es,si   ds = es = %var
 begin
-	save pusha
-	var  startX:w,startY:w,endX:w,endY:w
+    save pusha
+    var  startX:w,startY:w,endX:w,endY:w
 
-	rep.inc
-	go (b[si] == 0) USAGE
-	block.w
-		rep.load al,si
-		break.w (al == 0)
-		Std.ToUpper al
-		if (al == '?'||al == 'H')
- 			rep.load al,si
- 			if (Std.IsDigit(al))
- 				--si
- 				Str.AtoL si
- 				if (ax >= 0 && ax < 100)
- 					usageLine = ax
- 				fi
- 			fi
- USAGE: 	Usage.Dsp usageLine
-		elsif (al == 'Z')
-			Deb.On
-			if (b[si] == '0')
-				Deb.Off
-				++si
-			fi
-		elsif (al == '2')
-			B1.Df_L2flg 1
-			aspFlg = 1
-			asp.l = 2
-			asp.h = 1
-		elsif (al == 'D')
-			rep.load al,si
-			if (al == 'F' || al == 'f')
-				GH.Df_FtimeFname ds.si
-				GH.Df_FtimeMode 1
-			elsif (al == '-'||al == '0')
-				GH.Df_FtimeMode 0
-			else
-				GH.Df_FtimeMode 1
-			fi
-		elsif (al == 'C')
-			clsFlg = 1
-		elsif (al == 'K')
-			keyWaitFlg = 1
-		elsif (al == 'F')
-			if (b[si] == ':'||b[si] == ',')
-				++si
-			fi
-			outOneName = si
-		elsif (al == 'O')
-			outDir = si
-		elsif (al == 'I')
-			infoFlg = 1
-			rep.load al,si
-			if (al >= '1' && al <= '3')
-				al -= '0'
-				ah = 0
-				infoFlg = ax
-			fi
-			go J_A
-		elsif (al == 'A')
-		  J_A:
-			asExt = ax = "*"
-			CmdLineB.addExtName = ax
-		elsif (al == 'X')
-			ah = 0
-			rep.load al,si
-			if (al == '4')
-				expln = 4
-				//GH.Df_ForcePlnW(4)
-				Djp.Df_SetPln4
-				Pmt.Df_SetPln4
-			elsif (al == '8')
-				expln = 8
-				//GH.Df_ForcePlnW(8)
-			elsif (al == 'C' || al == 'c')
-				expln = -1
-				Djp.Df_SetPlnAuto
-				Pmt.Df_SetPlnAuto
-			elsif (al == '2' && b[si] == '4')
-				wrt24flg = 1
-				//Djp.Df_SetPln24
-				//Pmt.Df_SetPln24
-			elsif (al == 'F' || al == 'f')
-				xf_flg = 1
-			elsif (al == 'S' || al == 's')
-				rep.load al,si
-				if (al == '4')
-					al = 4
-				elsif (al == '8')
-					al = 8
-				else
-					ax = 0
-				fi
-				ncnvflg = ax
-				//GH.Df_NotCnv256 ax
-			fi
-		elsif (al == '9')
-			if (b[si] == '8')
-				gv(0) = 0xA800; gv(1) = 0xB000; gv(2) = 0xB800; gv(3) = 0xE000
-				B1.pc98flg = 1
-				GH.Df_SetGvSeg gv(0), gv(1), gv(2), gv(3)
-				++si
-				al = b[si]
-				if (al == 'W'||al == 'w')
-					B1.pc98flg = 3
-					rdPalF = ww(ds,"")
-				fi
-			fi
-		elsif (al == 'L')	// ロングファイル名対応. デフォルトon
-			if (b[si] == '0')
-				ax = 0
-			elsif (b[si] == 0 || b[si] == '1')
-				ax = 1
-			else
-				go.w OPTERR
-			fi
-			Lfn.SetFlag ax
-		elsif.w (al == 'P')	//パレット系オプション
-			rep.load al,si
-			Std.ToUpper al
-			if (al == '\0')
-				rdPalF = ww(ds,"")
-			elsif (al == '=' || al == ':')
-				rdPalF = ds.si
-			elsif (al == 'D')
-				rdPalF = 1
-			elsif (al == 'M')
-				rdPalF = 2
-			elsif (al == 'B')
-				rep.load al,si
-				if (al == 'M' || al == 'm')
-					ax = 1
-				elsif (al == 'D' || al == 'd')
-					ax = 0
-				else
-					go.w OPTERR
-				fi
-				GH.Df_DfltPalMode ax
-				Tif.Df_DfltPalMode ax
-			elsif (al == 'W')
-				wrtPalF = ds.si
-				FPal.PalExtNo 1
-			elsif (al == 'P')
-				wrtPalF = ds.si
-				FPal.PalExtNo 3
-			elsif (al == 'A')
-				wrtPalF = ds.si
-				FPal.PalExtNo 2
-			elsif(al == 'N')
-				if (b[si] == 0)
-					ax = -1
-				else
-					Str.AtoL si
-					ax &= 0x0f
-				fi
-				FPal.LowNbl ax
-			else
-				rdPalF = ww(%var,"")
-			fi
-		elsif.w (al == 'S')	//出力系オプション
-			rep.load al,si
-			Std.ToUpper al
-			if (al == 0)
-				savFlg = 1
-			elsif (al == 'K')
-				delChgExt = si
-			elsif (al == 'E')
-				x8flg = 1
-			elsif (al == 'B')
-				x8flg = 0
-			elsif (al == 'U')
-				user = ds.si
-			elsif (al == 'F')
-				GetCmtFile si
-			elsif (al == 'M')
-				cmt = ds.si
-			elsif (al == 'N')
-				savNam = ds.si
-			  @if 1
-				if (b[si] == 0)
-					savNam = 0
-				fi
-			  @fi
-			elsif (al == 'C')
-				if (b[si] == '-')
-					bcol = -1
-				else
-					Str.AtoL si
-					++ax
-					bcol = ax
-				fi
-			elsif (al == 'R')
-				aspFlg = 1
-				Str.AtoL si
-				asp.l = al
-				if (b[si] == ','||b[si] == ':')
-					++si
-					Str.AtoL si
-					asp.h = al
-				fi
-			elsif (al == 'A')
-				aspFlg = 1
-				Str.AtoL si
-				asp.h = al
-				if (b[si] == ','||b[si]==':')
-					++si
-					Str.AtoL si
-					asp.l = al
-				fi
-		  @if 1
-			elsif (al == 'X')
-				endX = 1279
-				endY = 399
-				go J_S
-			elsif (al == 'Y')
-				endX = 639
-				endY = 799
-				go J_S
-		  @fi
-			else
-				--si
-				endX = 639
-				endY = 399
-		  J_S:
-				ax = 0
-				startX = ax
-				startY = ax
-				savFlg = 1
+    rep.inc
+    go (b[si] == 0) USAGE
+    block.w
+    	rep.load al,si
+    	break.w (al == 0)
+    	Std.ToUpper al
+    	if (al == '?'||al == 'H')
+    	    rep.load al,si
+    	    if (Std.IsDigit(al))
+    	    	--si
+    	    	Str.AtoL si
+    	    	if (ax >= 0 && ax < 100)
+    	    	    usageLine = ax
+    	    	fi
+    	    fi
+ USAGE:     Usage.Dsp usageLine
+    	elsif (al == 'Z')
+    	    Deb.On
+    	    if (b[si] == '0')
+    	    	Deb.Off
+    	    	++si
+    	    fi
+    	elsif (al == '2')
+    	    B1.Df_L2flg 1
+    	    aspFlg = 1
+    	    asp.l = 2
+    	    asp.h = 1
+    	elsif (al == 'D')
+    	    rep.load al,si
+    	    if (al == 'F' || al == 'f')
+    	    	GH.Df_FtimeFname ds.si
+    	    	GH.Df_FtimeMode 1
+    	    elsif (al == '-'||al == '0')
+    	    	GH.Df_FtimeMode 0
+    	    else
+    	    	GH.Df_FtimeMode 1
+    	    fi
+    	elsif (al == 'C')
+    	    clsFlg = 1
+    	elsif (al == 'K')
+    	    keyWaitFlg = 1
+    	elsif (al == 'F')
+    	    if (b[si] == ':'||b[si] == ',')
+    	    	++si
+    	    fi
+    	    outOneName = si
+    	elsif (al == 'O')
+    	    outDir = si
+    	elsif (al == 'I')
+    	    infoFlg = 1
+    	    rep.load al,si
+    	    if (al >= '1' && al <= '3')
+    	    	al -= '0'
+    	    	ah = 0
+    	    	infoFlg = ax
+    	    fi
+    	    go J_A
+    	elsif (al == 'A')
+    	  J_A:
+    	    asExt = ax = "*"
+    	    CmdLineB.addExtName = ax
+    	elsif (al == 'X')
+    	    ah = 0
+    	    rep.load al,si
+    	    if (al == '4')
+    	    	expln = 4
+    	    	//GH.Df_ForcePlnW(4)
+    	    	Djp.Df_SetPln4
+    	    	Pmt.Df_SetPln4
+    	    elsif (al == '8')
+    	    	expln = 8
+    	    	//GH.Df_ForcePlnW(8)
+    	    elsif (al == 'C' || al == 'c')
+    	    	expln = -1
+    	    	Djp.Df_SetPlnAuto
+    	    	Pmt.Df_SetPlnAuto
+    	    elsif (al == '2' && b[si] == '4')
+    	    	wrt24flg = 1
+    	    	//Djp.Df_SetPln24
+    	    	//Pmt.Df_SetPln24
+    	    elsif (al == 'F' || al == 'f')
+    	    	xf_flg = 1
+    	    elsif (al == 'S' || al == 's')
+    	    	rep.load al,si
+    	    	if (al == '4')
+    	    	    al = 4
+    	    	elsif (al == '8')
+    	    	    al = 8
+    	    	else
+    	    	    ax = 0
+    	    	fi
+    	    	ncnvflg = ax
+    	    	//GH.Df_NotCnv256 ax
+    	    fi
+    	elsif (al == '9')
+    	    if (b[si] == '8')
+    	    	gv(0) = 0xA800; gv(1) = 0xB000; gv(2) = 0xB800; gv(3) = 0xE000
+    	    	B1.pc98flg = 1
+    	    	GH.Df_SetGvSeg gv(0), gv(1), gv(2), gv(3)
+    	    	++si
+    	    	al = b[si]
+    	    	if (al == 'W'||al == 'w')
+    	    	    B1.pc98flg = 3
+    	    	    rdPalF = ww(ds,"")
+    	    	fi
+    	    fi
+    	elsif (al == 'L')   // ロングファイル名対応. デフォルトon
+    	    if (b[si] == '0')
+    	    	ax = 0
+    	    elsif (b[si] == 0 || b[si] == '1')
+    	    	ax = 1
+    	    else
+    	    	go.w OPTERR
+    	    fi
+    	    Lfn.SetFlag ax
+    	elsif.w (al == 'P') //パレット系オプション
+    	    rep.load al,si
+    	    Std.ToUpper al
+    	    if (al == '\0')
+    	    	rdPalF = ww(ds,"")
+    	    elsif (al == '=' || al == ':')
+    	    	rdPalF = ds.si
+    	    elsif (al == 'D')
+    	    	rdPalF = 1
+    	    elsif (al == 'M')
+    	    	rdPalF = 2
+    	    elsif (al == 'B')
+    	    	rep.load al,si
+    	    	if (al == 'M' || al == 'm')
+    	    	    ax = 1
+    	    	elsif (al == 'D' || al == 'd')
+    	    	    ax = 0
+    	    	else
+    	    	    go.w OPTERR
+    	    	fi
+    	    	GH.Df_DfltPalMode ax
+    	    	Tif.Df_DfltPalMode ax
+    	    elsif (al == 'W')
+    	    	wrtPalF = ds.si
+    	    	FPal.PalExtNo 1
+    	    elsif (al == 'P')
+    	    	wrtPalF = ds.si
+    	    	FPal.PalExtNo 3
+    	    elsif (al == 'A')
+    	    	wrtPalF = ds.si
+    	    	FPal.PalExtNo 2
+    	    elsif(al == 'N')
+    	    	if (b[si] == 0)
+    	    	    ax = -1
+    	    	else
+    	    	    Str.AtoL si
+    	    	    ax &= 0x0f
+    	    	fi
+    	    	FPal.LowNbl ax
+    	    else
+    	    	rdPalF = ww(%var,"")
+    	    fi
+    	elsif.w (al == 'S') //出力系オプション
+    	    rep.load al,si
+    	    Std.ToUpper al
+    	    if (al == 0)
+    	    	savFlg = 1
+    	    elsif (al == 'K')
+    	    	delChgExt = si
+    	    elsif (al == 'E')
+    	    	x8flg = 1
+    	    elsif (al == 'B')
+    	    	x8flg = 0
+    	    elsif (al == 'U')
+    	    	user = ds.si
+    	    elsif (al == 'F')
+    	    	GetCmtFile si
+    	    elsif (al == 'M')
+    	    	cmt = ds.si
+    	    elsif (al == 'N')
+    	    	savNam = ds.si
+    	      @if 1
+    	    	if (b[si] == 0)
+    	    	    savNam = 0
+    	    	fi
+    	      @fi
+    	    elsif (al == 'C')
+    	    	if (b[si] == '-')
+    	    	    bcol = -1
+    	    	else
+    	    	    Str.AtoL si
+    	    	    ++ax
+    	    	    bcol = ax
+    	    	fi
+    	    elsif (al == 'R')
+    	    	aspFlg = 1
+    	    	Str.AtoL si
+    	    	asp.l = al
+    	    	if (b[si] == ','||b[si] == ':')
+    	    	    ++si
+    	    	    Str.AtoL si
+    	    	    asp.h = al
+    	    	fi
+    	    elsif (al == 'A')
+    	    	aspFlg = 1
+    	    	Str.AtoL si
+    	    	asp.h = al
+    	    	if (b[si] == ','||b[si]==':')
+    	    	    ++si
+    	    	    Str.AtoL si
+    	    	    asp.l = al
+    	    	fi
+    	  @if 1
+    	    elsif (al == 'X')
+    	    	endX = 1279
+    	    	endY = 399
+    	    	go J_S
+    	    elsif (al == 'Y')
+    	    	endX = 639
+    	    	endY = 799
+    	    	go J_S
+    	  @fi
+    	    else
+    	    	--si
+    	    	endX = 639
+    	    	endY = 399
+    	  J_S:
+    	    	ax = 0
+    	    	startX = ax
+    	    	startY = ax
+    	    	savFlg = 1
 
-				bl = 0
-				AtoLO si,bl
-				if (_nc_)
-					startX = ax
-				fi
-				if (b[si] == ','||b[si]==':')
-					++si
-					AtoLO si,bl
-					if (_nc_)
-						startY = ax
-					fi
-					if (b[si] == ','||b[si]==':')
-						++si
-						AtoLO si,7
-						if (_nc_)
-							endX = ax
-						fi
-						if (b[si] == ','||b[si]==':')
-							++si
-							AtoLO si,0
-							if (_nc_)
-								endY = ax
-							fi
-						fi
-					fi
-				fi
-				B1.Df_GvSavSiz startX,startY,endX,endY
-			fi
-		elsif (al == 'T')	//Tiff系オプション
-			rep.load al,si
-			Std.ToUpper al
-			if    (al == 'L')
-				Tif.Df_FilOdr 2
-			elsif (al == 'H')
-				Tif.Df_FilOdr 1
-			elsif (al == 'I')
-				Tif.Df_IDtyp 0
-			elsif (al == 'M')
-				Tif.Df_IDtyp 1
-			elsif (al == 'P')
-				Tif.Df_DfltPalMode 2
-			else
-				go.w OPTERR
-			fi
-	  @if 0
-		elsif (al == 'U')	//PMT系オプション
-			rep.load al,si
-			Std.ToUpper al
-			if (al == 'E')
-				Pmt.Df_ExHdr 1
-			elsif (al == 'N')
-				Pmt.Df_ExHdr 0
-			fi
-	  @fi
-		elsif (al == 'M')	//MAG系オプション
-			rep.load al,si
-			Std.ToUpper al
-			if (al == 'B')
-				GH.Df_Mag256Bug 1
-			fi
-		elsif (al == 'Y')	//Pi系オプション
-			rep.load al,si
-			Std.ToUpper al
-			if (al == 'U')
-				Pi.Df_UserLinFlg 1
-			elsif (al == 'E')
-				Pi.Df_ExAreaFlg 1
-			elsif (al == 'C')
-				Pi.Df_CntFlg 1
-			elsif (al == 'P')
-				Pi.Df_DfltPalFlg 1
-			elsif (al == 'D')
-				Pi.Df_PriDatFlg 1
-			elsif (al == 'A')
-				Pi.Df_ApicgFlg 1
-			elsif (al == 'L')
-				if (b[si])
-					Str.AtoL si
-				else
-					ax = 3
-				fi
-				++ax
-				Pi.Df_LoopFlg al
-			else
-				go.w OPTERR
-			fi
-		elsif (al == 'Q')	//Q0,RGB系オプション
-			rep.load al,si
-			if (al == 'I' || al == 'i')
-				Q0.SetIprFlg 1
-			elsif (al == 'F' || al == 'f')
-				Q0.SetIprFlg 0
-			else
-				go.w OPTERR
-			fi
-		elsif (al == 'E')	//B1,FRM系オプション
-			rep.load al,si
-			if (al == 'P' || al == 'p')
-				B1.Df_FrmExPal 1
-			else
-				go OPTERR
-			fi
-		elsif (al == 'V')
-			rep.load al,si
-			go (al != 'S' && al != 's') OPTERR
-			Str.HtoL si
-			go (ax == 0 || (b[si]!=','&&b[si]!=':')) OPTERR
-			gv(0) = ax
-			++si
-			Str.HtoL si
-			go (ax == 0 || (b[si] != ','&&b[si]!=':')) OPTERR
-			gv(1) = ax
-			++si
-			Str.HtoL si
-			go (ax == 0 || (b[si] != ','&&b[si]!=':')) OPTERR
-			gv(2) = ax
-			++si
-			Str.HtoL si
-			go (ax == 0) OPTERR
-			gv(3) = ax
-			GH.Df_SetGvSeg gv(0), gv(1), gv(2), ax
-			//Pri.Fmt "gv %x,%x,%x,%x\N", gv(0),gv(1),gv(2),gv(3)
-		else
-	OPTERR:
-			Subr.PriExit "指定されたオプションがおかしい\N"
-		fi
-	endblock
-	return
+    	    	bl = 0
+    	    	AtoLO si,bl
+    	    	if (_nc_)
+    	    	    startX = ax
+    	    	fi
+    	    	if (b[si] == ','||b[si]==':')
+    	    	    ++si
+    	    	    AtoLO si,bl
+    	    	    if (_nc_)
+    	    	    	startY = ax
+    	    	    fi
+    	    	    if (b[si] == ','||b[si]==':')
+    	    	    	++si
+    	    	    	AtoLO si,7
+    	    	    	if (_nc_)
+    	    	    	    endX = ax
+    	    	    	fi
+    	    	    	if (b[si] == ','||b[si]==':')
+    	    	    	    ++si
+    	    	    	    AtoLO si,0
+    	    	    	    if (_nc_)
+    	    	    	    	endY = ax
+    	    	    	    fi
+    	    	    	fi
+    	    	    fi
+    	    	fi
+    	    	B1.Df_GvSavSiz startX,startY,endX,endY
+    	    fi
+    	elsif (al == 'T')   //Tiff系オプション
+    	    rep.load al,si
+    	    Std.ToUpper al
+    	    if	  (al == 'L')
+    	    	Tif.Df_FilOdr 2
+    	    elsif (al == 'H')
+    	    	Tif.Df_FilOdr 1
+    	    elsif (al == 'I')
+    	    	Tif.Df_IDtyp 0
+    	    elsif (al == 'M')
+    	    	Tif.Df_IDtyp 1
+    	    elsif (al == 'P')
+    	    	Tif.Df_DfltPalMode 2
+    	    else
+    	    	go.w OPTERR
+    	    fi
+      @if 0
+    	elsif (al == 'U')   //PMT系オプション
+    	    rep.load al,si
+    	    Std.ToUpper al
+    	    if (al == 'E')
+    	    	Pmt.Df_ExHdr 1
+    	    elsif (al == 'N')
+    	    	Pmt.Df_ExHdr 0
+    	    fi
+      @fi
+    	elsif (al == 'M')   //MAG系オプション
+    	    rep.load al,si
+    	    Std.ToUpper al
+    	    if (al == 'B')
+    	    	GH.Df_Mag256Bug 1
+    	    fi
+    	elsif (al == 'Y')   //Pi系オプション
+    	    rep.load al,si
+    	    Std.ToUpper al
+    	    if (al == 'U')
+    	    	Pi.Df_UserLinFlg 1
+    	    elsif (al == 'E')
+    	    	Pi.Df_ExAreaFlg 1
+    	    elsif (al == 'C')
+    	    	Pi.Df_CntFlg 1
+    	    elsif (al == 'P')
+    	    	Pi.Df_DfltPalFlg 1
+    	    elsif (al == 'D')
+    	    	Pi.Df_PriDatFlg 1
+    	    elsif (al == 'A')
+    	    	Pi.Df_ApicgFlg 1
+    	    elsif (al == 'L')
+    	    	if (b[si])
+    	    	    Str.AtoL si
+    	    	else
+    	    	    ax = 3
+    	    	fi
+    	    	++ax
+    	    	Pi.Df_LoopFlg al
+    	    else
+    	    	go.w OPTERR
+    	    fi
+    	elsif (al == 'Q')   //Q0,RGB系オプション
+    	    rep.load al,si
+    	    if (al == 'I' || al == 'i')
+    	    	Q0.SetIprFlg 1
+    	    elsif (al == 'F' || al == 'f')
+    	    	Q0.SetIprFlg 0
+    	    else
+    	    	go.w OPTERR
+    	    fi
+    	elsif (al == 'E')   //B1,FRM系オプション
+    	    rep.load al,si
+    	    if (al == 'P' || al == 'p')
+    	    	B1.Df_FrmExPal 1
+    	    else
+    	    	go OPTERR
+    	    fi
+    	elsif (al == 'V')
+    	    rep.load al,si
+    	    go (al != 'S' && al != 's') OPTERR
+    	    Str.HtoL si
+    	    go (ax == 0 || (b[si]!=','&&b[si]!=':')) OPTERR
+    	    gv(0) = ax
+    	    ++si
+    	    Str.HtoL si
+    	    go (ax == 0 || (b[si] != ','&&b[si]!=':')) OPTERR
+    	    gv(1) = ax
+    	    ++si
+    	    Str.HtoL si
+    	    go (ax == 0 || (b[si] != ','&&b[si]!=':')) OPTERR
+    	    gv(2) = ax
+    	    ++si
+    	    Str.HtoL si
+    	    go (ax == 0) OPTERR
+    	    gv(3) = ax
+    	    GH.Df_SetGvSeg gv(0), gv(1), gv(2), ax
+    	    //Pri.Fmt "gv %x,%x,%x,%x\N", gv(0),gv(1),gv(2),gv(3)
+    	else
+    OPTERR:
+    	    Subr.PriExit "指定されたオプションがおかしい\N"
+    	fi
+    endblock
+    return
 endproc
 
 proc Main()
-//	in	es
-//	out al
+//  in	es
+//  out al
 begin
-	const FNBUFSIZ = 10 * 1024
-	var inExtName:w = 0
-	var getFmtFlg:w = 0
-	var bufSeg:w, bufSiz:d
-	var inFname:b(130*2)
-	var keyFname:b(130*2)
-	var outFname:b(130*2)
-	var fnbuf:b(FNBUFSIZ+10)
-	var savCtrlCmode:b
+    const FNBUFSIZ = 10 * 1024
+    var inExtName:w = 0
+    var getFmtFlg:w = 0
+    var bufSeg:w, bufSiz:d
+    var inFname:b(130*2)
+    var keyFname:b(130*2)
+    var outFname:b(130*2)
+    var fnbuf:b(FNBUFSIZ+10)
+    var savCtrlCmode:b
 
-	rep.inc
-	dx = ds
-	es = dx
+    rep.inc
+    dx = ds
+    es = dx
 
-	Lfn.Init
+    Lfn.Init
 
-	// プログラム・サイズの調整
-	bx.cx = ss.sp
-	Std.FpToHp(bx,cx,ax)
-	if (cx)
-		++bx
-	fi
-	++bx
-	bx -= dx
-	Dos.ChgMem es,bx
+    // プログラム・サイズの調整
+    bx.cx = ss.sp
+    Std.FpToHp(bx,cx,ax)
+    if (cx)
+    	++bx
+    fi
+    ++bx
+    bx -= dx
+    Dos.ChgMem es,bx
 
-	// 初期設定
-	ax = %var
-	es = ds = ax
-	savNam = cx.ax = ww(%var,"")
+    // 初期設定
+    ax = %var
+    es = ds = ax
+    savNam = cx.ax = ww(%var,"")
 
-	// コマンドライン解析準備
-	di = &fnbuf
-	cx = FNBUFSIZ
-	CmdLineB.Init es.di, cx, dx
+    // コマンドライン解析準備
+    di = &fnbuf
+    cx = FNBUFSIZ
+    CmdLineB.Init es.di, cx, dx
 
-	//-dオプションを有効
-	GH.Df_FtimeMode 1
+    //-dオプションを有効
+    GH.Df_FtimeMode 1
 
-	// コマンドラインのオプションの処理
-	CmdLineB.MoveOpt
-	di = si
-	if (cx == 0 && ax == 0)
-		Usage.Dsp usageLine
-	fi
-	if (cx)
-		loop
-			si = w[di]
-			rep.load al,si
-			if (al == '.')
-				--si
-				if (getFmtFlg)
-					Subr.PriExit "画像フォーマットの指定が複数あります.一つ(１組)にしてね\N"
-				fi
-				GetFmt si
-				outFmt = bx
-				inFmt  = dx
-				CmdLineB.addExtName = dx
-				getFmtFlg = 1
-			elsif (al == '-')
-				Option si
-			elsif (al == '"' || al == '\'')
-				GetCmtLine si,al
-			fi
-			di+=2
-		endloop(--cx)
-	fi
-	if (CmdLineB.fnameFlg == 0)
-		Subr.PriExit "ファイルが指定されていません\N"
-	fi
-	if (gv(0))	//マルチプレーンの先頭セグメントが指定されているとき
-		if (savFlg)	//セーブ時
-			inFmt = ax = &fm
-			if (B1.pc98flg == 1)	//普通の98
-				inFmt = ax = %fm(1)
-			fi
-		else		//ロード時
-			outFmt = ax = &fm
-			asExt = ax = "*"
-			CmdLineB.addExtName = ax
-		fi
-	elsif (getFmtFlg==0 && infoFlg==0)
-		Subr.PriExit "出力画像フォーマット(拡張子名)が指定されていません\N"
-	else
-		savFlg = 0
-	fi
+    // コマンドラインのオプションの処理
+    CmdLineB.MoveOpt
+    di = si
+    if (cx == 0 && ax == 0)
+    	Usage.Dsp usageLine
+    fi
+    if (cx)
+    	loop
+    	    si = w[di]
+    	    rep.load al,si
+    	    if (al == '.')
+    	    	--si
+    	    	if (getFmtFlg)
+    	    	    Subr.PriExit "画像フォーマットの指定が複数あります.一つ(１組)にしてね\N"
+    	    	fi
+    	    	GetFmt si
+    	    	outFmt = bx
+    	    	inFmt  = dx
+    	    	CmdLineB.addExtName = dx
+    	    	getFmtFlg = 1
+    	    elsif (al == '-')
+    	    	Option si
+    	    elsif (al == '"' || al == '\'')
+    	    	GetCmtLine si,al
+    	    fi
+    	    di+=2
+    	endloop(--cx)
+    fi
+    if (CmdLineB.fnameFlg == 0)
+    	Subr.PriExit "ファイルが指定されていません\N"
+    fi
+    if (gv(0))	//マルチプレーンの先頭セグメントが指定されているとき
+    	if (savFlg) //セーブ時
+    	    inFmt = ax = &fm
+    	    if (B1.pc98flg == 1)    //普通の98
+    	    	inFmt = ax = %fm(1)
+    	    fi
+    	else	    //ロード時
+    	    outFmt = ax = &fm
+    	    asExt = ax = "*"
+    	    CmdLineB.addExtName = ax
+    	fi
+    elsif (getFmtFlg==0 && infoFlg==0)
+    	Subr.PriExit "出力画像フォーマット(拡張子名)が指定されていません\N"
+    else
+    	savFlg = 0
+    fi
 
-	//ctrl-C break を可能にする
-	Dos.GetCtrlC
-	savCtrlCmode = dl
-	Dos.SetCtrlC 1
+    //ctrl-C break を可能にする
+    Dos.GetCtrlC
+    savCtrlCmode = dl
+    Dos.SetCtrlC 1
 
-	// ファイルの処理
-	if (savFlg == 0 && xf_flg == 0)
-		CmdLineB.GetAllFname 0x01	//result cx, ax=error
-		if (ax)
-			if (ax == 1)
-				Pri.Fmt "'%s'が見つからない\N", CmdLineB.fname
-				Dos.EXIT(1)
-			else
-				Pri.Fmt "指定されたファイル名が多すぎます"
-			fi
-		fi
-	fi
-	//バッファの取得
-	Subr.AllocM 0x300, 0xFFFF
-	bufSeg = ax
-	bx -= 0x80
-	dx.ax = ww(0,bx)
-	dx.ax <<= 4
-	bufSiz = dx.ax
-	Deb.Chk;if (==);Pri.Fmt "buf %04x,sz%04x0\N", bufSeg, bufSiz;fi
+    // ファイルの処理
+    if (savFlg == 0 && xf_flg == 0)
+    	CmdLineB.GetAllFname 0x01   //result cx, ax=error
+    	if (ax)
+    	    if (ax == 1)
+    	    	Pri.Fmt "'%s'が見つからない\N", CmdLineB.fname
+    	    	Dos.EXIT(1)
+    	    else
+    	    	Pri.Fmt "指定されたファイル名が多すぎます"
+    	    fi
+    	fi
+    fi
+    //バッファの取得
+    Subr.AllocM 0x300, 0xFFFF
+    bufSeg = ax
+    bx -= 0x80
+    dx.ax = ww(0,bx)
+    dx.ax <<= 4
+    bufSiz = dx.ax
+    Deb.Chk;if (==);Pri.Fmt "buf %04x,sz%04x0\N", bufSeg, bufSiz;fi
 
-	// ファイルごとの処理
-	if (savFlg)					//画面をセーブするとき
-		di = CmdLineB.fnameTbl	//出力ファイル名を取得
+    // ファイルごとの処理
+    if (savFlg)     	    	//画面をセーブするとき
+    	di = CmdLineB.fnameTbl	//出力ファイル名を取得
     	di = w[di]
     	cx = 1
-		if (outFmt == 0)		//出力フォーマットが設定されていないとき
-			si = di				//出力ファイル名の拡張子より取得
-			Fname.GetExtAddr si
-			ChkFmt si
-			if (ax == 0)		//出力ﾌｧｲﾙの拡張子がないか不適であれば
-				ChkFmt "PI"		//PIに強制的に設定
-			fi
-			outFmt = ax
-		fi
-    elsif (xf_flg)				//-xfによるinfile outfile 指定のとき
+    	if (outFmt == 0)    	//出力フォーマットが設定されていないとき
+    	    si = di 	    	//出力ファイル名の拡張子より取得
+    	    Fname.GetExtAddr si
+    	    ChkFmt si
+    	    if (ax == 0)    	//出力ﾌｧｲﾙの拡張子がないか不適であれば
+    	    	ChkFmt "PI" 	//PIに強制的に設定
+    	    fi
+    	    outFmt = ax
+    	fi
+    elsif (xf_flg)  	    	//-xfによるinfile outfile 指定のとき
     	cx = CmdLineB.fnameCnt
     	if (cx != 2)
-			Subr.PriExit "-xf指定時は入力ファイル名と出力ファイル名の２つを指定してください\N"
+    	    Subr.PriExit "-xf指定時は入力ファイル名と出力ファイル名の２つを指定してください\N"
     	fi
-		--cx
-		di = CmdLineB.fnameTbl	//入力＆出力ファイル名を取得
+    	--cx
+    	di = CmdLineB.fnameTbl	//入力＆出力ファイル名を取得
     	outOneName = ax = w[di+2]
     	di = w[di]
-		es = ds
-		if (inFmt == 0)			//入力フォーマットが設定されていないとき
-			si = di				//入力ファイル名の拡張子より取得
-			Fname.GetExtAddr si
-			ChkFmt si
-			if (ax == 0)		//入力ﾌｧｲﾙの拡張子がないか不適であれば
-				Subr.PriExit "-xfで入力フォーマットが指定されていない"
-			fi
-			inFmt = ax
-		fi
-    else						//画像変換のとき
-		CmdLineB.FirstFname 		//result cx, es.di		//es = ds = %var
+    	es = ds
+    	if (inFmt == 0)     	//入力フォーマットが設定されていないとき
+    	    si = di 	    	//入力ファイル名の拡張子より取得
+    	    Fname.GetExtAddr si
+    	    ChkFmt si
+    	    if (ax == 0)    	//入力ﾌｧｲﾙの拡張子がないか不適であれば
+    	    	Subr.PriExit "-xfで入力フォーマットが指定されていない"
+    	    fi
+    	    inFmt = ax
+    	fi
+    else    	    	    	//画像変換のとき
+    	CmdLineB.FirstFname 	    //result cx, es.di	    //es = ds = %var
     fi
     Deb.Chk; if (==); Pri.Fmt "該当ファイル数:%d\N",cx; fi
 
-	//いんふぉめーしょん
-	if (infoFlg == 1)
-		Pri.Fmt "Name         Col   Size    Ratio  Dot  Save\N"
-		Pri.Fmt "------------ --- --------- ----- ----- ---- ----------------------------------\N"
-	fi
+    //いんふぉめーしょん
+    if (infoFlg == 1)
+    	Pri.Fmt "Name         Col   Size    Ratio  Dot  Save\N"
+    	Pri.Fmt "------------ --- --------- ----- ----- ---- ----------------------------------\N"
+    fi
 
-	si = outFmt
-	go (b[si] == '#') JJ
-	si = inFmt
-	if (b[si] == '#')
-  		savFlg = 1
+    si = outFmt
+    go (b[si] == '#') JJ
+    si = inFmt
+    if (b[si] == '#')
+    	savFlg = 1
   JJ:
-		if (gv(0) == 0)
-			Subr.PriExit ".# は-vsでｸﾞﾗﾌｨｯｸ画面を設定しないと使えません\N"
-		fi
-		B1.VClsMode clsFlg
-	fi
-	si = outOneName
-	if (si && b[si] && cx > 1)
-		Subr.PriExit "-f(-xf)では変換元ファイルは一つしか指定してはいけない\N"
-	fi
-	loop.w
-		si = di
-		di = &inFname
-		Str.Cpy es.di, si
-		if (delChgExt)
-			pusha
-			si = delChgExt
-			if (b[si] == 0)
-				si = 0
-			fi
-			Fname.ChgExt es.di, si
-			popa
-		fi
-		if (inFmt)
-			si = inFmt
-		else
-			si = di
-			Fname.GetExtAddr si
-			ChkFmt si
-			si = ax
-			if (ax == 0)
-				go.w (asExt) NEXT
-				Pri.Fmt "%Fs は拡張子が違うので変換できません\N",ds.di
-				break.w
-			fi
-		fi
-		if (infoFlg)
-	  		gosub INFO
-			ax = 1
-		else
-			push si
-				gosub SET_OUTFNAME
-			pop  si
-			di = outFmt
-		  //Pri.Fmt "%s -> %s\N", &inFname, &outFname
-			if (w[di] == 'P' + 'I'*0x100 && w[di+2] == 0)
-				if (w[si] == 'P' + 'I'*0x100 && w[si+2] == 0)
-					Pri.Fmt "Pi->Piは誤変換します！\N"
-				fi
-				gosub CNVG2
-			else
-				gosub CNVG0
-			fi
-        fi
+    	if (gv(0) == 0)
+    	    Subr.PriExit ".# は-vsでｸﾞﾗﾌｨｯｸ画面を設定しないと使えません\N"
+    	fi
+    	B1.VClsMode clsFlg
+    fi
+    si = outOneName
+    if (si && b[si] && cx > 1)
+    	Subr.PriExit "-f(-xf)では変換元ファイルは一つしか指定してはいけない\N"
+    fi
+    loop.w
+    	si = di
+    	di = &inFname
+    	Str.Cpy es.di, si
+    	if (delChgExt)
+    	    pusha
+    	    si = delChgExt
+    	    if (b[si] == 0)
+    	    	si = 0
+    	    fi
+    	    Fname.ChgExt es.di, si
+    	    popa
+    	fi
+    	if (inFmt)
+    	    si = inFmt
+    	else
+    	    si = di
+    	    Fname.GetExtAddr si
+    	    ChkFmt si
+    	    si = ax
+    	    if (ax == 0)
+    	    	go.w (asExt) NEXT
+    	    	Pri.Fmt "%Fs は拡張子が違うので変換できません\N",ds.di
+    	    	break.w
+    	    fi
+    	fi
+    	if (infoFlg)
+    	    gosub INFO
+    	    ax = 1
+    	else
+    	    push si
+    	    	gosub SET_OUTFNAME
+    	    pop  si
+    	    di = outFmt
+    	  //Pri.Fmt "%s -> %s\N", &inFname, &outFname
+    	    if (w[di] == 'P' + 'I'*0x100 && w[di+2] == 0)
+    	    	if (w[si] == 'P' + 'I'*0x100 && w[si+2] == 0)
+    	    	    Pri.Fmt "Pi->Piは誤変換します！\N"
+    	    	fi
+    	    	gosub CNVG2
+    	    else
+    	    	gosub CNVG0
+    	    fi
+    	fi
       //Deb.Chk;if (==);Pri.Fmt "CNV END\N";fi
-		if (ax == 0 && gv(0) && keyWaitFlg && savFlg == 0)
-			if (B1.pc98flg)
-				KeyWait98
-				break (_c_)
-			else
-				Dos.KbdIn
-				break (al == 0x1b)
-			fi
-		fi
-	  NEXT:
-		if (savFlg == 0)
-			CmdLineB.NextFname
-		fi
-	endloop (--cx)
+    	if (ax == 0 && gv(0) && keyWaitFlg && savFlg == 0)
+    	    if (B1.pc98flg)
+    	    	KeyWait98
+    	    	break (_c_)
+    	    else
+    	    	Dos.KbdIn
+    	    	break (al == 0x1b)
+    	    fi
+    	fi
+      NEXT:
+    	if (savFlg == 0)
+    	    CmdLineB.NextFname
+    	fi
+    endloop (--cx)
 
-	//プログラム終了
+    //プログラム終了
   PRG_EXIT:
-	Dos.SetCtrlC savCtrlCmode
-	Dos.EXIT(0)
+    Dos.SetCtrlC savCtrlCmode
+    Dos.EXIT(0)
 
 ////////
 CNVG0:
-	CNVG.CnvG ww(ds,&inFname), ww(ds,&outFname), /*si, di,*/			\
-		ww(bufSeg,0), bufSiz, x8flg, ncnvflg,							\
-    	cmt, user, aspFlg, asp,	rdPalF, wrtPalF,						\
-    	savNam, bcol, expln, wrt24flg,									\
-		FMT[si].initR, FMT[si].open,   FMT[si].readPDB,	FMT[si].closeR, \
-		FMT[di].initW, FMT[di].create, FMT[di].writePDB, FMT[di].closeW
+    CNVG.CnvG ww(ds,&inFname), ww(ds,&outFname), /*si, di,*/	    	\
+    	ww(bufSeg,0), bufSiz, x8flg, ncnvflg,	    	    	    	\
+    	cmt, user, aspFlg, asp, rdPalF, wrtPalF,    	    	    	\
+    	savNam, bcol, expln, wrt24flg,	    	    	    	    	\
+    	FMT[si].initR, FMT[si].open,   FMT[si].readPDB, FMT[si].closeR, \
+    	FMT[di].initW, FMT[di].create, FMT[di].writePDB, FMT[di].closeW
   //Deb.Chk;if (==);Pri.Fmt "CNVG0 END\N";fi
-	ret	//ax
+    ret //ax
 
 CNVG2:
-	CNVG.CnvPI ww(ds,&inFname), ww(ds,&outFname), /*si, di,*/			\
-		ww(bufSeg,0), bufSiz, x8flg, ncnvflg,							\
-    	cmt, user, aspFlg, asp,	rdPalF,	wrtPalF,						\
-    	savNam, bcol, expln, wrt24flg,									\
-		FMT[si].initR, FMT[si].open,   FMT[si].readPDB,	FMT[si].closeR
-	ret	//ax
+    CNVG.CnvPI ww(ds,&inFname), ww(ds,&outFname), /*si, di,*/	    	\
+    	ww(bufSeg,0), bufSiz, x8flg, ncnvflg,	    	    	    	\
+    	cmt, user, aspFlg, asp, rdPalF, wrtPalF,    	    	    	\
+    	savNam, bcol, expln, wrt24flg,	    	    	    	    	\
+    	FMT[si].initR, FMT[si].open,   FMT[si].readPDB, FMT[si].closeR
+    ret //ax
 
 INFO:
-	if (FMT[si].open != &Nop)
-		ax = infoFlg
-		--ax
-		CNVG.Info ww(ds,&inFname), ww(bufSeg,0), bufSiz, x8flg, ncnvflg,\
-			FMT[si].initR, FMT[si].open,  FMT[si].closeR, ax
-	fi
-	ret
+    if (FMT[si].open != &Nop)
+    	ax = infoFlg
+    	--ax
+    	CNVG.Info ww(ds,&inFname), ww(bufSeg,0), bufSiz, x8flg, ncnvflg,\
+    	    FMT[si].initR, FMT[si].open,  FMT[si].closeR, ax
+    fi
+    ret
 
 ////////
 SET_OUTFNAME:
-	si = outOneName
-	if (si && b[si])
-		Str.Cpy ww(es,&outFname), si
-		Fname.AddExt es.di, outFmt
-	else
-		bx = outDir
-		si = &inFname
-		if (bx == 0 || b[bx])
-			Fname.GetFnameAddr si
-		fi
-		di = &outFname
-		if (bx && b[bx])
-			push si
-				Str.CpyP es.di, bx
-				al = b[di-1]
-				if (al != ':' && al != '\\' && al != '/')
-					b[di] = '\\';++di
-				fi
-				b[di] = 0
-			pop  si
-		fi
-		Str.Cpy es.di, si
-		Fname.ChgExt es.di, outFmt
-	fi
-	ret
+    si = outOneName
+    if (si && b[si])
+    	Str.Cpy ww(es,&outFname), si
+    	Fname.AddExt es.di, outFmt
+    else
+    	bx = outDir
+    	si = &inFname
+    	if (bx == 0 || b[bx])
+    	    Fname.GetFnameAddr si
+    	fi
+    	di = &outFname
+    	if (bx && b[bx])
+    	    push si
+    	    	Str.CpyP es.di, bx
+    	    	al = b[di-1]
+    	    	if (al != ':' && al != '\\' && al != '/')
+    	    	    b[di] = '\\';++di
+    	    	fi
+    	    	b[di] = 0
+    	    pop  si
+    	fi
+    	Str.Cpy es.di, si
+    	Fname.ChgExt es.di, outFmt
+    fi
+    ret
 
 endproc
 

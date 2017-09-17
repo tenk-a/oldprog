@@ -1,43 +1,42 @@
 module Pri
-	c_name "Pri","_",1
+    c_name "Pri","_",1
 
-	import C
+    import C
 
 
 *proc Fmt();cdecl
 begin
-	cvar sv_ax:w,sv_bx:w,sv_cx:w,sv_dx:w,sv_si:w,sv_di:w
-	cvar sv_es:w,sv_ds:w,sv_bp:w
-	cvar retadr:w
+    cvar sv_ax:w,sv_bx:w,sv_cx:w,sv_dx:w,sv_si:w,sv_di:w
+    cvar sv_es:w,sv_ds:w,sv_bp:w
+    cvar retadr:w
 
-	sv_ax = ax
-	sv_bx = bx
-	sv_cx = cx
-	sv_dx = dx
-	sv_si = si
-	sv_di = di
-	sv_es = es
-	sv_ds = ds
-	sv_bp = bp
-	ds = ax = %var
-	intr.off
-	bp = sp
-	retadr = ax = w[bp]
-	w[bp] = &RET
-	intr.on
-	jmp C.printf
+    sv_ax = ax
+    sv_bx = bx
+    sv_cx = cx
+    sv_dx = dx
+    sv_si = si
+    sv_di = di
+    sv_es = es
+    sv_ds = ds
+    sv_bp = bp
+    ds = ax = %var
+    intr.off
+    bp = sp
+    retadr = ax = w[bp]
+    w[bp] = &RET
+    intr.on
+    jmp C.printf
   RET:
-	ax = sv_ax
-	bx = sv_bx
-	cx = sv_cx
-	dx = sv_dx
-	si = sv_si
-	di = sv_di
-	es = sv_es
-	ds = sv_ds
-	bp = sv_bp
-	jmp retadr
+    ax = sv_ax
+    bx = sv_bx
+    cx = sv_cx
+    dx = sv_dx
+    si = sv_si
+    di = sv_di
+    es = sv_es
+    ds = sv_ds
+    bp = sv_bp
+    jmp retadr
 endproc
 
 endmodule
-

@@ -1,48 +1,48 @@
 submodule Tif
-	import GH
-	import Deb
-	import Pri
+    import GH
+    import Deb
+    import Pri
 
 *proc N2B(bx, es.dx, cx, ax)
 begin
-	save pusha, ds
+    save pusha, ds
 
  Deb.Chk
  if (==)
- 	Pri.Fmt "Tif.N2B %lx,%lx,%u,%u\N",ds.bx,es.dx,cx,ax
+    Pri.Fmt "Tif.N2B %lx,%lx,%u,%u\N",ds.bx,es.dx,cx,ax
  fi
-	ds = es
-	|cx >>= 1; cx +=. 0	/*adc cx,0*/
-	si = cx
-	--si
-	di = si
-	di += di
-	di += dx
-	si += dx
-	rep.dec
-	if (ax == 1)
-		loop
-			rep.load al,si
-			ah = al
-			al >>= 4
-			ah &= 0x0f
-			rep.set.w di,ax
-		endloop (--cx)
-	else
-		loop
-			rep.load al,si
-			ah = al
-			ah >>= 4
-			al &= 0x0f
-			rep.set.w di,ax
-		endloop (--cx)
-	fi
-	rep.inc
+    ds = es
+    |cx >>= 1; cx +=. 0 /*adc cx,0*/
+    si = cx
+    --si
+    di = si
+    di += di
+    di += dx
+    si += dx
+    rep.dec
+    if (ax == 1)
+    	loop
+    	    rep.load al,si
+    	    ah = al
+    	    al >>= 4
+    	    ah &= 0x0f
+    	    rep.set.w di,ax
+    	endloop (--cx)
+    else
+    	loop
+    	    rep.load al,si
+    	    ah = al
+    	    ah >>= 4
+    	    al &= 0x0f
+    	    rep.set.w di,ax
+    	endloop (--cx)
+    fi
+    rep.inc
  //Deb.Chk
  //if (==)
- //	Pri.Fmt " ok\N"
+ // Pri.Fmt " ok\N"
  //fi
-	return
+    return
 endproc
 
 endmodule

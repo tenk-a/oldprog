@@ -9,46 +9,46 @@ typedef signed long   SLONG;
 
 
 typedef struct VESA_INFO {
-	UCHAR  id[4];				//00	'VESA'
-	USHORT version;				//04
-	UCHAR far *oemNames;		//06
-	UCHAR flags[4];				//0A
-	USHORT far *videoModeTbl;	//0E
-	USHORT totalMem;			//12
-	//UCHAR rsv[242];			//14
+    UCHAR  id[4];   	    	//00	'VESA'
+    USHORT version; 	    	//04
+    UCHAR far *oemNames;    	//06
+    UCHAR flags[4]; 	    	//0A
+    USHORT far *videoModeTbl;	//0E
+    USHORT totalMem;	    	//12
+    //UCHAR rsv[242];	    	//14
 } VESA_INFO;
 
 typedef struct VESA_MODEINFO {
-	USHORT mode;				//00
-	UCHAR  winAatr;				//02
-	UCHAR  winBatr;				//03
-	USHORT winPagSiz;			//04	N Kbytes
-	USHORT winSiz;				//06	N Kbytes
-	USHORT winAseg;				//08
-	USHORT winBseg;				//0A
-	ULONG  winAdr;				//0C
-	USHORT scanlineBytes;		//10
-	USHORT gxsz;				//12
-	USHORT gysz;				//14
-	UCHAR  chrXsz;				//16
-	UCHAR  chrYsz;				//17
-	UCHAR  plnCnt;				//18
-	UCHAR  pbits;				//19
-	UCHAR  bnkCnt;				//1A
-	UCHAR  type;				//1B
-	UCHAR  bnkSz;				//1C
-	UCHAR  imgPagCnt;			//1D
-	UCHAR  rsv1;				//1E = 1
-	UCHAR  mskBitsR;			//1F
-	UCHAR  mskBitPosR;			//20
-	UCHAR  mskBitsG;			//21
-	UCHAR  mskBitPosG;			//22
-	UCHAR  mskBitsB;			//23
-	UCHAR  mskBitPosB;			//24
-	UCHAR  mskBitsA;			//25
-	UCHAR  mskBitPosA;			//26
-	UCHAR  drctColAtr;			//27
-	UCHAR  rsv[216];			//28
+    USHORT mode;    	    	//00
+    UCHAR  winAatr; 	    	//02
+    UCHAR  winBatr; 	    	//03
+    USHORT winPagSiz;	    	//04	N Kbytes
+    USHORT winSiz;  	    	//06	N Kbytes
+    USHORT winAseg; 	    	//08
+    USHORT winBseg; 	    	//0A
+    ULONG  winAdr;  	    	//0C
+    USHORT scanlineBytes;   	//10
+    USHORT gxsz;    	    	//12
+    USHORT gysz;    	    	//14
+    UCHAR  chrXsz;  	    	//16
+    UCHAR  chrYsz;  	    	//17
+    UCHAR  plnCnt;  	    	//18
+    UCHAR  pbits;   	    	//19
+    UCHAR  bnkCnt;  	    	//1A
+    UCHAR  type;    	    	//1B
+    UCHAR  bnkSz;   	    	//1C
+    UCHAR  imgPagCnt;	    	//1D
+    UCHAR  rsv1;    	    	//1E = 1
+    UCHAR  mskBitsR;	    	//1F
+    UCHAR  mskBitPosR;	    	//20
+    UCHAR  mskBitsG;	    	//21
+    UCHAR  mskBitPosG;	    	//22
+    UCHAR  mskBitsB;	    	//23
+    UCHAR  mskBitPosB;	    	//24
+    UCHAR  mskBitsA;	    	//25
+    UCHAR  mskBitPosA;	    	//26
+    UCHAR  drctColAtr;	    	//27
+    UCHAR  rsv[216];	    	//28
 } VESA_MODEINFO;
 
 

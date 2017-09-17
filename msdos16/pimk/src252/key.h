@@ -1,5 +1,5 @@
 /*
-	pc9801 key
+    pc9801 key
  */
 
 void Key_Init(void);

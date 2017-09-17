@@ -1,8 +1,7 @@
 module Pri
-	c_name "Pri","_",1
+    c_name "Pri","_",1
 
 *proc Fmt(fmt:w, ...av:w());cdecl
-	endproc
+    endproc
 
 endmodule
-

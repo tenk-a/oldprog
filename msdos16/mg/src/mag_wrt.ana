@@ -1,12 +1,12 @@
 submodule Mag
-	import GH
-	import Dos
-	import Pri
-	import Subr
-	import Deb
-	import Std
+    import GH
+    import Dos
+    import Pri
+    import Subr
+    import Deb
+    import Std
 
-@define	GHT()	GH.T[ds:0]
+@define GHT()	GH.T[ds:0]
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,550 +33,550 @@ cvar posX:w(16) = {0,-1,-2,-4, 0,-1, 0,-1,-2, 0,-1,-2, 0,-1,-2,  0}
 cvar posY:w(16) = {0, 0, 0, 0,-1,-1,-2,-2,-2,-4,-4,-4,-8,-8,-8,-16}
 
 proc WrtBufA(di)
-//	フラグA のデータを書込む
-//	arg di	出力するバイト数
+//  フラグA のデータを書込む
+//  arg di  出力するバイト数
 enter
-	save pusha,ds
+    save pusha,ds
 
-	go (di == 0) RET
-	ds.bx = gh_t
-	GH.SeekW bx, flagAofs
-	cx = di
-	dx.ax = ww(0,cx)
-	dx.ax += flagAofs
-	flagAofs = dx.ax
+    go (di == 0) RET
+    ds.bx = gh_t
+    GH.SeekW bx, flagAofs
+    cx = di
+    dx.ax = ww(0,cx)
+    dx.ax += flagAofs
+    flagAofs = dx.ax
 
-	ptrA = dx = 0
-	ax = dbufAseg
-	GH.Write bx,ax.dx,cx
-	Deb.Chk
-	if (==)
-		Deb.SaveReg
-		Pri.Fmt "フラグA 書き出し:%x->%x\N",cx,ax
-		Deb.LoadReg
-	fi
+    ptrA = dx = 0
+    ax = dbufAseg
+    GH.Write bx,ax.dx,cx
+    Deb.Chk
+    if (==)
+    	Deb.SaveReg
+    	Pri.Fmt "フラグA 書き出し:%x->%x\N",cx,ax
+    	Deb.LoadReg
+    fi
   RET:
-	return
+    return
 endproc
 
 cvar wkAcnt:b = 8, wkAdat:b = 0
-@define ResetWkA()	wkAcnt = 8;wkAdat = 0
+@define ResetWkA()  wkAcnt = 8;wkAdat = 0
 
 proc WrtA()
-//	フラグA のバッファへ１ビット書込む
-//	in  cf
+//  フラグA のバッファへ１ビット書込む
+//  in	cf
 begin
-	|wkAdat <<=. 1
-	--wkAcnt
-	if (wkAcnt == 0)
-		push ax,di,es
-			di = ptrA
-			if (di >= dbufAsiz)
-				WrtBufA di
-				di = ptrA
-			fi
-			es = dbufAseg
-			rep.set di,	wkAdat
-			ptrA = di
-			wkAcnt = 8
-		pop  ax,di,es
-	fi
+    |wkAdat <<=. 1
+    --wkAcnt
+    if (wkAcnt == 0)
+    	push ax,di,es
+    	    di = ptrA
+    	    if (di >= dbufAsiz)
+    	    	WrtBufA di
+    	    	di = ptrA
+    	    fi
+    	    es = dbufAseg
+    	    rep.set di, wkAdat
+    	    ptrA = di
+    	    wkAcnt = 8
+    	pop  ax,di,es
+    fi
   //Deb.PRI "WrtA\N"
-	return
+    return
 endproc
 
 
 proc WrtBufB(di)
-//	フラグB のデータを書込む
-//	arg di	出力するバイト数
+//  フラグB のデータを書込む
+//  arg di  出力するバイト数
 enter
-	save pusha,ds
+    save pusha,ds
 
-	go (di == 0) RET
-	ds.bx = gh_t
-	GH.SeekW bx, flagBofs
-	cx = di
-	dx.ax = ww(0, cx)
-	dx.ax += flagBofs
-	flagBofs = dx.ax
+    go (di == 0) RET
+    ds.bx = gh_t
+    GH.SeekW bx, flagBofs
+    cx = di
+    dx.ax = ww(0, cx)
+    dx.ax += flagBofs
+    flagBofs = dx.ax
 
-	dx.ax = flagBsiz
-	dx.ax += ww(0, cx)
-	flagBsiz = dx.ax
+    dx.ax = flagBsiz
+    dx.ax += ww(0, cx)
+    flagBsiz = dx.ax
 
-	ptrB = dx = 0
-	ax = dbufBseg
-	GH.Write bx,ax.dx,cx
-	Deb.Chk
-	if (==)
-		Deb.SaveReg
-		Pri.Fmt "フラグB 書き出し:%x->%x\N",cx,ax
-		Deb.LoadReg
-	fi
+    ptrB = dx = 0
+    ax = dbufBseg
+    GH.Write bx,ax.dx,cx
+    Deb.Chk
+    if (==)
+    	Deb.SaveReg
+    	Pri.Fmt "フラグB 書き出し:%x->%x\N",cx,ax
+    	Deb.LoadReg
+    fi
   RET:
-	return
+    return
 endproc
 
 proc WrtB(al)
-//	フラグB のバッファへ１バイト書込む
-//	in  cf
+//  フラグB のバッファへ１バイト書込む
+//  in	cf
 begin
-	save ax,di,es
+    save ax,di,es
 
   //Deb.PRI "WrtB\N"
-	di = ptrB
-	if (di >= dbufBsiz)
-		WrtBufB di
-		di = ptrB
-	fi
-	es = dbufBseg
-	rep.set di,	al
-	ptrB = di
-	return
+    di = ptrB
+    if (di >= dbufBsiz)
+    	WrtBufB di
+    	di = ptrB
+    fi
+    es = dbufBseg
+    rep.set di, al
+    ptrB = di
+    return
 endproc
 
 
 
 proc SetBufAddr(ax, dx, cx)
 //  入力バッファの分割(フラグA,フラグB,ピクセル・データ,展開用ライン・バッファ)
-//	arg	ax	バッファのセグメント
-//	arg dx  バッファのパラグラフ・サイズ
+//  arg ax  バッファのセグメント
+//  arg dx  バッファのパラグラフ・サイズ
 enter
-	save pusha,es,ds
-	local topSeg:w = ax, szs:w = dx
+    save pusha,es,ds
+    local topSeg:w = ax, szs:w = dx
 
-	bx = dx
-	flgLinBufSiz = cx
-	Std.ParaSize cx, dx
-	cx <<= 1
-	go (bx <= cx) ERR
-	bx -= cx
-	dx.ax = flagAsiz
-	if (dx || ax > ((640/4)*512/8))
-		ax = Mag.RDBUFA
-	fi
-	dbufAsiz = ax
-	Std.ParaSize ax,dx
-	go (bx <= ax) ERR
-	bx -= ax
-	if (bx >= 0x1000)
-		ax = 0x6000
-		bx -= 0x600
-	elsif (bx >= 0x800)
-		ax = 0x3000
-		bx -= 0x300
-	elsif (bx > 0x100)
-		ax = 0x800
-		bx -= 0x80
-	else
+    bx = dx
+    flgLinBufSiz = cx
+    Std.ParaSize cx, dx
+    cx <<= 1
+    go (bx <= cx) ERR
+    bx -= cx
+    dx.ax = flagAsiz
+    if (dx || ax > ((640/4)*512/8))
+    	ax = Mag.RDBUFA
+    fi
+    dbufAsiz = ax
+    Std.ParaSize ax,dx
+    go (bx <= ax) ERR
+    bx -= ax
+    if (bx >= 0x1000)
+    	ax = 0x6000
+    	bx -= 0x600
+    elsif (bx >= 0x800)
+    	ax = 0x3000
+    	bx -= 0x300
+    elsif (bx > 0x100)
+    	ax = 0x800
+    	bx -= 0x80
+    else
   ERR:
-		Subr.PriExit "Magのバッファのメモリが確保できない\N"
-	fi
-	dbufBsiz = ax
-	dbufPszs = bx
+    	Subr.PriExit "Magのバッファのメモリが確保できない\N"
+    fi
+    dbufBsiz = ax
+    dbufPszs = bx
 
-	flgLinBufSeg = ax = topSeg
+    flgLinBufSeg = ax = topSeg
 
-	cx = flgLinBufSiz
-	Std.ParaSize cx,bx
-	ax += cx
-	flgLinBufSeg2 = ax
+    cx = flgLinBufSiz
+    Std.ParaSize cx,bx
+    ax += cx
+    flgLinBufSeg2 = ax
 
-	cx = flgLinBufSiz
-	Std.ParaSize cx,bx
-	ax += cx
-	dbufAseg = ax
+    cx = flgLinBufSiz
+    Std.ParaSize cx,bx
+    ax += cx
+    dbufAseg = ax
 
-	cx = dbufAsiz
-	Std.ParaSize cx,bx
-	ax += cx
-	dbufBseg = ax
-	
-	cx = dbufBsiz
-	Std.ParaSize cx,bx
-	ax += cx
-	dbufPseg = ax
+    cx = dbufAsiz
+    Std.ParaSize cx,bx
+    ax += cx
+    dbufBseg = ax
 
-	ptrP = ww(ax,0)
-	ax += dbufPszs
-	dbufPendSeg = ax
+    cx = dbufBsiz
+    Std.ParaSize cx,bx
+    ax += cx
+    dbufPseg = ax
 
-	Deb.Chk
-	if (==)
-		Pri.Fmt "A Seg=$%04x  Siz=$%04x\N",dbufBseg, dbufAsiz
-		Pri.Fmt "B Seg=$%04x  Siz=$%04x\N",dbufBseg, dbufBsiz
-		Pri.Fmt "P Seg=$%04x  Siz=$%04x0\N",dbufPseg, dbufPszs
-		Pri.Fmt "Top=$%04x szs=$%04x EndSeg=$%04x\N",topSeg,szs,dbufPendSeg
-	fi
-	return
+    ptrP = ww(ax,0)
+    ax += dbufPszs
+    dbufPendSeg = ax
+
+    Deb.Chk
+    if (==)
+    	Pri.Fmt "A Seg=$%04x  Siz=$%04x\N",dbufBseg, dbufAsiz
+    	Pri.Fmt "B Seg=$%04x  Siz=$%04x\N",dbufBseg, dbufBsiz
+    	Pri.Fmt "P Seg=$%04x  Siz=$%04x0\N",dbufPseg, dbufPszs
+    	Pri.Fmt "Top=$%04x szs=$%04x EndSeg=$%04x\N",topSeg,szs,dbufPendSeg
+    fi
+    return
 endproc
 
 
 
 *proc InitWrite(bx)
 //  Mag ファイル書込みの準備
-//	arg si	GH.T へのポインタ
+//  arg si  GH.T へのポインタ
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	gh_t = ds.bx
-	hdl = dx = GHT.wrtHdl
+    gh_t = ds.bx
+    hdl = dx = GHT.wrtHdl
 
-	// フラグA,フラグB,ﾋﾟｸｾﾙ･ﾃﾞｰﾀの各ブロック・サイズの数と余りサイズを計算
-	flagAofs = dx.ax = GHT.magWflagAofs
-	flagBofs = dx.ax = GHT.magWflagBofs
-	pdataOfs = dx.ax = GHT.magWpdataOfs
-	flagAsiz = dx.ax = GHT.magWflagAsiz
-	// 256色？
-	c256flg = 0
-	if (GHT.plnW == 8)
-		c256flg = 1
-	fi
-	al = c256flg
-	ah = 0
+    // フラグA,フラグB,ﾋﾟｸｾﾙ･ﾃﾞｰﾀの各ブロック・サイズの数と余りサイズを計算
+    flagAofs = dx.ax = GHT.magWflagAofs
+    flagBofs = dx.ax = GHT.magWflagBofs
+    pdataOfs = dx.ax = GHT.magWpdataOfs
+    flagAsiz = dx.ax = GHT.magWflagAsiz
+    // 256色？
+    c256flg = 0
+    if (GHT.plnW == 8)
+    	c256flg = 1
+    fi
+    al = c256flg
+    ah = 0
 //pusha;Pri.Fmt "256flg:%d\N",ax;popa
 
-	//ピクセル・データ・バッファ
-	pdataBuf = dx.ax = ww(GHT.pdbSeg, GHT.hisSizO)
+    //ピクセル・データ・バッファ
+    pdataBuf = dx.ax = ww(GHT.pdbSeg, GHT.hisSizO)
 
-	// 横幅関係
-	ax = GHT.sizeXo
-	ax >>= 2
-	if (c256flg == 0)
-		ax >>= 1
-	fi
-	vsizXh = ax	//１行分のフラグ(4ビット)がしめるバイト数
-				//=処理上のピクセル(16色なら4ﾄﾞｯﾄ.256色なら2ﾄﾞｯﾄ)での横幅 div 2
+    // 横幅関係
+    ax = GHT.sizeXo
+    ax >>= 2
+    if (c256flg == 0)
+    	ax >>= 1
+    fi
+    vsizXh = ax //１行分のフラグ(4ビット)がしめるバイト数
+    	    	//=処理上のピクセル(16色なら4ﾄﾞｯﾄ.256色なら2ﾄﾞｯﾄ)での横幅 div 2
 //pusha;Pri.Fmt "vxh=%d\N",vsizXh;popa
 
-	//メモリ分配
-	GH.GetMem bx, 0x400, 0xffff
-	dx = cx
-	SetBufAddr ax, dx, vsizXh
+    //メモリ分配
+    GH.GetMem bx, 0x400, 0xffff
+    dx = cx
+    SetBufAddr ax, dx, vsizXh
 
   @if 0
-	// フラグAのブロック・サイズの数と余りサイズを計算
-	dx.ax = flagAsiz
-	div dx.ax, dbufAsiz
-	blkCntA = ax
-	rstSizA = dx
+    // フラグAのブロック・サイズの数と余りサイズを計算
+    dx.ax = flagAsiz
+    div dx.ax, dbufAsiz
+    blkCntA = ax
+    rstSizA = dx
   @fi
 
 
-	//相対位置のオフセット値を求める.
-	//１６色時、１dot４ビット。作業1ピクセル(2byte)は4dot単位
-	//256 色時、１dot８ビット。作業1ピクセル(2byte)は2dot単位
-	cx = GHT.sizeXo
-	bx = 4
-	if (c256flg)
-		bx = 2
-	fi
-	ax = 0
-	pos(0) = ax		//( 0, 0)
-	ax += bx
-	pos(1) = ax		//(-1, 0)
-	ax += bx
-	pos(2) = ax		//(-2, 0)
-	ax += bx
-	ax += bx
-	pos(3) = ax		//(-4, 0)
-	ax = cx
-	pos(4) = ax		//( 0,-1)
-	ax += bx
-	pos(5) = ax		//(-1,-1)
-	ax = cx
-	ax <<= 1
-	pos(6) = ax		//( 0,-2)
-	ax += bx
-	pos(7) = ax		//(-1,-2)
-	ax += bx
-	pos(8) = ax		//(-2,-2)
-	ax = cx
-	ax <<= 2
-	pos(9) = ax		//( 0,-4)
-	ax += bx
-	pos(10) = ax	//(-1,-4)
-	ax += bx
-	pos(11) = ax	//(-2,-4)
-	ax = cx
-	ax <<= 3
-	pos(12) = ax	//( 0,-8)
-	ax += bx
-	pos(13) = ax	//(-1,-8)
-	ax += bx
-	pos(14) = ax	//(-2,-8)
-	ax = cx
-	ax <<= 4
-	pos(15) = ax	//(0,-16)
+    //相対位置のオフセット値を求める.
+    //１６色時、１dot４ビット。作業1ピクセル(2byte)は4dot単位
+    //256 色時、１dot８ビット。作業1ピクセル(2byte)は2dot単位
+    cx = GHT.sizeXo
+    bx = 4
+    if (c256flg)
+    	bx = 2
+    fi
+    ax = 0
+    pos(0) = ax     //( 0, 0)
+    ax += bx
+    pos(1) = ax     //(-1, 0)
+    ax += bx
+    pos(2) = ax     //(-2, 0)
+    ax += bx
+    ax += bx
+    pos(3) = ax     //(-4, 0)
+    ax = cx
+    pos(4) = ax     //( 0,-1)
+    ax += bx
+    pos(5) = ax     //(-1,-1)
+    ax = cx
+    ax <<= 1
+    pos(6) = ax     //( 0,-2)
+    ax += bx
+    pos(7) = ax     //(-1,-2)
+    ax += bx
+    pos(8) = ax     //(-2,-2)
+    ax = cx
+    ax <<= 2
+    pos(9) = ax     //( 0,-4)
+    ax += bx
+    pos(10) = ax    //(-1,-4)
+    ax += bx
+    pos(11) = ax    //(-2,-4)
+    ax = cx
+    ax <<= 3
+    pos(12) = ax    //( 0,-8)
+    ax += bx
+    pos(13) = ax    //(-1,-8)
+    ax += bx
+    pos(14) = ax    //(-2,-8)
+    ax = cx
+    ax <<= 4
+    pos(15) = ax    //(0,-16)
 
-	//その他の変数初期化
-	ResetWkA
-	ax = 0
-	ptrA = ax
-	ptrB = ax
-	flagBsiz = ww(ax,ax)
-	curY = ax
+    //その他の変数初期化
+    ResetWkA
+    ax = 0
+    ptrA = ax
+    ptrB = ax
+    flagBsiz = ww(ax,ax)
+    curY = ax
 
-	// フラグ展開用のライン・バッファの初期化
-	di = ax 	//	= 0
-	cx = flgLinBufSiz
-	es = flgLinBufSeg
-	rep.set di,al,cx
-	cx = flgLinBufSiz
-	es = flgLinBufSeg2
-	di = ax
-	rep.set di,al,cx
-	
-	return
+    // フラグ展開用のライン・バッファの初期化
+    di = ax 	//  = 0
+    cx = flgLinBufSiz
+    es = flgLinBufSeg
+    rep.set di,al,cx
+    cx = flgLinBufSiz
+    es = flgLinBufSeg2
+    di = ax
+    rep.set di,al,cx
+
+    return
 endproc
 
 
 proc ChkPos(al,cx,si)
 //  in ds
-//	break di,ax
+//  break di,ax
 begin
-	save ax
+    save ax
 
-	go (al == 0) RET0
-	ah = 0
-	di = ax
-	di <<= 1
-	ax = posY[di]
-	ax += curY
-	go (ax .<. 0) RET0
-	ax = posX[di]
-	ax += cx
-	go (ax .<. 0) RET0
-	ax = pos[di]
-	di = si
-	di -= ax
-	ax = w[di]
-	go (ax != w[si]) RET0
-	if (c256flg == 0)
-		ax = w[di+2]
-		go (ax != w[si+2]) RET0
-	fi
-	stc
-	return
+    go (al == 0) RET0
+    ah = 0
+    di = ax
+    di <<= 1
+    ax = posY[di]
+    ax += curY
+    go (ax .<. 0) RET0
+    ax = posX[di]
+    ax += cx
+    go (ax .<. 0) RET0
+    ax = pos[di]
+    di = si
+    di -= ax
+    ax = w[di]
+    go (ax != w[si]) RET0
+    if (c256flg == 0)
+    	ax = w[di+2]
+    	go (ax != w[si+2]) RET0
+    fi
+    stc
+    return
   RET0:
-  	clc
-  	return
+    clc
+    return
 endproc
 
 proc PosNo (al,cx,si)
-//	相対位置のピクセルと比較し、一致する番号を求める。
-//	一致しなかったばあいは、ピクセル・データを出力
-//	arg al  １行間上のフラグの番号
-//	arg si  ピクセル・データ・バッファでの現在位置
-//	in  ds  ピクセル・データ・バッファのセグメント
-//	out al  相対位置番号 0～15	(0:一致しなかった)
-//	break di
+//  相対位置のピクセルと比較し、一致する番号を求める。
+//  一致しなかったばあいは、ピクセル・データを出力
+//  arg al  １行間上のフラグの番号
+//  arg si  ピクセル・データ・バッファでの現在位置
+//  in	ds  ピクセル・データ・バッファのセグメント
+//  out al  相対位置番号 0～15	(0:一致しなかった)
+//  break di
 begin
 //Deb.PRI "PosNo\N"
-	block
-		ChkPos al,cx,si;	break (_c_)
-		ChkPos  1,cx,si; 	break (_c_)
-		ChkPos  4,cx,si; 	break (_c_)
-		ChkPos  5,cx,si; 	break (_c_)
-		ChkPos  6,cx,si; 	break (_c_)
-		ChkPos  7,cx,si; 	break (_c_)
-		ChkPos  9,cx,si; 	break (_c_)
-		ChkPos 10,cx,si; 	break (_c_)
-		ChkPos  2,cx,si; 	break (_c_)
-		ChkPos  8,cx,si; 	break (_c_)
-		ChkPos 11,cx,si; 	break (_c_)
-		ChkPos 12,cx,si; 	break (_c_)
-		ChkPos 13,cx,si; 	break (_c_)
-		ChkPos 14,cx,si; 	break (_c_)
-		ChkPos  3,cx,si; 	break (_c_)
-		ChkPos 15,cx,si; 	break (_c_)
-		go L_ZERO
-	endblock
-	return
+    block
+    	ChkPos al,cx,si;    break (_c_)
+    	ChkPos	1,cx,si;    break (_c_)
+    	ChkPos	4,cx,si;    break (_c_)
+    	ChkPos	5,cx,si;    break (_c_)
+    	ChkPos	6,cx,si;    break (_c_)
+    	ChkPos	7,cx,si;    break (_c_)
+    	ChkPos	9,cx,si;    break (_c_)
+    	ChkPos 10,cx,si;    break (_c_)
+    	ChkPos	2,cx,si;    break (_c_)
+    	ChkPos	8,cx,si;    break (_c_)
+    	ChkPos 11,cx,si;    break (_c_)
+    	ChkPos 12,cx,si;    break (_c_)
+    	ChkPos 13,cx,si;    break (_c_)
+    	ChkPos 14,cx,si;    break (_c_)
+    	ChkPos	3,cx,si;    break (_c_)
+    	ChkPos 15,cx,si;    break (_c_)
+    	go L_ZERO
+    endblock
+    return
 
   L_ZERO:
-	 /* ピクセル・データ・バッファへ2バイト書込む */
-	push ax,si,es
-	ax.di = ptrP
-	if (ax >= dbufPendSeg)
-		Subr.PriExit "メモリが足り無くなった（ピクセル・データのバッファが溢れた）\N"
-	fi
-	es = ax
-	if (c256flg)
-		rep.cpy.w di, si
-	else
-		rep.load.w ax,si
-		al <<= 4
-		ah &= 0x0f
-		al |= ah
-		rep.set di, al
-		rep.load.w ax,si
-		al <<= 4
-		ah &= 0x0f
-		al |= ah
-		rep.set di, al
-	fi
-	ax = es
-	Std.FpToHp ax,di, si
-	ptrP = ax.di
-	pop ax,si,es
-	al = 0	// 一致しなかったら、位置番号は 0
-	return
+     /* ピクセル・データ・バッファへ2バイト書込む */
+    push ax,si,es
+    ax.di = ptrP
+    if (ax >= dbufPendSeg)
+    	Subr.PriExit "メモリが足り無くなった（ピクセル・データのバッファが溢れた）\N"
+    fi
+    es = ax
+    if (c256flg)
+    	rep.cpy.w di, si
+    else
+    	rep.load.w ax,si
+    	al <<= 4
+    	ah &= 0x0f
+    	al |= ah
+    	rep.set di, al
+    	rep.load.w ax,si
+    	al <<= 4
+    	ah &= 0x0f
+    	al |= ah
+    	rep.set di, al
+    fi
+    ax = es
+    Std.FpToHp ax,di, si
+    ptrP = ax.di
+    pop ax,si,es
+    al = 0  // 一致しなかったら、位置番号は 0
+    return
 
 endproc
 
 *proc WritePDB(ght:d,lincnt:w);cdecl
 // ピクセル・データ・バッファ ax 行, MAGに変換
-//	arg  si  GH.T へのポインタ（ダミー）
-//	arg  ax  行数
+//  arg  si  GH.T へのポインタ（ダミー）
+//  arg  ax  行数
 enter
-	save pusha,es,ds
-	local pdptr:d, cnt:w, ofs:w
+    save pusha,es,ds
+    local pdptr:d, cnt:w, ofs:w
 
-	cnt = ax = lincnt
-	ofs = 4
-	if (c256flg)
-		ofs = 2
-	fi
-	pdptr = dx.si = pdataBuf
-	// 指定行数分、ループ
-	loop.w
-		si = pdptr.l
-		cx = bx = 0
-		loop
-			ds = flgLinBufSeg2
-			ah = al = b[bx]
-			ds = flgLinBufSeg
-			b[bx] = al
-			ah &= 0x0f
-			al >>= 4
-			ds = pdptr.h
-			PosNo al,cx,si
-			si += ofs
-			++cx
-			al <<= 4
-			ah <=> al
-			PosNo al,cx,si
-			si += ofs
-			al |= ah
-			ds = flgLinBufSeg2
-			b[bx] = al
-			ds = flgLinBufSeg
-			b[bx] ^= al
-			++bx
-			++cx
-		endloop (bx < vsizXh)
-		pdptr.l = si
-		//ds = flgLinBufSeg
-		si = 0
-		cx = vsizXh
-		loop
-			rep.load al,si
-			if (al == 0)
-				clc
-				WrtA
-			else
-				stc
-				WrtA
-				WrtB al
-			fi
-		endloop (--cx)
-	  @if 0
-		Deb.Chk
-		if (==)
-			Pri.Word curY
-			Pri.Chr '\r'
-		fi
-	  @fi
-		++curY
-	endloop (--cnt)
-	return
+    cnt = ax = lincnt
+    ofs = 4
+    if (c256flg)
+    	ofs = 2
+    fi
+    pdptr = dx.si = pdataBuf
+    // 指定行数分、ループ
+    loop.w
+    	si = pdptr.l
+    	cx = bx = 0
+    	loop
+    	    ds = flgLinBufSeg2
+    	    ah = al = b[bx]
+    	    ds = flgLinBufSeg
+    	    b[bx] = al
+    	    ah &= 0x0f
+    	    al >>= 4
+    	    ds = pdptr.h
+    	    PosNo al,cx,si
+    	    si += ofs
+    	    ++cx
+    	    al <<= 4
+    	    ah <=> al
+    	    PosNo al,cx,si
+    	    si += ofs
+    	    al |= ah
+    	    ds = flgLinBufSeg2
+    	    b[bx] = al
+    	    ds = flgLinBufSeg
+    	    b[bx] ^= al
+    	    ++bx
+    	    ++cx
+    	endloop (bx < vsizXh)
+    	pdptr.l = si
+    	//ds = flgLinBufSeg
+    	si = 0
+    	cx = vsizXh
+    	loop
+    	    rep.load al,si
+    	    if (al == 0)
+    	    	clc
+    	    	WrtA
+    	    else
+    	    	stc
+    	    	WrtA
+    	    	WrtB al
+    	    fi
+    	endloop (--cx)
+      @if 0
+    	Deb.Chk
+    	if (==)
+    	    Pri.Word curY
+    	    Pri.Chr '\r'
+    	fi
+      @fi
+    	++curY
+    endloop (--cnt)
+    return
 endproc
 
 *proc CloseW(ght:d);cdecl
-	//*proc Flush(ght:d);cdecl
-	//バッファの残りを掃き出す
+    //*proc Flush(ght:d);cdecl
+    //バッファの残りを掃き出す
 enter
-	save pusha,es,ds
-	local tmp:d
-	local pdataOfs:d,pdataSiz:d
+    save pusha,es,ds
+    local tmp:d
+    local pdataOfs:d,pdataSiz:d
 
 //Deb.PRI "FLush\N"
-	cl = wkAcnt
-	if (cl < 8 /* && cl > 0*/)
-		ch = 0
-		loop
-			clc
-			WrtA
-		endloop (--cx)
-	fi
-	WrtBufA ptrA
-	WrtBufB ptrB
-	
-	ds.bx = ght
-	
-	// フラグＢのサイズを収める位置へシーク
-	dx.ax = GHT.magWhdrOfs
-	dx.ax += 20
-	GH.SeekW bx, dx.ax
+    cl = wkAcnt
+    if (cl < 8 /* && cl > 0*/)
+    	ch = 0
+    	loop
+    	    clc
+    	    WrtA
+    	endloop (--cx)
+    fi
+    WrtBufA ptrA
+    WrtBufB ptrB
 
-	// フラグＢのサイズを書込む
-	dx = &tmp
-	ax.di = flagBsiz
-	tmp = ax.di
-	cx = 4
-	GH.Write bx, ss.dx, cx
+    ds.bx = ght
+
+    // フラグＢのサイズを収める位置へシーク
+    dx.ax = GHT.magWhdrOfs
+    dx.ax += 20
+    GH.SeekW bx, dx.ax
+
+    // フラグＢのサイズを書込む
+    dx = &tmp
+    ax.di = flagBsiz
+    tmp = ax.di
+    cx = 4
+    GH.Write bx, ss.dx, cx
 //Pri.Fmt "sizeB = %ld(%lx)\N", tmp, tmp
 
-	// ピクセル・データのオフセットを書込む
-	ax.di = GHT.magWflagBofs0
+    // ピクセル・データのオフセットを書込む
+    ax.di = GHT.magWflagBofs0
 //Pri.Fmt "flagBofs0 = %lx\N", ax.di
-	ax.di += tmp
-	if (di & 0x01)
-		ax.di += 1
-	fi
-	tmp = ax.di
-	pdataOfs = ax.di
-	GH.Write bx, ss.dx, cx
+    ax.di += tmp
+    if (di & 0x01)
+    	ax.di += 1
+    fi
+    tmp = ax.di
+    pdataOfs = ax.di
+    GH.Write bx, ss.dx, cx
 //Pri.Fmt "pdataOfs = %lx\N", tmp
 
-	// ピクセル・データのサイズを書込む
-	ax.di = ptrP
-	ax -= dbufPseg
-	Std.FpToDw ax,di, cx
-	tmp = ax.di
-	pdataSiz = ax.di
-	GH.Write bx, ss.dx, 4
+    // ピクセル・データのサイズを書込む
+    ax.di = ptrP
+    ax -= dbufPseg
+    Std.FpToDw ax,di, cx
+    tmp = ax.di
+    pdataSiz = ax.di
+    GH.Write bx, ss.dx, 4
 //Pri.Fmt "sizeP = %ld(%lx)\N", tmp, tmp
 
-	// ピクセル・データの先頭へシーク
-	dx.ax = GHT.magWhdrOfs
+    // ピクセル・データの先頭へシーク
+    dx.ax = GHT.magWhdrOfs
 //Pri.Fmt "hdrPos = %lx\N", dx.ax
-	dx.ax += pdataOfs
+    dx.ax += pdataOfs
 //Pri.Fmt "pdatPos = %lx\N", dx.ax
-	GH.SeekW bx, dx.ax
+    GH.SeekW bx, dx.ax
 
-	// ピクセル・データを書込む
-	di.cx = pdataSiz
+    // ピクセル・データを書込む
+    di.cx = pdataSiz
 //Pri.Fmt "sizeP = %ld(%lx)\N", di.cx, di.cx
-	push cx
-	dx = 0
-	ax = dbufPseg
-	if (di)
-		cx = 0x8000
-		loop
-			GH.Write bx, ax.dx, cx
-			ax += 0x800
-			GH.Write bx, ax.dx, cx
-			ax += 0x800
-		endloop (--di)
-	fi
-	pop cx
-	if (cx)
-		GH.Write bx, ax.dx, cx
-	fi
-	GH.CloseW  ds.bx
-	return
+    push cx
+    dx = 0
+    ax = dbufPseg
+    if (di)
+    	cx = 0x8000
+    	loop
+    	    GH.Write bx, ax.dx, cx
+    	    ax += 0x800
+    	    GH.Write bx, ax.dx, cx
+    	    ax += 0x800
+    	endloop (--di)
+    fi
+    pop cx
+    if (cx)
+    	GH.Write bx, ax.dx, cx
+    fi
+    GH.CloseW  ds.bx
+    return
 
 endproc
 
@@ -586,13 +586,13 @@ endproc
 
 *proc InitW(ght:d);cdecl
 enter
-	save ax,ds,bx
-	ds.bx = ght
-	GH.SetHisLin bx,16
-	GHT.wrtX8flg = 1
-	//GH.Df_wrtX8mode 1
-	GHT.fmtW = GH.MAG
-	return
+    save ax,ds,bx
+    ds.bx = ght
+    GH.SetHisLin bx,16
+    GHT.wrtX8flg = 1
+    //GH.Df_wrtX8mode 1
+    GHT.fmtW = GH.MAG
+    return
 endproc
 
 
@@ -600,232 +600,232 @@ cvar hdrHdl:w
 
 proc InitPutC(ax)
 begin
-	hdrHdl = ax
-	return
+    hdrHdl = ax
+    return
 endproc
 
 proc Err()
 begin
-	dx = ax
-	Pri.S "MAGヘッダ書込みでエラー #"; Pri.Int dx; Pri.Cr
-	Dos.Exit(1)
+    dx = ax
+    Pri.S "MAGヘッダ書込みでエラー #"; Pri.Int dx; Pri.Cr
+    Dos.Exit(1)
 endproc
 
 proc PutC(al)
 begin
-	save pusha,ax,bx,cx,dx,ds
-	var gcbuf:b
+    save pusha,ax,bx,cx,dx,ds
+    var gcbuf:b
 
-	ds = bx = %var
-	gcbuf = al
-	Dos.Write hdrHdl,&gcbuf,1
-	if (_c_)
-		Err
-	fi
-	return
+    ds = bx = %var
+    gcbuf = al
+    Dos.Write hdrHdl,&gcbuf,1
+    if (_c_)
+    	Err
+    fi
+    return
 endproc
 
 proc PutW(ax)
 begin
-	save pusha,ax,bx,cx,dx,ds
-	var gcbuf:w
+    save pusha,ax,bx,cx,dx,ds
+    var gcbuf:w
 
-	ds = bx = %var
-	gcbuf = ax
-	Dos.Write hdrHdl,&gcbuf,2
-	if (_c_)
-		Err
-	fi
-	return
+    ds = bx = %var
+    gcbuf = ax
+    Dos.Write hdrHdl,&gcbuf,2
+    if (_c_)
+    	Err
+    fi
+    return
 endproc
 
 proc PutD(dx.ax)
 begin
-	save pusha,ax,bx,cx,dx,ds
-	var gcbuf:d
+    save pusha,ax,bx,cx,dx,ds
+    var gcbuf:d
 
-	ds = bx = %var
-	gcbuf = dx.ax
-	Dos.Write hdrHdl,&gcbuf,4
-	if (_c_)
-		Err
-	fi
-	return
+    ds = bx = %var
+    gcbuf = dx.ax
+    Dos.Write hdrHdl,&gcbuf,4
+    if (_c_)
+    	Err
+    fi
+    return
 endproc
 
 
 *proc Create(ght:d,filename:d);cdecl
-//	Magファイルのヘッダ出力
-//	arg si  GH.T へのポインタ
-//	arg dx	ファイル名
+//  Magファイルのヘッダ出力
+//  arg si  GH.T へのポインタ
+//  arg dx  ファイル名
 //  out ax  0:成功  以外:エラー
 enter
-	save bx,cx,dx,si,di,es,ds
-	cvar fmt:b() = "MAG"
+    save bx,cx,dx,si,di,es,ds
+    cvar fmt:b() = "MAG"
 
-	ds.bx = ght
-	GHT.wrtFmtName = dx.ax = ww(cs,&fmt)
-	//GHT.fmtW = GH.MAG
-	//GHT.wrtX8flg = 1
-	es = ds
-	GH.Create bx, filename
-	InitPutC GHT.wrtHdl
+    ds.bx = ght
+    GHT.wrtFmtName = dx.ax = ww(cs,&fmt)
+    //GHT.fmtW = GH.MAG
+    //GHT.wrtX8flg = 1
+    es = ds
+    GH.Create bx, filename
+    InitPutC GHT.wrtHdl
 
-	//ID出力
-	GH.Write bx,ww(%var,"MAKI02  "),8
-	//セーバ機種名出力
-	if (GHT.macNameMode == 0)
-		GH.Write bx,ww(ds,&GHT.macName), 4
-	else
-		GH.Write bx,ww(%var,"MG  "), 4
-	fi
-	PutC ' '
-	//ユーザ名出力
-	cx = GHT.userNameLen
-	if (cx)
-		if (cx >= 18)
-			cx = 18
-		fi
-		GH.Write bx, GHT.userName, cx
-		if (cx < 18)
-			cx -= 18
-			neg cx
-			GH.Write bx, ww(%var,"                  "), cx
-		fi
-	else
-		GH.Write bx, ww(%var,">謎<              "), 18
-	fi
-	//コメント出力
-	cx = GHT.commentLen
-	if (cx)
-		PutC ' '
-		es.di = GHT.comment
-		loop
-			al = b[es:di];++di
-			break (al == 0 || al == 0x1a)
-			PutC al
-		endloop
-	fi
-	PutC 0x1a
+    //ID出力
+    GH.Write bx,ww(%var,"MAKI02  "),8
+    //セーバ機種名出力
+    if (GHT.macNameMode == 0)
+    	GH.Write bx,ww(ds,&GHT.macName), 4
+    else
+    	GH.Write bx,ww(%var,"MG  "), 4
+    fi
+    PutC ' '
+    //ユーザ名出力
+    cx = GHT.userNameLen
+    if (cx)
+    	if (cx >= 18)
+    	    cx = 18
+    	fi
+    	GH.Write bx, GHT.userName, cx
+    	if (cx < 18)
+    	    cx -= 18
+    	    neg cx
+    	    GH.Write bx, ww(%var,"                  "), cx
+    	fi
+    else
+    	GH.Write bx, ww(%var,">謎<              "), 18
+    fi
+    //コメント出力
+    cx = GHT.commentLen
+    if (cx)
+    	PutC ' '
+    	es.di = GHT.comment
+    	loop
+    	    al = b[es:di];++di
+    	    break (al == 0 || al == 0x1a)
+    	    PutC al
+    	endloop
+    fi
+    PutC 0x1a
 
-	//ヘッダ先頭のシーク位置を取得
-	push bx
-	    bx = GHT.wrtHdl
-	    cx.dx = 0
-	    al = 1
-	    Dos.Lseek bx,cx.dx,al
-	    if (_c_)
-		    Subr.PriExit "シーク・エラー(Magヘッダ)\N"
-	    fi
-	pop bx
-	GHT.magWhdrOfs = dx.ax
+    //ヘッダ先頭のシーク位置を取得
+    push bx
+    	bx = GHT.wrtHdl
+    	cx.dx = 0
+    	al = 1
+    	Dos.Lseek bx,cx.dx,al
+    	if (_c_)
+    	    Subr.PriExit "シーク・エラー(Magヘッダ)\N"
+    	fi
+    pop bx
+    GHT.magWhdrOfs = dx.ax
 
-	//ヘッダ本体
-	PutC 0x00				//ヘッダ先頭
-	if (GHT.bakCol)
-		PutC 98
-		al = GHT.bakCol.l
-		--al
-		al |= 0x10
-		PutC al
-	else
-		PutC GHT.magMacNo 	//機種コード
-		PutC GHT.magMacFlg	//機種依存フラグ
-	fi
-	//200ラインフラグを立てるかどうか
-	ah = 0
-	al = GHT.asp1
-	dl = GHT.asp2
-	if (al && dl)
-		div ax,dl
-		ah = al
-	fi
-	al = GHT.magScrnMode
-	al &= (~(Mag.MF_200L|Mag.MF_256C))&0xff
-	if (ah >= 2)
-		al |= Mag.MF_200L
-	fi
-	//256色か
-	if (GHT.plnW == 8)
-		al |= Mag.MF_256C
-	fi
-    PutC al		//スクリーン・フラグ
-	
-	//始点、終点
-	PutW GHT.startX
-	PutW GHT.startY
-	PutW GHT.endX
-	PutW GHT.endY
-	
-	//フラグA のオフセット
-	dx = ax = GHT.col
-	ax += ax; ax += dx	// ax = ax * 3
-	ax += 32
-	dx = 0
-	PutD dx.ax
-	bx.cx = dx.ax
-	dx.ax += GHT.magWhdrOfs
-	GHT.magWflagAofs = dx.ax
+    //ヘッダ本体
+    PutC 0x00	    	    //ヘッダ先頭
+    if (GHT.bakCol)
+    	PutC 98
+    	al = GHT.bakCol.l
+    	--al
+    	al |= 0x10
+    	PutC al
+    else
+    	PutC GHT.magMacNo   //機種コード
+    	PutC GHT.magMacFlg  //機種依存フラグ
+    fi
+    //200ラインフラグを立てるかどうか
+    ah = 0
+    al = GHT.asp1
+    dl = GHT.asp2
+    if (al && dl)
+    	div ax,dl
+    	ah = al
+    fi
+    al = GHT.magScrnMode
+    al &= (~(Mag.MF_200L|Mag.MF_256C))&0xff
+    if (ah >= 2)
+    	al |= Mag.MF_200L
+    fi
+    //256色か
+    if (GHT.plnW == 8)
+    	al |= Mag.MF_256C
+    fi
+    PutC al 	//スクリーン・フラグ
 
-	//フラグA のサイズ計算
-	dx.ax = GHT.sizeXo * GHT.sizeY
-	if (GHT.plnW == 8)
-	  @if 0
-		if (GHT.startXofs>3 || (GHT.endXofs>0 && GHT.endXofs<5))
-			Pri.Fmt "ごめん... この256MAG生成は誤変換する可能性大です.\N"
-			//Dos.EXIT (1)
-		fi
-	  @fi
-		if (ax & 0x1f)
-			dx.ax += 4*8
-		fi
-		dx.ax >>= 5		//dx.ax /= 4*8
-	else
-		if (ax & 0x3f)
-			dx.ax += 4*2*8
-		fi
-		dx.ax >>= 6		//dx.ax /= 4*2*8
-	fi
-	if (ax & 0x01)
-		dx.ax += 1
-	fi
-	GHT.magWflagAsiz = dx.ax
+    //始点、終点
+    PutW GHT.startX
+    PutW GHT.startY
+    PutW GHT.endX
+    PutW GHT.endY
 
-	//フラグB のオフセット
-	dx.ax += bx.cx
-	PutD dx.ax
-	GHT.magWflagBofs0 = dx.ax
-	dx.ax += GHT.magWhdrOfs		//seek
-	GHT.magWflagBofs = dx.ax
+    //フラグA のオフセット
+    dx = ax = GHT.col
+    ax += ax; ax += dx	// ax = ax * 3
+    ax += 32
+    dx = 0
+    PutD dx.ax
+    bx.cx = dx.ax
+    dx.ax += GHT.magWhdrOfs
+    GHT.magWflagAofs = dx.ax
 
-	//フラグB のサイズ（ダミー...後で設定）
-	PutD 0
+    //フラグA のサイズ計算
+    dx.ax = GHT.sizeXo * GHT.sizeY
+    if (GHT.plnW == 8)
+      @if 0
+    	if (GHT.startXofs>3 || (GHT.endXofs>0 && GHT.endXofs<5))
+    	    Pri.Fmt "ごめん... この256MAG生成は誤変換する可能性大です.\N"
+    	    //Dos.EXIT (1)
+    	fi
+      @fi
+    	if (ax & 0x1f)
+    	    dx.ax += 4*8
+    	fi
+    	dx.ax >>= 5 	//dx.ax /= 4*8
+    else
+    	if (ax & 0x3f)
+    	    dx.ax += 4*2*8
+    	fi
+    	dx.ax >>= 6 	//dx.ax /= 4*2*8
+    fi
+    if (ax & 0x01)
+    	dx.ax += 1
+    fi
+    GHT.magWflagAsiz = dx.ax
 
-	//ピクセル・データのオフセット（ダミー...後で設定）
-	PutD 0
+    //フラグB のオフセット
+    dx.ax += bx.cx
+    PutD dx.ax
+    GHT.magWflagBofs0 = dx.ax
+    dx.ax += GHT.magWhdrOfs 	//seek
+    GHT.magWflagBofs = dx.ax
 
-	//ピクセル・データのサイズ（ダミー...後で設定）
-	PutD 0
+    //フラグB のサイズ（ダミー...後で設定）
+    PutD 0
 
-	//パレット
-	cx = GHT.col
-	es.di = GHT.rgbPal
-	loop
-		al = b[es:di + 1]	//G
-		PutC al
-		al = b[es:di + 0]	//R
-		PutC al
-		al = b[es:di + 2]	//B
-		PutC al
-		di += 3
-	endloop (--cx)
-	
-	//
-	InitWrite bx
+    //ピクセル・データのオフセット（ダミー...後で設定）
+    PutD 0
 
-	//ヘッダ出力おわり
-	ax = 0
-	return
+    //ピクセル・データのサイズ（ダミー...後で設定）
+    PutD 0
+
+    //パレット
+    cx = GHT.col
+    es.di = GHT.rgbPal
+    loop
+    	al = b[es:di + 1]   //G
+    	PutC al
+    	al = b[es:di + 0]   //R
+    	PutC al
+    	al = b[es:di + 2]   //B
+    	PutC al
+    	di += 3
+    endloop (--cx)
+
+    //
+    InitWrite bx
+
+    //ヘッダ出力おわり
+    ax = 0
+    return
 endproc
 
 

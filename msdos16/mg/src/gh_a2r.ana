@@ -1,164 +1,164 @@
 submodule GH
-	import Pri
+    import Pri
 
 *proc Asp2Resol(ax,dx)
-	/* PIC のアスペクト比を元にTIFFの解像度を決める */
-	/* TIFF(BMP)で、PICのアスペクト比を保存するのを目的にしているので */
-	/* 解像度としては不当な値になるかも^^; */
-	// out ax	resolX
-	// out dx	resolY
+    /* PIC のアスペクト比を元にTIFFの解像度を決める */
+    /* TIFF(BMP)で、PICのアスペクト比を保存するのを目的にしているので */
+    /* 解像度としては不当な値になるかも^^; */
+    // out ax	resolX
+    // out dx	resolY
 begin
-	save bx,cx
+    save bx,cx
 
   //Pri.Fmt "Asp2Resol %d, %d\n", ax, dx
-	if (ax == dx || ax == 0 || dx == 0)
-		ax = dx = 100
-		go RET
-	fi
+    if (ax == dx || ax == 0 || dx == 0)
+    	ax = dx = 100
+    	go RET
+    fi
 
-	loop (((ax & 0x01) == 0) && ((dx & 0x01) == 0))
-		ax >>= 1
-		dx >>= 1
-	endloop
+    loop (((ax & 0x01) == 0) && ((dx & 0x01) == 0))
+    	ax >>= 1
+    	dx >>= 1
+    endloop
 
-	bx = ax
-	cx = dx
-	if (bx <= 5 && cx <= 5)
-		dx.ax = bx * 50
-		bx = ax
-		dx.ax = cx * 50
-	elsif (bx <= 10 && cx <= 10)
-		dx.ax = bx * 25
-		bx = ax
-		dx.ax = cx * 25
-	elsif (bx <= 50 && cx <= 50)
-		dx.ax = bx * 10
-		bx = ax
-		dx.ax = cx * 10
-	else
-		ax = cx
-	fi
-	dx = ax
-	ax = bx
+    bx = ax
+    cx = dx
+    if (bx <= 5 && cx <= 5)
+    	dx.ax = bx * 50
+    	bx = ax
+    	dx.ax = cx * 50
+    elsif (bx <= 10 && cx <= 10)
+    	dx.ax = bx * 25
+    	bx = ax
+    	dx.ax = cx * 25
+    elsif (bx <= 50 && cx <= 50)
+    	dx.ax = bx * 10
+    	bx = ax
+    	dx.ax = cx * 10
+    else
+    	ax = cx
+    fi
+    dx = ax
+    ax = bx
   //Pri.Fmt "-- %d, %d\n", ax, dx
 RET:
-	return
+    return
 endproc
 
 *proc Resol2Asp(resolX:d, resolY:d)
-	// al,ah  asp1,asp2
+    // al,ah  asp1,asp2
 enter
-	save bx,cx,dx,di,si,es,ds
-	cvar nn:w(7) = {3,5,7,11,13,17,19}
+    save bx,cx,dx,di,si,es,ds
+    cvar nn:w(7) = {3,5,7,11,13,17,19}
 
-	dx.ax = resolX
-	bx.di = resolY
+    dx.ax = resolX
+    bx.di = resolY
   //Pri.Fmt "-- %ld, %ld\n", dx.ax, bx.di
-	if ((dx == 0 && ax == 0) || (bx == 0 && di == 0))
-		ax = 0	//0x0101
-		go.w RET
-	fi
-	loop (((ax & 0x01) == 0) && ((di & 0x01) == 0))
-		dx.ax >>= 1
-		bx.di >>= 1
-	endloop
-	resolX = dx.ax
-	resolY = bx.di
-	if (resolX.h || resolY.h)
-		ax = 0	//0x0101
-		go.w RET
-	fi
-	ds = ax = %cvar
-	si = &nn
-	cx = 7
-	loop
-		block
-			dx.ax = resolX
-			div dx.ax, w[si]
-			if (dx == 0)
-				bx = ax
-				dx.ax = resolY
-				div dx.ax, w[si]
-				if (dx == 0)
-					resolX.l = bx
-					resolY.l = ax
-					continue
-				fi
-			fi
-		endblock
-		si+=2
-	endloop(--cx)
+    if ((dx == 0 && ax == 0) || (bx == 0 && di == 0))
+    	ax = 0	//0x0101
+    	go.w RET
+    fi
+    loop (((ax & 0x01) == 0) && ((di & 0x01) == 0))
+    	dx.ax >>= 1
+    	bx.di >>= 1
+    endloop
+    resolX = dx.ax
+    resolY = bx.di
+    if (resolX.h || resolY.h)
+    	ax = 0	//0x0101
+    	go.w RET
+    fi
+    ds = ax = %cvar
+    si = &nn
+    cx = 7
+    loop
+    	block
+    	    dx.ax = resolX
+    	    div dx.ax, w[si]
+    	    if (dx == 0)
+    	    	bx = ax
+    	    	dx.ax = resolY
+    	    	div dx.ax, w[si]
+    	    	if (dx == 0)
+    	    	    resolX.l = bx
+    	    	    resolY.l = ax
+    	    	    continue
+    	    	fi
+    	    fi
+    	endblock
+    	si+=2
+    endloop(--cx)
 
-	bx = resolX.l
-	cx = resolY.l
+    bx = resolX.l
+    cx = resolY.l
 
-	block.w
-		if (bx == cx)
-			bx = cx = 1
-			break.w
-		fi
-		dx.ax = ww(0,bx)
-		div dx.ax, cx
-		if (dx == 0)
-			bx = ax
-			cx = 1
-			break
-		fi
-		dx.ax = ww(0,cx)
-		div dx.ax, bx
-		if (dx == 0)
-			bx = 1
-			cx = ax
-			break
-		fi
-		if (bh == 0 && ch == 0)
-			bx <=> cx
-			break
-		fi
-		if (bx == 0 || cx == 0)
-			bx = cx = 0
-			break
-		fi
-		/* ここからは、縦横比の値に誤差が生じる...*/
-		if (bx >= cx)
-			dx.ax = ww(0,bx)
-			div dx.ax,cx
-			if (ax > 2)
-				bx = ax
-				cx = 1
-			else
-				dx.ax = bx * 100
-				div dx.ax,cx
-				bx = ax
-				cx = 100
-			fi
-			break
-		else
-			dx.ax = ww(0,cx)
-			div dx.ax,bx
-			if (ax > 2)
-				bx = 1
-				cx = ax
-			else
-				dx.ax = cx * 100
-				div dx.ax,bx
-				bx = 100
-				cx = ax
-			fi
-			break
-		fi
-	endblock
-	if (bx > 255)
-		bx = 255
-	fi
-	if (cx > 255)
-		cx = 255
-	fi
-	al = bl	//asp1
-	ah = cl	//asp2
+    block.w
+    	if (bx == cx)
+    	    bx = cx = 1
+    	    break.w
+    	fi
+    	dx.ax = ww(0,bx)
+    	div dx.ax, cx
+    	if (dx == 0)
+    	    bx = ax
+    	    cx = 1
+    	    break
+    	fi
+    	dx.ax = ww(0,cx)
+    	div dx.ax, bx
+    	if (dx == 0)
+    	    bx = 1
+    	    cx = ax
+    	    break
+    	fi
+    	if (bh == 0 && ch == 0)
+    	    bx <=> cx
+    	    break
+    	fi
+    	if (bx == 0 || cx == 0)
+    	    bx = cx = 0
+    	    break
+    	fi
+    	/* ここからは、縦横比の値に誤差が生じる...*/
+    	if (bx >= cx)
+    	    dx.ax = ww(0,bx)
+    	    div dx.ax,cx
+    	    if (ax > 2)
+    	    	bx = ax
+    	    	cx = 1
+    	    else
+    	    	dx.ax = bx * 100
+    	    	div dx.ax,cx
+    	    	bx = ax
+    	    	cx = 100
+    	    fi
+    	    break
+    	else
+    	    dx.ax = ww(0,cx)
+    	    div dx.ax,bx
+    	    if (ax > 2)
+    	    	bx = 1
+    	    	cx = ax
+    	    else
+    	    	dx.ax = cx * 100
+    	    	div dx.ax,bx
+    	    	bx = 100
+    	    	cx = ax
+    	    fi
+    	    break
+    	fi
+    endblock
+    if (bx > 255)
+    	bx = 255
+    fi
+    if (cx > 255)
+    	cx = 255
+    fi
+    al = bl //asp1
+    ah = cl //asp2
   RET:
   //Pri.Fmt "-- %x\n", ax
-	return
+    return
 endproc
 
 endmodule

@@ -1,10 +1,10 @@
-#define VHFB_SIZE	0x4000
+#define VHFB_SIZE   0x4000
 
-int  VHFB_Init(	int vvSeg, int mmSeg,unsigned mmSzs,
-				int emsHdl, unsigned emsSeg, unsigned emsCnt,
-				int pln, int xsz,int ysz,int xstart,int ystart,
-				unsigned char far *pal,int asp1,int asp2,
-				int bcol,int reductFlg,int loopFlg);
+int  VHFB_Init( int vvSeg, int mmSeg,unsigned mmSzs,
+    	    	int emsHdl, unsigned emsSeg, unsigned emsCnt,
+    	    	int pln, int xsz,int ysz,int xstart,int ystart,
+    	    	unsigned char far *pal,int asp1,int asp2,
+    	    	int bcol,int reductFlg,int loopFlg);
 void VHFB_Start(void);
 void VHFB_End(int tone);
 void VHFB_ShowOn(void);

@@ -1,48 +1,48 @@
 module Fname
-	c_name "Fname","_",1
-	//	1992	writen by M.Kitamura
+    c_name "Fname","_",1
+    //	1992	writen by M.Kitamura
 
 *proc ChgExt(es.di,si)
-//	es.diで示されるファイル名の拡張子をsiで示されるものに変更
-//	arg es.di	ファイル名
-//	arg si		拡張子名
-//	in	ds		データ・セグメント
+//  es.diで示されるファイル名の拡張子をsiで示されるものに変更
+//  arg es.di	ファイル名
+//  arg si  	拡張子名
+//  in	ds  	データ・セグメント
 endproc
 
 *proc AddExt(es.di,si)
-//	es.diで示されるファイル名の拡張子をsiで示されるものにadd
-//	arg es.di	ファイル名
-//	arg si		拡張子名
-//	in	ds		データ・セグメント
+//  es.diで示されるファイル名の拡張子をsiで示されるものにadd
+//  arg es.di	ファイル名
+//  arg si  	拡張子名
+//  in	ds  	データ・セグメント
 endproc
 
 *proc MoveOpt(si,cx)
-//	Str.SepLineで分割したトークンのテーブルを'-'ではじまる文字列を前に
-//	移動する
-//	arg si	トークンへのポインタのテーブル
-//	arg cx	トークンの数
-//	out ax	オプションの数
-//	out cx	トークンの数
+//  Str.SepLineで分割したトークンのテーブルを'-'ではじまる文字列を前に
+//  移動する
+//  arg si  トークンへのポインタのテーブル
+//  arg cx  トークンの数
+//  out ax  オプションの数
+//  out cx  トークンの数
 endproc
 
 *proc GetFnameAddr(si)
-//	arg	si	パス名
-//	out si  ファイル名へのポインタ
-//	in  ds
+//  arg si  パス名
+//  out si  ファイル名へのポインタ
+//  in	ds
 endproc
 
 *proc GetExtAddr(si)
-//	arg	si	パス名
-//	out si  Extへのポインタ
-//	in  ds
+//  arg si  パス名
+//  out si  Extへのポインタ
+//  in	ds
 endproc
 
 *proc EquExt(es.di,si)
-//	es.diで示されるファイル名の拡張子 VS siで示されるもの
-//	arg es.di	ファイル名
-//	arg si		ﾋｶｸ拡張子名
-//	in	ds		データ・セグメント
-//  out ax      ax=0 not equ	ax=1 equ
+//  es.diで示されるファイル名の拡張子 VS siで示されるもの
+//  arg es.di	ファイル名
+//  arg si  	ﾋｶｸ拡張子名
+//  in	ds  	データ・セグメント
+//  out ax  	ax=0 not equ	ax=1 equ
 endproc
 
 endmodule

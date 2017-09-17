@@ -1,80 +1,80 @@
 module Deb
 
-	import Pri
-	import Dos
+    import Pri
+    import Dos
 
 cvar flag:b = 0
 
 *proc On()
 begin
-	Deb.flag = 1
-	return
+    Deb.flag = 1
+    return
 endproc
 
 *proc Off()
 begin
-	Deb.flag = 0
-	return
+    Deb.flag = 0
+    return
 endproc
 
 *proc Chk()
 begin
-	|Deb.flag - 1
-	return
+    |Deb.flag - 1
+    return
 endproc
 
 cvar _ax:w,_bx:w,_cx:w,_dx:w,_si:w,_di:w,_es:w,_ds:w,_fx:w,_bp:w
 
 *proc SaveReg()
 begin
-	|_ax = ax
-	|_bx = bx
-	|_cx = cx
-	|_dx = dx
-	|_si = si
-	|_di = di
-	|_es = es
-	|_ds = ds
-	|_bp = bp
-	push fx
-	pop  _fx
-	return
+    |_ax = ax
+    |_bx = bx
+    |_cx = cx
+    |_dx = dx
+    |_si = si
+    |_di = di
+    |_es = es
+    |_ds = ds
+    |_bp = bp
+    push fx
+    pop  _fx
+    return
 endproc
 
 *proc LoadReg()
 begin
-	|ax = _ax
-	|bx = _bx
-	|cx = _cx
-	|dx = _dx
-	|si = _si
-	|di = _di
-	|es = _es
-	|ds = _ds
-	|bp = _bp
-	push _fx
-	pop  fx
-	return
+    |ax = _ax
+    |bx = _bx
+    |cx = _cx
+    |dx = _dx
+    |si = _si
+    |di = _di
+    |es = _es
+    |ds = _ds
+    |bp = _bp
+    push _fx
+    pop  fx
+    return
 endproc
 
-*@define PRI (s) 	push ax;Deb.Pr(s);pop ax
+*@define PRI (s)    push ax;Deb.Pr(s);pop ax
 
 *proc Pr (ax)
 enter
-	save pusha,ds
-	ds = bx = %var
-	Pri.S ax
-	return
+    save pusha,ds
+    ds = bx = %var
+    Pri.S ax
+    return
 endproc
 
 *proc WaitKey0()
 enter
-	save pusha,es,ds
-	cvar buf:b(2)
-	ds = ax = %cvar
-	dx = &buf
-	Dos.Read Dos.STDIN,dx,1
-	return
+    save pusha,es,ds
+    cvar buf:b(2)
+    ds = ax = %cvar
+    dx = &buf
+    Dos.Read Dos.STDIN,dx,1
+    return
 endproc
 
 *proc Dmp(adr:d, cnt:w);cdecl

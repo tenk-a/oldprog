@@ -1,38 +1,38 @@
 module BMP
-	c_name "BMP","_",1
+    c_name "BMP","_",1
 
-	import Std
-	import Dos
-	import Pri
-	import Key
+    import Std
+    import Dos
+    import Pri
+    import Key
 
 ///////////////////////////////////////////////////////////////////////////////
 *struct HDR
-				//ファイル・ヘッダ部
-	id:w			//+0	0x42,0x4d('BM')
-	fsize:d			//+2	ファイル・サイズ
-	rsv:b(4)		//+6	＜予約＞
-	pdataOfs:d		//+10	実際のデータへのオフセット
-				//情報ヘッダ部（Windows版）
-	infoHdrSiz:d	//+14	情報ヘッダのサイズ
-					//		40 = BMP画像（現状は 40固定）
-					//		12 = BITMAPCOREINFO
-	xsize:d			//+18	横幅（ドット数）
-	ysize:d			//+22	縦幅（ドット数）
-	plnSiz:w		//+26	プレーン数(=1)
-	picBit:w		//+28	1ﾋﾟｸｾﾙのﾋﾞｯﾄ数 1:mono 4:16色 8:256色 24:ﾌﾙｶﾗｰ
-	arcMode:d		//+30	圧縮モード   0:無圧縮	1:RLE8方式  2:RLE4方式
-	arcSize:d		//+34	圧縮時の画像データ本体のサイズ：無圧縮時０
-	dotX1m:d		//+38	１メートル当たりの横ドット数
-	dotY1m:d		//+42	１メートル当たりの縦ドット数
-	palSiz:d		//+46	色(パレット)の数（カラーテーブルの数）
-					//		1->2,4->16,8->256,24->0(ﾊﾟﾚｯﾄ無)
-					//      ﾊﾟﾚｯﾄがあっても 0 の場合があるので利用できない！
-	spCol:d			//+50	重要な色の数？
-				//
-  //bgraPal:b(0)	//+54	ﾌﾙｶﾗｰ以外のとき、パレット・データ
-					//色数(2,16,256)*4
-					//B G R Aの順  Aは予約(ｱﾄﾋﾞｭﾚｰﾄ?）
+    	    	//ファイル・ヘッダ部
+    id:w    	    //+0    0x42,0x4d('BM')
+    fsize:d 	    //+2    ファイル・サイズ
+    rsv:b(4)	    //+6    ＜予約＞
+    pdataOfs:d	    //+10   実際のデータへのオフセット
+    	    	//情報ヘッダ部（Windows版）
+    infoHdrSiz:d    //+14   情報ヘッダのサイズ
+    	    	    //	    40 = BMP画像（現状は 40固定）
+    	    	    //	    12 = BITMAPCOREINFO
+    xsize:d 	    //+18   横幅（ドット数）
+    ysize:d 	    //+22   縦幅（ドット数）
+    plnSiz:w	    //+26   プレーン数(=1)
+    picBit:w	    //+28   1ﾋﾟｸｾﾙのﾋﾞｯﾄ数 1:mono 4:16色 8:256色 24:ﾌﾙｶﾗｰ
+    arcMode:d	    //+30   圧縮モード	 0:無圧縮   1:RLE8方式	2:RLE4方式
+    arcSize:d	    //+34   圧縮時の画像データ本体のサイズ：無圧縮時０
+    dotX1m:d	    //+38   １メートル当たりの横ドット数
+    dotY1m:d	    //+42   １メートル当たりの縦ドット数
+    palSiz:d	    //+46   色(パレット)の数（カラーテーブルの数）
+    	    	    //	    1->2,4->16,8->256,24->0(ﾊﾟﾚｯﾄ無)
+    	    	    //	    ﾊﾟﾚｯﾄがあっても 0 の場合があるので利用できない！
+    spCol:d 	    //+50   重要な色の数？
+    	    	//
+  //bgraPal:b(0)    //+54   ﾌﾙｶﾗｰ以外のとき、パレット・データ
+    	    	    //色数(2,16,256)*4
+    	    	    //B G R Aの順  Aは予約(ｱﾄﾋﾞｭﾚｰﾄ?）
 endstruct
 
 
@@ -45,400 +45,400 @@ endstruct
 @define DT()	BMP.T[ds:0]
 
 *struct T
-	//dummy:b(16)		// セグメント境界調整用
-	/*-------------*/
-	pln:w				// 色のビット数(4 or 8)
-	xsize:w				// 横幅(ドット)
-	ysize:w				// 縦幅(ドット)
-	xstart:w			// 始点x
-	ystart:w			// 始点y
-	aspect1:w			// アスペクト比x
-	aspect2:w			// アスペクト比y
-	overlayColor:w		// 透明色
-	color:w				// パレットの使用個数
-	palBit:w			// パレットのビット数
-	exSize:w			// pi拡張領域サイズ
-	dfltPalFlg:w		// piデフォルトパレットフラグ
-	loopMode:w			// piループモード(pimkの実験/隠しTAG)
-	filHdl:w			// ファイル・ハンドル
-	saverName:b(4+2)	// 機種名
-	artist:b(18+2)		// 作者名
-	/*-------------*/
-	putLin:d			// 出力手続きのアドレス
-	putLinDt:d			// 出力手続きへわたすデータ
-	pixStart:w			//X ピクセルバッファ中の解凍開始位置
-	pixEnd:w			//X                         終了位置
-	pixHisSrc:w			//X バッファ更新でヒストリバッファへのコピー元
-	pixHisSiz:w			//X ヒストリ・サイズ
-	ymax:w				//X 展開する最大行数
-	/*-------------*/
-	ycnt:w				// 展開での縦カウンタ
-	pixLinSiz:w			// 展開での横カウンタ
-	pixLinCnt:w			// バッファに収まるサイズ
-	pixSiz:w			// 一回の読み込みサイズ
-	pixBlkCnt:w			// 読み込み回数
-	pixRstSiz:w			// 余り読み込み回数
-	rdOfs:d				// 前回の読み込みオフセット
-	hdr:HDR				// BMPヘッダ  54バイト
-	/*-------------*/
-	dummy2:b( 256 /* -16*/ -(14*2+6+20) -(2*4+5*2) -(6*2+1*4+54))
-	/*-------------*/
-	palette:b(256*3)
-	fileName:b(254+2)
-	comment:b(COMMENT_SIZE+2)
-	/*------------------------- ここまでで 3Kバイト ---*/
-	pixLinBuf:b(PIXLINSIZ)	// 4K
-	pixBuf:b(PIXBUF_SIZE)	// 64-4-3K
+    //dummy:b(16)   	// セグメント境界調整用
+    /*-------------*/
+    pln:w   	    	// 色のビット数(4 or 8)
+    xsize:w 	    	// 横幅(ドット)
+    ysize:w 	    	// 縦幅(ドット)
+    xstart:w	    	// 始点x
+    ystart:w	    	// 始点y
+    aspect1:w	    	// アスペクト比x
+    aspect2:w	    	// アスペクト比y
+    overlayColor:w  	// 透明色
+    color:w 	    	// パレットの使用個数
+    palBit:w	    	// パレットのビット数
+    exSize:w	    	// pi拡張領域サイズ
+    dfltPalFlg:w    	// piデフォルトパレットフラグ
+    loopMode:w	    	// piループモード(pimkの実験/隠しTAG)
+    filHdl:w	    	// ファイル・ハンドル
+    saverName:b(4+2)	// 機種名
+    artist:b(18+2)  	// 作者名
+    /*-------------*/
+    putLin:d	    	// 出力手続きのアドレス
+    putLinDt:d	    	// 出力手続きへわたすデータ
+    pixStart:w	    	//X ピクセルバッファ中の解凍開始位置
+    pixEnd:w	    	//X 	    	    	    終了位置
+    pixHisSrc:w     	//X バッファ更新でヒストリバッファへのコピー元
+    pixHisSiz:w     	//X ヒストリ・サイズ
+    ymax:w  	    	//X 展開する最大行数
+    /*-------------*/
+    ycnt:w  	    	// 展開での縦カウンタ
+    pixLinSiz:w     	// 展開での横カウンタ
+    pixLinCnt:w     	// バッファに収まるサイズ
+    pixSiz:w	    	// 一回の読み込みサイズ
+    pixBlkCnt:w     	// 読み込み回数
+    pixRstSiz:w     	// 余り読み込み回数
+    rdOfs:d 	    	// 前回の読み込みオフセット
+    hdr:HDR 	    	// BMPヘッダ  54バイト
+    /*-------------*/
+    dummy2:b( 256 /* -16*/ -(14*2+6+20) -(2*4+5*2) -(6*2+1*4+54))
+    /*-------------*/
+    palette:b(256*3)
+    fileName:b(254+2)
+    comment:b(COMMENT_SIZE+2)
+    /*------------------------- ここまでで 3Kバイト ---*/
+    pixLinBuf:b(PIXLINSIZ)  // 4K
+    pixBuf:b(PIXBUF_SIZE)   // 64-4-3K
 endstruct
 
 
 ///////////////////////////////////////////////////////////////////////////////
 
 *proc Open(datPtr:d, fileName:d); cdecl; far
-//	BMPファイルをオープンしてヘッダを読み込む
+//  BMPファイルをオープンしてヘッダを読み込む
 //  out ax  0:成功  以外:エラー
 enter
-	save bx,cx,si,di,ds,es,fx
-	cvar ditb:w(12) = { 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41 }
+    save bx,cx,si,di,ds,es,fx
+    cvar ditb:w(12) = { 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41 }
 
-	// 設定
-	rep.inc
-	bx.ax = datPtr
-	datPtr = 0
-	Std.FpToHp bx,ax,cx
-	go.w (bx == 0 && ax == 0) RTS
-	if (ax)
-		++bx
-	fi
-	ax = 0
-	datPtr = bx.ax
-	es = bx
-	rep.set.w 0, ax, %BMP.T.pixBuf //最初の4Kバイトをクリア
+    // 設定
+    rep.inc
+    bx.ax = datPtr
+    datPtr = 0
+    Std.FpToHp bx,ax,cx
+    go.w (bx == 0 && ax == 0) RTS
+    if (ax)
+    	++bx
+    fi
+    ax = 0
+    datPtr = bx.ax
+    es = bx
+    rep.set.w 0, ax, %BMP.T.pixBuf //最初の4Kバイトをクリア
 
-	// ファイル名コピー
-	ds.si = fileName
-	di = %BMP.T.fileName
-	loop
-		rep.load al,si
-		rep.set di,al
-	endloop (al)
+    // ファイル名コピー
+    ds.si = fileName
+    di = %BMP.T.fileName
+    loop
+    	rep.load al,si
+    	rep.set di,al
+    endloop (al)
 
-	//ファイル・オープン
-	ds = bx	//es
-	Dos.Open %BMP.T.fileName, 0x00
-	go.w (cf) OPEN_ERR
-	bx = ax
-	DT.filHdl = ax
+    //ファイル・オープン
+    ds = bx //es
+    Dos.Open %BMP.T.fileName, 0x00
+    go.w (cf) OPEN_ERR
+    bx = ax
+    DT.filHdl = ax
 
-	//-- ヘッダ読み込み--
-	dx = %T.hdr
-	Dos.Read bx, dx, sizeof(HDR)
-	go.w (cf) FIL_ERR
+    //-- ヘッダ読み込み--
+    dx = %T.hdr
+    Dos.Read bx, dx, sizeof(HDR)
+    go.w (cf) FIL_ERR
 
-	go.w (DT.hdr.id != 'B'+'M'*256) HDR_ERR
+    go.w (DT.hdr.id != 'B'+'M'*256) HDR_ERR
 
-	// ドット比
-	si = DT.hdr.dotX1m.l
-	di = DT.hdr.dotY1m.l
+    // ドット比
+    si = DT.hdr.dotX1m.l
+    di = DT.hdr.dotY1m.l
 
-	//とりあえず双方２の乗数なら右シフト
-	loop(si && di && (si & 0x01) == 0 && (di & 0x01) == 0);
-		si >>= 1; di >>= 1;
-	endloop
+    //とりあえず双方２の乗数なら右シフト
+    loop(si && di && (si & 0x01) == 0 && (di & 0x01) == 0);
+    	si >>= 1; di >>= 1;
+    endloop
 
-	//3..37の倍数同士かどうか
-	bx = 0
-	loop
-		dx.ax = ww(0, si)
-		div dx.ax, w[cs:bx+%ditb]
-		go (dx || ax == 0) J1
-		cx = ax
-		dx.ax = ww(0, di)
-		div dx.ax, w[cs:bx+%ditb]
-		go (dx || ax == 0) J1
-		si = cx
-		di = ax
-		bx -= 2
-	  J1:
-		bx += 2
-	endloop (bx < 12*2)
-	if (si == di || si == 0 || di == 0 || DT.hdr.dotX1m.h || DT.hdr.dotY1m.h)
-		si = di = 1;
-	fi
-	DT.aspect1 = di
-	DT.aspect2 = si
+    //3..37の倍数同士かどうか
+    bx = 0
+    loop
+    	dx.ax = ww(0, si)
+    	div dx.ax, w[cs:bx+%ditb]
+    	go (dx || ax == 0) J1
+    	cx = ax
+    	dx.ax = ww(0, di)
+    	div dx.ax, w[cs:bx+%ditb]
+    	go (dx || ax == 0) J1
+    	si = cx
+    	di = ax
+    	bx -= 2
+      J1:
+    	bx += 2
+    endloop (bx < 12*2)
+    if (si == di || si == 0 || di == 0 || DT.hdr.dotX1m.h || DT.hdr.dotY1m.h)
+    	si = di = 1;
+    fi
+    DT.aspect1 = di
+    DT.aspect2 = si
 
-	// 色数
-	//パレット・バッファ確保
-	DT.pln = cx = DT.hdr.picBit
-	go.w (cl != 1 && cl != 4 && cl != 8 && cl != 24) VAL_ERR
-	dx = 0x00
-	if (cl != 24)
-		++dx
-		dx <<= cl
-		DT.color = dx
-	fi
+    // 色数
+    //パレット・バッファ確保
+    DT.pln = cx = DT.hdr.picBit
+    go.w (cl != 1 && cl != 4 && cl != 8 && cl != 24) VAL_ERR
+    dx = 0x00
+    if (cl != 24)
+    	++dx
+    	dx <<= cl
+    	DT.color = dx
+    fi
 
-	// パレット読み込み
-	dx <<= 2
-	if (dx)
-		cx = dx
-		rep.set %T.pixBuf, 0, cx
-		cx = dx
-		Dos.Read DT.filHdl, %T.pixBuf, cx
-		si = %T.pixBuf
-		di = %T.palette
-		cx = DT.color
-		loop
-			al = b[si+2]
-			rep.set di,al
-			al = b[si+1]
-			rep.set di,al
-			rep.cpy di,si
-			si += 3
-		endloop (--cx)
-	fi
+    // パレット読み込み
+    dx <<= 2
+    if (dx)
+    	cx = dx
+    	rep.set %T.pixBuf, 0, cx
+    	cx = dx
+    	Dos.Read DT.filHdl, %T.pixBuf, cx
+    	si = %T.pixBuf
+    	di = %T.palette
+    	cx = DT.color
+    	loop
+    	    al = b[si+2]
+    	    rep.set di,al
+    	    al = b[si+1]
+    	    rep.set di,al
+    	    rep.cpy di,si
+    	    si += 3
+    	endloop (--cx)
+    fi
 
-	// サイズ
-	DT.xstart = ax = 0
-	DT.ystart = ax
-	ax = DT.hdr.ysize.l
-	if (DT.hdr.ysize.h)
-		ax = 0xffff
-	fi
-	DT.ysize = ax
-	ax = DT.hdr.xsize.l
-	if (DT.hdr.xsize.h)
-		ax = 0xffff
-	fi
-	DT.xsize = ax
+    // サイズ
+    DT.xstart = ax = 0
+    DT.ystart = ax
+    ax = DT.hdr.ysize.l
+    if (DT.hdr.ysize.h)
+    	ax = 0xffff
+    fi
+    DT.ysize = ax
+    ax = DT.hdr.xsize.l
+    if (DT.hdr.xsize.h)
+    	ax = 0xffff
+    fi
+    DT.xsize = ax
 
-	// 読み込みサイズ調整
-	dl = DT.pln.l
-	if (dl == 1)
-		if (ax & 0x07)
-			ax += 8
-		fi
-		ax >>= 3
-	elsif (dl == 4)
-		ax >>= 1; adc ax,0
-	elsif (dl == 24)
-		dx = ax
-		ax += ax
-		ax += dx
-	fi
-	if (ax & 0x03)
-		ax &= ~0x03
-		ax += 4
-	fi
-	DT.pixLinSiz = ax
-	dx.ax = PIXBUF_SIZE
-	div dx.ax, DT.pixLinSiz
-	DT.pixLinCnt = ax
-	dx.ax = ax * DT.pixLinSiz
-	DT.pixSiz = ax
-	dx.ax = DT.pixLinSiz * DT.ysize
-	div dx.ax, DT.pixSiz
-	DT.pixBlkCnt = ax
-	DT.pixRstSiz = dx
+    // 読み込みサイズ調整
+    dl = DT.pln.l
+    if (dl == 1)
+    	if (ax & 0x07)
+    	    ax += 8
+    	fi
+    	ax >>= 3
+    elsif (dl == 4)
+    	ax >>= 1; adc ax,0
+    elsif (dl == 24)
+    	dx = ax
+    	ax += ax
+    	ax += dx
+    fi
+    if (ax & 0x03)
+    	ax &= ~0x03
+    	ax += 4
+    fi
+    DT.pixLinSiz = ax
+    dx.ax = PIXBUF_SIZE
+    div dx.ax, DT.pixLinSiz
+    DT.pixLinCnt = ax
+    dx.ax = ax * DT.pixLinSiz
+    DT.pixSiz = ax
+    dx.ax = DT.pixLinSiz * DT.ysize
+    div dx.ax, DT.pixSiz
+    DT.pixBlkCnt = ax
+    DT.pixRstSiz = dx
 
-	//先頭のオフセット
-	dx.ax = DT.pixLinSiz * DT.ysize
-	dx.ax += DT.hdr.pdataOfs
-	DT.rdOfs = dx.ax
+    //先頭のオフセット
+    dx.ax = DT.pixLinSiz * DT.ysize
+    dx.ax += DT.hdr.pdataOfs
+    DT.rdOfs = dx.ax
 
-	dx.ax = datPtr
+    dx.ax = datPtr
   RTS:
-	return
+    return
 
 FIL_ERR:
-OPEN_ERR:	//ファイル・オープンできなかった
-	ax = 1
+OPEN_ERR:   //ファイル・オープンできなかった
+    ax = 1
   RTS_E:
-	dx = 0
-	go RTS
+    dx = 0
+    go RTS
 
-HDR_ERR:	//Pri.Fmt "BMPのヘッダでない\N"
-	dx.ax = 2
-	go RTS_E
+HDR_ERR:    //Pri.Fmt "BMPのヘッダでない\N"
+    dx.ax = 2
+    go RTS_E
 
-VAL_ERR:	//Pri.Fmt "ヘッダに矛盾がある\N"
-	ax = 3
-	go RTS_E
+VAL_ERR:    //Pri.Fmt "ヘッダに矛盾がある\N"
+    ax = 3
+    go RTS_E
 
 endproc
 
 
 *proc Close(datPtr:d);cdecl;far
 enter
-	save ax,bx,dx,ds
+    save ax,bx,dx,ds
 
-	bx.ax = datPtr
-	Std.FpToHp bx,ax,dx
-	go.w (bx == 0 && ax == 0) RTS
-	if (ax)
-		++bx
-	fi
-	ds = bx
-	Dos.Close DT.filHdl
+    bx.ax = datPtr
+    Std.FpToHp bx,ax,dx
+    go.w (bx == 0 && ax == 0) RTS
+    if (ax)
+    	++bx
+    fi
+    ds = bx
+    Dos.Close DT.filHdl
   RTS:
-	return
+    return
 endproc
 
 
 *proc Load(datPtr:d, putLinFunc:d, putLinDat:d, linCnt:w);cdecl;far
-	//画像の展開.
-	//putLinFuncは１行出力ﾙｰﾁﾝのｱﾄﾞﾚｽ
-	//linCnt は展開する最大行数. 0なら ysizeとなる
-	//putLinDat は １行出力ﾙｰﾁﾝに渡される。そのﾙｰﾁﾝのﾃﾞｰﾀ領域へのポインタを想定
-	//ret dx.ax:構造体へのポインタ(ｵﾌｾｯﾄ0) ｾｸﾞﾒﾝﾄが0ならｴﾗｰ(ｵﾌｾｯﾄ値がｴﾗｰNo)
+    //画像の展開.
+    //putLinFuncは１行出力ﾙｰﾁﾝのｱﾄﾞﾚｽ
+    //linCnt は展開する最大行数. 0なら ysizeとなる
+    //putLinDat は １行出力ﾙｰﾁﾝに渡される。そのﾙｰﾁﾝのﾃﾞｰﾀ領域へのポインタを想定
+    //ret dx.ax:構造体へのポインタ(ｵﾌｾｯﾄ0) ｾｸﾞﾒﾝﾄが0ならｴﾗｰ(ｵﾌｾｯﾄ値がｴﾗｰNo)
 enter
-	save  bx,cx,dx,si,di,es,ds,fx
-	
-	// 設定
-	rep.inc
-	dx.ax = datPtr
-	Std.FpToHp dx,ax,cx
-	if (dx == 0 && ax == 0)
-		ax = 4
-		go.w RET
-	fi
-	if (ax)
-		++dx
-	fi
-	ds = dx
-	es = dx
+    save  bx,cx,dx,si,di,es,ds,fx
 
-	// 展開できるヘッダかどうか
-	if (	DT.hdr.plnSiz.l != 1		\
-		||	DT.hdr.infoHdrSiz.l != 40	\
-		||	DT.hdr.arcMode.l != 0		\
-		)
-		ax = 5
-		go.w RET
-	fi
-	if (DT.hdr.xsize.h || DT.xsize > PIXLINSIZ)
-		ax = 3
-		go.w RET
-	fi
+    // 設定
+    rep.inc
+    dx.ax = datPtr
+    Std.FpToHp dx,ax,cx
+    if (dx == 0 && ax == 0)
+    	ax = 4
+    	go.w RET
+    fi
+    if (ax)
+    	++dx
+    fi
+    ds = dx
+    es = dx
 
-	// 出力手続き用意
-	DT.putLin   = dx.ax = putLinFunc
-	DT.putLinDt = dx.ax = putLinDat
+    // 展開できるヘッダかどうか
+    if (    DT.hdr.plnSiz.l != 1    	\
+    	||  DT.hdr.infoHdrSiz.l != 40	\
+    	||  DT.hdr.arcMode.l != 0   	\
+    	)
+    	ax = 5
+    	go.w RET
+    fi
+    if (DT.hdr.xsize.h || DT.xsize > PIXLINSIZ)
+    	ax = 3
+    	go.w RET
+    fi
 
-	// 展開できる行数をセット
-	ax = linCnt
-	if (ax == 0 || ax > DT.ysize)
-		ax = DT.ysize
-	fi
-	DT.ycnt = ax	//展開する行数
+    // 出力手続き用意
+    DT.putLin	= dx.ax = putLinFunc
+    DT.putLinDt = dx.ax = putLinDat
 
-	loop.w (DT.pixBlkCnt)
-		--DT.pixBlkCnt
-		ax = DT.pixSiz
-		|DT.rdOfs.l -= ax
-		sbc DT.rdOfs.h,0
-		bx = DT.filHdl
-		Dos.Lseek bx, DT.rdOfs, 0
-		Dos.Read bx, %T.pixBuf, DT.pixSiz
-		bx = %T.pixBuf
-		bx += DT.pixSiz
-		cx = DT.pixLinCnt
-		loop
-			bx -= DT.pixLinSiz
-			ax = bx
-			if (DT.pln == 4)
-				gosub P4
-			elsif (DT.pln == 24)
-				gosub P24
-			elsif (DT.pln == 1)
-				gosub P1
-			fi
-			push bx,cx,ds,es
-			push DT.putLinDt, ds.ax
-			call DT.putLin
-			sp += 8
-			pop  bx,cx,ds,es
-			go.w ((--DT.ycnt) == 0) EXITLOOP
-		endloop (--cx)
-	endloop
-	if (DT.pixRstSiz)
-		ax = DT.pixRstSiz
-		|DT.rdOfs.l -= ax
-		sbc DT.rdOfs.h,0
-		bx = DT.filHdl
-		Dos.Lseek bx, DT.rdOfs, 0
-		Dos.Read bx, %T.pixBuf, DT.pixRstSiz
-		bx = %T.pixBuf
-		bx += DT.pixRstSiz
-		cx = DT.pixLinCnt
-		loop
-			bx -= DT.pixLinSiz
-			ax = bx
-			if (DT.pln == 4)
-				gosub P4
-			elsif (DT.pln == 24)
-				gosub P24
-			elsif (DT.pln == 1)
-				gosub P1
-			fi
-			push bx,cx,ds,es
-			push DT.putLinDt, ds.ax
-			call DT.putLin
-			sp += 8
-			pop  bx,cx,ds,es
-			go ((--DT.ycnt) == 0) EXITLOOP
-		endloop (--cx)
-	fi
+    // 展開できる行数をセット
+    ax = linCnt
+    if (ax == 0 || ax > DT.ysize)
+    	ax = DT.ysize
+    fi
+    DT.ycnt = ax    //展開する行数
+
+    loop.w (DT.pixBlkCnt)
+    	--DT.pixBlkCnt
+    	ax = DT.pixSiz
+    	|DT.rdOfs.l -= ax
+    	sbc DT.rdOfs.h,0
+    	bx = DT.filHdl
+    	Dos.Lseek bx, DT.rdOfs, 0
+    	Dos.Read bx, %T.pixBuf, DT.pixSiz
+    	bx = %T.pixBuf
+    	bx += DT.pixSiz
+    	cx = DT.pixLinCnt
+    	loop
+    	    bx -= DT.pixLinSiz
+    	    ax = bx
+    	    if (DT.pln == 4)
+    	    	gosub P4
+    	    elsif (DT.pln == 24)
+    	    	gosub P24
+    	    elsif (DT.pln == 1)
+    	    	gosub P1
+    	    fi
+    	    push bx,cx,ds,es
+    	    push DT.putLinDt, ds.ax
+    	    call DT.putLin
+    	    sp += 8
+    	    pop  bx,cx,ds,es
+    	    go.w ((--DT.ycnt) == 0) EXITLOOP
+    	endloop (--cx)
+    endloop
+    if (DT.pixRstSiz)
+    	ax = DT.pixRstSiz
+    	|DT.rdOfs.l -= ax
+    	sbc DT.rdOfs.h,0
+    	bx = DT.filHdl
+    	Dos.Lseek bx, DT.rdOfs, 0
+    	Dos.Read bx, %T.pixBuf, DT.pixRstSiz
+    	bx = %T.pixBuf
+    	bx += DT.pixRstSiz
+    	cx = DT.pixLinCnt
+    	loop
+    	    bx -= DT.pixLinSiz
+    	    ax = bx
+    	    if (DT.pln == 4)
+    	    	gosub P4
+    	    elsif (DT.pln == 24)
+    	    	gosub P24
+    	    elsif (DT.pln == 1)
+    	    	gosub P1
+    	    fi
+    	    push bx,cx,ds,es
+    	    push DT.putLinDt, ds.ax
+    	    call DT.putLin
+    	    sp += 8
+    	    pop  bx,cx,ds,es
+    	    go ((--DT.ycnt) == 0) EXITLOOP
+    	endloop (--cx)
+    fi
   EXITLOOP:
-	ax = 0
+    ax = 0
   RET:
-	return
+    return
 
   P24:
-	si = bx
-	dx = DT.xsize
-	loop
-		ah = b[si]
-		al = b[si+2]
-		b[si] = al
-		b[si+2] = ah
-		si += 3
-	endloop (--dx)
-	ax = bx //%T.pixLinBuf
-	ret
+    si = bx
+    dx = DT.xsize
+    loop
+    	ah = b[si]
+    	al = b[si+2]
+    	b[si] = al
+    	b[si+2] = ah
+    	si += 3
+    endloop (--dx)
+    ax = bx //%T.pixLinBuf
+    ret
 
   P4:
-	si = bx
-	di = %T.pixLinBuf
-	dx = DT.pixLinSiz
-	loop
-		rep.load al,si
-		ah = al
-		al >>= 4
-		ah &= 0x0f
-		rep.set.w di,ax
-	endloop (--dx)
-	ax = %T.pixLinBuf
-	ret
+    si = bx
+    di = %T.pixLinBuf
+    dx = DT.pixLinSiz
+    loop
+    	rep.load al,si
+    	ah = al
+    	al >>= 4
+    	ah &= 0x0f
+    	rep.set.w di,ax
+    endloop (--dx)
+    ax = %T.pixLinBuf
+    ret
 
   P1:
-	si = bx
-	di = %T.pixLinBuf
-	dx = DT.pixLinSiz
-	loop
-		ah = b[si]; ++si
-		al = 0; |ah <<= 1; rcl al; rep.set di,al
-		al = 0; |ah <<= 1; rcl al; rep.set di,al
-		al = 0; |ah <<= 1; rcl al; rep.set di,al
-		al = 0; |ah <<= 1; rcl al; rep.set di,al
-		al = 0; |ah <<= 1; rcl al; rep.set di,al
-		al = 0; |ah <<= 1; rcl al; rep.set di,al
-		al = 0; |ah <<= 1; rcl al; rep.set di,al
-		al = 0; |ah <<= 1; rcl al; rep.set di,al
-	endloop (--dx)
-	ax = %T.pixLinBuf
-	ret
+    si = bx
+    di = %T.pixLinBuf
+    dx = DT.pixLinSiz
+    loop
+    	ah = b[si]; ++si
+    	al = 0; |ah <<= 1; rcl al; rep.set di,al
+    	al = 0; |ah <<= 1; rcl al; rep.set di,al
+    	al = 0; |ah <<= 1; rcl al; rep.set di,al
+    	al = 0; |ah <<= 1; rcl al; rep.set di,al
+    	al = 0; |ah <<= 1; rcl al; rep.set di,al
+    	al = 0; |ah <<= 1; rcl al; rep.set di,al
+    	al = 0; |ah <<= 1; rcl al; rep.set di,al
+    	al = 0; |ah <<= 1; rcl al; rep.set di,al
+    endloop (--dx)
+    ax = %T.pixLinBuf
+    ret
 
 endproc
 

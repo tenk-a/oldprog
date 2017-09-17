@@ -1,5 +1,5 @@
 module B1
-	c_name "B1","_",1
+    c_name "B1","_",1
 
 *const GVLINSIZ = 80
 
@@ -8,11 +8,11 @@ module B1
 
 @if 0
 *struct R
-	nextLine:w
+    nextLine:w
 endstruct
 
 *struct W
-	nextLine:w
+    nextLine:w
 endstruct
 @fi
 

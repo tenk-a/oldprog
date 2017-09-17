@@ -1,18 +1,18 @@
 submodule B1
-	import Std
-	import GH
-	import Pri
-	import Subr
-	import Deb
-	import Fname
-	import Dos
-	import Lfn
-	import Str
-	import FPal
-	import RPal
-	//import G98
+    import Std
+    import GH
+    import Pri
+    import Subr
+    import Deb
+    import Fname
+    import Dos
+    import Lfn
+    import Str
+    import FPal
+    import RPal
+    //import G98
 
-@define	GHT()	GH.T[ds:0]
+@define GHT()	GH.T[ds:0]
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -22,318 +22,318 @@ cvar gl2flg:w = 0
 
 *proc B1.Df_L2flg(flg:w);cdecl
 enter
-	save ax
-	gl2flg = ax = flg
-	return
+    save ax
+    gl2flg = ax = flg
+    return
 endproc
 
 *proc InitR(ght:d);cdecl
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	ds = ax = %var
-	if (B1.pc98flg)
-		ds.bx = ght
-		GHT.vSeg(0) = 0xA800
-		GHT.vSeg(1) = 0xB000
-		GHT.vSeg(2) = 0xB800
-		GHT.vSeg(3) = 0xE000
-		GH.Df_FtimeMode 0
-		GHT.ftimeFlg = 0
-		//GHT.palBit  = 4
-	fi
-	ds.bx = ght
-	if (GHT.vSeg(0) == 0)
-		ax = cx = 80*400 * 4 / 16
-		GH.GetMem bx,ax,cx
-		GHT.vSeg(0) = ax
-		ax += 80*400/16; GHT.vSeg(1) = ax
-		ax += 80*400/16; GHT.vSeg(2) = ax
-		ax += 80*400/16; GHT.vSeg(3) = ax
-	fi
-	B1.VCls bx
-	GHT.rdX8flg = 1
-	return
+    ds = ax = %var
+    if (B1.pc98flg)
+    	ds.bx = ght
+    	GHT.vSeg(0) = 0xA800
+    	GHT.vSeg(1) = 0xB000
+    	GHT.vSeg(2) = 0xB800
+    	GHT.vSeg(3) = 0xE000
+    	GH.Df_FtimeMode 0
+    	GHT.ftimeFlg = 0
+    	//GHT.palBit  = 4
+    fi
+    ds.bx = ght
+    if (GHT.vSeg(0) == 0)
+    	ax = cx = 80*400 * 4 / 16
+    	GH.GetMem bx,ax,cx
+    	GHT.vSeg(0) = ax
+    	ax += 80*400/16; GHT.vSeg(1) = ax
+    	ax += 80*400/16; GHT.vSeg(2) = ax
+    	ax += 80*400/16; GHT.vSeg(3) = ax
+    fi
+    B1.VCls bx
+    GHT.rdX8flg = 1
+    return
 endproc
 
 
 @if 0
 *proc GetPalFil(ght:d);cdecl
 enter
-	save pusha,es,ds
-	local filnam:b(130)
-	local pal:b(48)
+    save pusha,es,ds
+    local filnam:b(130)
+    local pal:b(48)
 
-	ds.bx = ght
-	ds.si = GHT.rdName
-	es = ss
-	di = &filnam
-	Str.Cpy es.di, si
-	ds = ax = %var
-	Fname.ChgExt es.di, "rgb"
-	ds = es
-	Lfn.Open di, 0
-	if (_nc_)
-		bx = ax
-		cx = 48
-		ds.dx = ww(ss, &pal)
-		Subr.Read bx, dx, cx
-		Subr.Close bx
-		ax = dx
-		dx = ds
-		ds.bx = ght
-		GH.SetRGB12 ds.bx, dx.ax
-	fi
-	return
+    ds.bx = ght
+    ds.si = GHT.rdName
+    es = ss
+    di = &filnam
+    Str.Cpy es.di, si
+    ds = ax = %var
+    Fname.ChgExt es.di, "rgb"
+    ds = es
+    Lfn.Open di, 0
+    if (_nc_)
+    	bx = ax
+    	cx = 48
+    	ds.dx = ww(ss, &pal)
+    	Subr.Read bx, dx, cx
+    	Subr.Close bx
+    	ax = dx
+    	dx = ds
+    	ds.bx = ght
+    	GH.SetRGB12 ds.bx, dx.ax
+    fi
+    return
 endproc
 @fi
 
 *proc Open(ght:d,filename:d);cdecl
-	//out ax	0:no error	0以外:error
+    //out ax	0:no error  0以外:error
 enter
-	save bx,cx,dx,si,di,es,ds
-	local gv:w(4),l2flg:w
-	local filnam:b(130)
-	cvar fmt:b() = "B1"
-	cvar datseg:w = %var
+    save bx,cx,dx,si,di,es,ds
+    local gv:w(4),l2flg:w
+    local filnam:b(130)
+    cvar fmt:b() = "B1"
+    cvar datseg:w = %var
 
-	l2flg = bx = gl2flg
-	ds.bx = ght
-	GHT.fmtR = GH.B1
-	GHT.rdFmtName = cx.ax = ww(cs,&fmt)
-	d[bx + %GH.T.macName] = cx.ax = 'B'+'R'*0x100+'G'*0x10000+'E'*0x1000000
-	GHT.rdName = dx.ax = filename
-	//
-	GHT.sizeX = 640
-	GHT.sizeY = 400
-	GHT.startX = 0
-	GHT.startY = 0
-	GHT.endX  = 639
-	GHT.endY  = 399
-	GHT.col   = 16
-	GHT.pln   = 4
-	//B1.VCls bx
-	//
-	gv(0) = ax = GHT.vSeg(0)
-	gv(1) = ax = GHT.vSeg(1)
-	gv(2) = ax = GHT.vSeg(2)
-	gv(3) = ax = GHT.vSeg(3)
-	//
-	push ds.bx
-		ds.si = filename
-		es.di = ww(ss,&filnam)
-		Str.Cpy es.di, si
-		//B
-		ds = datseg
-		Fname.ChgExt es.di, "b1"
-		ds.dx = es.di
-		Lfn.Open dx, 0
-		if (_nc_)
-			bx = ax
-			ds = gv(0)
-			cx = 80*400
-			Dos.Read bx, 0, cx
-			if (cx <= 80*200)
-				l2flg = 1
-			fi
-			Dos.Close bx
-		fi
-		ds.bx = ght
-		if (GHT.ftimeFlg)
-			push bx
-				Dos.GetFtime GHT.rdHdl
-			pop  bx
-			GHT.ftime = cx
-			GHT.fdate = dx
-		fi
-		//R
-		ds = datseg
-		Fname.ChgExt es.di, "r1"
-		ds.dx = es.di
-		Lfn.Open dx, 0
-		if (_nc_)
-			bx = ax
-			ds = gv(1)
-			cx = 80*400
-			Dos.Read bx, 0, cx
-			Dos.Close bx
-		fi
-		//G
-		ds = datseg
-		Fname.ChgExt es.di, "g1"
-		ds.dx = es.di
-		Lfn.Open dx, 0
-		if (_nc_)
-			bx = ax
-			ds = gv(2)
-			cx = 80*400
-			Dos.Read bx, 0, cx
-			Dos.Close bx
-		fi
-		//E
-		ds = datseg
-		Fname.ChgExt es.di, "e1"
-		ds.dx = es.di
-		Lfn.Open dx, 0
-		if (_nc_)
-			bx = ax
-			ds = gv(3)
-			cx = 80*400
-			Dos.Read bx, 0, cx
-			Dos.Close bx
-		fi
-	pop  ds.bx
-	if (l2flg)
-		GHT.sizeY = 200
-		GHT.endY  = 199
-		GHT.asp1  = 2
-		GHT.asp2  = 1
-	fi
-	//
-	GH.GetPalBuf bx
-	//GH.SetDigPal ds.bx
-	FPal.Get GHT.rdName, GHT.rgbPal
-	GH.InitPDB ds.bx
-	ax = 0
-	return
+    l2flg = bx = gl2flg
+    ds.bx = ght
+    GHT.fmtR = GH.B1
+    GHT.rdFmtName = cx.ax = ww(cs,&fmt)
+    d[bx + %GH.T.macName] = cx.ax = 'B'+'R'*0x100+'G'*0x10000+'E'*0x1000000
+    GHT.rdName = dx.ax = filename
+    //
+    GHT.sizeX = 640
+    GHT.sizeY = 400
+    GHT.startX = 0
+    GHT.startY = 0
+    GHT.endX  = 639
+    GHT.endY  = 399
+    GHT.col   = 16
+    GHT.pln   = 4
+    //B1.VCls bx
+    //
+    gv(0) = ax = GHT.vSeg(0)
+    gv(1) = ax = GHT.vSeg(1)
+    gv(2) = ax = GHT.vSeg(2)
+    gv(3) = ax = GHT.vSeg(3)
+    //
+    push ds.bx
+    	ds.si = filename
+    	es.di = ww(ss,&filnam)
+    	Str.Cpy es.di, si
+    	//B
+    	ds = datseg
+    	Fname.ChgExt es.di, "b1"
+    	ds.dx = es.di
+    	Lfn.Open dx, 0
+    	if (_nc_)
+    	    bx = ax
+    	    ds = gv(0)
+    	    cx = 80*400
+    	    Dos.Read bx, 0, cx
+    	    if (cx <= 80*200)
+    	    	l2flg = 1
+    	    fi
+    	    Dos.Close bx
+    	fi
+    	ds.bx = ght
+    	if (GHT.ftimeFlg)
+    	    push bx
+    	    	Dos.GetFtime GHT.rdHdl
+    	    pop  bx
+    	    GHT.ftime = cx
+    	    GHT.fdate = dx
+    	fi
+    	//R
+    	ds = datseg
+    	Fname.ChgExt es.di, "r1"
+    	ds.dx = es.di
+    	Lfn.Open dx, 0
+    	if (_nc_)
+    	    bx = ax
+    	    ds = gv(1)
+    	    cx = 80*400
+    	    Dos.Read bx, 0, cx
+    	    Dos.Close bx
+    	fi
+    	//G
+    	ds = datseg
+    	Fname.ChgExt es.di, "g1"
+    	ds.dx = es.di
+    	Lfn.Open dx, 0
+    	if (_nc_)
+    	    bx = ax
+    	    ds = gv(2)
+    	    cx = 80*400
+    	    Dos.Read bx, 0, cx
+    	    Dos.Close bx
+    	fi
+    	//E
+    	ds = datseg
+    	Fname.ChgExt es.di, "e1"
+    	ds.dx = es.di
+    	Lfn.Open dx, 0
+    	if (_nc_)
+    	    bx = ax
+    	    ds = gv(3)
+    	    cx = 80*400
+    	    Dos.Read bx, 0, cx
+    	    Dos.Close bx
+    	fi
+    pop  ds.bx
+    if (l2flg)
+    	GHT.sizeY = 200
+    	GHT.endY  = 199
+    	GHT.asp1  = 2
+    	GHT.asp2  = 1
+    fi
+    //
+    GH.GetPalBuf bx
+    //GH.SetDigPal ds.bx
+    FPal.Get GHT.rdName, GHT.rgbPal
+    GH.InitPDB ds.bx
+    ax = 0
+    return
 endproc
 
 
 @if 1
 *proc CloseR(GHTptr:d);cdecl
 enter
-	save bx,ds,ax
-	ds.bx = GHTptr
-	Subr.Close GHT.rdHdl
-	return
+    save bx,ds,ax
+    ds.bx = GHTptr
+    Subr.Close GHT.rdHdl
+    return
 endproc
 @fi
 
 
 
 *proc OpenFrm(ght:d,filename:d);cdecl
-	//out ax	0:no error	0以外:error
+    //out ax	0:no error  0以外:error
 enter
-	save bx,cx,dx,si,di,es,ds
-	cvar fmt:b() = "FRM"
-	local filnam:b(130)
-	local pal:b(48)
+    save bx,cx,dx,si,di,es,ds
+    cvar fmt:b() = "FRM"
+    local filnam:b(130)
+    local pal:b(48)
 
-	ds.bx = ght
-	GHT.rdFmtName = cx.ax = ww(cs,&fmt)
-	GHT.fmtR = GH.FRM
-	d[bx + %GH.T.macName] = cx.ax = 'F'+'R'*0x100+'M'*0x10000+' '*0x1000000
-	//
-	GHT.sizeX = 640
-	GHT.sizeY = 400
-	GHT.startX = 0
-	GHT.startY = 0
-	GHT.endX  = 639
-	GHT.endY  = 399
-	GHT.col   = 16
-	GHT.pln   = 4
-	//B1.VCls bx
-	if (gl2flg)
-		GHT.sizeY = 200
-		GHT.endY  = 199
-		GHT.asp1  = 2
-		GHT.asp2  = 1
-	fi
-	//
-	GH.Open bx,filename
-	GH.Read bx, ww(GHT.vSeg(0), 0x0000), 80*400
-	GH.Read bx, ww(GHT.vSeg(1), 0x0000), 80*400
-	GH.Read bx, ww(GHT.vSeg(2), 0x0000), 80*400
-	GH.Read bx, ww(GHT.vSeg(3), 0x0000), 80*400
-	GH.GetPalBuf bx
-	//GH.SetDigPal ds.bx
-	push bx,ds
-		bx = GHT.rdHdl
-		dx = &pal
-		ds = ss
-		cx = 48
-		Dos.Read bx, dx, cx
-		push fx
-			GH.CloseR bx
-		pop  fx
-		go (_c_) J1
-		if (cx == ax)
-			ax = dx
-			dx = ds
-			ds.bx = ght
-			FPal.C4to8 dx.ax, GHT.rgbPal
-		else
+    ds.bx = ght
+    GHT.rdFmtName = cx.ax = ww(cs,&fmt)
+    GHT.fmtR = GH.FRM
+    d[bx + %GH.T.macName] = cx.ax = 'F'+'R'*0x100+'M'*0x10000+' '*0x1000000
+    //
+    GHT.sizeX = 640
+    GHT.sizeY = 400
+    GHT.startX = 0
+    GHT.startY = 0
+    GHT.endX  = 639
+    GHT.endY  = 399
+    GHT.col   = 16
+    GHT.pln   = 4
+    //B1.VCls bx
+    if (gl2flg)
+    	GHT.sizeY = 200
+    	GHT.endY  = 199
+    	GHT.asp1  = 2
+    	GHT.asp2  = 1
+    fi
+    //
+    GH.Open bx,filename
+    GH.Read bx, ww(GHT.vSeg(0), 0x0000), 80*400
+    GH.Read bx, ww(GHT.vSeg(1), 0x0000), 80*400
+    GH.Read bx, ww(GHT.vSeg(2), 0x0000), 80*400
+    GH.Read bx, ww(GHT.vSeg(3), 0x0000), 80*400
+    GH.GetPalBuf bx
+    //GH.SetDigPal ds.bx
+    push bx,ds
+    	bx = GHT.rdHdl
+    	dx = &pal
+    	ds = ss
+    	cx = 48
+    	Dos.Read bx, dx, cx
+    	push fx
+    	    GH.CloseR bx
+    	pop  fx
+    	go (_c_) J1
+    	if (cx == ax)
+    	    ax = dx
+    	    dx = ds
+    	    ds.bx = ght
+    	    FPal.C4to8 dx.ax, GHT.rgbPal
+    	else
   J1:
-  			ds.bx = ght
-			FPal.Get GHT.rdName, GHT.rgbPal
-		fi
-	pop  bx,ds
-	//
-	GH.InitPDB ds.bx
-	ax = 0
-	return
+    	    ds.bx = ght
+    	    FPal.Get GHT.rdName, GHT.rgbPal
+    	fi
+    pop  bx,ds
+    //
+    GH.InitPDB ds.bx
+    ax = 0
+    return
 endproc
 
 
 *proc OpenBlk(ght:d,filename:d);cdecl
-	//out ax	0:no error	0以外:error
+    //out ax	0:no error  0以外:error
 enter
-	save bx,cx,dx,si,di,es,ds
-	cvar fmt:b() = "BLK"
-	local filnam:b(130)
-	local pal:b(48)
+    save bx,cx,dx,si,di,es,ds
+    cvar fmt:b() = "BLK"
+    local filnam:b(130)
+    local pal:b(48)
 
-	ds.bx = ght
-	GHT.rdFmtName = cx.ax = ww(cs,&fmt)
-	GHT.fmtR = GH.BLK
-	d[bx + %GH.T.macName] = cx.ax = 'B'+'L'*0x100+'K'*0x10000+' '*0x1000000
-	//
-	GHT.sizeX = 640
-	GHT.sizeY = 400
-	GHT.startX = 0
-	GHT.startY = 0
-	GHT.endX  = 639
-	GHT.endY  = 399
-	GHT.col   = 16
-	GHT.pln   = 4
-	//B1.VCls bx
-	if (gl2flg)
-		GHT.sizeY = 200
-		GHT.endY  = 199
-		GHT.asp1  = 2
-		GHT.asp2  = 1
-	fi
-	//
-	GH.Open bx,filename
-	// Read BRG-Palette
-	GH.GetPalBuf bx
-	push bx,ds,es
-		bx = GHT.rdHdl
-		dx = &pal
-		ds = ax = ss
-		es = ax
-		cx = 48
-		Dos.Read bx, dx, cx
-		//GH.CloseR bx
-		si = di = dx
-		cx = 16
-		loop
-			rep.load.b al,si
-			rep.cpy.w  di,si
-			rep.set.b  di,al
-		endloop (--cx)
-		ax = dx
-		dx = ds
-	pop  bx,ds,es
-	FPal.C4to8 dx.ax, GHT.rgbPal
-	GH.Read bx, ww(GHT.vSeg(0), 0x0000), 80*400
-	GH.Read bx, ww(GHT.vSeg(1), 0x0000), 80*400
-	GH.Read bx, ww(GHT.vSeg(2), 0x0000), 80*400
-	GH.Read bx, ww(GHT.vSeg(3), 0x0000), 80*400
-	//
-	GH.InitPDB ds.bx
-	ax = 0
-	return
+    ds.bx = ght
+    GHT.rdFmtName = cx.ax = ww(cs,&fmt)
+    GHT.fmtR = GH.BLK
+    d[bx + %GH.T.macName] = cx.ax = 'B'+'L'*0x100+'K'*0x10000+' '*0x1000000
+    //
+    GHT.sizeX = 640
+    GHT.sizeY = 400
+    GHT.startX = 0
+    GHT.startY = 0
+    GHT.endX  = 639
+    GHT.endY  = 399
+    GHT.col   = 16
+    GHT.pln   = 4
+    //B1.VCls bx
+    if (gl2flg)
+    	GHT.sizeY = 200
+    	GHT.endY  = 199
+    	GHT.asp1  = 2
+    	GHT.asp2  = 1
+    fi
+    //
+    GH.Open bx,filename
+    // Read BRG-Palette
+    GH.GetPalBuf bx
+    push bx,ds,es
+    	bx = GHT.rdHdl
+    	dx = &pal
+    	ds = ax = ss
+    	es = ax
+    	cx = 48
+    	Dos.Read bx, dx, cx
+    	//GH.CloseR bx
+    	si = di = dx
+    	cx = 16
+    	loop
+    	    rep.load.b al,si
+    	    rep.cpy.w  di,si
+    	    rep.set.b  di,al
+    	endloop (--cx)
+    	ax = dx
+    	dx = ds
+    pop  bx,ds,es
+    FPal.C4to8 dx.ax, GHT.rgbPal
+    GH.Read bx, ww(GHT.vSeg(0), 0x0000), 80*400
+    GH.Read bx, ww(GHT.vSeg(1), 0x0000), 80*400
+    GH.Read bx, ww(GHT.vSeg(2), 0x0000), 80*400
+    GH.Read bx, ww(GHT.vSeg(3), 0x0000), 80*400
+    //
+    GH.InitPDB ds.bx
+    ax = 0
+    return
 endproc
 
 
@@ -343,102 +343,102 @@ cvar sizeX:w = 640, sizeY:w = 400
 
 *proc Df_GvSavSiz(x0:w,y0:w,x1:w,y1:w);cdecl
 enter
-	save ax
+    save ax
 
-	ax = x0
-	cx = x1
-	if (ax > cx)
-		ax <=> cx
-	fi
-	go (ax > 1280-1||cx > 1280-1) ERR
-	startX = ax
-	endX = cx
-	++cx
-	cx -= ax
-	sizeX = cx
+    ax = x0
+    cx = x1
+    if (ax > cx)
+    	ax <=> cx
+    fi
+    go (ax > 1280-1||cx > 1280-1) ERR
+    startX = ax
+    endX = cx
+    ++cx
+    cx -= ax
+    sizeX = cx
 
-	ax = y0
-	cx = y1
-	if (ax > cx)
-		ax <=> cx
-	fi
-	go (ax > 800-1||cx > 800-1) ERR
-	startY = ax
-	endY = cx
-	++cx
-	cx -= ax
-	sizeY = cx
-	return
+    ax = y0
+    cx = y1
+    if (ax > cx)
+    	ax <=> cx
+    fi
+    go (ax > 800-1||cx > 800-1) ERR
+    startY = ax
+    endY = cx
+    ++cx
+    cx -= ax
+    sizeY = cx
+    return
   ERR:
-  	Subr.PriExit "-sの座標指定が 1280*800の範囲を越えている\N"
+    Subr.PriExit "-sの座標指定が 1280*800の範囲を越えている\N"
 endproc
 
 
 *proc OpenGv(ght:d,filename:d);cdecl
-	//out ax	0:no error	0以外:error
+    //out ax	0:no error  0以外:error
 enter
-	save bx,cx,dx,si,di,es,ds
-	cvar fmt:b() = "#"
-	local pal:b(48)
+    save bx,cx,dx,si,di,es,ds
+    cvar fmt:b() = "#"
+    local pal:b(48)
 
-	ds.bx = ght
-	GHT.rdFmtName = cx.ax = ww(cs,&fmt)
-	GHT.fmtR = GH.VRAM
-	d[bx + %GH.T.macName] = cx.ax = 'M'+'G'*0x100+' '*0x10000+' '*0x1000000
-	GHT.rdName = cx.ax = filename
-	//
-	GHT.sizeX = ax = sizeX
-	GHT.sizeY = ax = sizeY
-	GHT.startX = ax = startX
-	GHT.startY = ax = startY
-	GHT.b1RnextLine = ax
-	GHT.endX  = ax = endX
-	GHT.endY  = ax = endY
-	GHT.col   = 16
-	GHT.pln   = 4
-	es = ax = %var
-	if (w[es:%B1.pc98flg] == 3)
-		GHT.col   = 256
-		GHT.pln   = 8
-	fi
-	//B1.VCls bx
-	if (gl2flg)
-		//GHT.sizeY = 200
-		//GHT.endY  = 199
-		GHT.asp1  = 2
-		GHT.asp2  = 1
-	fi
-	GH.GetPalBuf bx
-	//GH.SetDigPal ds.bx
-	es = ax = %var
-	if (w[es:%B1.pc98flg] == 1)
-		//G98.SetAnalog
-		//G98.ActGVPage 0
-		//G98.DspGVPage 0
-		dx = &pal
-		push ds.bx
-			ds = ax = %var
-			RPal.GetRGB dx
-		pop ds.bx
-		go (ax == -1) JJJ
-		FPal.C4to8 ww(%var,dx), GHT.rgbPal
-	else
+    ds.bx = ght
+    GHT.rdFmtName = cx.ax = ww(cs,&fmt)
+    GHT.fmtR = GH.VRAM
+    d[bx + %GH.T.macName] = cx.ax = 'M'+'G'*0x100+' '*0x10000+' '*0x1000000
+    GHT.rdName = cx.ax = filename
+    //
+    GHT.sizeX = ax = sizeX
+    GHT.sizeY = ax = sizeY
+    GHT.startX = ax = startX
+    GHT.startY = ax = startY
+    GHT.b1RnextLine = ax
+    GHT.endX  = ax = endX
+    GHT.endY  = ax = endY
+    GHT.col   = 16
+    GHT.pln   = 4
+    es = ax = %var
+    if (w[es:%B1.pc98flg] == 3)
+    	GHT.col   = 256
+    	GHT.pln   = 8
+    fi
+    //B1.VCls bx
+    if (gl2flg)
+    	//GHT.sizeY = 200
+    	//GHT.endY  = 199
+    	GHT.asp1  = 2
+    	GHT.asp2  = 1
+    fi
+    GH.GetPalBuf bx
+    //GH.SetDigPal ds.bx
+    es = ax = %var
+    if (w[es:%B1.pc98flg] == 1)
+    	//G98.SetAnalog
+    	//G98.ActGVPage 0
+    	//G98.DspGVPage 0
+    	dx = &pal
+    	push ds.bx
+    	    ds = ax = %var
+    	    RPal.GetRGB dx
+    	pop ds.bx
+    	go (ax == -1) JJJ
+    	FPal.C4to8 ww(%var,dx), GHT.rgbPal
+    else
   JJJ:
-  		ax = w[es:%B1.pc98flg]
-  		if (ax != 3)
-			FPal.Get GHT.rdName, GHT.rgbPal
-		else
-			FPal.Get256 GHT.rdName, GHT.rgbPal
-		fi
-	fi
-	GH.InitPDB ds.bx
-	ax = 0
-	return
+    	ax = w[es:%B1.pc98flg]
+    	if (ax != 3)
+    	    FPal.Get GHT.rdName, GHT.rgbPal
+    	else
+    	    FPal.Get256 GHT.rdName, GHT.rgbPal
+    	fi
+    fi
+    GH.InitPDB ds.bx
+    ax = 0
+    return
 endproc
 
 *proc CloseGvR(ght:d);cdecl
 enter
-	return
+    return
 endproc
 
 
@@ -453,352 +453,352 @@ cvar gv:w(4)
 *proc GetLine (es.di,ax,dx)
   //画面の指定位置 より dx ドットを読み込む
   //arg es.di	バッファのアドレス
-  //arg ax		画面での位置 y * 80 + x
-  //arg dx		ピクセル数/8
+  //arg ax  	画面での位置 y * 80 + x
+  //arg dx  	ピクセル数/8
 begin
-	save pusha,ds
+    save pusha,ds
 
-	si = ax
-	cx = dx
+    si = ax
+    cx = dx
 
   //Pri.S "ofs = ";Pri.Int si;Pri.Cr
   //Pri.S "Len = ";Pri.Int cx;Pri.Cr
 
-	loop.w
-		ds = gv(0)
-		bl = b[si]
-		ds = gv(1)
-		bh = b[si]
-		ds = gv(2)
-		dl = b[si]
-		ds = gv(3)
-		dh = b[si]
-		ax = 0
-		|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
-		|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
-		|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
-		|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
-		rep.set.w di,ax
-	// Pri.Hex4 ax;Pri.Chr 0x2020
+    loop.w
+    	ds = gv(0)
+    	bl = b[si]
+    	ds = gv(1)
+    	bh = b[si]
+    	ds = gv(2)
+    	dl = b[si]
+    	ds = gv(3)
+    	dh = b[si]
+    	ax = 0
+    	|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
+    	|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
+    	|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
+    	|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
+    	rep.set.w di,ax
+    // Pri.Hex4 ax;Pri.Chr 0x2020
 
-		ax = 0
-		|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
-		|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
-		|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
-		|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
-		rep.set.w di,ax
-	// Pri.Hex4 ax;Pri.Chr 0x2020
-		ax = 0
-		|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
-		|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
-		|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
-		|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
-		rep.set.w di,ax
-	// Pri.Hex4 ax;Pri.Chr 0x2020
-		ax = 0
-		|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
-		|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
-		|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
-		|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
-		rep.set.w di,ax
-	// Pri.Hex4 ax;Pri.Chr 0x2020
-	// Pri.Cr
-		++si
-	endloop (--cx)
-	return
+    	ax = 0
+    	|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
+    	|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
+    	|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
+    	|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
+    	rep.set.w di,ax
+    // Pri.Hex4 ax;Pri.Chr 0x2020
+    	ax = 0
+    	|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
+    	|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
+    	|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
+    	|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
+    	rep.set.w di,ax
+    // Pri.Hex4 ax;Pri.Chr 0x2020
+    	ax = 0
+    	|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
+    	|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
+    	|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
+    	|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
+    	rep.set.w di,ax
+    // Pri.Hex4 ax;Pri.Chr 0x2020
+    // Pri.Cr
+    	++si
+    endloop (--cx)
+    return
 endproc
 
 *proc GetLineMP (es.di,ax,dx)
   //画面の指定位置 より dx ドットを読み込む
   //arg es.di	バッファのアドレス
-  //arg ax		画面での位置 y * 80 + x
-  //arg dx		ピクセル数/8
+  //arg ax  	画面での位置 y * 80 + x
+  //arg dx  	ピクセル数/8
 enter
-	save pusha,ds
-	local cnt:w,xl:b,xh:b
+    save pusha,ds
+    local cnt:w,xl:b,xh:b
 
-	si = ax
-	cnt = dx
+    si = ax
+    cnt = dx
 
   //Pri.S "ofs = ";Pri.Int si;Pri.Cr
   //Pri.S "Len = ";Pri.Int cx;Pri.Cr
 
-	loop.w
-		port(0xA6) = al = 0	//ActGVPage
-		ds = gv(0)
-		xl = ah = b[si]
-		ds = gv(1)
-		xh = ah = b[si]
-		ds = gv(2)
-		cl = b[si]
-		ds = gv(3)
-		ch = b[si]
-		++al
-		port(0xA6) = al		//ActGVPage
-		ds = gv(0)
-		bl = b[si]
-		ds = gv(1)
-		bh = b[si]
-		ds = gv(2)
-		dl = b[si]
-		ds = gv(3)
-		dh = b[si]
-		port(0xA6) = al = 0	//ActGVPage
+    loop.w
+    	port(0xA6) = al = 0 //ActGVPage
+    	ds = gv(0)
+    	xl = ah = b[si]
+    	ds = gv(1)
+    	xh = ah = b[si]
+    	ds = gv(2)
+    	cl = b[si]
+    	ds = gv(3)
+    	ch = b[si]
+    	++al
+    	port(0xA6) = al     //ActGVPage
+    	ds = gv(0)
+    	bl = b[si]
+    	ds = gv(1)
+    	bh = b[si]
+    	ds = gv(2)
+    	dl = b[si]
+    	ds = gv(3)
+    	dh = b[si]
+    	port(0xA6) = al = 0 //ActGVPage
 
-		|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
-		|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
-		|ch <<= 1; |al <<=. 1; |cl <<= 1; |al <<=. 1
-		|xh <<= 1; |al <<=. 1; |xl <<= 1; |al <<=. 1
-		|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
-		|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
-		|ch <<= 1; |ah <<=. 1; |cl <<= 1; |ah <<=. 1
-		|xh <<= 1; |ah <<=. 1; |xl <<= 1; |ah <<=. 1
-		rep.set.w di,ax
-	// Pri.Hex4 ax;Pri.Chr 0x2020
+    	|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
+    	|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
+    	|ch <<= 1; |al <<=. 1; |cl <<= 1; |al <<=. 1
+    	|xh <<= 1; |al <<=. 1; |xl <<= 1; |al <<=. 1
+    	|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
+    	|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
+    	|ch <<= 1; |ah <<=. 1; |cl <<= 1; |ah <<=. 1
+    	|xh <<= 1; |ah <<=. 1; |xl <<= 1; |ah <<=. 1
+    	rep.set.w di,ax
+    // Pri.Hex4 ax;Pri.Chr 0x2020
 
-		|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
-		|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
-		|ch <<= 1; |al <<=. 1; |cl <<= 1; |al <<=. 1
-		|xh <<= 1; |al <<=. 1; |xl <<= 1; |al <<=. 1
-		|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
-		|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
-		|ch <<= 1; |ah <<=. 1; |cl <<= 1; |ah <<=. 1
-		|xh <<= 1; |ah <<=. 1; |xl <<= 1; |ah <<=. 1
-		rep.set.w di,ax
-	// Pri.Hex4 ax;Pri.Chr 0x2020
-		|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
-		|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
-		|ch <<= 1; |al <<=. 1; |cl <<= 1; |al <<=. 1
-		|xh <<= 1; |al <<=. 1; |xl <<= 1; |al <<=. 1
-		|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
-		|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
-		|ch <<= 1; |ah <<=. 1; |cl <<= 1; |ah <<=. 1
-		|xh <<= 1; |ah <<=. 1; |xl <<= 1; |ah <<=. 1
-		rep.set.w di,ax
-	// Pri.Hex4 ax;Pri.Chr 0x2020
-		|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
-		|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
-		|ch <<= 1; |al <<=. 1; |cl <<= 1; |al <<=. 1
-		|xh <<= 1; |al <<=. 1; |xl <<= 1; |al <<=. 1
-		|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
-		|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
-		|ch <<= 1; |ah <<=. 1; |cl <<= 1; |ah <<=. 1
-		|xh <<= 1; |ah <<=. 1; |xl <<= 1; |ah <<=. 1
-		rep.set.w di,ax
-	// Pri.Hex4 ax;Pri.Chr 0x2020
-	// Pri.Cr
-		++si
-	endloop (--cnt)
-	return
+    	|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
+    	|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
+    	|ch <<= 1; |al <<=. 1; |cl <<= 1; |al <<=. 1
+    	|xh <<= 1; |al <<=. 1; |xl <<= 1; |al <<=. 1
+    	|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
+    	|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
+    	|ch <<= 1; |ah <<=. 1; |cl <<= 1; |ah <<=. 1
+    	|xh <<= 1; |ah <<=. 1; |xl <<= 1; |ah <<=. 1
+    	rep.set.w di,ax
+    // Pri.Hex4 ax;Pri.Chr 0x2020
+    	|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
+    	|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
+    	|ch <<= 1; |al <<=. 1; |cl <<= 1; |al <<=. 1
+    	|xh <<= 1; |al <<=. 1; |xl <<= 1; |al <<=. 1
+    	|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
+    	|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
+    	|ch <<= 1; |ah <<=. 1; |cl <<= 1; |ah <<=. 1
+    	|xh <<= 1; |ah <<=. 1; |xl <<= 1; |ah <<=. 1
+    	rep.set.w di,ax
+    // Pri.Hex4 ax;Pri.Chr 0x2020
+    	|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
+    	|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
+    	|ch <<= 1; |al <<=. 1; |cl <<= 1; |al <<=. 1
+    	|xh <<= 1; |al <<=. 1; |xl <<= 1; |al <<=. 1
+    	|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
+    	|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
+    	|ch <<= 1; |ah <<=. 1; |cl <<= 1; |ah <<=. 1
+    	|xh <<= 1; |ah <<=. 1; |xl <<= 1; |ah <<=. 1
+    	rep.set.w di,ax
+    // Pri.Hex4 ax;Pri.Chr 0x2020
+    // Pri.Cr
+    	++si
+    endloop (--cnt)
+    return
 endproc
 
 *proc ReadPDB(ght:d,lincnt:w);cdecl
 enter
-	save pusha, es, ds
+    save pusha, es, ds
 
-	ds.bx = ght
-	gv(0) = ax = GHT.vSeg(0)
-	gv(1) = ax = GHT.vSeg(1)
-	gv(2) = ax = GHT.vSeg(2)
-	gv(3) = ax = GHT.vSeg(3)
+    ds.bx = ght
+    gv(0) = ax = GHT.vSeg(0)
+    gv(1) = ax = GHT.vSeg(1)
+    gv(2) = ax = GHT.vSeg(2)
+    gv(3) = ax = GHT.vSeg(3)
 
-	cx = di = GHT.b1RnextLine
-	dx = lincnt
-	cx += dx
-	GHT.b1RnextLine = cx
-	Deb.Chk;if(==);Pri.Fmt "ブロック開始行 = %d\N", di;fi
-	if (di >= 400)
-		dx = 0
-		go ERR
-	fi
-	cx = di
-	cx += dx
-	if (cx > 400)
-  		dx = 400
-  		dx -= di
+    cx = di = GHT.b1RnextLine
+    dx = lincnt
+    cx += dx
+    GHT.b1RnextLine = cx
+    Deb.Chk;if(==);Pri.Fmt "ブロック開始行 = %d\N", di;fi
+    if (di >= 400)
+    	dx = 0
+    	go ERR
+    fi
+    cx = di
+    cx += dx
+    if (cx > 400)
+    	dx = 400
+    	dx -= di
   ERR:
-		Deb.Chk;if(==);Pri.Fmt "B1入力で縦座標が400を越えている\N";fi
-		
-	fi
-	cx = dx
+    	Deb.Chk;if(==);Pri.Fmt "B1入力で縦座標が400を越えている\N";fi
 
-	if (cx)
-		dx.ax = di * B1.GVLINSIZ
-		dx = GHT.startXo; dx >>= 3
-		ax += dx
-		si = dx = GHT.sizeXo
-		dx >>= 3
-		es.di = ww(GHT.pdbSeg, GHT.hisSizO)
-		if (GHT.pln == 4)
-			loop
-				GetLine es.di, ax, dx
-				di += si
-				ax += B1.GVLINSIZ
-			endloop (--cx)
-		else
-			loop
-				GetLineMP es.di, ax, dx
-				di += si
-				ax += B1.GVLINSIZ
-			endloop (--cx)
-		fi
-	fi
+    fi
+    cx = dx
+
+    if (cx)
+    	dx.ax = di * B1.GVLINSIZ
+    	dx = GHT.startXo; dx >>= 3
+    	ax += dx
+    	si = dx = GHT.sizeXo
+    	dx >>= 3
+    	es.di = ww(GHT.pdbSeg, GHT.hisSizO)
+    	if (GHT.pln == 4)
+    	    loop
+    	    	GetLine es.di, ax, dx
+    	    	di += si
+    	    	ax += B1.GVLINSIZ
+    	    endloop (--cx)
+    	else
+    	    loop
+    	    	GetLineMP es.di, ax, dx
+    	    	di += si
+    	    	ax += B1.GVLINSIZ
+    	    endloop (--cx)
+    	fi
+    fi
   RET:
-	Deb.Chk;if(==);Pri.Fmt "ブロック行数   = %d\N",lincnt;fi
-	return
+    Deb.Chk;if(==);Pri.Fmt "ブロック行数   = %d\N",lincnt;fi
+    return
 endproc
 
 //-------------------------------------------
 
 proc Get1Line98(buf:d,x0:w,y0:w,cnt:w)
-	//98VRAM 0 1 を横に繋げて指定位置(x0,y0)のcntﾄﾞｯﾄをバッファbufに取り込む
+    //98VRAM 0 1 を横に繋げて指定位置(x0,y0)のcntﾄﾞｯﾄをバッファbufに取り込む
 enter
-	save pusha,es,ds
-	local v98uraFlg:b,dmy:b
-	local wbuf:b(1280)
+    save pusha,es,ds
+    local v98uraFlg:b,dmy:b
+    local wbuf:b(1280)
 
 
-	//まず、基準面が表か裏か
-	v98uraFlg = 0
-	dx = 0
-	ax = y0
-	di = 400
-	div dx.ax, di
-	if (ax & 0x0001)	//400で割ったあまりが奇数なら裏画面が基準
-		v98uraFlg = 1
-	fi
+    //まず、基準面が表か裏か
+    v98uraFlg = 0
+    dx = 0
+    ax = y0
+    di = 400
+    div dx.ax, di
+    if (ax & 0x0001)	//400で割ったあまりが奇数なら裏画面が基準
+    	v98uraFlg = 1
+    fi
 
-	//まず、スタックにとったバッファbufに１行160ドットを読み込む
-	es = ax = ss
-	di = &wbuf
-	dx.ax = dx * 80
+    //まず、スタックにとったバッファbufに１行160ドットを読み込む
+    es = ax = ss
+    di = &wbuf
+    dx.ax = dx * 80
 
-	//表
-	si = ax
-	push si
-	port(0xA6) = al = v98uraFlg		//ActGVPage
-	cx = 80
-	loop.w
-		ds = gv(0)
-		bl = b[si]
-		ds = gv(1)
-		bh = b[si]
-		ds = gv(2)
-		dl = b[si]
-		ds = gv(3)
-		dh = b[si]
-		ax = 0
-		|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
-		|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
-		|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
-		|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
-		rep.set.w di,ax
+    //表
+    si = ax
+    push si
+    port(0xA6) = al = v98uraFlg     //ActGVPage
+    cx = 80
+    loop.w
+    	ds = gv(0)
+    	bl = b[si]
+    	ds = gv(1)
+    	bh = b[si]
+    	ds = gv(2)
+    	dl = b[si]
+    	ds = gv(3)
+    	dh = b[si]
+    	ax = 0
+    	|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
+    	|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
+    	|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
+    	|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
+    	rep.set.w di,ax
 
-		ax = 0
-		|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
-		|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
-		|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
-		|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
-		rep.set.w di,ax
-		
-		ax = 0
-		|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
-		|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
-		|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
-		|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
-		rep.set.w di,ax
-		
-		ax = 0
-		|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
-		|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
-		|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
-		|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
-		rep.set.w di,ax
-		++si
-	endloop (--cx)
+    	ax = 0
+    	|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
+    	|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
+    	|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
+    	|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
+    	rep.set.w di,ax
 
-	//裏
-	pop  si
-	al = v98uraFlg
-	++al
-	al &= 0x01
-	port(0xA6) = al		//ActGVPage
-	cx = 80
-	loop.w
-		ds = gv(0)
-		bl = b[si]
-		ds = gv(1)
-		bh = b[si]
-		ds = gv(2)
-		dl = b[si]
-		ds = gv(3)
-		dh = b[si]
-		ax = 0
-		|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
-		|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
-		|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
-		|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
-		rep.set.w di,ax
+    	ax = 0
+    	|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
+    	|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
+    	|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
+    	|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
+    	rep.set.w di,ax
 
-		ax = 0
-		|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
-		|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
-		|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
-		|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
-		rep.set.w di,ax
-		
-		ax = 0
-		|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
-		|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
-		|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
-		|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
-		rep.set.w di,ax
-		
-		ax = 0
-		|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
-		|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
-		|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
-		|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
-		rep.set.w di,ax
-		++si
-	endloop (--cx)
-	port(0xA6) = al = 0		//ActGVPage
-	
-	ds = ax = ss
-	si = &wbuf
-	si += x0
-	es.di = buf
-	cx = cnt
-	rep.cpy di,si,cx
-	return
+    	ax = 0
+    	|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
+    	|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
+    	|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
+    	|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
+    	rep.set.w di,ax
+    	++si
+    endloop (--cx)
+
+    //裏
+    pop  si
+    al = v98uraFlg
+    ++al
+    al &= 0x01
+    port(0xA6) = al 	//ActGVPage
+    cx = 80
+    loop.w
+    	ds = gv(0)
+    	bl = b[si]
+    	ds = gv(1)
+    	bh = b[si]
+    	ds = gv(2)
+    	dl = b[si]
+    	ds = gv(3)
+    	dh = b[si]
+    	ax = 0
+    	|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
+    	|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
+    	|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
+    	|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
+    	rep.set.w di,ax
+
+    	ax = 0
+    	|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
+    	|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
+    	|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
+    	|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
+    	rep.set.w di,ax
+
+    	ax = 0
+    	|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
+    	|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
+    	|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
+    	|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
+    	rep.set.w di,ax
+
+    	ax = 0
+    	|dh <<= 1; |al <<=. 1; |dl <<= 1; |al <<=. 1
+    	|bh <<= 1; |al <<=. 1; |bl <<= 1; |al <<=. 1
+    	|dh <<= 1; |ah <<=. 1; |dl <<= 1; |ah <<=. 1
+    	|bh <<= 1; |ah <<=. 1; |bl <<= 1; |ah <<=. 1
+    	rep.set.w di,ax
+    	++si
+    endloop (--cx)
+    port(0xA6) = al = 0     //ActGVPage
+
+    ds = ax = ss
+    si = &wbuf
+    si += x0
+    es.di = buf
+    cx = cnt
+    rep.cpy di,si,cx
+    return
 endproc
 
 *proc ReadPDB98(ght:d,lincnt:w);cdecl
 enter
-	save pusha, es, ds
+    save pusha, es, ds
 
-	ds.bx = ght
-	gv(0) = ax = GHT.vSeg(0)
-	gv(1) = ax = GHT.vSeg(1)
-	gv(2) = ax = GHT.vSeg(2)
-	gv(3) = ax = GHT.vSeg(3)
+    ds.bx = ght
+    gv(0) = ax = GHT.vSeg(0)
+    gv(1) = ax = GHT.vSeg(1)
+    gv(2) = ax = GHT.vSeg(2)
+    gv(3) = ax = GHT.vSeg(3)
 
-	dx = ax = GHT.b1RnextLine
-	Deb.Chk;if(==);Pri.Fmt "ブロック開始行 = %d\N", ax;fi
-	cx = lincnt
-	ax += cx
-	GHT.b1RnextLine = ax
-	es.di = ww(GHT.pdbSeg, GHT.hisSizO)
-	ax = GHT.sizeXo
-	si = GHT.startXo
-	loop
-		Get1Line98 es.di, si, dx, ax
-		di += ax
-		++dx
-	endloop (--cx)
+    dx = ax = GHT.b1RnextLine
+    Deb.Chk;if(==);Pri.Fmt "ブロック開始行 = %d\N", ax;fi
+    cx = lincnt
+    ax += cx
+    GHT.b1RnextLine = ax
+    es.di = ww(GHT.pdbSeg, GHT.hisSizO)
+    ax = GHT.sizeXo
+    si = GHT.startXo
+    loop
+    	Get1Line98 es.di, si, dx, ax
+    	di += ax
+    	++dx
+    endloop (--cx)
   RET:
-	Deb.Chk;if(==);Pri.Fmt "ブロック行数   = %d\N",lincnt;fi
-	return
+    Deb.Chk;if(==);Pri.Fmt "ブロック行数   = %d\N",lincnt;fi
+    return
 endproc
 
 endmodule

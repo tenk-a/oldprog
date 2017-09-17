@@ -2,36 +2,36 @@ module G98
 
 *proc SetAnalog()
 macro
-	port(0x6a) = al = 1
+    port(0x6a) = al = 1
 endproc
 
 *proc ActGVPage(al)
 macro
-	port(0xA6) = al
+    port(0xA6) = al
 endproc
 
 *proc DspGVPage(al)
 begin
-	save ax,cx
-	cx = 0xC000
-	if (al)
-		cx = 0xD000
-	fi
-	ax = 0x4200
-	intr 0x18
-	return
+    save ax,cx
+    cx = 0xC000
+    if (al)
+    	cx = 0xD000
+    fi
+    ax = 0x4200
+    intr 0x18
+    return
 endproc
 
 *proc DspGV(al)
 begin
-	save ax
-	if (al)
-		ax = 0x4000
-	else
-		ax = 0x4100
-	fi
-	intr 0x18
-	return
+    save ax
+    if (al)
+    	ax = 0x4000
+    else
+    	ax = 0x4100
+    fi
+    intr 0x18
+    return
 endproc
 
 *const GB=0xA800,GR=0xB000,GG=0xB800,GI=0xE000

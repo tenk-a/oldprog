@@ -1,66 +1,66 @@
 submodule GH
-	import Subr
-	import Dos
-	import Lfn
-	import Pri
-	import Deb
+    import Subr
+    import Dos
+    import Lfn
+    import Pri
+    import Deb
 
-@define	GHT()	GH.T[ds:0]
+@define GHT()	GH.T[ds:0]
 
 *proc Open(bx, ax.dx)
 enter
-	save pusha,ds,es, ret_ax:ax
-	cvar dtaAdr:d
+    save pusha,ds,es, ret_ax:ax
+    cvar dtaAdr:d
 
-	GHT.rdName = ax.dx
-	push ds
-		ds = ax
-		Lfn.Open dx, 0
-	|pop  ds
-	if (_c_)
-		Pri.Fmt "'%Fs' をオープンできません\N", GHT.rdName
-		Dos.EXIT 1
-		//ax = 1
-	else
-		GHT.rdHdl = ax
+    GHT.rdName = ax.dx
+    push ds
+    	ds = ax
+    	Lfn.Open dx, 0
+    |pop  ds
+    if (_c_)
+    	Pri.Fmt "'%Fs' をオープンできません\N", GHT.rdName
+    	Dos.EXIT 1
+    	//ax = 1
+    else
+    	GHT.rdHdl = ax
     	//ax = 0
     fi
-	//ret_ax = ax
-  @if 0	//ｼｯﾊﾟｲ
-	push es.bx
-		Dos.GetDTA
-		dtaAdr = es.bx
-		ax = &Dos.FIND[es:bx].fname
-  		Pri.Fmt "%Fs  fsize = %ld\N", es.ax, Dos.FIND[es:bx].fsize
-	pop  es.bx
+    //ret_ax = ax
+  @if 0 //ｼｯﾊﾟｲ
+    push es.bx
+    	Dos.GetDTA
+    	dtaAdr = es.bx
+    	ax = &Dos.FIND[es:bx].fname
+    	Pri.Fmt "%Fs  fsize = %ld\N", es.ax, Dos.FIND[es:bx].fsize
+    pop  es.bx
   @fi
-	if (GHT.ftimeFlg)
-		ax = GHT.rdHdl
-		if (GHT.ftimeFname.h)
-			push ds
-				ds.dx = GHT.ftimeFname
-				Lfn.Open dx,0
-			|pop ds
-			if (_c_)
-				ax = GHT.rdHdl
-			fi
-		fi
-		push bx
-			Dos.GetFtime ax
-		pop  bx
-		GHT.ftime = cx
-		GHT.fdate = dx
-	fi
-	return
+    if (GHT.ftimeFlg)
+    	ax = GHT.rdHdl
+    	if (GHT.ftimeFname.h)
+    	    push ds
+    	    	ds.dx = GHT.ftimeFname
+    	    	Lfn.Open dx,0
+    	    |pop ds
+    	    if (_c_)
+    	    	ax = GHT.rdHdl
+    	    fi
+    	fi
+    	push bx
+    	    Dos.GetFtime ax
+    	pop  bx
+    	GHT.ftime = cx
+    	GHT.fdate = dx
+    fi
+    return
 endproc
 
 
 *proc CloseR(bx)
 enter
-	save bx,ax
-	bx = GHT.rdHdl
-	Dos.Close bx
-	return
+    save bx,ax
+    bx = GHT.rdHdl
+    Dos.Close bx
+    return
 endproc
 
 
@@ -68,15 +68,15 @@ endproc
 
 *proc Read(bx, ax.dx, cx)
 begin
-	save ax,bx,cx,dx,ds
+    save ax,bx,cx,dx,ds
  Deb.Chk
  if (==)
- 	Pri.Fmt "Read %lx, %lx, %u --- %x\N", ds.bx, ax.dx, cx, GHT.rdHdl
+    Pri.Fmt "Read %lx, %lx, %u --- %x\N", ds.bx, ax.dx, cx, GHT.rdHdl
  fi
-	bx = GHT.rdHdl
-	ds = ax
-	Subr.Read bx,dx,cx
-	return
+    bx = GHT.rdHdl
+    ds = ax
+    Subr.Read bx,dx,cx
+    return
 endproc
 
 endmodule

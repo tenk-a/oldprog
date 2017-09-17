@@ -1,20 +1,20 @@
 module FNM_FSIZ
-	c_name "Fname"
-	import Dos
+    c_name "Fname"
+    import Dos
 
 *proc FileSize(fnam:d);cdecl
 enter
-	save bx,cx,si,di,es,ds
+    save bx,cx,si,di,es,ds
 
-	Dos.GetDTA
-	ds.dx = fnam
-	Dos.FindFirst dx, 0b00010111
-	if (_c_)
-		dx.ax = -1
-	else
-		dx.ax = Dos.FIND[es:bx].fsize
-	fi
-	return
+    Dos.GetDTA
+    ds.dx = fnam
+    Dos.FindFirst dx, 0b00010111
+    if (_c_)
+    	dx.ax = -1
+    else
+    	dx.ax = Dos.FIND[es:bx].fsize
+    fi
+    return
 endproc
 
 endmodule

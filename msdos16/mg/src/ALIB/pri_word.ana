@@ -1,20 +1,20 @@
 module Pri_
-	import Dos
-	import Str
-	import Pri
+    import Dos
+    import Str
+    import Pri
 
 
 *proc Word(ax)
 begin
-	save pusha,ds,es
+    save pusha,ds,es
 
-	ds = dx = %var
-	es = dx
-	dx = 0
-	di = &Pri.buf
-	Str.LtoA es.di,dx.ax,0,0,0
-	Pri.S &Pri.buf
-	return
+    ds = dx = %var
+    es = dx
+    dx = 0
+    di = &Pri.buf
+    Str.LtoA es.di,dx.ax,0,0,0
+    Pri.S &Pri.buf
+    return
 endproc
 
 endmodule

@@ -1,13 +1,13 @@
 submodule Mag
-	import GH
-	import Dos
-	import Str
-	import Pri
-	import Subr
-	import Deb
-	import Std
+    import GH
+    import Dos
+    import Str
+    import Pri
+    import Subr
+    import Deb
+    import Std
 
-@define	GHT()	GH.T[ds:0]
+@define GHT()	GH.T[ds:0]
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -15,13 +15,13 @@ submodule Mag
 
 *proc InitR(ght:d);cdecl
 enter
-	save ax,ds,bx
-	ds.bx = ght
-	GH.SetHisLin bx,16
-	GHT.rdX8flg = 1
-	//GH.Df_RdX8mode 1
-	GHT.fmtR = GH.MAG
-	return
+    save ax,ds,bx
+    ds.bx = ght
+    GH.SetHisLin bx,16
+    GHT.rdX8flg = 1
+    //GH.Df_RdX8mode 1
+    GHT.fmtR = GH.MAG
+    return
 endproc
 
 
@@ -29,363 +29,363 @@ cvar hdrHdl:w
 
 proc InitGetC(ax)
 begin
-	hdrHdl = ax
-	return
+    hdrHdl = ax
+    return
 endproc
 
 proc GetC()
 begin
-	save bx,cx,dx,ds,es
-	var gcbuf:w = 0
+    save bx,cx,dx,ds,es
+    var gcbuf:w = 0
 
-	ds = ax = %var
-	Dos.Read hdrHdl,&gcbuf,1
-	if (_c_)
-		Pri.Fmt "ヘッダ読み込みでエラー #%d\N", ax
-		Dos.Exit(1)
-	fi
-	ax = gcbuf
-	return
+    ds = ax = %var
+    Dos.Read hdrHdl,&gcbuf,1
+    if (_c_)
+    	Pri.Fmt "ヘッダ読み込みでエラー #%d\N", ax
+    	Dos.Exit(1)
+    fi
+    ax = gcbuf
+    return
 endproc
 
 *proc InitRead(bx)
-	endproc
+    endproc
 
 
 *proc Open(ght:d, fname:d);cdecl
-//	Magファイルをオープンしてヘッダを読み込む
-//	arg si  GH.T へのポインタ
-//	arg dx	ファイル名
+//  Magファイルをオープンしてヘッダを読み込む
+//  arg si  GH.T へのポインタ
+//  arg dx  ファイル名
 //  out ax  0:成功  以外:エラー
 enter
-	save bx,cx,dx,si,di,es,ds
-	cvar fmt:b() = "MAG"
-	local idbuf:b(10)
-	local hdrOfs:d
-	const HDRSZS = Std.PARASIZE(sizeof(Mag.HDR))
+    save bx,cx,dx,si,di,es,ds
+    cvar fmt:b() = "MAG"
+    local idbuf:b(10)
+    local hdrOfs:d
+    const HDRSZS = Std.PARASIZE(sizeof(Mag.HDR))
 
-	// Open
-	ds.bx = ght
-	GHT.rdFmtName = dx.ax = ww(cs,&fmt)
-	//GHT.fmtR = GH.MAG
-	//GHT.rdX8flg = 1
+    // Open
+    ds.bx = ght
+    GHT.rdFmtName = dx.ax = ww(cs,&fmt)
+    //GHT.fmtR = GH.MAG
+    //GHT.rdX8flg = 1
 
-	GH.Open bx, fname
+    GH.Open bx, fname
 
-	//IDチェック
-	push ds
-		ax.dx = ww(ss, &idbuf)
-		es = ax
-		GH.Read bx, ax.dx, 8
-		ds = ax = %var
-		repe.cmp.w &idbuf, "MAKI02  ", 4
-		if (!=)
-		  @if 1
-			ds = ght.h
-			di = (128)/8
-			loop
-				GH.Read bx, ww(ss,&idbuf), 8
-			endloop (--di)
-			es = ax
-			ds = ax = %var
-			repe.cmp.w &idbuf, "MAKI02  ", 4
-			if (!=)
-				Pri.Fmt "Magヘッダでない\N"
-				ax = 1
-				go.w RET
-		  	fi
-		  @else
-			Pri.Fmt "Magヘッダでない\N"
-			ax = 1
-			go.w RET
-		  @fi
-		fi
-	pop  ds
+    //IDチェック
+    push ds
+    	ax.dx = ww(ss, &idbuf)
+    	es = ax
+    	GH.Read bx, ax.dx, 8
+    	ds = ax = %var
+    	repe.cmp.w &idbuf, "MAKI02  ", 4
+    	if (!=)
+    	  @if 1
+    	    ds = ght.h
+    	    di = (128)/8
+    	    loop
+    	    	GH.Read bx, ww(ss,&idbuf), 8
+    	    endloop (--di)
+    	    es = ax
+    	    ds = ax = %var
+    	    repe.cmp.w &idbuf, "MAKI02  ", 4
+    	    if (!=)
+    	    	Pri.Fmt "Magヘッダでない\N"
+    	    	ax = 1
+    	    	go.w RET
+    	    fi
+    	  @else
+    	    Pri.Fmt "Magヘッダでない\N"
+    	    ax = 1
+    	    go.w RET
+    	  @fi
+    	fi
+    pop  ds
 
-	//機種名取得
-	GH.Read bx, ww(ds,&GHT.macName), 4
-	GHT.macName(4) = 0
+    //機種名取得
+    GH.Read bx, ww(ds,&GHT.macName), 4
+    GHT.macName(4) = 0
 
 
-	InitGetC GHT.rdHdl
+    InitGetC GHT.rdHdl
 
-	// ユーザ名取得
-	GH.GetMem bx, 2, 2
-	es.di = ww(ax,0)
-	GHT.userName = ax.di
-	GHT.userNameSiz = 32
-	b[es:di] = 0
-	cx = 18
-	GetC	//result al
-	go (al != ' ' && al != '\t') J1
-	loop
-		GetC
+    // ユーザ名取得
+    GH.GetMem bx, 2, 2
+    es.di = ww(ax,0)
+    GHT.userName = ax.di
+    GHT.userNameSiz = 32
+    b[es:di] = 0
+    cx = 18
+    GetC    //result al
+    go (al != ' ' && al != '\t') J1
+    loop
+    	GetC
   J1:
-		break (al == 0x1a)
-		if (al)
-			rep.set di,al
-		fi
-	endloop (--cx)
-	dh = al
-	rep.set di,'\0'
-	push ds
-		ds = si = es
-		si = 0
-		Str.Trim si
-		Str.Len  si
-	pop  ds
-	GHT.userNameLen = cx
-	di = 0
-	push ds,di
-		ds = ax = %var
-		repe.cmp di, ">謎<", 5
-		if (!=)
-			di = 0
-			repe.cmp di,">なぞ<", 7
-		fi
-	|pop ds,di
-	if (==)
-		GHT.userNameLen = di	//=0
-	fi
+    	break (al == 0x1a)
+    	if (al)
+    	    rep.set di,al
+    	fi
+    endloop (--cx)
+    dh = al
+    rep.set di,'\0'
+    push ds
+    	ds = si = es
+    	si = 0
+    	Str.Trim si
+    	Str.Len  si
+    pop  ds
+    GHT.userNameLen = cx
+    di = 0
+    push ds,di
+    	ds = ax = %var
+    	repe.cmp di, ">謎<", 5
+    	if (!=)
+    	    di = 0
+    	    repe.cmp di,">なぞ<", 7
+    	fi
+    |pop ds,di
+    if (==)
+    	GHT.userNameLen = di	//=0
+    fi
   @if 1
-	if (GHT.userNameLen == di)	//di = 0
-		//GH.FreeMem es
-		//GHT.userName = ww(di,di)
-		w[es:0] = di
-		GHT.userNameLen = di
-	fi
+    if (GHT.userNameLen == di)	//di = 0
+    	//GH.FreeMem es
+    	//GHT.userName = ww(di,di)
+    	w[es:0] = di
+    	GHT.userNameLen = di
+    fi
   @fi
 
-	//コメント収得
-	GHT.commentLen = 0
-	go.w (dh == 0x1A) J3	//
-	GetC
-	go.w (al == 0x1A) J3	//
-	push ax
-		GH.GetMem bx, 0x5, 0x800
-		es = ax	//es.di = ww(ax,0)
-	pop  ax
-	GHT.comment = ww(es,0)
-	cx <<= 4
-	GHT.commentSiz = cx
-	cx = 0
-	if (al != ' ' && al != '\t')
-		//セパレータとなる' 'がないばあい
-		//mag仕様違反のヘッダだろう
-	  @if 1
-		if (GHT.userNameLen == 18)
-			//ユーザ名が目一杯埋まってるなら
-			//コメントがユーザ名に混ざってしまってるかも
-			push ax,ds.si
-				ds.si = GHT.userName
-				cx = 17
-				si += cx
-				dx = 0
-				loop
-					al = b[si]
-					if (al == ' '||al == '\t')
-						b[si] = 0; ++si
-						cx = dx
-						if (cx)
-							rep.cpy di,si,cx
-							cx = dx
-						fi
-						go J5
-					fi
-					--si
-					++dx
-				endloop (--cx)
-				cx = 0
-		  J5:
-			pop  ax,ds.si
-			if (cx)
-				GHT.userNameLen -= cx
-			fi
-		fi
-	  @fi
-		go J2
-	fi
-	loop
-		GetC
+    //コメント収得
+    GHT.commentLen = 0
+    go.w (dh == 0x1A) J3    //
+    GetC
+    go.w (al == 0x1A) J3    //
+    push ax
+    	GH.GetMem bx, 0x5, 0x800
+    	es = ax //es.di = ww(ax,0)
+    pop  ax
+    GHT.comment = ww(es,0)
+    cx <<= 4
+    GHT.commentSiz = cx
+    cx = 0
+    if (al != ' ' && al != '\t')
+    	//セパレータとなる' 'がないばあい
+    	//mag仕様違反のヘッダだろう
+      @if 1
+    	if (GHT.userNameLen == 18)
+    	    //ユーザ名が目一杯埋まってるなら
+    	    //コメントがユーザ名に混ざってしまってるかも
+    	    push ax,ds.si
+    	    	ds.si = GHT.userName
+    	    	cx = 17
+    	    	si += cx
+    	    	dx = 0
+    	    	loop
+    	    	    al = b[si]
+    	    	    if (al == ' '||al == '\t')
+    	    	    	b[si] = 0; ++si
+    	    	    	cx = dx
+    	    	    	if (cx)
+    	    	    	    rep.cpy di,si,cx
+    	    	    	    cx = dx
+    	    	    	fi
+    	    	    	go J5
+    	    	    fi
+    	    	    --si
+    	    	    ++dx
+    	    	endloop (--cx)
+    	    	cx = 0
+    	  J5:
+    	    pop  ax,ds.si
+    	    if (cx)
+    	    	GHT.userNameLen -= cx
+    	    fi
+    	fi
+      @fi
+    	go J2
+    fi
+    loop
+    	GetC
   J2:
-		++cx
-		break (al == 0x1a)
-		|cx - GHT.commentSiz
-		if (<)
-			if (al)
-				rep.set di,al
-			fi
-		elsif (==)
-			Pri.Fmt "コメントが長すぎるので途中で切りました\N"
-		else
-			--cx
-		fi
-	endloop
-	al = 0
-	rep.set di,al
-	--cx
-	GHT.commentLen = cx
+    	++cx
+    	break (al == 0x1a)
+    	|cx - GHT.commentSiz
+    	if (<)
+    	    if (al)
+    	    	rep.set di,al
+    	    fi
+    	elsif (==)
+    	    Pri.Fmt "コメントが長すぎるので途中で切りました\N"
+    	else
+    	    --cx
+    	fi
+    endloop
+    al = 0
+    rep.set di,al
+    --cx
+    GHT.commentLen = cx
     //Pri.Fmt ">%u/%u\N",GHT.commentLen, GHT.commentSiz
-	cx+=18	//2
-	Std.ParaSize cx, ax
-	GH.ResizeMem bx, es, cx
-  	cx <<= 4
-	GHT.commentSiz = cx
+    cx+=18  //2
+    Std.ParaSize cx, ax
+    GH.ResizeMem bx, es, cx
+    cx <<= 4
+    GHT.commentSiz = cx
     //Pri.Fmt "%lx>%Fs\N",GHT.comment, GHT.comment
   J3:
     //Pri.Fmt "コメント長:%u/%u\N",GHT.commentLen, GHT.commentSiz
 
-	// ヘッダ読み込み
-	push bx
-		bx = GHT.rdHdl
-		cx.dx = 0
-		al = 1
-		Dos.Lseek bx, cx.dx, al
-	|pop  bx
-	if (_c_)
-		Pri.Fmt "MAG ヘッダ読み込みでエラー(hdrOfs)\N"
-	fi
-	hdrOfs = dx.ax
+    // ヘッダ読み込み
+    push bx
+    	bx = GHT.rdHdl
+    	cx.dx = 0
+    	al = 1
+    	Dos.Lseek bx, cx.dx, al
+    |pop  bx
+    if (_c_)
+    	Pri.Fmt "MAG ヘッダ読み込みでエラー(hdrOfs)\N"
+    fi
+    hdrOfs = dx.ax
   //Pri.Fmt "ヘッダ先頭:%lx\N", dx.ax
 
-	//Header 読み込み
+    //Header 読み込み
   //Pri.Fmt "Header 読み込み\N"
-	
-	GH.GetMem bx, HDRSZS, HDRSZS
-	es.di = ww(ax,0)
-	GH.Read bx, ax.di, sizeof(Mag.HDR)
-	//
-	GHT.magMacNo = al = Mag.HDR[es:di].macNo
-	GHT.magMacFlg = ah = Mag.HDR[es:di].macFlg
-	if (al == 98 && ah & 0x10)
-		ah &= 0x0f
-		ah += 1
-		GHT.bakCol.l = ah
-	fi
-	GHT.magScrnMode = al = Mag.HDR[es:di].scrnMode
-	//
-	//GH.T に値を設定
-	GHT.asp1 = al = 0
-	GHT.asp2 = al
-	if (Mag.HDR[es:di].scrnMode & Mag.MF_200L)
-		GHT.asp1 = 2
-		GHT.asp2 = 1
-	fi
-	GHT.pln = 4
-	GHT.col = 16
-	if (Mag.HDR[es:di].scrnMode & Mag.MF_256C)
-		GHT.pln = 8
-		GHT.col = 256
-	fi
-	GHT.magRflagBsiz = dx.ax = Mag.HDR[es:di].flagBsiz
-	GHT.magRpdataSiz = dx.ax = Mag.HDR[es:di].pdataSiz
 
-	//座標を設定
-	GHT.startX = cx = Mag.HDR[es:di].startX
-	GHT.endX = ax = Mag.HDR[es:di].endX
-	++ax; ax -= cx; GHT.sizeX = ax
-	GHT.startY = cx = Mag.HDR[es:di].startY
-	GHT.endY = dx = Mag.HDR[es:di].endY
-	++dx; dx -= cx; GHT.sizeY = dx
+    GH.GetMem bx, HDRSZS, HDRSZS
+    es.di = ww(ax,0)
+    GH.Read bx, ax.di, sizeof(Mag.HDR)
+    //
+    GHT.magMacNo = al = Mag.HDR[es:di].macNo
+    GHT.magMacFlg = ah = Mag.HDR[es:di].macFlg
+    if (al == 98 && ah & 0x10)
+    	ah &= 0x0f
+    	ah += 1
+    	GHT.bakCol.l = ah
+    fi
+    GHT.magScrnMode = al = Mag.HDR[es:di].scrnMode
+    //
+    //GH.T に値を設定
+    GHT.asp1 = al = 0
+    GHT.asp2 = al
+    if (Mag.HDR[es:di].scrnMode & Mag.MF_200L)
+    	GHT.asp1 = 2
+    	GHT.asp2 = 1
+    fi
+    GHT.pln = 4
+    GHT.col = 16
+    if (Mag.HDR[es:di].scrnMode & Mag.MF_256C)
+    	GHT.pln = 8
+    	GHT.col = 256
+    fi
+    GHT.magRflagBsiz = dx.ax = Mag.HDR[es:di].flagBsiz
+    GHT.magRpdataSiz = dx.ax = Mag.HDR[es:di].pdataSiz
 
-	//オフセット値
-	dx.ax = Mag.HDR[es:di].flagAofs
-	if (ax & 0x01)
-		Pri.Fmt "MAGヘッダでフラグＡのオフセット値が不正かも"
-	fi
-	dx.ax += hdrOfs
-	GHT.magRflagAofs = dx.ax
-	dx.ax = Mag.HDR[es:di].flagBofs
-	if (ax & 0x01)
-		Pri.Fmt "MAGヘッダでフラグＢのオフセット値が不正かも"
-	fi
-	dx.ax += hdrOfs
-	GHT.magRflagBofs = dx.ax
-	dx.ax = Mag.HDR[es:di].pdataOfs
-	if (ax & 0x01)
-		Pri.Fmt "MAGヘッダでピクセル・データのオフセット値が不正かも"
-	fi
-	dx.ax += hdrOfs
-	GHT.magRpdataOfs = dx.ax
+    //座標を設定
+    GHT.startX = cx = Mag.HDR[es:di].startX
+    GHT.endX = ax = Mag.HDR[es:di].endX
+    ++ax; ax -= cx; GHT.sizeX = ax
+    GHT.startY = cx = Mag.HDR[es:di].startY
+    GHT.endY = dx = Mag.HDR[es:di].endY
+    ++dx; dx -= cx; GHT.sizeY = dx
 
-	//
-	GH.FreeMem bx, es
+    //オフセット値
+    dx.ax = Mag.HDR[es:di].flagAofs
+    if (ax & 0x01)
+    	Pri.Fmt "MAGヘッダでフラグＡのオフセット値が不正かも"
+    fi
+    dx.ax += hdrOfs
+    GHT.magRflagAofs = dx.ax
+    dx.ax = Mag.HDR[es:di].flagBofs
+    if (ax & 0x01)
+    	Pri.Fmt "MAGヘッダでフラグＢのオフセット値が不正かも"
+    fi
+    dx.ax += hdrOfs
+    GHT.magRflagBofs = dx.ax
+    dx.ax = Mag.HDR[es:di].pdataOfs
+    if (ax & 0x01)
+    	Pri.Fmt "MAGヘッダでピクセル・データのオフセット値が不正かも"
+    fi
+    dx.ax += hdrOfs
+    GHT.magRpdataOfs = dx.ax
 
-  //cx = 0
-  //GH.DspInfo ds.bx,ww(cx,cx),1
-
-	//get buffer
-	GH.InitPDB ds.bx
-
-	if (GHT.sizeX > 3794)
-		Pri.Fmt "mag画像の横幅が広すぎる.\N"
-		ax = 1
-		go.w RET
-	fi
-
-	//flagAのサイズを設定
-	dx.ax = GHT.sizeXo * GHT.sizeY
-	if (GHT.pln == 8)
-	  @if 0
-		if (GHT.startXofs>3 || (GHT.endXofs>0 && GHT.endXofs<5))
-			Pri.Fmt "ごめん. ﾌﾟﾛｸﾞﾗﾑの都合(手抜)により, この256色mag画像は展開できないの.\N"
-			ax = 1
-			go.w RET
-		fi
-	  @fi
-	  @if 0
-		if (ax & 0x1f);dx.ax += 4*8;fi
-	  @else
-		dx.ax += 0x1f
-	  @fi
-		dx.ax >>= 5		//dx.ax /= 4*8
-	else
-	  @if 0
-		if (ax & 0x3f);dx.ax += 4*2*8;fi
-	  @else
-		dx.ax += 0x3f
-	  @fi
-		dx.ax >>= 6		//dx.ax /= 4*2*8
-	fi
-	GHT.magRflagAsiz = dx.ax
+    //
+    GH.FreeMem bx, es
 
   //cx = 0
   //GH.DspInfo ds.bx,ww(cx,cx),1
 
-	//パレット読み込み
-	GH.GetPalBuf bx
-	cx = 3 * 16
-	if (GHT.pln == 8)
-		cx = 3 * 256
-	fi
-	GH.Read bx, GHT.rgbPal, cx
+    //get buffer
+    GH.InitPDB ds.bx
+
+    if (GHT.sizeX > 3794)
+    	Pri.Fmt "mag画像の横幅が広すぎる.\N"
+    	ax = 1
+    	go.w RET
+    fi
+
+    //flagAのサイズを設定
+    dx.ax = GHT.sizeXo * GHT.sizeY
+    if (GHT.pln == 8)
+      @if 0
+    	if (GHT.startXofs>3 || (GHT.endXofs>0 && GHT.endXofs<5))
+    	    Pri.Fmt "ごめん. ﾌﾟﾛｸﾞﾗﾑの都合(手抜)により, この256色mag画像は展開できないの.\N"
+    	    ax = 1
+    	    go.w RET
+    	fi
+      @fi
+      @if 0
+    	if (ax & 0x1f);dx.ax += 4*8;fi
+      @else
+    	dx.ax += 0x1f
+      @fi
+    	dx.ax >>= 5 	//dx.ax /= 4*8
+    else
+      @if 0
+    	if (ax & 0x3f);dx.ax += 4*2*8;fi
+      @else
+    	dx.ax += 0x3f
+      @fi
+    	dx.ax >>= 6 	//dx.ax /= 4*2*8
+    fi
+    GHT.magRflagAsiz = dx.ax
+
+  //cx = 0
+  //GH.DspInfo ds.bx,ww(cx,cx),1
+
+    //パレット読み込み
+    GH.GetPalBuf bx
+    cx = 3 * 16
+    if (GHT.pln == 8)
+    	cx = 3 * 256
+    fi
+    GH.Read bx, GHT.rgbPal, cx
   //Pri.Fmt "Rgb Read\N"
-	push ds
-		ds = GHT.rgbPal.h
-		loop
-			ax = w[di]
-			ah <=> al
-			w[di] = ax
-			di += 3
-		endloop ((cx -= 3) > 0)
-	pop  ds
+    push ds
+    	ds = GHT.rgbPal.h
+    	loop
+    	    ax = w[di]
+    	    ah <=> al
+    	    w[di] = ax
+    	    di += 3
+    	endloop ((cx -= 3) > 0)
+    pop  ds
 
-	InitRead bx
+    InitRead bx
 
   //cx = 0
   //GH.DspInfo ds.bx,ww(cx,cx),1
   //Pri.Fmt "End of Mag.Open\N"
   RET:
-	ax = 0
-	return
+    ax = 0
+    return
 endproc
 
 *proc CloseR(GHTptr:d);cdecl
 enter
-	save bx,ds,ax
-	ds.bx = GHTptr
-	Subr.Close GHT.rdHdl
-	return
+    save bx,ds,ax
+    ds.bx = GHTptr
+    Subr.Close GHT.rdHdl
+    return
 endproc
 
 
@@ -414,650 +414,650 @@ cvar pos:w(16)
 
 *proc DspInfo()
 begin
-	save pusha,ds
-	Pri.Fmt "フラグＡ size=%-8lu  offset=%08lx\N",flagAsiz,flagAofs
-	Pri.Fmt "         seg=%04x ﾌﾞﾛｯｸ:ｻｲｽﾞ=%u(%x),数=%u,余ｻｲｽﾞ=%u,ptr=%x\N",\
-		dbufAseg,dbufAsiz,dbufAsiz,blkCntA,rstSizA,ptrA
-	Pri.Fmt "フラグＢ size=%-8lu  offset=%08lx\N",flagBsiz,flagBofs
-	Pri.Fmt "         seg=%04x ﾌﾞﾛｯｸ:ｻｲｽﾞ=%u(%x),数=%u,余ｻｲｽﾞ=%u,ptr=%x\N",\
-		dbufBseg,dbufBsiz,dbufBsiz,blkCntB,rstSizB,ptrB
-	Pri.Fmt "PDATA    size=%-8lu  offset=%08lx\N",pdataSiz,pdataOfs
-	Pri.Fmt "         seg=%04x ﾌﾞﾛｯｸ:ｻｲｽﾞ=%u(%x),数=%u,余ｻｲｽﾞ=%u,ptr=%x\N",\
-		dbufPseg,dbufPsiz,dbufPsiz,blkCntP,rstSizP,ptrP
-	Pri.Fmt "L:seg=%08lx siz=%d(%x)\N",flgLinBufSeg,flgLinBufSiz,flgLinBufSiz
+    save pusha,ds
+    Pri.Fmt "フラグＡ size=%-8lu  offset=%08lx\N",flagAsiz,flagAofs
+    Pri.Fmt "         seg=%04x ﾌﾞﾛｯｸ:ｻｲｽﾞ=%u(%x),数=%u,余ｻｲｽﾞ=%u,ptr=%x\N",\
+    	dbufAseg,dbufAsiz,dbufAsiz,blkCntA,rstSizA,ptrA
+    Pri.Fmt "フラグＢ size=%-8lu  offset=%08lx\N",flagBsiz,flagBofs
+    Pri.Fmt "         seg=%04x ﾌﾞﾛｯｸ:ｻｲｽﾞ=%u(%x),数=%u,余ｻｲｽﾞ=%u,ptr=%x\N",\
+    	dbufBseg,dbufBsiz,dbufBsiz,blkCntB,rstSizB,ptrB
+    Pri.Fmt "PDATA    size=%-8lu  offset=%08lx\N",pdataSiz,pdataOfs
+    Pri.Fmt "         seg=%04x ﾌﾞﾛｯｸ:ｻｲｽﾞ=%u(%x),数=%u,余ｻｲｽﾞ=%u,ptr=%x\N",\
+    	dbufPseg,dbufPsiz,dbufPsiz,blkCntP,rstSizP,ptrP
+    Pri.Fmt "L:seg=%08lx siz=%d(%x)\N",flgLinBufSeg,flgLinBufSiz,flgLinBufSiz
   @if 0
-	ax = ptrA
-	if (ax != dbufAsiz)
-		Pri.S "Bad pointer A\N"
-	fi
-	ax = ptrB
-	if (ax != dbufBsiz)
-		Pri.S "Bad pointer B\N"
-	fi
-	ax = ptrP
-	if (ax != dbufPsiz)
-		Pri.S "Bad pointer P\N"
-	fi
+    ax = ptrA
+    if (ax != dbufAsiz)
+    	Pri.S "Bad pointer A\N"
+    fi
+    ax = ptrB
+    if (ax != dbufBsiz)
+    	Pri.S "Bad pointer B\N"
+    fi
+    ax = ptrP
+    if (ax != dbufPsiz)
+    	Pri.S "Bad pointer P\N"
+    fi
   @fi
-	return
+    return
 endproc
 
 
 var readSizErrMsg:b() = "データを必要なサイズ読み込めなかった\N"
 
 proc ReadBufA()
-//	フラグA のデータをファイルよりバッファに読み込む
+//  フラグA のデータをファイルよりバッファに読み込む
 enter
-	save pusha,ds
+    save pusha,ds
 
-	if (blkCntA == 0)
-		cx = rstSizA
-		dbufAsiz = cx
-		go.w (cx == 0) ERR	/////
-		rstSizA = 0
-	else
-		--blkCntA
-	fi
+    if (blkCntA == 0)
+    	cx = rstSizA
+    	dbufAsiz = cx
+    	go.w (cx == 0) ERR  /////
+    	rstSizA = 0
+    else
+    	--blkCntA
+    fi
 
-	bx = hdl
-	Subr.Seek bx, flagAofs
-	cx = dbufAsiz
-	dx.ax = ww(0,cx)
-	dx.ax += flagAofs
-	flagAofs = dx.ax
+    bx = hdl
+    Subr.Seek bx, flagAofs
+    cx = dbufAsiz
+    dx.ax = ww(0,cx)
+    dx.ax += flagAofs
+    flagAofs = dx.ax
 
-	ptrA = dx = 0
-	ds = dbufAseg
-	Subr.Read bx,dx,cx
-	Deb.Chk
-	if (==)
-		Deb.SaveReg
-		Pri.Fmt "フラグＡ読み込み:%x ? %x\N", dbufAsiz, ax
-		Deb.LoadReg
-	fi
-	if (cx != ax)
-		Subr.PriExit &readSizErrMsg
-	fi
+    ptrA = dx = 0
+    ds = dbufAseg
+    Subr.Read bx,dx,cx
+    Deb.Chk
+    if (==)
+    	Deb.SaveReg
+    	Pri.Fmt "フラグＡ読み込み:%x ? %x\N", dbufAsiz, ax
+    	Deb.LoadReg
+    fi
+    if (cx != ax)
+    	Subr.PriExit &readSizErrMsg
+    fi
   RET:
-	return
+    return
   ERR:
-  	if (chkReadBufA)
-  		Subr.PriS "フラグA を読み込みすぎた?!\N"
-	fi
-	chkReadBufA = 1
-	go RET
+    if (chkReadBufA)
+    	Subr.PriS "フラグA を読み込みすぎた?!\N"
+    fi
+    chkReadBufA = 1
+    go RET
 endproc
 
 proc ReadBufB()
-//	フラグB のデータをファイルよりバッファに読み込む
+//  フラグB のデータをファイルよりバッファに読み込む
 enter
-	save pusha,ds
+    save pusha,ds
 
-	ds = ax = %var
-	if (blkCntB == 0)
-		cx = rstSizB
-		dbufBsiz = cx
-		go.w (cx == 0) ERR	////
-		rstSizB = 0
-	else
-		--blkCntB
-	fi
-	bx = hdl
-	Subr.Seek bx, flagBofs
-	cx = dbufBsiz
-	dx.ax = ww(0,cx)
-	dx.ax += flagBofs
-	flagBofs = dx.ax
+    ds = ax = %var
+    if (blkCntB == 0)
+    	cx = rstSizB
+    	dbufBsiz = cx
+    	go.w (cx == 0) ERR  ////
+    	rstSizB = 0
+    else
+    	--blkCntB
+    fi
+    bx = hdl
+    Subr.Seek bx, flagBofs
+    cx = dbufBsiz
+    dx.ax = ww(0,cx)
+    dx.ax += flagBofs
+    flagBofs = dx.ax
 
-	ptrB = dx = 0
-	ds = dbufBseg
-	Subr.Read bx,dx,cx
-	Deb.Chk
-	if (==)
-		Deb.SaveReg
-		cx = ax
-		ds = ax = %var
-		Pri.Fmt "フラグＢ読み込み:";Pri.Hex4 dbufBsiz;Pri.Fmt " ? "
-								  Pri.Hex4 cx;Pri.Cr
-		Deb.LoadReg
-	fi
-	if (cx != ax)
-		Subr.PriExit &readSizErrMsg
-	fi
+    ptrB = dx = 0
+    ds = dbufBseg
+    Subr.Read bx,dx,cx
+    Deb.Chk
+    if (==)
+    	Deb.SaveReg
+    	cx = ax
+    	ds = ax = %var
+    	Pri.Fmt "フラグＢ読み込み:";Pri.Hex4 dbufBsiz;Pri.Fmt " ? "
+    	    	    	    	  Pri.Hex4 cx;Pri.Cr
+    	Deb.LoadReg
+    fi
+    if (cx != ax)
+    	Subr.PriExit &readSizErrMsg
+    fi
   RET:
-	return
+    return
   ERR:
-  	if (chkReadBufB)
-  		Subr.PriS "フラグB を読み込みすぎた?!\N"
-	fi
-	chkReadBufB = 1
-	go RET
+    if (chkReadBufB)
+    	Subr.PriS "フラグB を読み込みすぎた?!\N"
+    fi
+    chkReadBufB = 1
+    go RET
 endproc
 
 proc ReadBufP()
-//	ピクセル・データをファイルよりバッファに読み込む
+//  ピクセル・データをファイルよりバッファに読み込む
 enter
-	save pusha, ds, es
+    save pusha, ds, es
 
-	ds = ax = %var
-	if (blkCntP == 0)
-		cx = rstSizP
-		dbufPsiz = cx
-		go.w (cx == 0) ERR	////
-		rstSizP = 0
-	else
-		--blkCntP
-	fi
-	bx = hdl
-	Subr.Seek bx, pdataOfs
-	cx = dbufPsiz
-	dx.ax = ww(0,cx)
-	dx.ax += pdataOfs
-	pdataOfs = dx.ax
+    ds = ax = %var
+    if (blkCntP == 0)
+    	cx = rstSizP
+    	dbufPsiz = cx
+    	go.w (cx == 0) ERR  ////
+    	rstSizP = 0
+    else
+    	--blkCntP
+    fi
+    bx = hdl
+    Subr.Seek bx, pdataOfs
+    cx = dbufPsiz
+    dx.ax = ww(0,cx)
+    dx.ax += pdataOfs
+    pdataOfs = dx.ax
 
-	ptrP = dx = 0
-	ds = dbufPseg
-	Subr.Read bx,dx,cx
-	Deb.Chk
-	if (==)
-		Deb.SaveReg
-		cx = ax
-		ds = ax = %var
-		Pri.Fmt "ピクセル・データ読み込み:";Pri.Hex4 dbufPsiz;Pri.Fmt " ? "
-										  Pri.Hex4 cx;Pri.Cr
-		Deb.LoadReg
-	fi
-	if (cx != ax)
-		//dbufPsiz = ax
-		if (cx > ax)
-			cx -= ax
-			di = ax
-			es = ds
-			rep.set di,0,cx
-		fi
-		ds = ax = %var
-		Pri.Fmt "\aピクセル・"
-		Pri.Fmt &readSizErrMsg
-		Deb.Chk
-		if (==)
-			DspInfo
-		fi
-	fi
-	
+    ptrP = dx = 0
+    ds = dbufPseg
+    Subr.Read bx,dx,cx
+    Deb.Chk
+    if (==)
+    	Deb.SaveReg
+    	cx = ax
+    	ds = ax = %var
+    	Pri.Fmt "ピクセル・データ読み込み:";Pri.Hex4 dbufPsiz;Pri.Fmt " ? "
+    	    	    	    	    	  Pri.Hex4 cx;Pri.Cr
+    	Deb.LoadReg
+    fi
+    if (cx != ax)
+    	//dbufPsiz = ax
+    	if (cx > ax)
+    	    cx -= ax
+    	    di = ax
+    	    es = ds
+    	    rep.set di,0,cx
+    	fi
+    	ds = ax = %var
+    	Pri.Fmt "\aピクセル・"
+    	Pri.Fmt &readSizErrMsg
+    	Deb.Chk
+    	if (==)
+    	    DspInfo
+    	fi
+    fi
+
   RET:
-	return
+    return
   ERR:
-  	if (chkReadBufP)
-  		Subr.PriS "ピクセル・データを読み込みすぎた?!\N"
-	fi
-	chkReadBufP = 1
-	go RET
+    if (chkReadBufP)
+    	Subr.PriS "ピクセル・データを読み込みすぎた?!\N"
+    fi
+    chkReadBufP = 1
+    go RET
 endproc
 
 cvar readAcnt:b = 0, readAdat:b = 0
 @define ResetReadA()	readAcnt = 0;readAdat = 0
 
 *proc ReadA()
-//	フラグA のバッファより１ビット読み出す
-//	out cf
+//  フラグA のバッファより１ビット読み出す
+//  out cf
 begin
-	if (readAcnt == 0)
-		push ax,si,ds
-		si = ptrA
-		if (si >= dbufAsiz)
-			ReadBufA
-			si = ptrA
-		fi
-		ds = dbufAseg
-		rep.load al,si
-		readAdat = al
-		ptrA = si
-	//ds = si = %var
-	//Pri.Hex2 al
-	//Pri.Fmt "# "
-		readAcnt = 8
-		pop  ax,si,ds
-	fi
-	--readAcnt
-	|readAdat <<= 1
-	return
+    if (readAcnt == 0)
+    	push ax,si,ds
+    	si = ptrA
+    	if (si >= dbufAsiz)
+    	    ReadBufA
+    	    si = ptrA
+    	fi
+    	ds = dbufAseg
+    	rep.load al,si
+    	readAdat = al
+    	ptrA = si
+    //ds = si = %var
+    //Pri.Hex2 al
+    //Pri.Fmt "# "
+    	readAcnt = 8
+    	pop  ax,si,ds
+    fi
+    --readAcnt
+    |readAdat <<= 1
+    return
 endproc
 
 *proc ReadB()
-//	フラグB のバッファより１バイト読み出す
-//	out al
+//  フラグB のバッファより１バイト読み出す
+//  out al
 begin
-	save si,ds
-	si = ptrB
-	if (si >= dbufBsiz)
-		ReadBufB
-		si = ptrB
-	fi
-	ds = dbufBseg
-	rep.load al,si
-	ptrB = si
-	return
+    save si,ds
+    si = ptrB
+    if (si >= dbufBsiz)
+    	ReadBufB
+    	si = ptrB
+    fi
+    ds = dbufBseg
+    rep.load al,si
+    ptrB = si
+    return
 endproc
 
 *proc ReadP()
-//	ピクセル・データのバッファより 1バイト読み出す
-//	out ax
+//  ピクセル・データのバッファより 1バイト読み出す
+//  out ax
 begin
-	save si,ds
-	si = ptrP
-	if (si >= dbufPsiz)
-		ReadBufP
-		si = ptrP
-	fi
-	ds = dbufPseg
-	rep.load.w ax, si
-	ptrP = si
-	return
+    save si,ds
+    si = ptrP
+    if (si >= dbufPsiz)
+    	ReadBufP
+    	si = ptrP
+    fi
+    ds = dbufPseg
+    rep.load.w ax, si
+    ptrP = si
+    return
 endproc
 
 
 *proc SetBufAddr(bx)
 //  入力バッファの分割(フラグA,フラグB,ピクセル・データ,展開用ライン・バッファ)
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	//GH.GetMem bx,0x800,0xffff
-	ax = Mag.RDBUFSIZP
-	GH.GetMem bx,ax,ax
-	dbufAseg = ax
-	//cx -= 0x10
-	if (cx < Mag.RDBUFSIZP)
-		Subr.PriExit "Magのバッファのメモリが確保できない\N"
-	fi
-	dbufAsiz = Mag.RDBUFA
-	dbufBsiz = Mag.RDBUFB
-	dbufPsiz = Mag.RDBUFP
-	flgLinBufSiz = Mag.FLAGLINBUFSIZ
+    //GH.GetMem bx,0x800,0xffff
+    ax = Mag.RDBUFSIZP
+    GH.GetMem bx,ax,ax
+    dbufAseg = ax
+    //cx -= 0x10
+    if (cx < Mag.RDBUFSIZP)
+    	Subr.PriExit "Magのバッファのメモリが確保できない\N"
+    fi
+    dbufAsiz = Mag.RDBUFA
+    dbufBsiz = Mag.RDBUFB
+    dbufPsiz = Mag.RDBUFP
+    flgLinBufSiz = Mag.FLAGLINBUFSIZ
 
-	ax = dbufAseg
-	cx = dbufAsiz
-	Std.ParaSize cx,dx
-	ax += cx
-	dbufBseg = ax
+    ax = dbufAseg
+    cx = dbufAsiz
+    Std.ParaSize cx,dx
+    ax += cx
+    dbufBseg = ax
 
-	cx = dbufBsiz
-	Std.ParaSize cx,dx
-	ax += cx
-	dbufPseg = ax
+    cx = dbufBsiz
+    Std.ParaSize cx,dx
+    ax += cx
+    dbufPseg = ax
 
-	cx = dbufPsiz
-	Std.ParaSize cx,dx
-	ax += cx
-	flgLinBufSeg = ax
+    cx = dbufPsiz
+    Std.ParaSize cx,dx
+    ax += cx
+    flgLinBufSeg = ax
 
-	return
+    return
 endproc
 
 *proc InitRead(bx)
 //  Mag ファイル読み込みの準備
-//	arg si	GH.T へのポインタ
+//  arg si  GH.T へのポインタ
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	// MAGに8ﾄﾞｯﾄ間隔でない始点があったときのための、隠れたﾋﾟｸｾﾙの退避ﾊﾞｯﾌｧ
-	// 仕様解釈不十分だったための尻拭い処理^^;
-	if (GHT.startXofs)
-		GH.GetMem bx, 8, 8	//8*16/16
-		GHT.startXofsBufSeg = ax
-		GHT.startXofsBufSiz = cx
-	fi
-	hdl = dx = GHT.rdHdl
-	SetBufAddr bx
+    // MAGに8ﾄﾞｯﾄ間隔でない始点があったときのための、隠れたﾋﾟｸｾﾙの退避ﾊﾞｯﾌｧ
+    // 仕様解釈不十分だったための尻拭い処理^^;
+    if (GHT.startXofs)
+    	GH.GetMem bx, 8, 8  //8*16/16
+    	GHT.startXofsBufSeg = ax
+    	GHT.startXofsBufSiz = cx
+    fi
+    hdl = dx = GHT.rdHdl
+    SetBufAddr bx
 
-	// 読み込みチェック用変数初期化
-	ax = 0
-	chkReadBufA = ax
-	chkReadBufB = ax
-	chkReadBufP = ax
-	
-	// フラグA,フラグB,ﾋﾟｸｾﾙ･ﾃﾞｰﾀの各ブロック・サイズの数と余りサイズを計算
-	flagAofs = dx.ax = GHT.magRflagAofs
-	flagBofs = dx.ax = GHT.magRflagBofs
-	pdataOfs = dx.ax = GHT.magRpdataOfs
+    // 読み込みチェック用変数初期化
+    ax = 0
+    chkReadBufA = ax
+    chkReadBufB = ax
+    chkReadBufP = ax
 
-	flagAsiz = dx.ax = GHT.magRflagAsiz
-	div dx.ax, dbufAsiz
-	blkCntA = ax
-	rstSizA = dx
+    // フラグA,フラグB,ﾋﾟｸｾﾙ･ﾃﾞｰﾀの各ブロック・サイズの数と余りサイズを計算
+    flagAofs = dx.ax = GHT.magRflagAofs
+    flagBofs = dx.ax = GHT.magRflagBofs
+    pdataOfs = dx.ax = GHT.magRpdataOfs
 
-	flagBsiz = dx.ax = GHT.magRflagBsiz
-	div dx.ax,dbufBsiz
-	blkCntB = ax
-	rstSizB = dx
+    flagAsiz = dx.ax = GHT.magRflagAsiz
+    div dx.ax, dbufAsiz
+    blkCntA = ax
+    rstSizA = dx
 
-	pdataSiz = dx.ax = GHT.magRpdataSiz
-	div dx.ax,dbufPsiz
-	blkCntP = ax
-	rstSizP = dx
+    flagBsiz = dx.ax = GHT.magRflagBsiz
+    div dx.ax,dbufBsiz
+    blkCntB = ax
+    rstSizB = dx
 
-	Deb.Chk
-	if (==)
-		DspInfo
-	fi
+    pdataSiz = dx.ax = GHT.magRpdataSiz
+    div dx.ax,dbufPsiz
+    blkCntP = ax
+    rstSizP = dx
 
-	// バッファに最初のデータを読み込む
+    Deb.Chk
+    if (==)
+    	DspInfo
+    fi
+
+    // バッファに最初のデータを読み込む
 // Pri.Fmt "rd buf A\N"
-	ReadBufA
-	ResetReadA
+    ReadBufA
+    ResetReadA
 // Pri.Fmt "rd buf B\N"
-	ReadBufB
+    ReadBufB
 // Pri.Fmt "rd buf P\N"
-	ReadBufP
+    ReadBufP
 
-	// フラグ展開用のライン・バッファの初期化
-	cx = flgLinBufSiz
-	es = flgLinBufSeg
-	di = 0
-	rep.set di,0,cx
-	return
+    // フラグ展開用のライン・バッファの初期化
+    cx = flgLinBufSiz
+    es = flgLinBufSeg
+    di = 0
+    rep.set di,0,cx
+    return
 endproc
 
 *proc ReadPDB(ght:d, lincnt:w);cdecl
 // ピクセル・データ・バッファに ax 行, MAGを展開
-//	arg  si  GH.T へのポインタ（ダミー）
-//	arg  ax  取得する行数
+//  arg  si  GH.T へのポインタ（ダミー）
+//  arg  ax  取得する行数
 enter
-	save pusha,es,ds
-	local sizXX:w, cnt:w
-	local pdataBuf:d,sizeX:w
+    save pusha,es,ds
+    local sizXX:w, cnt:w
+    local pdataBuf:d,sizeX:w
 //local cnt2:w = ax
 
-	ds.bx = ght
+    ds.bx = ght
 
-	// GH.T より展開に必要な変数をコピー
-	sizeX = ax = GHT.sizeXo
-	pdataBuf = dx.ax = ww(GHT.pdbSeg, GHT.hisSizO)
+    // GH.T より展開に必要な変数をコピー
+    sizeX = ax = GHT.sizeXo
+    pdataBuf = dx.ax = ww(GHT.pdbSeg, GHT.hisSizO)
 
-	// MAGに8ﾄﾞｯﾄ間隔でない始点があったときのための、隠れたﾋﾟｸｾﾙの退避ﾊﾞｯﾌｧ
-	// 仕様解釈不十分だったための尻拭い処理^^;
-	if (GHT.startXofsBufSeg)
-		push ds
-			es = GHT.pdbSeg
-			ds = GHT.startXofsBufSeg
-			di = si = 0
-			dx = 16
-			loop
-				push di
-					rep.cpy di,si,8
-				pop  di
-				di += sizeX
-			endloop (--dx)
-		pop  ds
-	fi
+    // MAGに8ﾄﾞｯﾄ間隔でない始点があったときのための、隠れたﾋﾟｸｾﾙの退避ﾊﾞｯﾌｧ
+    // 仕様解釈不十分だったための尻拭い処理^^;
+    if (GHT.startXofsBufSeg)
+    	push ds
+    	    es = GHT.pdbSeg
+    	    ds = GHT.startXofsBufSeg
+    	    di = si = 0
+    	    dx = 16
+    	    loop
+    	    	push di
+    	    	    rep.cpy di,si,8
+    	    	pop  di
+    	    	di += sizeX
+    	    endloop (--dx)
+    	pop  ds
+    fi
 
-	//展開で用いる相対位置のオフセット値を求める.
-	//１６色時、１dot４ビット。作業1ピクセル(2byte)は4dot単位
-	//256 色時、１dot８ビット。作業1ピクセル(2byte)は2dot単位
-	cx = sizeX
-	dx = 4
-	if (GHT.pln == 8)
-		dx = 2
-	fi
-	ax = 0
-	pos(0) = ax		//( 0, 0)
-	ax += dx
-	pos(1) = ax		//(-1, 0)
-	ax += dx
-	pos(2) = ax		//(-2, 0)
-	ax += dx
-	ax += dx
-	pos(3) = ax		//(-4, 0)
-	ax = cx
-	pos(4) = ax		//( 0,-1)
-	ax += dx
-	pos(5) = ax		//(-1,-1)
-	ax = cx
-	ax <<= 1
-	pos(6) = ax		//( 0,-2)
-	ax += dx
-	pos(7) = ax		//(-1,-2)
-	ax += dx
-	pos(8) = ax		//(-2,-2)
-	ax = cx
-	ax <<= 2
-	pos(9) = ax		//( 0,-4)
-	ax += dx
-	pos(10) = ax	//(-1,-4)
-	ax += dx
-	pos(11) = ax	//(-2,-4)
-	ax = cx
-	ax <<= 3
-	pos(12) = ax	//( 0,-8)
-	ax += dx
-	pos(13) = ax	//(-1,-8)
-	ax += dx
-	pos(14) = ax	//(-2,-8)
-	ax = cx
-	ax <<= 4
-	pos(15) = ax	//(0,-16)
+    //展開で用いる相対位置のオフセット値を求める.
+    //１６色時、１dot４ビット。作業1ピクセル(2byte)は4dot単位
+    //256 色時、１dot８ビット。作業1ピクセル(2byte)は2dot単位
+    cx = sizeX
+    dx = 4
+    if (GHT.pln == 8)
+    	dx = 2
+    fi
+    ax = 0
+    pos(0) = ax     //( 0, 0)
+    ax += dx
+    pos(1) = ax     //(-1, 0)
+    ax += dx
+    pos(2) = ax     //(-2, 0)
+    ax += dx
+    ax += dx
+    pos(3) = ax     //(-4, 0)
+    ax = cx
+    pos(4) = ax     //( 0,-1)
+    ax += dx
+    pos(5) = ax     //(-1,-1)
+    ax = cx
+    ax <<= 1
+    pos(6) = ax     //( 0,-2)
+    ax += dx
+    pos(7) = ax     //(-1,-2)
+    ax += dx
+    pos(8) = ax     //(-2,-2)
+    ax = cx
+    ax <<= 2
+    pos(9) = ax     //( 0,-4)
+    ax += dx
+    pos(10) = ax    //(-1,-4)
+    ax += dx
+    pos(11) = ax    //(-2,-4)
+    ax = cx
+    ax <<= 3
+    pos(12) = ax    //( 0,-8)
+    ax += dx
+    pos(13) = ax    //(-1,-8)
+    ax += dx
+    pos(14) = ax    //(-2,-8)
+    ax = cx
+    ax <<= 4
+    pos(15) = ax    //(0,-16)
 
-	//
-	cnt = ax = lincnt
-	es.di = pdataBuf
-	ax = sizeX
-	if.w (GHT.pln == 4)
-		ax >>= 3
-		sizXX = ax			// 8ドット単位の横幅
+    //
+    cnt = ax = lincnt
+    es.di = pdataBuf
+    ax = sizeX
+    if.w (GHT.pln == 4)
+    	ax >>= 3
+    	sizXX = ax  	    // 8ドット単位の横幅
 
-		// 指定行数分、ループ
-		loop.w
-			// フラグA フラグB より１行分のフラグを展開
-			//bx = flgLinBufSeg
-			//dx = %var
+    	// 指定行数分、ループ
+    	loop.w
+    	    // フラグA フラグB より１行分のフラグを展開
+    	    //bx = flgLinBufSeg
+    	    //dx = %var
 
-			ds = flgLinBufSeg
-			cx = sizXX
-			si = 0
-			loop
-				//ds = bx
-				ReadA
-				if (_c_)
-					ReadB
-					b[si] ^= al
-					//ds = dx
-					//Pri.Hex2 al
-					//Pri.Fmt "  "
-				//else
-					//b[si] ^= 0x00
-					//ds = dx
-					//Pri.Fmt "**  "
-				fi
-				++si
-			endloop (--cx)
-			//
-		  @if 0
-			Deb.Chk
-			if (==)
-				bx = flgLinBufSeg
-				dx = %var
-				cx = sizXX
-				si = 0
-				loop
-					ds = bx
-					rep.load al,si
-					ds = dx
-					Pri.Hex2 al
-					Pri.Fmt "  "
-					//if ((cx & 0x0f) == 0)
-					//	Pri.Cr
-					//fi
-				endloop (--cx)
-				Pri.Cr
-			fi
-		  @fi
-			// フラグ・データより画像１行を展開
-			cx = sizXX //sizXX
-			bx = 0
-			loop					//１回のループで８ドット(バイト)展開する
-				ds = flgLinBufSeg
-				al = b[bx]
-				++bx
-				ds = pdataBuf.h
-				push ax
-				al >>= 4
-				if (al == 0)		//相対位置番号が０のとき、
-					ReadP			//		ファイルより２バイト入力
-					dl = dh = ah
-					ah = al
-					ah &= 0x0f
-					al >>= 4
-					rep.set.w di,ax
-					ax = dx
-					ah &= 0x0f
-					al >>= 4
-					rep.set.w di,ax
-				else				//相対値番号１～１５のとき
-					ah = 0			//指定位置より１ピクセル取得
-					si = ax
-					si <<= 1
-					ax = pos[si]
-					si = di
-					si -= ax
-					rep.cpy.w di,si
-					rep.cpy.w di,si
-				fi
-				pop ax
-				al &= 0x0f
-				if (al == 0)		//相対位置番号が０のとき、
-					ReadP			//		ファイルより２バイト入力
-					dl = dh = ah
-					ah = al
-					ah &= 0x0f
-					al >>= 4
-					rep.set.w di,ax
-					ax = dx
-					ah &= 0x0f
-					al >>= 4
-					rep.set.w di,ax
-				else				//相対値番号１～１５のとき
-					ah = 0			//指定位置より１ピクセル取得
-					si = ax
-					si <<= 1
-					ax = pos[si]
-					si = di
-					si -= ax
-					rep.cpy.w di,si
-					rep.cpy.w di,si
-				fi
-			endloop (--cx)
-		endloop (--cnt)
-	else.w
-		ax >>= 2
-		sizXX = ax			// 4ドット単位の横幅
+    	    ds = flgLinBufSeg
+    	    cx = sizXX
+    	    si = 0
+    	    loop
+    	    	//ds = bx
+    	    	ReadA
+    	    	if (_c_)
+    	    	    ReadB
+    	    	    b[si] ^= al
+    	    	    //ds = dx
+    	    	    //Pri.Hex2 al
+    	    	    //Pri.Fmt "  "
+    	    	//else
+    	    	    //b[si] ^= 0x00
+    	    	    //ds = dx
+    	    	    //Pri.Fmt "**  "
+    	    	fi
+    	    	++si
+    	    endloop (--cx)
+    	    //
+    	  @if 0
+    	    Deb.Chk
+    	    if (==)
+    	    	bx = flgLinBufSeg
+    	    	dx = %var
+    	    	cx = sizXX
+    	    	si = 0
+    	    	loop
+    	    	    ds = bx
+    	    	    rep.load al,si
+    	    	    ds = dx
+    	    	    Pri.Hex2 al
+    	    	    Pri.Fmt "  "
+    	    	    //if ((cx & 0x0f) == 0)
+    	    	    //	Pri.Cr
+    	    	    //fi
+    	    	endloop (--cx)
+    	    	Pri.Cr
+    	    fi
+    	  @fi
+    	    // フラグ・データより画像１行を展開
+    	    cx = sizXX //sizXX
+    	    bx = 0
+    	    loop    	    	    //１回のループで８ドット(バイト)展開する
+    	    	ds = flgLinBufSeg
+    	    	al = b[bx]
+    	    	++bx
+    	    	ds = pdataBuf.h
+    	    	push ax
+    	    	al >>= 4
+    	    	if (al == 0)	    //相対位置番号が０のとき、
+    	    	    ReadP   	    //	    ファイルより２バイト入力
+    	    	    dl = dh = ah
+    	    	    ah = al
+    	    	    ah &= 0x0f
+    	    	    al >>= 4
+    	    	    rep.set.w di,ax
+    	    	    ax = dx
+    	    	    ah &= 0x0f
+    	    	    al >>= 4
+    	    	    rep.set.w di,ax
+    	    	else	    	    //相対値番号１～１５のとき
+    	    	    ah = 0  	    //指定位置より１ピクセル取得
+    	    	    si = ax
+    	    	    si <<= 1
+    	    	    ax = pos[si]
+    	    	    si = di
+    	    	    si -= ax
+    	    	    rep.cpy.w di,si
+    	    	    rep.cpy.w di,si
+    	    	fi
+    	    	pop ax
+    	    	al &= 0x0f
+    	    	if (al == 0)	    //相対位置番号が０のとき、
+    	    	    ReadP   	    //	    ファイルより２バイト入力
+    	    	    dl = dh = ah
+    	    	    ah = al
+    	    	    ah &= 0x0f
+    	    	    al >>= 4
+    	    	    rep.set.w di,ax
+    	    	    ax = dx
+    	    	    ah &= 0x0f
+    	    	    al >>= 4
+    	    	    rep.set.w di,ax
+    	    	else	    	    //相対値番号１～１５のとき
+    	    	    ah = 0  	    //指定位置より１ピクセル取得
+    	    	    si = ax
+    	    	    si <<= 1
+    	    	    ax = pos[si]
+    	    	    si = di
+    	    	    si -= ax
+    	    	    rep.cpy.w di,si
+    	    	    rep.cpy.w di,si
+    	    	fi
+    	    endloop (--cx)
+    	endloop (--cnt)
+    else.w
+    	ax >>= 2
+    	sizXX = ax  	    // 4ドット単位の横幅
 
-		// 指定行数分、ループ
-		loop.w
-			// フラグA フラグB より１行分のフラグを展開
-			//bx = flgLinBufSeg
-			//dx = %var
+    	// 指定行数分、ループ
+    	loop.w
+    	    // フラグA フラグB より１行分のフラグを展開
+    	    //bx = flgLinBufSeg
+    	    //dx = %var
 
-			ds = flgLinBufSeg
-			cx = sizXX
-			si = 0
-			loop
-				//ds = bx
-				ReadA
-				if (_c_)
-					ReadB
-					b[si] ^= al
-					//ds = dx
-					//Pri.Hex2 al
-					//Pri.Fmt "  "
-				//else
-					//b[si] ^= 0x00
-					//ds = dx
-					//Pri.Fmt "**  "
-				fi
-				++si
-			endloop (--cx)
-			//Pri.Cr
-			//
-		  @if 0
-			Deb.Chk
-			if (==)
-				bx = flgLinBufSeg
-				dx = %var
-				cx = sizXX
-				si = 0
-				loop
-					ds = bx
-					rep.load al,si
-					ds = dx
-					Pri.Hex2 al
-					Pri.Fmt "  "
-					//if ((cx & 0x0f) == 0)
-					//	Pri.Cr
-					//fi
-				endloop (--cx)
-				Pri.Cr
-			fi
-			//Pri.Cr
-		  @fi
-			// フラグ・データより画像１行を展開
-			cx = sizXX
-			bx = 0
-			loop					//１回のループで4ドット(バイト)展開する
-				ds = flgLinBufSeg
-				al = b[bx]
-				++bx
-				ds = pdataBuf.h
-				push ax
-				al >>= 4
-				if (al == 0)		//相対位置番号が０のとき、
-					ReadP			//		ファイルより２バイト入力
-					rep.set.w di,ax
-				else				//相対値番号１～１５のとき
-					ah = 0			//指定位置より１ピクセル(2dot)取得
-					si = ax
-					si <<= 1
-					ax = pos[si]
-					si = di
-					si -= ax
-					rep.cpy.w di,si
-				fi
-				pop ax
-				al &= 0x0f
-				if (al == 0)		//相対位置番号が０のとき、
-					ReadP			//		ファイルより２バイト入力
-					rep.set.w di,ax
-				else				//相対値番号１～１５のとき
-					ah = 0			//指定位置より１ピクセル取得
-					si = ax
-					si <<= 1
-					ax = pos[si]
-					si = di
-					si -= ax
-					rep.cpy.w di,si
-				fi
-			endloop (--cx)
-		endloop (--cnt)
-	fi
+    	    ds = flgLinBufSeg
+    	    cx = sizXX
+    	    si = 0
+    	    loop
+    	    	//ds = bx
+    	    	ReadA
+    	    	if (_c_)
+    	    	    ReadB
+    	    	    b[si] ^= al
+    	    	    //ds = dx
+    	    	    //Pri.Hex2 al
+    	    	    //Pri.Fmt "  "
+    	    	//else
+    	    	    //b[si] ^= 0x00
+    	    	    //ds = dx
+    	    	    //Pri.Fmt "**  "
+    	    	fi
+    	    	++si
+    	    endloop (--cx)
+    	    //Pri.Cr
+    	    //
+    	  @if 0
+    	    Deb.Chk
+    	    if (==)
+    	    	bx = flgLinBufSeg
+    	    	dx = %var
+    	    	cx = sizXX
+    	    	si = 0
+    	    	loop
+    	    	    ds = bx
+    	    	    rep.load al,si
+    	    	    ds = dx
+    	    	    Pri.Hex2 al
+    	    	    Pri.Fmt "  "
+    	    	    //if ((cx & 0x0f) == 0)
+    	    	    //	Pri.Cr
+    	    	    //fi
+    	    	endloop (--cx)
+    	    	Pri.Cr
+    	    fi
+    	    //Pri.Cr
+    	  @fi
+    	    // フラグ・データより画像１行を展開
+    	    cx = sizXX
+    	    bx = 0
+    	    loop    	    	    //１回のループで4ドット(バイト)展開する
+    	    	ds = flgLinBufSeg
+    	    	al = b[bx]
+    	    	++bx
+    	    	ds = pdataBuf.h
+    	    	push ax
+    	    	al >>= 4
+    	    	if (al == 0)	    //相対位置番号が０のとき、
+    	    	    ReadP   	    //	    ファイルより２バイト入力
+    	    	    rep.set.w di,ax
+    	    	else	    	    //相対値番号１～１５のとき
+    	    	    ah = 0  	    //指定位置より１ピクセル(2dot)取得
+    	    	    si = ax
+    	    	    si <<= 1
+    	    	    ax = pos[si]
+    	    	    si = di
+    	    	    si -= ax
+    	    	    rep.cpy.w di,si
+    	    	fi
+    	    	pop ax
+    	    	al &= 0x0f
+    	    	if (al == 0)	    //相対位置番号が０のとき、
+    	    	    ReadP   	    //	    ファイルより２バイト入力
+    	    	    rep.set.w di,ax
+    	    	else	    	    //相対値番号１～１５のとき
+    	    	    ah = 0  	    //指定位置より１ピクセル取得
+    	    	    si = ax
+    	    	    si <<= 1
+    	    	    ax = pos[si]
+    	    	    si = di
+    	    	    si -= ax
+    	    	    rep.cpy.w di,si
+    	    	fi
+    	    endloop (--cx)
+    	endloop (--cnt)
+    fi
 
-	// MAGに8ﾄﾞｯﾄ間隔でない始点があったときのための、隠れたﾋﾟｸｾﾙの退避ﾊﾞｯﾌｧ
-	// 仕様解釈不十分だったための尻拭い処理^^;
-	ds.bx = ght
-	if (GHT.startXofsBufSeg)
-		//push ds
-			si = GHT.blkSizO
-			es = GHT.startXofsBufSeg
-			ds = GHT.pdbSeg
-			di = 0
-			dx = 16
-			rep.inc
-			loop
-				push si
-					rep.cpy di,si,8
-				pop  si
-				si += sizeX
-			endloop (--dx)
-		//pop  ds
-	fi
-	return
+    // MAGに8ﾄﾞｯﾄ間隔でない始点があったときのための、隠れたﾋﾟｸｾﾙの退避ﾊﾞｯﾌｧ
+    // 仕様解釈不十分だったための尻拭い処理^^;
+    ds.bx = ght
+    if (GHT.startXofsBufSeg)
+    	//push ds
+    	    si = GHT.blkSizO
+    	    es = GHT.startXofsBufSeg
+    	    ds = GHT.pdbSeg
+    	    di = 0
+    	    dx = 16
+    	    rep.inc
+    	    loop
+    	    	push si
+    	    	    rep.cpy di,si,8
+    	    	pop  si
+    	    	si += sizeX
+    	    endloop (--dx)
+    	//pop  ds
+    fi
+    return
 endproc
 
 ///////////////////////////////////////////////////////////////////////////////

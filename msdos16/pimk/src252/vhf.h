@@ -1,10 +1,10 @@
-#define VHF_SIZE	0x4000
+#define VHF_SIZE    0x4000
 
 int  VHF_Init(	int vvSeg, int mmSeg,unsigned mmSzs,
-				int emsHdl, unsigned emsSeg, unsigned emsCnt,
-				int pln, int xsz,int ysz,int xstart,int ystart,
-				unsigned char far *pal,int asp1,int asp2,
-				int bcol,int reductFlg,int loopFlg);
+    	    	int emsHdl, unsigned emsSeg, unsigned emsCnt,
+    	    	int pln, int xsz,int ysz,int xstart,int ystart,
+    	    	unsigned char far *pal,int asp1,int asp2,
+    	    	int bcol,int reductFlg,int loopFlg);
 void VHF_Start(void);
 void VHF_End(int tone);
 void VHF_ShowOn(void);
@@ -31,7 +31,7 @@ void VHF_SclRig(unsigned Seg, int d);
 unsigned long VHF_GetSclOfs(unsigned Seg);
 
 int  VHF_InitSF(int vvSeg, int mmSeg,unsigned mmSzs,
-				int emsHdl, unsigned emsSeg, unsigned emsCnt,
-				int pln, int xsz,int ysz,int xstart,int ystart,
-				unsigned char far *pal,int asp1,int asp2,
-				int bcol,int reductFlg,int loopFlg);
+    	    	int emsHdl, unsigned emsSeg, unsigned emsCnt,
+    	    	int pln, int xsz,int ysz,int xstart,int ystart,
+    	    	unsigned char far *pal,int asp1,int asp2,
+    	    	int bcol,int reductFlg,int loopFlg);

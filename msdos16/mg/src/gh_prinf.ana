@@ -1,226 +1,226 @@
 submodule GH
-	import Subr
-	import Pri
-	import Deb
-	import Dos
-	import Fname
+    import Subr
+    import Pri
+    import Deb
+    import Dos
+    import Fname
 
-	import FNM_FSIZ
+    import FNM_FSIZ
 
-@define	GHT()	GH.T[ds:0]
+@define GHT()	GH.T[ds:0]
 
 *proc Asiz(bx, cx.si)
 begin
-	save dx,di,es,ds
-	cvar siz:d
+    save dx,di,es,ds
+    cvar siz:d
 
-	dx.ax = GHT.sizeX * GHT.sizeY
+    dx.ax = GHT.sizeX * GHT.sizeY
   @if 0
-	if (al)
-		al = 0
-		ah += 1
-		dx +=. 0	//adc dx,0
-	fi
+    if (al)
+    	al = 0
+    	ah += 1
+    	dx +=. 0    //adc dx,0
+    fi
   @else
-  	if (dx == 0 && ax < 0x100)
-  		ax = 0x100
-  	fi
+    if (dx == 0 && ax < 0x100)
+    	ax = 0x100
+    fi
   @fi
-	dx.ax >>= 8
-	if (GHT.pln == 4)
-		dx.ax >>= 1
-		if (_c_)
-			dx.ax += 1
-		fi
-	fi
-	siz = dx.ax
-	FNM_FSIZ.FileSize cx.si
+    dx.ax >>= 8
+    if (GHT.pln == 4)
+    	dx.ax >>= 1
+    	if (_c_)
+    	    dx.ax += 1
+    	fi
+    fi
+    siz = dx.ax
+    FNM_FSIZ.FileSize cx.si
   @if 1
-	if (al)
-		al = 0
-		ah += 1
-		dx +=. 0	//adc dx,0
-	fi
+    if (al)
+    	al = 0
+    	ah += 1
+    	dx +=. 0    //adc dx,0
+    fi
   @else
-	if (dx == 0 && ax < 0x100)
-		ax = 0x100
-  	fi
+    if (dx == 0 && ax < 0x100)
+    	ax = 0x100
+    fi
   @fi
-	dx.ax >>= 8
-	if (siz.h == 0 && siz.l && dx == 0)
-		dx.ax = ax * 100
-		div dx.ax, siz.l
-		if (dx)
-			ax += 1
-		fi
-	else
-		ax = 0
-	fi
-	return
+    dx.ax >>= 8
+    if (siz.h == 0 && siz.l && dx == 0)
+    	dx.ax = ax * 100
+    	div dx.ax, siz.l
+    	if (dx)
+    	    ax += 1
+    	fi
+    else
+    	ax = 0
+    fi
+    return
 endproc
 
 
 *proc DspInfo0(GHTptr:d);cdecl
-//	GH.Tのデータの表示
-//	arg si	GH.Tへのポインタ
-//	arg ax	タイトル・メッセージ
-//	arg bx	0:少し	1:詳しく
+//  GH.Tのデータの表示
+//  arg si  GH.Tへのポインタ
+//  arg ax  タイトル・メッセージ
+//  arg bx  0:少し  1:詳しく
 enter
-	save pusha,es,ds
-	local asiz:w
+    save pusha,es,ds
+    local asiz:w
 
  Deb.Chk;if (==);Pri.Fmt "GH.DspInfo %lx\N", GHTptr;fi
-	ds.bx = GHTptr
-	cx.si = GHT.rdName
-	Asiz bx,cx.si
-	asiz = ax
-	push ds
-		ds.si = cx.si
-		Fname.GetFnameAddr si
-	pop  ds
-	Pri.Fmt "%-12Fs", cx.si
-	Pri.Fmt " %3d %4d*%-4d",GHT.col, GHT.sizeX, GHT.sizeY
-	if (asiz)
-		Pri.Fmt " %4d%%", asiz
-	else
-		Pri.Fmt "      ", asiz
-	fi
-	ah = 0;al = GHT.asp1
-	dh = 0;dl = GHT.asp2
-	Pri.Fmt " %2d:%-2d", ax,dx
-	ax = &GHT.macName
-	Pri.Fmt " %-4Fs", ds.ax
-	Pri.Fmt " (%d,%d)-(%d,%d)",	\
-		GHT.startX, GHT.startY, GHT.endX, GHT.endY
-	//Pri.Fmt "\N"
-	return
+    ds.bx = GHTptr
+    cx.si = GHT.rdName
+    Asiz bx,cx.si
+    asiz = ax
+    push ds
+    	ds.si = cx.si
+    	Fname.GetFnameAddr si
+    pop  ds
+    Pri.Fmt "%-12Fs", cx.si
+    Pri.Fmt " %3d %4d*%-4d",GHT.col, GHT.sizeX, GHT.sizeY
+    if (asiz)
+    	Pri.Fmt " %4d%%", asiz
+    else
+    	Pri.Fmt "      ", asiz
+    fi
+    ah = 0;al = GHT.asp1
+    dh = 0;dl = GHT.asp2
+    Pri.Fmt " %2d:%-2d", ax,dx
+    ax = &GHT.macName
+    Pri.Fmt " %-4Fs", ds.ax
+    Pri.Fmt " (%d,%d)-(%d,%d)", \
+    	GHT.startX, GHT.startY, GHT.endX, GHT.endY
+    //Pri.Fmt "\N"
+    return
 endproc
 
 
 
 *proc DspInfo(GHTptr:d,moreFlg:w);cdecl
-//	GH.Tのデータの表示
-//	arg si	GH.Tへのポインタ
-//	arg ax	タイトル・メッセージ
-//	arg bx	0:少し	1:詳しく
+//  GH.Tのデータの表示
+//  arg si  GH.Tへのポインタ
+//  arg ax  タイトル・メッセージ
+//  arg bx  0:少し  1:詳しく
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
- 	if (moreFlg == 0)
- 		DspInfo0 GHTptr
- 		return
- 	fi
+    if (moreFlg == 0)
+    	DspInfo0 GHTptr
+    	return
+    fi
  Deb.Chk;if (==);Pri.Fmt "GH.DspInfo %lx\N", GHTptr;fi
-	ds.bx = GHTptr
-	ax.di = GHT.wrtFmtName
-	if (ax)
-		es = ax
-		if (b[es:di] == '#')	//ローダのとき
-			Pri.Fmt "%Fs Loader> %Fs\N", GHT.rdFmtName, GHT.rdName
-		else
-			es.di = GHT.rdFmtName
-			if (b[es:di] == '#')	//セーバのとき
-				Pri.Fmt "%Fs Saver> %Fs\N",					\
-					GHT.wrtFmtName,GHT.wrtName
-			else				//普通のコンバータのとき
-				Pri.Fmt "[%3Fs->%-3Fs] %Fs -> %Fs\N",			\
-					GHT.rdFmtName, GHT.wrtFmtName,	\
-					GHT.rdName, GHT.wrtName
-			fi
-		fi
-		es = ds
-	else	//ヘッダ情報表示のとき
-		Pri.Fmt "[%3Fs] %Fs\N",GHT.rdFmtName, GHT.rdName
-	fi
-	Pri.Fmt "         ｻｲｽﾞ%4d*%-4d", GHT.sizeX, GHT.sizeY
-	Pri.Fmt " %3d色", GHT.col
-	ah = 0;al = GHT.asp1
-	dh = 0;dl = GHT.asp2
-	Pri.Fmt " ﾄﾞｯﾄ縦横比%2d:%-2d", ax, dx
-	ax = &GHT.macName
-	Pri.Fmt " ｾｰﾊﾞ:%-4Fs", ds.ax
-	Pri.Fmt " (%d,%d)-(%d,%d)",	\
-		GHT.startX, GHT.startY, GHT.endX, GHT.endY
-	Pri.Fmt "\N"
-	if (GHT.fmtR == GH.PI)
-		ah=0;al = GHT.piDfltPalFlg.l
-		if (GHT.piDfltPalFlg)
-			ax = ", デフォルト・パレット使用"
-		else
-			ax = ""
-		fi
-		dx = %var
-		Pri.Fmt "         Pi [拡張領域サイズ:%dバイト%Fs]\N", \
-			GHT.piExSiz,	dx.ax
-	fi
-	ah=0;al = GHT.magMacNo
-	ch=0;cl = GHT.magMacFlg
-	dh=0;dl = GHT.magScrnMode
-	if (GHT.fmtR == GH.MAG||dx||cx||ax)
-		Pri.Fmt "         MAG[機種番号:%d($%02x) 機種ﾌﾗｸﾞ:%d($%02x) ｽｸﾘｰﾝ･ﾓｰﾄﾞ:$%02x]\N", ax,ax,cx,cx,dx
-	fi
-	if (GHT.fmtR == GH.TIF)
-		Pri.Fmt "         TIF[解像度(dot/inch)  横:%ld/%ld  縦:%ld/%ld]\N",\
-			GHT.tifXdpi(0), GHT.tifXdpi(1),						\
-			GHT.tifYdpi(0), GHT.tifYdpi(1)
-	fi
-	if (GHT.fmtR == GH.BMP)
-		Pri.Fmt "         BMP[解像度(dot/meter) 横:%ld  縦:%ld]\N",\
-			GHT.bmpXdpm, GHT.bmpYdpm
-	fi
-	if (GHT.palFname.h)
-		Pri.Fmt "         入力ﾊﾟﾚｯﾄ･ﾌｧｲﾙ:%Fs\N", GHT.palFname
-	fi
-	if (GHT.userNameLen)
-		Pri.Fmt "         ユーザ名:%Fs\N", GHT.userName
-	fi
-	if (GHT.commentLen)
-		Pri.Fmt "         コメント:%Fs\N", GHT.comment
-	fi
-	ax = moreFlg
-	ax -= 1
-	Deb.Chk
-	if (==)
-		ax = 1
-	fi
-	if (ax)
-		dx = GHT.col
-		push ds
-			ds.si = GHT.rgbPal
-			cx = 0
-			rep.inc
-			Pri.Fmt "         RGB パレット\N          "
-			loop
-				//Pri.Fmt "\t%2x:%2x %2x %2x", cx, b[si], b[si+1], b[si+2]
-				block 
-					al = b[si+2]; ah = 0; push ax
-					al = b[si+1]; ah = 0; push ax
-					al = b[si+0]; ah = 0; push ax
-					push cx
-					push "  %2x:%02x %02x %02x"
-					call Pri.Fmt
-					sp += 10
-				endblock
-				si += 3
-				++cx
-				if ((cx & 0x03) == 0)
-					Pri.Fmt "\N          "
-				fi
-			endloop (cx < dx)
-		pop  ds
-	fi
+    ds.bx = GHTptr
+    ax.di = GHT.wrtFmtName
+    if (ax)
+    	es = ax
+    	if (b[es:di] == '#')	//ローダのとき
+    	    Pri.Fmt "%Fs Loader> %Fs\N", GHT.rdFmtName, GHT.rdName
+    	else
+    	    es.di = GHT.rdFmtName
+    	    if (b[es:di] == '#')    //セーバのとき
+    	    	Pri.Fmt "%Fs Saver> %Fs\N", 	    	    \
+    	    	    GHT.wrtFmtName,GHT.wrtName
+    	    else    	    	//普通のコンバータのとき
+    	    	Pri.Fmt "[%3Fs->%-3Fs] %Fs -> %Fs\N",	    	\
+    	    	    GHT.rdFmtName, GHT.wrtFmtName,  \
+    	    	    GHT.rdName, GHT.wrtName
+    	    fi
+    	fi
+    	es = ds
+    else    //ヘッダ情報表示のとき
+    	Pri.Fmt "[%3Fs] %Fs\N",GHT.rdFmtName, GHT.rdName
+    fi
+    Pri.Fmt "         ｻｲｽﾞ%4d*%-4d", GHT.sizeX, GHT.sizeY
+    Pri.Fmt " %3d色", GHT.col
+    ah = 0;al = GHT.asp1
+    dh = 0;dl = GHT.asp2
+    Pri.Fmt " ﾄﾞｯﾄ縦横比%2d:%-2d", ax, dx
+    ax = &GHT.macName
+    Pri.Fmt " ｾｰﾊﾞ:%-4Fs", ds.ax
+    Pri.Fmt " (%d,%d)-(%d,%d)", \
+    	GHT.startX, GHT.startY, GHT.endX, GHT.endY
+    Pri.Fmt "\N"
+    if (GHT.fmtR == GH.PI)
+    	ah=0;al = GHT.piDfltPalFlg.l
+    	if (GHT.piDfltPalFlg)
+    	    ax = ", デフォルト・パレット使用"
+    	else
+    	    ax = ""
+    	fi
+    	dx = %var
+    	Pri.Fmt "         Pi [拡張領域サイズ:%dバイト%Fs]\N", \
+    	    GHT.piExSiz,    dx.ax
+    fi
+    ah=0;al = GHT.magMacNo
+    ch=0;cl = GHT.magMacFlg
+    dh=0;dl = GHT.magScrnMode
+    if (GHT.fmtR == GH.MAG||dx||cx||ax)
+    	Pri.Fmt "         MAG[機種番号:%d($%02x) 機種ﾌﾗｸﾞ:%d($%02x) ｽｸﾘｰﾝ･ﾓｰﾄﾞ:$%02x]\N", ax,ax,cx,cx,dx
+    fi
+    if (GHT.fmtR == GH.TIF)
+    	Pri.Fmt "         TIF[解像度(dot/inch)  横:%ld/%ld  縦:%ld/%ld]\N",\
+    	    GHT.tifXdpi(0), GHT.tifXdpi(1), 	    	    	\
+    	    GHT.tifYdpi(0), GHT.tifYdpi(1)
+    fi
+    if (GHT.fmtR == GH.BMP)
+    	Pri.Fmt "         BMP[解像度(dot/meter) 横:%ld  縦:%ld]\N",\
+    	    GHT.bmpXdpm, GHT.bmpYdpm
+    fi
+    if (GHT.palFname.h)
+    	Pri.Fmt "         入力ﾊﾟﾚｯﾄ･ﾌｧｲﾙ:%Fs\N", GHT.palFname
+    fi
+    if (GHT.userNameLen)
+    	Pri.Fmt "         ユーザ名:%Fs\N", GHT.userName
+    fi
+    if (GHT.commentLen)
+    	Pri.Fmt "         コメント:%Fs\N", GHT.comment
+    fi
+    ax = moreFlg
+    ax -= 1
+    Deb.Chk
+    if (==)
+    	ax = 1
+    fi
+    if (ax)
+    	dx = GHT.col
+    	push ds
+    	    ds.si = GHT.rgbPal
+    	    cx = 0
+    	    rep.inc
+    	    Pri.Fmt "         RGB パレット\N          "
+    	    loop
+    	    	//Pri.Fmt "\t%2x:%2x %2x %2x", cx, b[si], b[si+1], b[si+2]
+    	    	block
+    	    	    al = b[si+2]; ah = 0; push ax
+    	    	    al = b[si+1]; ah = 0; push ax
+    	    	    al = b[si+0]; ah = 0; push ax
+    	    	    push cx
+    	    	    push "  %2x:%02x %02x %02x"
+    	    	    call Pri.Fmt
+    	    	    sp += 10
+    	    	endblock
+    	    	si += 3
+    	    	++cx
+    	    	if ((cx & 0x03) == 0)
+    	    	    Pri.Fmt "\N          "
+    	    	fi
+    	    endloop (cx < dx)
+    	pop  ds
+    fi
   @if 0
-	Deb.Chk
-	if.w (==)
-		Pri.Cr
-		DspDebInfo bx
-	fi
+    Deb.Chk
+    if.w (==)
+    	Pri.Cr
+    	DspDebInfo bx
+    fi
   @fi
  Deb.Chk
  if (==)
- 	Pri.Fmt "-- %lx\N", GHTptr
+    Pri.Fmt "-- %lx\N", GHTptr
  fi
-	return
+    return
 endproc
 
 

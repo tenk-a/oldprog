@@ -8,14 +8,14 @@
 
 /* text-vram,grph-vram ±∏æΩ”∞ƒﬁêÿÇËä∑Ç¶ */
 #define acs_vram()  outp(0x153,(inp(0x153) & 0xf0) | 4);\
-				 /* outp(0x510, 0) *//* ...? */
+    	    	 /* outp(0x510, 0) *//* ...? */
 #define acs_text()  outp(0x153,(inp(0x153) & 0xf0) | 1)
 /* outp(0x124,0) ... ? */
 
-#define VRAM_B   (0xa0000000L)
-#define VRAM_R   (0xb0000000L)
-#define VRAM_G   (0xc0000000L)
-#define VRAM_I   (0xd0000000L)
+#define VRAM_B	 (0xa0000000L)
+#define VRAM_R	 (0xb0000000L)
+#define VRAM_G	 (0xc0000000L)
+#define VRAM_I	 (0xd0000000L)
 
 #define VRAM98_B (0xa8000000L)
 #define VRAM98_R (0xb0000000L)

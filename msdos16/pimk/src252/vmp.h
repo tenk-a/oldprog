@@ -1,11 +1,11 @@
-#define VMP_SIZE	0x4000
-#define VWL_SIZE	(0x4000U+0x3010U*2+10)
+#define VMP_SIZE    0x4000
+#define VWL_SIZE    (0x4000U+0x3010U*2+10)
 
 int VMP_Init(	int vvSeg, int mmSeg,unsigned mmSzs,
-				int emsHdl, unsigned emsSeg, unsigned emsCnt,
-				int pln, int xsz,int ysz,int xstart,int ystart,
-				unsigned char far *pal,int asp1,int asp2,
-				int bcol,int reductFlg,int loopFlg);
+    	    	int emsHdl, unsigned emsSeg, unsigned emsCnt,
+    	    	int pln, int xsz,int ysz,int xstart,int ystart,
+    	    	unsigned char far *pal,int asp1,int asp2,
+    	    	int bcol,int reductFlg,int loopFlg);
 void VMP_Start(void);
 void VMP_End(int tone);
 void VMP_GStart(void);
@@ -30,11 +30,11 @@ void VMP_SclLft(unsigned Seg, int d);
 void VMP_SclRig(unsigned Seg, int d);
 unsigned long VMP_GetSclOfs(unsigned Seg);
 
-int  VMP_InitWl(	int vvSeg, int mmSeg,unsigned mmSzs,
-				int emsHdl, unsigned emsSeg, unsigned emsCnt,
-				int pln, int xsz,int ysz,int xstart,int ystart,
-				unsigned char far *pal,int asp1,int asp2,
-				int bcol,int reductFlg,int loopFlg);
+int  VMP_InitWl(    int vvSeg, int mmSeg,unsigned mmSzs,
+    	    	int emsHdl, unsigned emsSeg, unsigned emsCnt,
+    	    	int pln, int xsz,int ysz,int xstart,int ystart,
+    	    	unsigned char far *pal,int asp1,int asp2,
+    	    	int bcol,int reductFlg,int loopFlg);
 void VMP_StartWl(void);
 void VMP_EndWl(int tone);
 void VMP_GStartWl(void);

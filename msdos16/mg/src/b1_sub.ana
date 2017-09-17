@@ -1,9 +1,9 @@
 submodule B1
-	import GH
-	import Pri
-	import Subr
-	import Deb
-	import Std
+    import GH
+    import Pri
+    import Subr
+    import Deb
+    import Std
 
 @if 0
 cvar vseg:w(4) = {0xA800,0xB000,0xB800,0xE000}
@@ -15,23 +15,23 @@ cvar clsFlg:w = 1
 
 *proc VCls(bx)
 begin
-	save ax,es,di
-	if (clsFlg)
-		ax = 0
-		si = 80*400/2
-		es.di=ww(GH.T[bx].vSeg(0),0);rep.set.w di,ax,si
-		es.di=ww(GH.T[bx].vSeg(1),0);rep.set.w di,ax,si
-		es.di=ww(GH.T[bx].vSeg(2),0);rep.set.w di,ax,si
-		es.di=ww(GH.T[bx].vSeg(3),0);rep.set.w di,ax,si
-	fi
-	return
+    save ax,es,di
+    if (clsFlg)
+    	ax = 0
+    	si = 80*400/2
+    	es.di=ww(GH.T[bx].vSeg(0),0);rep.set.w di,ax,si
+    	es.di=ww(GH.T[bx].vSeg(1),0);rep.set.w di,ax,si
+    	es.di=ww(GH.T[bx].vSeg(2),0);rep.set.w di,ax,si
+    	es.di=ww(GH.T[bx].vSeg(3),0);rep.set.w di,ax,si
+    fi
+    return
 endproc
 
 *proc VClsMode(ax)
 begin
-	save ax
-	clsFlg = ax
-	return
+    save ax
+    clsFlg = ax
+    return
 endproc
 
 endmodule

@@ -1,10 +1,10 @@
 typedef struct FIL_DIRS {
-	char	 name[13];
-	char	 attr;
-	unsigned time;
-	unsigned date;
-	long	 size;
-	unsigned data;	/* user data*/
+    char     name[13];
+    char     attr;
+    unsigned time;
+    unsigned date;
+    long     size;
+    unsigned data;  /* user data*/
 } FIL_DIRS;
 
 #if 1 /*def WILDC*/
@@ -24,12 +24,12 @@ char *FIL_GetLt(int hdl);
 
 /* ファイル検索のバッファ(FIL_FindFirst/next()用) */
 typedef struct FIL_FIND_T {
-	char reserved[21];
-	char attrib;
-	unsigned wr_time;
-	unsigned wr_date;
-	long size;
-	char name[13];
+    char reserved[21];
+    char attrib;
+    unsigned wr_time;
+    unsigned wr_date;
+    long size;
+    char name[13];
 } FIL_FIND_T;
 unsigned FIL_FindFirst(char *PathName, unsigned Attrib, FIL_FIND_T *pfind);
 unsigned FIL_FindNext(FIL_FIND_T *pfind);

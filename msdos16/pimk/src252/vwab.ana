@@ -1,10 +1,10 @@
 module VWAB
-	c_name "VWAB","_",1
+    c_name "VWAB","_",1
 
-	import Pri
-	import Vv
-	import WAB256
-	import C
+    import Pri
+    import Vv
+    import WAB256
+    import C
 
 @define V() Vv.T[ds:0]
 
@@ -15,307 +15,307 @@ cvar scrn_xsize:w, scrn_ysize:w, vram_ysize:w//, scl_yvsize:w
 
 *proc SetLoadMode(xx:w,yy:w);cdecl
 enter
-	save ax
-	x_chg_size = ax = xx
-	y_chg_size = ax = yy
-	return
+    save ax
+    x_chg_size = ax = xx
+    y_chg_size = ax = yy
+    return
 endproc
 
 @if 0
 *proc CheckBord()
 begin
-	save dx
-	dx = 0x40E1; port(dx) = al = 0xFB
-	al = port(dx)
-	if (al != 0xFB)
-		ax = -1
-	else
-		dx = 0x40E1; port(dx) = al = 0xFA
-		ax = 0
-	fi
-	return
+    save dx
+    dx = 0x40E1; port(dx) = al = 0xFB
+    al = port(dx)
+    if (al != 0xFB)
+    	ax = -1
+    else
+    	dx = 0x40E1; port(dx) = al = 0xFA
+    	ax = 0
+    fi
+    return
 endproc
 @fi
 
 *proc SetMode(mode:w,hpos0:w,vpos0:w);cdecl
 enter
-	save ax
-	wb_mode = ax = mode
-	wb_hpos = ax = hpos0
-	wb_vpos = ax = vpos0
-	wabFlg = 0
-	return
+    save ax
+    wb_mode = ax = mode
+    wb_hpos = ax = hpos0
+    wb_vpos = ax = vpos0
+    wabFlg = 0
+    return
 endproc
 
 *proc Start();cdecl
 begin
-	//WAB256.SetVer wb_mode, wb_hpos, wb_vpos
-	return
+    //WAB256.SetVer wb_mode, wb_hpos, wb_vpos
+    return
 endproc
 
 *proc End(tone:w);cdecl
 enter
-	if (wabFlg)
-		WAB256.ShowOff();
-		WAB256.AccessOff();
-	fi
-	return
+    if (wabFlg)
+    	WAB256.ShowOff();
+    	WAB256.AccessOff();
+    fi
+    return
 endproc
 
 proc InitWab()
 begin
-	WAB256.Init wb_mode, wb_hpos, wb_vpos
-	if (ax)
-		Pri.Fmt "\NWABがないみたい...\N"
-		ds = ax = %var
-		C.Exit 1
-	fi
-	wabFlg = 1
-	return
+    WAB256.Init wb_mode, wb_hpos, wb_vpos
+    if (ax)
+    	Pri.Fmt "\NWABがないみたい...\N"
+    	ds = ax = %var
+    	C.Exit 1
+    fi
+    wabFlg = 1
+    return
 endproc
 
 *proc GStart();cdecl
 begin
-	if (wabFlg == 0)
-		InitWab
-	fi
-	//WAB256.SetSclOfs(0,0)
-	WAB256.ShowOn();
-	WAB256.AccessOn();
-	return
+    if (wabFlg == 0)
+    	InitWab
+    fi
+    //WAB256.SetSclOfs(0,0)
+    WAB256.ShowOn();
+    WAB256.AccessOn();
+    return
 endproc
 
 *proc GEnd()
 enter
-	if (wabFlg)
-		WAB256.ShowOff();
-		WAB256.AccessOff();
-	fi
-	return
+    if (wabFlg)
+    	WAB256.ShowOff();
+    	WAB256.AccessOff();
+    fi
+    return
 endproc
 
 *proc ShowOn()
 enter
-	//if (wabFlg)
-		WAB256.ShowOn();
-		WAB256.AccessOn();
-	//fi
-	return
+    //if (wabFlg)
+    	WAB256.ShowOn();
+    	WAB256.AccessOn();
+    //fi
+    return
 endproc
 
 *proc ShowOff()
 enter
-	//if (wabFlg)
-		WAB256.ShowOff();
-		WAB256.AccessOff();
-	//fi
-	return
+    //if (wabFlg)
+    	WAB256.ShowOff();
+    	WAB256.AccessOff();
+    //fi
+    return
 endproc
 
 *proc SetPal(datSeg:w,tone:w);cdecl
 enter
-	save pusha,es,ds
-	ds = datSeg
-	WAB256.SetRGB tone, V.palette
-	return
+    save pusha,es,ds
+    ds = datSeg
+    WAB256.SetRGB tone, V.palette
+    return
 endproc
 
 *proc GCls()
 begin
-	//WAB256.SetSclOfs(0,0)
-	WAB256.Cls
-	return
+    //WAB256.SetSclOfs(0,0)
+    WAB256.Cls
+    return
 endproc
 
 *proc SetTone(tone:w);cdecl
 enter
-	WAB256.SetTone tone
-	return
+    WAB256.SetTone tone
+    return
 endproc
 
 /*---------------------------------------------------------------------------*/
 *proc PutPx(datSeg:w,xg:w,yg:w,x0:w,y0:w,xsize:w,ysize:w);cdecl
 enter
-	save pusha,es,ds
-	local xsize2:w
+    save pusha,es,ds
+    local xsize2:w
 
-	ds = datSeg
-	xsize2 = 0
+    ds = datSeg
+    xsize2 = 0
 
-	ax = x0
-	dx = xsize
-	ax += dx
-	if (ax > V.xvsize)
-		ax -= V.xvsize
-		xsize2 = ax
-		dx -= ax
-		xsize = dx
-	fi
+    ax = x0
+    dx = xsize
+    ax += dx
+    if (ax > V.xvsize)
+    	ax -= V.xvsize
+    	xsize2 = ax
+    	dx -= ax
+    	xsize = dx
+    fi
 
-	di = yg
-	si = y0
-	cx = ysize
+    di = yg
+    si = y0
+    cx = ysize
 
-	if (xsize2)
-		loop
-			Vv.LineAddr ds, si/*y0*/
-			push ds,cx,si,di
-				bx.si = dx.ax
-				ax += x0
-				WAB256.PutXYN xg, di/*yg*/, xsize, dx.ax
-			  @if 1
-				ax += xsize
-				es.di = dx.ax
-				ds = bx
-				rep.cpy di,si,xsize2
-			  @else
-				ax = xg
-				ax += xsize
-				WAB256.PutXYN ax, di/*yg*/, xsize2, bx.si
-			  @fi
-			pop  ds,cx,si,di
-			//si = y0
-			++si;if (si == V.yvsize);si = 0;fi
-			//y0 = si
+    if (xsize2)
+    	loop
+    	    Vv.LineAddr ds, si/*y0*/
+    	    push ds,cx,si,di
+    	    	bx.si = dx.ax
+    	    	ax += x0
+    	    	WAB256.PutXYN xg, di/*yg*/, xsize, dx.ax
+    	      @if 1
+    	    	ax += xsize
+    	    	es.di = dx.ax
+    	    	ds = bx
+    	    	rep.cpy di,si,xsize2
+    	      @else
+    	    	ax = xg
+    	    	ax += xsize
+    	    	WAB256.PutXYN ax, di/*yg*/, xsize2, bx.si
+    	      @fi
+    	    pop  ds,cx,si,di
+    	    //si = y0
+    	    ++si;if (si == V.yvsize);si = 0;fi
+    	    //y0 = si
 
-			//di = yg
-			++di;//if (di == scl_yvsize);di = 0;fi
-			//yg = di
-		endloop (--cx)
-	else
-		loop
-			Vv.LineAddr ds, si
-			ax += x0
-			WAB256.PutXYN xg, di/*yg*/, xsize, dx.ax
-			//si = y0
-			++si;if (si == V.yvsize);si = 0;fi
-			//y0 = si
+    	    //di = yg
+    	    ++di;//if (di == scl_yvsize);di = 0;fi
+    	    //yg = di
+    	endloop (--cx)
+    else
+    	loop
+    	    Vv.LineAddr ds, si
+    	    ax += x0
+    	    WAB256.PutXYN xg, di/*yg*/, xsize, dx.ax
+    	    //si = y0
+    	    ++si;if (si == V.yvsize);si = 0;fi
+    	    //y0 = si
 
-			//di = yg
-			++di;//if (di == scl_yvsize);di = 0;fi
-			//yg = di
-		endloop (--cx)
-	fi
-	return
+    	    //di = yg
+    	    ++di;//if (di == scl_yvsize);di = 0;fi
+    	    //yg = di
+    	endloop (--cx)
+    fi
+    return
 endproc
 
 *proc ResetScl(datSeg:w);cdecl
 enter
-	save pusha,ds
-	ds = datSeg
-	ax = 0
-	V.xvstart = ax
-	V.yvstart = ax
-	WAB256.SetSclOfs ax,ax
-	return
+    save pusha,ds
+    ds = datSeg
+    ax = 0
+    V.xvstart = ax
+    V.yvstart = ax
+    WAB256.SetSclOfs ax,ax
+    return
 endproc
 
 
 *proc PutPxScrn(datSeg:w,x0:w,y0:w);cdecl
 enter
-	save ds
-	ds = datSeg
-	ax = x0
-	dx = y0
-	V.xvstart = ax
-	V.yvstart = dx
-	if (V.loopFlg)
-		ax = dx = 0
-	fi
-	WAB256.SetSclOfs ax,dx
-	PutPx ds, ax, dx, x0, y0, V.xgsize, V.ygsize
-	return
+    save ds
+    ds = datSeg
+    ax = x0
+    dx = y0
+    V.xvstart = ax
+    V.yvstart = dx
+    if (V.loopFlg)
+    	ax = dx = 0
+    fi
+    WAB256.SetSclOfs ax,dx
+    PutPx ds, ax, dx, x0, y0, V.xgsize, V.ygsize
+    return
 endproc
 
 
 *proc PutPxBCol(datSeg:w);cdecl
 enter
-	save pusha,es,ds
-	local yy:w,/*yy0:w,*/ycnt:w,xgsize:w,xgstart:w,bcol:w
+    save pusha,es,ds
+    local yy:w,/*yy0:w,*/ycnt:w,xgsize:w,xgstart:w,bcol:w
 
-	ds = datSeg
-	ResetScl ds
-	bcol = ax = V.overlayColor
-	xgsize = ax = V.xgsize
-	xgstart = ax = V.xgstart
-	yy = bx = V.ygstart
-	bx = /*yy0 =*/ 0
-	ycnt = ax = V.ygsize
-	loop
-		Vv.LineAddr datSeg, bx/*yy0*/
-		ds.si = dx.ax
-		WAB256.LineAddr yy
-		es.di = dx.ax
-		di += xgstart
-		cx = xgsize
-		LOOP:
-			rep.load al,si
-			if (al != bcol.l)
-				rep.set di,al
-				go (--cx) LOOP
-				go LOOPOUT
-			fi
-			++di
-		go (--cx) LOOP
-	  LOOPOUT:
-		++bx/*yy0*/
-		++yy
-	endloop (--ycnt)
-	return
+    ds = datSeg
+    ResetScl ds
+    bcol = ax = V.overlayColor
+    xgsize = ax = V.xgsize
+    xgstart = ax = V.xgstart
+    yy = bx = V.ygstart
+    bx = /*yy0 =*/ 0
+    ycnt = ax = V.ygsize
+    loop
+    	Vv.LineAddr datSeg, bx/*yy0*/
+    	ds.si = dx.ax
+    	WAB256.LineAddr yy
+    	es.di = dx.ax
+    	di += xgstart
+    	cx = xgsize
+    	LOOP:
+    	    rep.load al,si
+    	    if (al != bcol.l)
+    	    	rep.set di,al
+    	    	go (--cx) LOOP
+    	    	go LOOPOUT
+    	    fi
+    	    ++di
+    	go (--cx) LOOP
+      LOOPOUT:
+    	++bx/*yy0*/
+    	++yy
+    endloop (--ycnt)
+    return
 endproc
 
 *proc PutPxPart(datSeg:w);cdecl
 enter
-	save pusha,es,ds
-	ds = datSeg
-	ResetScl ds
-	bx = V.ygstart
-	si = 0
-	cx = V.ygsize
-	loop
-		Vv.LineAddr ds, si
-		WAB256.PutXYN V.xgstart, bx, V.xgsize, dx.ax
-		++si
-		++bx
-	endloop (--cx)
-	return
+    save pusha,es,ds
+    ds = datSeg
+    ResetScl ds
+    bx = V.ygstart
+    si = 0
+    cx = V.ygsize
+    loop
+    	Vv.LineAddr ds, si
+    	WAB256.PutXYN V.xgstart, bx, V.xgsize, dx.ax
+    	++si
+    	++bx
+    endloop (--cx)
+    return
 endproc
 
 *proc PutPxLoop(datSeg:w);cdecl
 enter
-	save pusha,es,ds
-	local yg:w,y0:w,x_cnt:w,x_rst:w
+    save pusha,es,ds
+    local yg:w,y0:w,x_cnt:w,x_rst:w
 
-	ds = datSeg
-	ResetScl ds
-	dx.ax = ww(0, V.xgscrn)
-	div dx.ax, V.xvsize
-	x_cnt = ax
-	x_rst = dx
-	bx = V.ygstart
-	yg = si = 0
-	y0 = 0
-	loop
-		Vv.LineAddr ds, y0
-		bx.si = dx.ax
-		di = 0
-		cx = x_cnt
-		loop
-			WAB256.PutXYN di, yg, V.xvsize, bx.si
-			di += V.xvsize
-		endloop (--cx)
-		if (x_rst)
-			WAB256.PutXYN di, yg, V.xvsize, bx.si
-		fi
-		++y0
-		ax = V.ygsize
-		if (y0 == ax)
-			y0 = 0
-		fi
-		++yg
-		ax = yg
-	endloop (ax < V.ygscrn)
-	return
+    ds = datSeg
+    ResetScl ds
+    dx.ax = ww(0, V.xgscrn)
+    div dx.ax, V.xvsize
+    x_cnt = ax
+    x_rst = dx
+    bx = V.ygstart
+    yg = si = 0
+    y0 = 0
+    loop
+    	Vv.LineAddr ds, y0
+    	bx.si = dx.ax
+    	di = 0
+    	cx = x_cnt
+    	loop
+    	    WAB256.PutXYN di, yg, V.xvsize, bx.si
+    	    di += V.xvsize
+    	endloop (--cx)
+    	if (x_rst)
+    	    WAB256.PutXYN di, yg, V.xvsize, bx.si
+    	fi
+    	++y0
+    	ax = V.ygsize
+    	if (y0 == ax)
+    	    y0 = 0
+    	fi
+    	++yg
+    	ax = yg
+    endloop (ax < V.ygscrn)
+    return
 endproc
 
 /*---------------------------------------------------------------------------*/
@@ -323,258 +323,258 @@ endproc
 *proc GetSclOfs(datSeg:w);cdecl
 //ret dx.ax
 enter
-	WAB256.GetSclOfs
-	return
+    WAB256.GetSclOfs
+    return
 endproc
 
 *proc SclUp(datSeg:w, nnn:w);cdecl
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	ds = datSeg
-	cx = nnn
-	di = V.yvsize
-	loop
-		--V.yvstart
-		if (V.yvstart .<. 0)
-			V.yvstart = 0
-			go.w RET
-		fi
-		WAB256.Scl 0, -1
-		PutPx ds, ax/*gX*/,dx/*gY*/, V.xvstart, V.yvstart, V.xgsize, 1
-	endloop (--cx)
+    ds = datSeg
+    cx = nnn
+    di = V.yvsize
+    loop
+    	--V.yvstart
+    	if (V.yvstart .<. 0)
+    	    V.yvstart = 0
+    	    go.w RET
+    	fi
+    	WAB256.Scl 0, -1
+    	PutPx ds, ax/*gX*/,dx/*gY*/, V.xvstart, V.yvstart, V.xgsize, 1
+    endloop (--cx)
   RET:
-	return
+    return
 endproc
 
 *proc SclDw(datSeg:w, nnn:w);cdecl
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	ds = datSeg
-	cx = nnn
-	if (cx)
-		di = V.yvsize	//scl_yvsize
-		di -= scrn_ysize
-		si = V.yvstart
-		loop
-			go (si .>=. di) RET2
-			WAB256.Scl 0, 1
-			dx += scrn_ysize
-			--dx
-			bx = si
-			bx += scrn_ysize
-			PutPx ds, ax/*gX*/, dx/*gY*/, V.xvstart, bx, V.xgsize, 1
-			++si
-		endloop (--cx)
-		V.yvstart = si
-	fi
+    ds = datSeg
+    cx = nnn
+    if (cx)
+    	di = V.yvsize	//scl_yvsize
+    	di -= scrn_ysize
+    	si = V.yvstart
+    	loop
+    	    go (si .>=. di) RET2
+    	    WAB256.Scl 0, 1
+    	    dx += scrn_ysize
+    	    --dx
+    	    bx = si
+    	    bx += scrn_ysize
+    	    PutPx ds, ax/*gX*/, dx/*gY*/, V.xvstart, bx, V.xgsize, 1
+    	    ++si
+    	endloop (--cx)
+    	V.yvstart = si
+    fi
   RET:
-	return
+    return
   RET2:
-	V.yvstart = di
-	go RET
+    V.yvstart = di
+    go RET
 endproc
 
 *proc SclLft(datSeg:w, nnn:w);cdecl
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	ds = datSeg
-	cx = nnn
-	cx >>= 4
-	if (cx)
-		si = V.xvstart
-		loop
-			si -= 16
-			go (si .<. 0) RET2
-			WAB256.Scl -16, 0
-			PutPx ds, ax/*gX*/,dx/*gY*/, si, V.yvstart,16, V.ygsize
-		endloop (--cx)
-		V.xvstart = si
-	fi
+    ds = datSeg
+    cx = nnn
+    cx >>= 4
+    if (cx)
+    	si = V.xvstart
+    	loop
+    	    si -= 16
+    	    go (si .<. 0) RET2
+    	    WAB256.Scl -16, 0
+    	    PutPx ds, ax/*gX*/,dx/*gY*/, si, V.yvstart,16, V.ygsize
+    	endloop (--cx)
+    	V.xvstart = si
+    fi
   RET:
-	return
+    return
   RET2:
-	V.xvstart = 0
-	go RET
+    V.xvstart = 0
+    go RET
 endproc
 
 *proc SclRig(datSeg:w, nnn:w);cdecl
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	ds = datSeg
-	cx = nnn
-	cx >>= 4
-	if (cx)
-		di = V.xvsize
-		if (di & 0x0f)
-			di &= 0xfff0
-			di += 16
-		fi
-		go (di </*<=*/ scrn_xsize) RET
-		//|di >>= 1;adc di,0;di+=di
-		di -= scrn_xsize
-		si = V.xvstart
-		loop
-			go (si .>=. di) RET3
-			WAB256.Scl 16,0
-			ax += scrn_xsize
-			ax -= 16
-			bx = si
-			bx += scrn_xsize
-			PutPx ds, ax, dx, bx, V.yvstart, 16, V.ygsize
-			si += 16
-		endloop (--cx)
-		V.xvstart = si
-	fi
+    ds = datSeg
+    cx = nnn
+    cx >>= 4
+    if (cx)
+    	di = V.xvsize
+    	if (di & 0x0f)
+    	    di &= 0xfff0
+    	    di += 16
+    	fi
+    	go (di </*<=*/ scrn_xsize) RET
+    	//|di >>= 1;adc di,0;di+=di
+    	di -= scrn_xsize
+    	si = V.xvstart
+    	loop
+    	    go (si .>=. di) RET3
+    	    WAB256.Scl 16,0
+    	    ax += scrn_xsize
+    	    ax -= 16
+    	    bx = si
+    	    bx += scrn_xsize
+    	    PutPx ds, ax, dx, bx, V.yvstart, 16, V.ygsize
+    	    si += 16
+    	endloop (--cx)
+    	V.xvstart = si
+    fi
   RET:
-	return
+    return
 RET3:
-	V.xvstart = di
-	go RET
+    V.xvstart = di
+    go RET
 endproc
 
 @else
 
 *proc GetSclOfs(datSeg:w);cdecl
 enter
-	dx.ax = 0
-	return
+    dx.ax = 0
+    return
 endproc
 
 *proc SclUp(Seg:w, ddd:w);cdecl
 enter
-	return
+    return
 endproc
 
 *proc SclDw(Seg:w, ddd:w);cdecl
 enter
-	return
+    return
 endproc
 
 *proc SclLft(Seg:w, ddd:w);cdecl
 enter
-	return
+    return
 endproc
 
 *proc SclRig(Seg:w, ddd:w);cdecl
 enter
-	return
+    return
 endproc
 @fi
 
 /*---------------------------------------------------------------------------*/
 
 *proc RevX(datSeg:w);cdecl
-	//左右反転
+    //左右反転
 enter
-	save pusha, es,ds
-	local y0:w, xxsz:w, xxszD2:w, ysz:w
+    save pusha, es,ds
+    local y0:w, xxsz:w, xxszD2:w, ysz:w
 
-	ds = datSeg
+    ds = datSeg
 
-	ax = V.yvsize
-	ysz = ax
+    ax = V.yvsize
+    ysz = ax
 
-	ax = V.xvsize
-	xxsz = ax
-	|ax >>= 1//; adc ax,0
-	xxszD2 = ax
+    ax = V.xvsize
+    xxsz = ax
+    |ax >>= 1//; adc ax,0
+    xxszD2 = ax
 
-	y0 = bx = 0
-	loop
-		ds = datSeg
-		dx.ax = ww(0,y0)
-		div dx.ax, V.pgLine
-		Vv.PageSw ax
-		bx=ax//V.pgCurSeg = ax
+    y0 = bx = 0
+    loop
+    	ds = datSeg
+    	dx.ax = ww(0,y0)
+    	div dx.ax, V.pgLine
+    	Vv.PageSw ax
+    	bx=ax//V.pgCurSeg = ax
 
-		// ax = 点(xx0,y0)のアドレス
-		dx.ax = dx * V.xvsize
-		si = di = ax
-		si += xxsz
-		--si
-		es = bx //V.pgCurSeg
-		ds = bx //V.pgCurSeg
-		cx = xxszD2
-		loop
-			ah = b[di]
-			al = b[si]
-			b[si] = ah; --si
-			rep.set di,al
-		endloop (--cx)
-		++y0
-	endloop (--ysz)
-	ds = datSeg
-	if (bx)
-		V.pgCurSeg = bx
-	fi
-	return
+    	// ax = 点(xx0,y0)のアドレス
+    	dx.ax = dx * V.xvsize
+    	si = di = ax
+    	si += xxsz
+    	--si
+    	es = bx //V.pgCurSeg
+    	ds = bx //V.pgCurSeg
+    	cx = xxszD2
+    	loop
+    	    ah = b[di]
+    	    al = b[si]
+    	    b[si] = ah; --si
+    	    rep.set di,al
+    	endloop (--cx)
+    	++y0
+    endloop (--ysz)
+    ds = datSeg
+    if (bx)
+    	V.pgCurSeg = bx
+    fi
+    return
 endproc
 
 /*---------------------------------------------------------------------------*/
 
 *proc Init(vvSeg:w,mmSeg:w,mmSzs:w,emsHdl:w,emsSeg:w,emsCnt:w,	\
-			pln:w,xsz:w,ysz:w,xstart:w,ystart:w,pal:d,asp1:w,asp2:w,bcol:w, \
-			reductFlg:w,loopFlg:w	\
-			)
-	cdecl
+    	    pln:w,xsz:w,ysz:w,xstart:w,ystart:w,pal:d,asp1:w,asp2:w,bcol:w, \
+    	    reductFlg:w,loopFlg:w   \
+    	    )
+    cdecl
 enter
-	save bx,cx,dx,si,di,es,ds
-	ds = vvSeg
-	if (wabFlg == 0)
-		InitWab
-	fi
-	//WAB256.SetSclOfs(0,0)
-	WAB256.GetScrnXY
-	cx = 1024
-	if (ax == 640)
-		cx = 1638
-	elsif (ax == 800)
-		cx = 1310
-	fi
-	//if (x_chg_size)
-	//	ax = x_chg_size
-	//fi
-	scrn_xsize = ax
-	scrn_ysize = dx
-	vram_ysize = cx
+    save bx,cx,dx,si,di,es,ds
+    ds = vvSeg
+    if (wabFlg == 0)
+    	InitWab
+    fi
+    //WAB256.SetSclOfs(0,0)
+    WAB256.GetScrnXY
+    cx = 1024
+    if (ax == 640)
+    	cx = 1638
+    elsif (ax == 800)
+    	cx = 1310
+    fi
+    //if (x_chg_size)
+    //	ax = x_chg_size
+    //fi
+    scrn_xsize = ax
+    scrn_ysize = dx
+    vram_ysize = cx
   @if 1 //実験...
-	cx = y_chg_size
-	if (cx)
-		if (cx .<. 0)
-			cx = scrn_ysize
-			if (dx > ysz)
-				cx = ysz
-			fi
-		elsif (cx >= vram_ysize)
-			cx = vram_ysize
-		fi
-		scrn_ysize = dx = cx
-	fi
+    cx = y_chg_size
+    if (cx)
+    	if (cx .<. 0)
+    	    cx = scrn_ysize
+    	    if (dx > ysz)
+    	    	cx = ysz
+    	    fi
+    	elsif (cx >= vram_ysize)
+    	    cx = vram_ysize
+    	fi
+    	scrn_ysize = dx = cx
+    fi
   @fi
-	Vv.Init 0, vvSeg,mmSeg,mmSzs,emsHdl,emsSeg,emsCnt,pln,ax,dx,\
-			xsz,ysz,xstart,ystart,pal,asp1,asp2,bcol,reductFlg,loopFlg
+    Vv.Init 0, vvSeg,mmSeg,mmSzs,emsHdl,emsSeg,emsCnt,pln,ax,dx,\
+    	    xsz,ysz,xstart,ystart,pal,asp1,asp2,bcol,reductFlg,loopFlg
   @if 0
-	ax = V.yvsize
-	if (ax > vram_ysize)
-		ax = vram_ysize
-		cx = V.xvsize; |cx >>= 1;adc cx,0;cx+=cx
-		if (cx > scrn_xsize)
-			dx.ax = 0x100000
-			ax -= cx
-			sbc dx,0
-			div dx.ax, scrn_xsize
-		fi
-	fi
+    ax = V.yvsize
+    if (ax > vram_ysize)
+    	ax = vram_ysize
+    	cx = V.xvsize; |cx >>= 1;adc cx,0;cx+=cx
+    	if (cx > scrn_xsize)
+    	    dx.ax = 0x100000
+    	    ax -= cx
+    	    sbc dx,0
+    	    div dx.ax, scrn_xsize
+    	fi
+    fi
     //@else
     //	ax = vram_ysize
   @fi
-	//scl_yvsize = ax
-	ax = V.maxLine
-	return
+    //scl_yvsize = ax
+    ax = V.maxLine
+    return
 endproc
 
 /*---------------------------------------------------------------------------*/

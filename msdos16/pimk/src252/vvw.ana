@@ -1,40 +1,40 @@
 module Vvw
-	c_name "Vv","_",1
+    c_name "Vv","_",1
 
-	import Std
-	import Pri
-	import Vv
+    import Std
+    import Pri
+    import Vv
 
 @define V() Vv.T[ds:0]
-@define RCL1(AL)	adc AL,AL
+@define RCL1(AL)    adc AL,AL
 
 /*---------------------------------------------------------------------------*/
 /* å∏êFä÷åW */
 
 *proc SetDecolPal(palptr:d);cdecl;far
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	es.di = palptr
-	dh = 0
-	loop	//G
-		dl = 0
-		loop	//R
-			ah = 0
-			loop	//B
-				al = dl;// if (al>7); al |= 0x1f; fi	//R
-				rep.set di,al
-				al = dh;// if (al>7); al |= 0x1f; fi	//G
-				rep.set di,al
-				al = ah;// if (al>7); al |= 0x3f; fi	//B
-				rep.set di,al
-				ah += 64
-			endloop (ah)
-			dl += 32
-		endloop (dl)
-		dh += 32
-	endloop(dh)
-	return
+    es.di = palptr
+    dh = 0
+    loop    //G
+    	dl = 0
+    	loop	//R
+    	    ah = 0
+    	    loop    //B
+    	    	al = dl;// if (al>7); al |= 0x1f; fi	//R
+    	    	rep.set di,al
+    	    	al = dh;// if (al>7); al |= 0x1f; fi	//G
+    	    	rep.set di,al
+    	    	al = ah;// if (al>7); al |= 0x3f; fi	//B
+    	    	rep.set di,al
+    	    	ah += 64
+    	    endloop (ah)
+    	    dl += 32
+    	endloop (dl)
+    	dh += 32
+    endloop(dh)
+    return
 endproc
 
 
@@ -45,21 +45,21 @@ cvar ycur:w
 
 *proc DecolInit(palptr:d,y0:w,ditBuf:d);cdecl;far
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	SetDecolPal palptr
-	ycur = ax = y0
-	dx.ax = ditBuf
-	Std.FpToHp dx,ax,cx
-	ax += 6
-	lbuf.l  = ax
-	lbuf2.l = ax
-	lbuf.h = dx
-	dx += 0x301
-	lbuf2.h = dx
-	es.di = lbuf
-	rep.set.w di, 0, ((4096+1)*3+1)/2
-	return
+    SetDecolPal palptr
+    ycur = ax = y0
+    dx.ax = ditBuf
+    Std.FpToHp dx,ax,cx
+    ax += 6
+    lbuf.l  = ax
+    lbuf2.l = ax
+    lbuf.h = dx
+    dx += 0x301
+    lbuf2.h = dx
+    es.di = lbuf
+    rep.set.w di, 0, ((4096+1)*3+1)/2
+    return
 endproc
 
 
@@ -67,196 +67,196 @@ endproc
 //-------------------------------------
 *proc Decol0(pix3:d, pix1:d,xxx:w);cdecl;far
 enter
-	save ax,cx,di,si,es,ds
+    save ax,cx,di,si,es,ds
 
-	es.di = pix1
-	ds.si = pix3
-	cx = xxx
-	loop
-		al = b[si+1];
-		ax <<= 3;
-		al = b[si+0];
-		ax <<= 3;
-		al = b[si+2];
-		ax <<= 2;
-		al = ah
-		rep.set di,al
-		si += 3
-	endloop (--cx)
-	++ycur
-	return
+    es.di = pix1
+    ds.si = pix3
+    cx = xxx
+    loop
+    	al = b[si+1];
+    	ax <<= 3;
+    	al = b[si+0];
+    	ax <<= 3;
+    	al = b[si+2];
+    	ax <<= 2;
+    	al = ah
+    	rep.set di,al
+    	si += 3
+    endloop (--cx)
+    ++ycur
+    return
 endproc
 
 
 //-------------------------------------
 @if 1
-@define MMM(R,O,S)					\
-	al = b[si+O];					\
-	al >>= 2;						\
-	al -= R;						\
-	al -= b[es:bx+O];				\
-	R .>>= 1;						\
-	if (R > 0xFC); R = 0; fi;		\
-	b[es:bx+O] = R;					\
-	if ((al|=al) .sf. 1);			\
-		neg al;						\
-		R = al;						\
-		al = 0;						\
-	else;							\
-		dh = 0;						\
-		if (al & (0x20>>S));		\
-			dh = -(0x40>>S);		\
-			al += (0x40>>S);		\
-		fi;							\
-		if (al >= 0x40);			\
-			dh += al;				\
-			dh -= 0x3f;				\
-			al = 0x3f;				\
-		fi;							\
-		R = al;						\
-		R &= (0x40>>S)-1;			\
-		R -= dh;					\
-		al <<= 2;					\
-	fi;								\
-	ax <<= S;						\
-	R .>>= 2;						\
-	if (R > 0xFC); R = 0; fi;		\
-	b[es:bx+O] += R;				\
-	al = R;							\
-	al .>>= 3;						\
-	if (al > 0xFC); al = 0; fi;		\
-	b[es:bx+O-3] += al;				\
-	/*b[es:bx+O-6] += al*/;			\
-	;
+@define MMM(R,O,S)  	    	    \
+    al = b[si+O];   	    	    \
+    al >>= 2;	    	    	    \
+    al -= R;	    	    	    \
+    al -= b[es:bx+O];	    	    \
+    R .>>= 1;	    	    	    \
+    if (R > 0xFC); R = 0; fi;	    \
+    b[es:bx+O] = R; 	    	    \
+    if ((al|=al) .sf. 1);   	    \
+    	neg al;     	    	    \
+    	R = al;     	    	    \
+    	al = 0;     	    	    \
+    else;   	    	    	    \
+    	dh = 0;     	    	    \
+    	if (al & (0x20>>S));	    \
+    	    dh = -(0x40>>S);	    \
+    	    al += (0x40>>S);	    \
+    	fi; 	    	    	    \
+    	if (al >= 0x40);    	    \
+    	    dh += al;	    	    \
+    	    dh -= 0x3f;     	    \
+    	    al = 0x3f;	    	    \
+    	fi; 	    	    	    \
+    	R = al;     	    	    \
+    	R &= (0x40>>S)-1;   	    \
+    	R -= dh;    	    	    \
+    	al <<= 2;   	    	    \
+    fi;     	    	    	    \
+    ax <<= S;	    	    	    \
+    R .>>= 2;	    	    	    \
+    if (R > 0xFC); R = 0; fi;	    \
+    b[es:bx+O] += R;	    	    \
+    al = R; 	    	    	    \
+    al .>>= 3;	    	    	    \
+    if (al > 0xFC); al = 0; fi;     \
+    b[es:bx+O-3] += al;     	    \
+    /*b[es:bx+O-6] += al*/; 	    \
+    ;
 @else
-@define MMM(R,O,S)					\
-	al = b[si+O];					\
-	ax <<= S;						\
-	;
+@define MMM(R,O,S)  	    	    \
+    al = b[si+O];   	    	    \
+    ax <<= S;	    	    	    \
+    ;
 @fi
 
 
 *proc Decol(pix3:d, pix1:d,xsz:w);cdecl;far
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	push bp
-	es.di = pix1
-	ds.si = pix3
-	bp = xsz
-	bx = lbuf.l
-	cx = dx = ax = 0
-	loop.w
-		push es
-			es = lbuf.h
-			MMM dl,1,3
-			MMM ch,0,3
-			MMM cl,2,2
-		pop  es
-		al = ah
-		rep.set di,al
-		si += 3
-		bx += 3
-	endloop (--bp)
-	++ycur
-	pop bp
-	return
+    push bp
+    es.di = pix1
+    ds.si = pix3
+    bp = xsz
+    bx = lbuf.l
+    cx = dx = ax = 0
+    loop.w
+    	push es
+    	    es = lbuf.h
+    	    MMM dl,1,3
+    	    MMM ch,0,3
+    	    MMM cl,2,2
+    	pop  es
+    	al = ah
+    	rep.set di,al
+    	si += 3
+    	bx += 3
+    endloop (--bp)
+    ++ycur
+    pop bp
+    return
 endproc
 
 /*---------------------------------------------------------------------------*/
 @if 1
 *proc X68line24(rbuf:d,stp:w,lb2:d)
 enter
-	save ds
+    save ds
 
-	dx = V.xsize
-	ds.si = rbuf
-	es.di = lb2
-	cx = bx = stp
-	loop
-		rep.cpy.w di,si
-		rep.cpy.b di,si
-		go (--cx == 0) J1
-	  J_RET:
-	endloop (--dx)
-	dx.ax = lb2
-	return
+    dx = V.xsize
+    ds.si = rbuf
+    es.di = lb2
+    cx = bx = stp
+    loop
+    	rep.cpy.w di,si
+    	rep.cpy.b di,si
+    	go (--cx == 0) J1
+      J_RET:
+    endloop (--dx)
+    dx.ax = lb2
+    return
   J1:
-	ah = b[si-1*3]
-	ah >>= 1
-	al = b[si]
-	al >>= 1
-	al += ah
-	rep.set di,al
-	ah = b[si-1*3+1]
-	ah >>= 1
-	al = b[si+1]
-	al >>= 1
-	al += ah
-	rep.set di,al
-	ah = b[si-1*3+2]
-	ah >>= 1
-	al = b[si+2]
-	al >>= 1
-	al += ah
-	rep.set di,al
-	cx = bx
-	go J_RET
+    ah = b[si-1*3]
+    ah >>= 1
+    al = b[si]
+    al >>= 1
+    al += ah
+    rep.set di,al
+    ah = b[si-1*3+1]
+    ah >>= 1
+    al = b[si+1]
+    al >>= 1
+    al += ah
+    rep.set di,al
+    ah = b[si-1*3+2]
+    ah >>= 1
+    al = b[si+2]
+    al >>= 1
+    al += ah
+    rep.set di,al
+    cx = bx
+    go J_RET
 endproc
 @fi
 
 @if 0
 *proc ReductLine24(dx.ax)
 begin
-	save ds
+    save ds
 
-	cx = V.xvsize
-	cx += cx
-	es.di = lbuf
-	if (V.reductFlg & 0x04)	// 1/16èkè¨ÇÃÇ∆Ç´
-		cx += cx
-		ds.si = dx.ax
-		loop
-			rep.load al,si
-			|al += b[si+3*1-1]	; adc ah,0
-			|al += b[si+3*2-1]	; adc ah,0
-			|al += b[si+3*3-1]	; adc ah,0
-			al >>= 2
-			rep.set di,al
-			
-			rep.load al,si
-			|al += b[si+3*1-1]	; adc ah,0
-			|al += b[si+3*2-1]	; adc ah,0
-			|al += b[si+3*3-1]	; adc ah,0
-			al >>= 2
-			rep.set di,al
-			
-			rep.load al,si
-			|al += b[si+3*1-1]	; adc ah,0
-			|al += b[si+3*2-1]	; adc ah,0
-			|al += b[si+3*3-1]	; adc ah,0
-			al >>= 2
-			rep.set di,al
+    cx = V.xvsize
+    cx += cx
+    es.di = lbuf
+    if (V.reductFlg & 0x04) // 1/16èkè¨ÇÃÇ∆Ç´
+    	cx += cx
+    	ds.si = dx.ax
+    	loop
+    	    rep.load al,si
+    	    |al += b[si+3*1-1]	; adc ah,0
+    	    |al += b[si+3*2-1]	; adc ah,0
+    	    |al += b[si+3*3-1]	; adc ah,0
+    	    al >>= 2
+    	    rep.set di,al
 
-			si += 3*3
-		endloop (--cx)
-	else
-		ds.si = dx.ax
-		loop
-			rep.load al,si; al >>= 1;
-			ah = b[si+3-1]; ah >>= 1;
-			al += ah;		rep.set di,al
-			rep.load al,si; al >>= 1;
-			ah = b[si+3-1]; ah >>= 1;
-			al += ah;		rep.set di,al
-			rep.load al,si; al >>= 1;
-			ah = b[si+3-1]; ah >>= 1;
-			al += ah;		rep.set di,al
-			si += 3*1
-		endloop (--cx)
-	fi
-	dx.ax = lbuf
-	return
+    	    rep.load al,si
+    	    |al += b[si+3*1-1]	; adc ah,0
+    	    |al += b[si+3*2-1]	; adc ah,0
+    	    |al += b[si+3*3-1]	; adc ah,0
+    	    al >>= 2
+    	    rep.set di,al
+
+    	    rep.load al,si
+    	    |al += b[si+3*1-1]	; adc ah,0
+    	    |al += b[si+3*2-1]	; adc ah,0
+    	    |al += b[si+3*3-1]	; adc ah,0
+    	    al >>= 2
+    	    rep.set di,al
+
+    	    si += 3*3
+    	endloop (--cx)
+    else
+    	ds.si = dx.ax
+    	loop
+    	    rep.load al,si; al >>= 1;
+    	    ah = b[si+3-1]; ah >>= 1;
+    	    al += ah;	    rep.set di,al
+    	    rep.load al,si; al >>= 1;
+    	    ah = b[si+3-1]; ah >>= 1;
+    	    al += ah;	    rep.set di,al
+    	    rep.load al,si; al >>= 1;
+    	    ah = b[si+3-1]; ah >>= 1;
+    	    al += ah;	    rep.set di,al
+    	    si += 3*1
+    	endloop (--cx)
+    fi
+    dx.ax = lbuf
+    return
 endproc
 
 @fi
@@ -264,72 +264,72 @@ endproc
 
 *proc GetLine24(datOfs:w, datSeg:w, pixPtr0:d);cdecl;far
 enter
-	local pixPtr:d
+    local pixPtr:d
 
-	ds = datSeg
+    ds = datSeg
   LOOP:
-	dx.ax = pixPtr0
+    dx.ax = pixPtr0
    @if 1
-	if (V.x68flg)
-		X68line24 dx.ax, V.x68flg,lbuf2
-		Decol dx.ax, ww(%var,&Vv.decolLinBuf), V.xvsize
-		dx.ax = ww(%var,&Vv.decolLinBuf)
-	else
-		Decol dx.ax, ww(%var,&Vv.decolLinBuf), V.xsize
-		dx.ax = ww(%var,&Vv.decolLinBuf)
-	fi
-	if (V.reductFlg)
-		if (V.reductFlgY)
-			++V.ycurReduct
-			cx = V.reductFlgY
-			go.w (V.ycurReduct & cx) NEXT
-		fi
-		Vv.ReductLine dx.ax
-	fi
+    if (V.x68flg)
+    	X68line24 dx.ax, V.x68flg,lbuf2
+    	Decol dx.ax, ww(%var,&Vv.decolLinBuf), V.xvsize
+    	dx.ax = ww(%var,&Vv.decolLinBuf)
+    else
+    	Decol dx.ax, ww(%var,&Vv.decolLinBuf), V.xsize
+    	dx.ax = ww(%var,&Vv.decolLinBuf)
+    fi
+    if (V.reductFlg)
+    	if (V.reductFlgY)
+    	    ++V.ycurReduct
+    	    cx = V.reductFlgY
+    	    go.w (V.ycurReduct & cx) NEXT
+    	fi
+    	Vv.ReductLine dx.ax
+    fi
    @else
-	Decol dx.ax, ww(%var,&Vv.decolLinBuf)
-	dx.ax = ww(%var,&Vv.decolLinBuf)
-	if (V.x68flg)
-		Vv.X68line dx.ax, V.x68flg
-	fi
-	if (V.reductFlg)
-		if (V.reductFlgY)
-			++V.ycurReduct
-			cx = V.reductFlgY
-			go.w (V.ycurReduct & cx) NEXT
-		fi
-		Vv.ReductLine dx.ax
-	fi
+    Decol dx.ax, ww(%var,&Vv.decolLinBuf)
+    dx.ax = ww(%var,&Vv.decolLinBuf)
+    if (V.x68flg)
+    	Vv.X68line dx.ax, V.x68flg
+    fi
+    if (V.reductFlg)
+    	if (V.reductFlgY)
+    	    ++V.ycurReduct
+    	    cx = V.reductFlgY
+    	    go.w (V.ycurReduct & cx) NEXT
+    	fi
+    	Vv.ReductLine dx.ax
+    fi
    @fi
-	pixPtr = dx.ax
+    pixPtr = dx.ax
 
-	++V.ycur
+    ++V.ycur
 
-	//äiî[Ç∑ÇÈÉÅÉÇÉäÇÉZÉbÉg
-	es = V.pgCurSeg
-	if (--V.pglcnt == 0)
-		++V.pgNo
-		Vv.PageSw V.pgNo
-		V.pgCurSeg = ax
-		es = ax
-		V.pglcnt = ax = V.pgLine
-		V.pgPtr = 0
-		//Pri.Fmt "page = %d %04x\N",V.pgNo, V.pgCurSeg
-	fi
+    //äiî[Ç∑ÇÈÉÅÉÇÉäÇÉZÉbÉg
+    es = V.pgCurSeg
+    if (--V.pglcnt == 0)
+    	++V.pgNo
+    	Vv.PageSw V.pgNo
+    	V.pgCurSeg = ax
+    	es = ax
+    	V.pglcnt = ax = V.pgLine
+    	V.pgPtr = 0
+    	//Pri.Fmt "page = %d %04x\N",V.pgNo, V.pgCurSeg
+    fi
 
-	//ÇPçsÉRÉsÅ[
-	di = ax = V.pgPtr
-	cx = V.pgXsize
-	ax += cx
-	V.pgPtr = ax
-	ds.si = pixPtr
-	rep.cpy di,si,cx
+    //ÇPçsÉRÉsÅ[
+    di = ax = V.pgPtr
+    cx = V.pgXsize
+    ax += cx
+    V.pgPtr = ax
+    ds.si = pixPtr
+    rep.cpy di,si,cx
   NEXT:
-	ds = datSeg
-	go.w (V.l200flg && V.ycur & 0x0001) LOOP
-	ax += V.xsize
-	pixPtr0.l = ax
-	return
+    ds = datSeg
+    go.w (V.l200flg && V.ycur & 0x0001) LOOP
+    ax += V.xsize
+    pixPtr0.l = ax
+    return
 endproc
 
 endmodule

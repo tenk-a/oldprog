@@ -1,104 +1,104 @@
 submodule Str
-	//	1992	writen by M.Kitamura
+    //	1992	writen by M.Kitamura
 
 //*const LTOA_SGN=0x01, LTOA_LEFT=0x02, LTOA_ZERO=0x04, LTOA_PLUS=0x08
 
 *proc LtoA(es.di,dx.ax,cl,ch,bl)
-//	値を１０進数文字列に変換(asciiz)
-//	arg es.di	バッファ
-//	arg dx.ax	値
-//	arg cl		最小幅(cl <= ch)
-//	arg ch		最大幅(バッファ・サイズ - 1)
-//	arg bl		bit0=0:符号無し 	 1:符号有り
-//				bit1=0:右寄 		 1:左寄
-//				bit2=0:空白を埋める  1:'0'を埋める
-//				bit3=0:'+'を付けない 1:正数のとき'+'を付ける
-//	out es.di	次のアドレス
+//  値を１０進数文字列に変換(asciiz)
+//  arg es.di	バッファ
+//  arg dx.ax	値
+//  arg cl  	最小幅(cl <= ch)
+//  arg ch  	最大幅(バッファ・サイズ - 1)
+//  arg bl  	bit0=0:符号無し      1:符号有り
+//  	    	bit1=0:右寄 	     1:左寄
+//  	    	bit2=0:空白を埋める  1:'0'を埋める
+//  	    	bit3=0:'+'を付けない 1:正数のとき'+'を付ける
+//  out es.di	次のアドレス
 enter
-	save pusha,ax,mode:bx,cx,dx,si,ptr_l:di,ptr_h:es,ds,fx
-	local sflg:b,rng:w
-	local buf:b(20)
+    save pusha,ax,mode:bx,cx,dx,si,ptr_l:di,ptr_h:es,ds,fx
+    local sflg:b,rng:w
+    local buf:b(20)
 
-	sflg = 0
-	if ((bl & LTOA_SGN) && dx .<. 0)
-		sflg = '-'
-		neg dx.ax
-	elsif ((bl & LTOA_PLUS) && (dx != 0 || ax != 0))
-		sflg = '+'
-	fi
-	if (sflg)
-		if (cl)
-			--cl
-		fi
-		if (ch)
-			--ch
-		fi
-	fi
-	if (ch && cl > ch)
-		cl = ch
-	fi
-	rng = cx
+    sflg = 0
+    if ((bl & LTOA_SGN) && dx .<. 0)
+    	sflg = '-'
+    	neg dx.ax
+    elsif ((bl & LTOA_PLUS) && (dx != 0 || ax != 0))
+    	sflg = '+'
+    fi
+    if (sflg)
+    	if (cl)
+    	    --cl
+    	fi
+    	if (ch)
+    	    --ch
+    	fi
+    fi
+    if (ch && cl > ch)
+    	cl = ch
+    fi
+    rng = cx
 
-	bx = ss
-	ds = bx
-	es.di = ww(bx, &buf)
+    bx = ss
+    ds = bx
+    es.di = ww(bx, &buf)
 
-	Str.DWtoA es.di, dx.ax
+    Str.DWtoA es.di, dx.ax
 
-	rep.inc
-	di = &buf
-	cx = 10
-	al = '0'
-	repe.scan di,al,cx
-	++cx
+    rep.inc
+    di = &buf
+    cx = 10
+    al = '0'
+    repe.scan di,al,cx
+    ++cx
 
-	// rng chk & set
-	dx = rng
-	if (dh && cl > dh)
-		cl = dh
-	fi
-	if (dl && cl < dl)
-		ch = dl
-		ch -= cl
-	fi
-	bx = 10
-	bl -= cl
-	si = &buf
-	si += bx
-	bl = cl
-	es.di = ww(ptr_h,ptr_l)
-	ax = ' '
-	if (mode.l & LTOA_ZERO)
-		if (sflg)
-			al = sflg
-			rep.set di,al
-		fi
-		al = '0'
-	fi
-	if (ch)
-		ah = ch
-		if ((mode.l & LTOA_LEFT) == 0)
-			cl = ch
-			ch = 0
-			rep.set di,al,cx
-			ah = ch
-		fi
-	fi
-	if (sflg && al == ' ')
-		al = sflg
-		rep.set di,al
-	fi
-	cx = bx
-	rep.cpy di,si,cx
-	if (ah)
-		al = ' '
-		cl = ah
-		ch = 0
-		rep.set di,al,cx
-	fi
-	b[es:di] = '\0'
-	ptr_l = di
-	return
+    // rng chk & set
+    dx = rng
+    if (dh && cl > dh)
+    	cl = dh
+    fi
+    if (dl && cl < dl)
+    	ch = dl
+    	ch -= cl
+    fi
+    bx = 10
+    bl -= cl
+    si = &buf
+    si += bx
+    bl = cl
+    es.di = ww(ptr_h,ptr_l)
+    ax = ' '
+    if (mode.l & LTOA_ZERO)
+    	if (sflg)
+    	    al = sflg
+    	    rep.set di,al
+    	fi
+    	al = '0'
+    fi
+    if (ch)
+    	ah = ch
+    	if ((mode.l & LTOA_LEFT) == 0)
+    	    cl = ch
+    	    ch = 0
+    	    rep.set di,al,cx
+    	    ah = ch
+    	fi
+    fi
+    if (sflg && al == ' ')
+    	al = sflg
+    	rep.set di,al
+    fi
+    cx = bx
+    rep.cpy di,si,cx
+    if (ah)
+    	al = ' '
+    	cl = ah
+    	ch = 0
+    	rep.set di,al,cx
+    fi
+    b[es:di] = '\0'
+    ptr_l = di
+    return
 
 endproc
 

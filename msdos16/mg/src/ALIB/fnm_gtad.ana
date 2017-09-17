@@ -1,26 +1,26 @@
 submodule Fname
 
 *proc GetFnameAddr(si)
-//	arg	si	パス名
-//	out si  ファイル名へのポインタ
-//	in  ds
+//  arg si  パス名
+//  out si  ファイル名へのポインタ
+//  in	ds
 begin
-	save ax,bx
-	rep.inc
-	if (b[si] == '.')
-		++si
-	fi
-	if (b[si] == '.')
-		++si
-	fi
-	bx = si
-	loop 
-		rep.load al,si
-		if (al == '\\' || al == '/' || al == ':')
-			bx = si
-		fi
-	endloop (al)
-	si = bx
-	return
+    save ax,bx
+    rep.inc
+    if (b[si] == '.')
+    	++si
+    fi
+    if (b[si] == '.')
+    	++si
+    fi
+    bx = si
+    loop
+    	rep.load al,si
+    	if (al == '\\' || al == '/' || al == ':')
+    	    bx = si
+    	fi
+    endloop (al)
+    si = bx
+    return
 endproc
 endmodule

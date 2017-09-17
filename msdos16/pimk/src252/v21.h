@@ -1,10 +1,10 @@
-#define V21_SIZE	0x4000
+#define V21_SIZE    0x4000
 
 int  V21_Init(	int vvSeg, int mmSeg,unsigned mmSzs,
-				int emsHdl, unsigned emsSeg, unsigned emsCnt,
-				int pln, int xsz,int ysz,int xstart,int ystart,
-				unsigned char far *pal,int asp1,int asp2,
-				int bcol,int reductFlg,int loopFlg);
+    	    	int emsHdl, unsigned emsSeg, unsigned emsCnt,
+    	    	int pln, int xsz,int ysz,int xstart,int ystart,
+    	    	unsigned char far *pal,int asp1,int asp2,
+    	    	int bcol,int reductFlg,int loopFlg);
 void V21_Start(void);
 void V21_End(int tone);
 void V21_End2(int tone);

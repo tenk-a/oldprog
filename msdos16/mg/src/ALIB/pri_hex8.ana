@@ -1,16 +1,16 @@
 submodule Pri
-	import Dos
-	import Str
+    import Dos
+    import Str
 
 *proc Hex8(dx.ax)
 begin
-	save pusha,es,ds
-	es = cx = %var
-	ds = cx
-	di = &Pri.buf
-	Str.DWtoH es.di,dx.ax
-	Pri.S &Pri.buf
-	return
+    save pusha,es,ds
+    es = cx = %var
+    ds = cx
+    di = &Pri.buf
+    Str.DWtoH es.di,dx.ax
+    Pri.S &Pri.buf
+    return
 endproc
 
 endmodule

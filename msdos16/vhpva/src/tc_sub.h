@@ -13,12 +13,12 @@
 #define _A_ARCH   0x20
 /* ファイル検索のバッファ(dos_findfirst/next()用) */
 struct find_t {
-	char reserved[21];
-	char attrib;
-	unsigned wr_time;
-	unsigned wr_date;
-	long size;
-	char name[13];
+    char reserved[21];
+    char attrib;
+    unsigned wr_time;
+    unsigned wr_date;
+    long size;
+    char name[13];
 };
 
 unsigned _dos_findfirst(char *PathName, unsigned Attrib, struct find_t *pfind);
@@ -26,4 +26,3 @@ unsigned _dos_findnext(struct find_t *pfind);
 unsigned _dos_read(int hno, void far *buf, unsigned siz, unsigned *cnt);
 
 #endif
-

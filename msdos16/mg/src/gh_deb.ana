@@ -1,28 +1,28 @@
 submodule GH
-	import Pri
+    import Pri
 
-@define	GHT	GH.T[ds:0]
+@define GHT GH.T[ds:0]
 
 *proc ChkPdata16(GHTptr:d);cdecl
 //  １６色ピクセル・データのチェック
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	ds.bx = GHTptr
-	cx = GHT.blkSiz
-	di = GHT.pdbSeg
-	ds = di
-	si = 0
-	loop
-		rep.load al,si
-		if (al & 0xf0)
-			--si
-			ah = 0
-			Pri.Fmt "Bad Pdata  %08lx : %02x\N",di.si, ax
-			++si
-		fi
-	endloop (--cx)
-	return
+    ds.bx = GHTptr
+    cx = GHT.blkSiz
+    di = GHT.pdbSeg
+    ds = di
+    si = 0
+    loop
+    	rep.load al,si
+    	if (al & 0xf0)
+    	    --si
+    	    ah = 0
+    	    Pri.Fmt "Bad Pdata  %08lx : %02x\N",di.si, ax
+    	    ++si
+    	fi
+    endloop (--cx)
+    return
 endproc
 
 endmodule

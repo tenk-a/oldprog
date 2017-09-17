@@ -1,195 +1,195 @@
 module GH
-	c_name "GH","_",1
+    c_name "GH","_",1
 
 
-*struct T	//いわゆるグローバル変数^^;
-	//画像データ（ファイル）の情報
-	sizeX:w 		//画像の横幅
-	sizeY:w 		//画像の縦幅
-	startX:w 		//基点のx座標
-	startY:w 		//基点のy座標
-	endX:w			//終点のx座標
-	endY:w			//終点のy座標
-	pln:b			//4 	入力画像のプレーン数. 4:16色  8:256色 24:ﾌﾙｶﾗｰ)
-	plnW:b			//4		出力画像のプレーン数.
-	col:w			//16 or 256. 出力画像の色数.
-	wrt24flg:w		//djp,bmp,pmt,tif 出力時、強制的に 24ﾋﾞｯﾄ色にする
-	asp1:b,asp2:b	//ドット比	（Pi と同じ扱い）
-	rgbPal:d		//RGBパレット・バッファへのポインタ
-	rgbPalSiz:w		//rgbPal のサイズ
-	userName:d		//ユーザ名バッファへのポインタ
-	userNameSiz:w	//ユーザ名バッファのサイズ
-	userNameLen:w	//ユーザ名の長さ
-	comment:d		//コメントbuffer address
-	commentSiz:w	//コメントbufferのサイズ
-	commentLen:w	//コメントの長さ
-	macName:b(6)	//元のデータのセーバ機種名
-	macNameMode:w	//セーバ機種名の扱い
-	bakCol:w		//透明色の番号＋１ （0:無効  1～16:有効(-1して0～15)）
-	palLowNbl:b		//パレットの4bit->8bit変換時の下位ニブルの値
-	palLowNblFlg:b	//palLowNbl を変更不可能にする(1)かどうか
-	palBit:w		//パレットの有効ビット数
-	palCnt:w		//パレットの使用個数
-	//dmy_palDigFlg:b //パレットがデジタル・カラーとき1(8色時のみ)
-	//dmy_pal256VaFlg:b//２５６パレットがVAの固定色とき１
-	//dmy3:w			//ncnv256flg:w
+*struct T   //いわゆるグローバル変数^^;
+    //画像データ（ファイル）の情報
+    sizeX:w 	    //画像の横幅
+    sizeY:w 	    //画像の縦幅
+    startX:w	    //基点のx座標
+    startY:w	    //基点のy座標
+    endX:w  	    //終点のx座標
+    endY:w  	    //終点のy座標
+    pln:b   	    //4     入力画像のプレーン数. 4:16色  8:256色 24:ﾌﾙｶﾗｰ)
+    plnW:b  	    //4     出力画像のプレーン数.
+    col:w   	    //16 or 256. 出力画像の色数.
+    wrt24flg:w	    //djp,bmp,pmt,tif 出力時、強制的に 24ﾋﾞｯﾄ色にする
+    asp1:b,asp2:b   //ドット比	（Pi と同じ扱い）
+    rgbPal:d	    //RGBパレット・バッファへのポインタ
+    rgbPalSiz:w     //rgbPal のサイズ
+    userName:d	    //ユーザ名バッファへのポインタ
+    userNameSiz:w   //ユーザ名バッファのサイズ
+    userNameLen:w   //ユーザ名の長さ
+    comment:d	    //コメントbuffer address
+    commentSiz:w    //コメントbufferのサイズ
+    commentLen:w    //コメントの長さ
+    macName:b(6)    //元のデータのセーバ機種名
+    macNameMode:w   //セーバ機種名の扱い
+    bakCol:w	    //透明色の番号＋１ （0:無効  1～16:有効(-1して0～15)）
+    palLowNbl:b     //パレットの4bit->8bit変換時の下位ニブルの値
+    palLowNblFlg:b  //palLowNbl を変更不可能にする(1)かどうか
+    palBit:w	    //パレットの有効ビット数
+    palCnt:w	    //パレットの使用個数
+    //dmy_palDigFlg:b //パレットがデジタル・カラーとき1(8色時のみ)
+    //dmy_pal256VaFlg:b//２５６パレットがVAの固定色とき１
+    //dmy3:w	    	//ncnv256flg:w
 
-	//ピクセル・データ・バッファ(pdb)関係
-	pdbSeg:w		//変換で用いるpdbのセグメント
-	pdbSiz:w		//pdbのサイズ. 偶数でないといけない
-	pdbLin:w		//pdbに収まるライン数
-	hisSiz:w		//hisSiz = hisLin * sizeX
-	hisLin:w		//データ展開で最低必要なライン数-1(入出力の先頭行)
-	blkSiz:w		//ブロックのバイト数 (= blkLin * sizeX)
-	blkLin:w		//１回の作業で行なえるライン数(bufLin = blkLin + hisLin)
-	blkCnt:w		//blkLin本のラインを１ブロックとしてそのブロック数
-	lastBlkSiz:w	//残りのバイト数	 (= rstLin * sizeX)
-	lastBlkLin:w	//blkLinに満たない最後のブロックのライン数
-					//sizeY = blkCnt * blkLin + lastBlkLin がなりたつ
+    //ピクセル・データ・バッファ(pdb)関係
+    pdbSeg:w	    //変換で用いるpdbのセグメント
+    pdbSiz:w	    //pdbのサイズ. 偶数でないといけない
+    pdbLin:w	    //pdbに収まるライン数
+    hisSiz:w	    //hisSiz = hisLin * sizeX
+    hisLin:w	    //データ展開で最低必要なライン数-1(入出力の先頭行)
+    blkSiz:w	    //ブロックのバイト数 (= blkLin * sizeX)
+    blkLin:w	    //１回の作業で行なえるライン数(bufLin = blkLin + hisLin)
+    blkCnt:w	    //blkLin本のラインを１ブロックとしてそのブロック数
+    lastBlkSiz:w    //残りのバイト数	 (= rstLin * sizeX)
+    lastBlkLin:w    //blkLinに満たない最後のブロックのライン数
+    	    	    //sizeY = blkCnt * blkLin + lastBlkLin がなりたつ
 
-	//メモリ関係(GetMem FreeMemで使う)
-	bufSeg:w		//バッファの先頭セグメント
-	bufEndSeg:w		//バッファの最後の次のセグメント
-	bufCurSeg:w		//現在の空きメモリの先頭
-	bufAdrOrig:d	//パラグラフ化前のバッファのアドレス
-	bufSizOrig:d	//パラグラフ化前のバッファのサイズ
-	//mallocFlg:w	//作業バッファがallocMemで作成された(1)かちがう(0)か
-	//_dmy2:w//bufSzs:w		//バッファのパラグラフ・サイズ
+    //メモリ関係(GetMem FreeMemで使う)
+    bufSeg:w	    //バッファの先頭セグメント
+    bufEndSeg:w     //バッファの最後の次のセグメント
+    bufCurSeg:w     //現在の空きメモリの先頭
+    bufAdrOrig:d    //パラグラフ化前のバッファのアドレス
+    bufSizOrig:d    //パラグラフ化前のバッファのサイズ
+    //mallocFlg:w   //作業バッファがallocMemで作成された(1)かちがう(0)か
+    //_dmy2:w//bufSzs:w     //バッファのパラグラフ・サイズ
 
-	//1<=>8ドット間隔変換用 (～b|Bが1ﾄﾞｯﾄ間隔、～o|Oが8ﾄﾞｯﾄ間隔)
-	x8mode:w		//0:変換無	1:in8->out1  2:in1->out8
-	rdX8flg:b		//1:入力時に横幅が８ﾄﾞｯﾄ間隔に補正されている(mag,VRAM)
-	wrtX8flg:b		//1:出力の圧縮の前に横座標を８ドット間隔にする必要がある
-	startXofs:w		//=startX - startXo
-	startXom:w		//startXofs部分のマスクパターン
-	endXofs:w		//=endXo - endX
-	endXom:w		//endXofs部分のマスクパターン
-	sizeXb:w 		//画像の横幅
-	sizeXo:w
-	startXb:w 		//基点のx座標
-	startXo:w
-	endXb:w			//終点のx座標
-	endXo:w
-	hisSizB:w		//hisSiz = hisLin * sizeX
-	hisSizO:w
-	blkSizB:w		//ブロックのバイト数 (= blkLin * sizeX)
-	blkSizO:w
-	lastBlkSizB:w	//残りのバイト数	 (= lastBlkLin * sizeX)
-	lastBlkSizO:w
+    //1<=>8ドット間隔変換用 (～b|Bが1ﾄﾞｯﾄ間隔、～o|Oが8ﾄﾞｯﾄ間隔)
+    x8mode:w	    //0:変換無	1:in8->out1  2:in1->out8
+    rdX8flg:b	    //1:入力時に横幅が８ﾄﾞｯﾄ間隔に補正されている(mag,VRAM)
+    wrtX8flg:b	    //1:出力の圧縮の前に横座標を８ドット間隔にする必要がある
+    startXofs:w     //=startX - startXo
+    startXom:w	    //startXofs部分のマスクパターン
+    endXofs:w	    //=endXo - endX
+    endXom:w	    //endXofs部分のマスクパターン
+    sizeXb:w	    //画像の横幅
+    sizeXo:w
+    startXb:w	    //基点のx座標
+    startXo:w
+    endXb:w 	    //終点のx座標
+    endXo:w
+    hisSizB:w	    //hisSiz = hisLin * sizeX
+    hisSizO:w
+    blkSizB:w	    //ブロックのバイト数 (= blkLin * sizeX)
+    blkSizO:w
+    lastBlkSizB:w   //残りのバイト数	 (= lastBlkLin * sizeX)
+    lastBlkSizO:w
 
-	//入力ファイル日付
-	ftimeFlg:w
-	ftime:w
-	fdate:w
-	ftimeFname:d
+    //入力ファイル日付
+    ftimeFlg:w
+    ftime:w
+    fdate:w
+    ftimeFname:d
 
-	//入力ファイル
-	rdName:d		//入力ファイル名
-	rdHdl:w 		//入力のファイル・ハンドル
-	rdBufSeg:w		//入力バッファのセグメント
-	rdBufSiz:w		//入力バッファのsize
-	rdBufBtm:w		//入力バッファのbuttomアドレス
-	rdPtr:w			//入力バッファ内のカーソル
-    rdFmtName:d		//入力のフォーマット名へのポインタ
-	dmy_rdExt:b(4)	//入力データの拡張子 (画像フォーマット名) EOS='\0'
-	rdMode:w		//入力の整数がインテル式かモトローラ式か
-	hdrRdFlg:w		//ヘッダ読込みのみ(1)か, コンバートもするか(0)
-	palFname:d		//パレット・ファイル名
+    //入力ファイル
+    rdName:d	    //入力ファイル名
+    rdHdl:w 	    //入力のファイル・ハンドル
+    rdBufSeg:w	    //入力バッファのセグメント
+    rdBufSiz:w	    //入力バッファのsize
+    rdBufBtm:w	    //入力バッファのbuttomアドレス
+    rdPtr:w 	    //入力バッファ内のカーソル
+    rdFmtName:d     //入力のフォーマット名へのポインタ
+    dmy_rdExt:b(4)  //入力データの拡張子 (画像フォーマット名) EOS='\0'
+    rdMode:w	    //入力の整数がインテル式かモトローラ式か
+    hdrRdFlg:w	    //ヘッダ読込みのみ(1)か, コンバートもするか(0)
+    palFname:d	    //パレット・ファイル名
 
-	//出力ファイル
-	wrtName:d		//出力ファイル名
-	wrtHdl:w		//出力ファイル・ハンドル
-	wrtBufSeg:w		//出力バッファのセグメント
-	wrtBufSiz:w		//出力バッファのsize
-	wrtBufBtm:w		//出力バッファのbuttomアドレス	dmy!
-	wrtPtr:w		//出力バッファ内のカーソル
-    wrtFmtName:d	//出力フォーマットの名前へのポインタ
-	dmy_wrtExt:b(4)	//出力データの拡張子 (画像フォーマット名) EOS='\0'
-	wrtMode:w		//出力の整数がインテル式かモトローラ式か
-	ovrWrtFlg:w		//同名ファイルがあったとき
+    //出力ファイル
+    wrtName:d	    //出力ファイル名
+    wrtHdl:w	    //出力ファイル・ハンドル
+    wrtBufSeg:w     //出力バッファのセグメント
+    wrtBufSiz:w     //出力バッファのsize
+    wrtBufBtm:w     //出力バッファのbuttomアドレス  dmy!
+    wrtPtr:w	    //出力バッファ内のカーソル
+    wrtFmtName:d    //出力フォーマットの名前へのポインタ
+    dmy_wrtExt:b(4) //出力データの拡張子 (画像フォーマット名) EOS='\0'
+    wrtMode:w	    //出力の整数がインテル式かモトローラ式か
+    ovrWrtFlg:w     //同名ファイルがあったとき
 
-	//Mag
-	magMacNo:b
-	magMacFlg:b
-	magScrnMode:b
-	_dmy_mag_1:b
+    //Mag
+    magMacNo:b
+    magMacFlg:b
+    magScrnMode:b
+    _dmy_mag_1:b
 
-	//Pi
-	piDfltPalFlg:w
-	piExSiz:w
+    //Pi
+    piDfltPalFlg:w
+    piExSiz:w
 
-	//bmp
-	bmpXdpm:d
-	bmpYdpm:d
+    //bmp
+    bmpXdpm:d
+    bmpYdpm:d
 
-	//tif
-	tifXdpi:d(2)
-	tifYdpi:d(2)
+    //tif
+    tifXdpi:d(2)
+    tifYdpi:d(2)
 
-	//B1
-	fmtR:w	//フォーマットの番号(read)
-	fmtW:w	//フォーマットの番号(wrt)
-	b1:b(12)
+    //B1
+    fmtR:w  //フォーマットの番号(read)
+    fmtW:w  //フォーマットの番号(wrt)
+    b1:b(12)
 
-	//VRAM
-	//pc98flg:w
-	startXofsBufSeg:w		//MAGの始点関係の解釈不十分で誤変換した尻拭いﾊﾞｯﾌｧ
-	startXofsBufSiz:w
-	vSeg:w(4)
+    //VRAM
+    //pc98flg:w
+    startXofsBufSeg:w	    //MAGの始点関係の解釈不十分で誤変換した尻拭いﾊﾞｯﾌｧ
+    startXofsBufSiz:w
+    vSeg:w(4)
 
 
-	/////////////////////////////////////
-	// Pi private
-	piRrbdat:w		//ビット・ストリームのデータ
-	piRrbcnt:b		//ビット・ストリームのカウンタ
-	piRpos:b		//前回の相対位置複写の残りの処理
-	piRlen:d		//その長さ
-	piRofs:w(5-1)	//比較するピクセルとの差
-	piRcolTblSeg:w 	//色表のバッファ
-	piRcolTblSzs:w 	//色表のサイズ
- //	piRhdncmt:d		//隠れコメントへのポインタ
- //	piRhdncmtSiz:w	//隠れコメントバッファのサイズ
- //	piRhdncmtLen:w	//隠れコメントの長さ
+    /////////////////////////////////////
+    // Pi private
+    piRrbdat:w	    //ビット・ストリームのデータ
+    piRrbcnt:b	    //ビット・ストリームのカウンタ
+    piRpos:b	    //前回の相対位置複写の残りの処理
+    piRlen:d	    //その長さ
+    piRofs:w(5-1)   //比較するピクセルとの差
+    piRcolTblSeg:w  //色表のバッファ
+    piRcolTblSzs:w  //色表のサイズ
+ // piRhdncmt:d     //隠れコメントへのポインタ
+ // piRhdncmtSiz:w  //隠れコメントバッファのサイズ
+ // piRhdncmtLen:w  //隠れコメントの長さ
 
-	// MAG private
-	magRhdrOfs:d
-	magRflagAofs:d, magRflagAsiz:d
-	magRflagBofs:d, magRflagBsiz:d//, flagBofs0:d
-	magRpdataOfs:d, magRpdataSiz:d
-	magWhdrOfs:d
-	magWflagAofs:d, magWflagAsiz:d
-	magWflagBofs:d, magWflagBsiz:d, magWflagBofs0:d
-	magWpdataOfs:d, magWpdataSiz:d
+    // MAG private
+    magRhdrOfs:d
+    magRflagAofs:d, magRflagAsiz:d
+    magRflagBofs:d, magRflagBsiz:d//, flagBofs0:d
+    magRpdataOfs:d, magRpdataSiz:d
+    magWhdrOfs:d
+    magWflagAofs:d, magWflagAsiz:d
+    magWflagBofs:d, magWflagBsiz:d, magWflagBofs0:d
+    magWpdataOfs:d, magWpdataSiz:d
 
-	// TIFF private
-	tifRfilOdr:w
-	tifRver:w
-	tifRpdataOfs:w
-	tifRpalOfs:w
-	tifWfilOdr:w
+    // TIFF private
+    tifRfilOdr:w
+    tifRver:w
+    tifRpdataOfs:w
+    tifRpalOfs:w
+    tifWfilOdr:w
 
-	// BMP private
-	bmpRpdataOfs:d
-	bmpRline:w
-	bmpRBfSizeXo:w
-	bmpRBfRstDotX:w
-	bmpRBfLine:w
-	bmpRBfSeg:w
-	bmpWpdataOfs:d
-	bmpWline:w
-	bmpWBfSizeXo:w
-	bmpWBfRstDotX:w
-	bmpWBfLine:w
-	bmpWBfSeg:w
+    // BMP private
+    bmpRpdataOfs:d
+    bmpRline:w
+    bmpRBfSizeXo:w
+    bmpRBfRstDotX:w
+    bmpRBfLine:w
+    bmpRBfSeg:w
+    bmpWpdataOfs:d
+    bmpWline:w
+    bmpWBfSizeXo:w
+    bmpWBfRstDotX:w
+    bmpWBfLine:w
+    bmpWBfSeg:w
 
-	// B1
-	b1RnextLine:w
-	b1WnextLine:w
+    // B1
+    b1RnextLine:w
+    b1WnextLine:w
 
-	//入力モジュールの変数領域
-	//ra:b(64)
-	//出力モジュールの変数領域
-	//wa:b(64)
+    //入力モジュールの変数領域
+    //ra:b(64)
+    //出力モジュールの変数領域
+    //wa:b(64)
 
 endstruct
 
@@ -197,32 +197,32 @@ endstruct
 
 ///////////////////////////////////////////////////////////////////////////////
 
-*proc  Init	(wrkAdr:d, wrkSiz:d, mode:w);cdecl
-	//GH.T使用時のGH.T変数の初期化手続き
-	//arg wrkAdr	変換や読み込み等に使うバッファへのポインタ
-	//				(0なら、Dos.allocMemで確保:未実装)
-	//arg wrkSiz	wrkバッファのサイズ
-	//arg mode	    0=ヘッダ読込のみ  1=コンバート作業を行う
- 	//out dx.ax		GH.T変数へのポインタ
- 	//	バッファは実用時はﾊﾟﾗｸﾞﾗﾌ単位で扱う(端数ﾒﾓﾘは使わない)
-  	//	この時点ではバッファの配分は行わない
-	endproc
+*proc  Init (wrkAdr:d, wrkSiz:d, mode:w);cdecl
+    //GH.T使用時のGH.T変数の初期化手続き
+    //arg wrkAdr    変換や読み込み等に使うバッファへのポインタ
+    //	    	    (0なら、Dos.allocMemで確保:未実装)
+    //arg wrkSiz    wrkバッファのサイズ
+    //arg mode	    0=ヘッダ読込のみ  1=コンバート作業を行う
+    //out dx.ax     GH.T変数へのポインタ
+    //	バッファは実用時はﾊﾟﾗｸﾞﾗﾌ単位で扱う(端数ﾒﾓﾘは使わない)
+    //	この時点ではバッファの配分は行わない
+    endproc
 
-*proc  Term	(GHTptr:d);cdecl
-	//GH.T変数使用終了手続き
-	endproc
+*proc  Term (GHTptr:d);cdecl
+    //GH.T変数使用終了手続き
+    endproc
 
 *proc  DspInfo (GHTptr:d, dspLevel:w);cdecl
-  	//ヘッダ情報の表示
-	endproc
+    //ヘッダ情報の表示
+    endproc
 
 *proc InitPDB (GHTptr:d);cdecl
-  	//pdBufのサイズ計算等
-  	endproc
+    //pdBufのサイズ計算等
+    endproc
 
 *proc MovHisLin(GHTptr:d);cdecl
-  	//pdBufの後ろ部分をﾋｽﾄﾘ部に複写
-  	endproc
+    //pdBufの後ろ部分をﾋｽﾄﾘ部に複写
+    endproc
 
 *proc RngX1(ght:d);cdecl
 endproc
@@ -231,70 +231,70 @@ endproc
 endproc
 
 *proc ResizePDBw(GHTptr:d);cdecl
-  	//横８ﾋﾟｸｾﾙ単位を横１ﾋﾟｸｾﾙ単位になるように変換
-  	endproc
+    //横８ﾋﾟｸｾﾙ単位を横１ﾋﾟｸｾﾙ単位になるように変換
+    endproc
 
 *proc ResizePDBr(GHTptr:d);cdecl
 //PDBサイズ調整. ReadPDB前に実行すること
-	endproc
+    endproc
 
 @if 0
 *proc SetRGB12(GHTptr:d, rgb12tbl:d);cdecl
-  	//98ﾊﾟﾚｯﾄをGH.Tのパレットに格納する
-  	endproc
+    //98ﾊﾟﾚｯﾄをGH.Tのパレットに格納する
+    endproc
 
 *proc GetRGB12(GHTptr:d, rgb12tbl:d);cdecl
-  	//GH.Tのパレットを98ﾊﾟﾚｯﾄにして取り出す
-  	endproc
+    //GH.Tのパレットを98ﾊﾟﾚｯﾄにして取り出す
+    endproc
 @fi
 
 *proc SetDigPal(GHTptr:d);cdecl
-	//パレットをデジタル8色・パレットにする
-	endproc
+    //パレットをデジタル8色・パレットにする
+    endproc
 
 *proc SetMonoPal(ght:d);cdecl
-	//デフォルト・パレットをモノクロ階調にする
-	endproc
+    //デフォルト・パレットをモノクロ階調にする
+    endproc
 
 *proc Df_DfltPalMode (flg:w);cdecl
-	//1:デフォルト・パレットをモノクロ階調にする
+    //1:デフォルト・パレットをモノクロ階調にする
 endproc
 
 @if 0
 *proc ChkPalCol(GHTptr:d);cdecl
-	//パレットの色数やデジタル・カラーかどうかとかVA256色かとかを調べる
-	endproc
+    //パレットの色数やデジタル・カラーかどうかとかVA256色かとかを調べる
+    endproc
 
 @fi
 
 *proc DspInfoDeb(GHTptr:d);cdecl
-  	//デバッグ情報の表示
-  	endproc
+    //デバッグ情報の表示
+    endproc
 
 *proc ChkPdata16(GHTptr:d);cdecl
-  	//１６色画像のときのピクセル・データが正しいかチェック(DEBUG用)
-  	endproc
+    //１６色画像のときのピクセル・データが正しいかチェック(DEBUG用)
+    endproc
 
 
 
 ////////////	memory	////////////
 
 *proc FreeMem(bx,ax)
-	//arg ds.bx	pointer to GH.T
-	//out ax 	segment
+    //arg ds.bx pointer to GH.T
+    //out ax	segment
 endproc
 
 *proc GetMem(bx,ax,cx)
-	//arg ds.bx	pointer to GH.T
-	//arg ax	min size(para)
-	//arg bx	max size(para)
-	//out ax 	segment
+    //arg ds.bx pointer to GH.T
+    //arg ax	min size(para)
+    //arg bx	max size(para)
+    //out ax	segment
 endproc
 
 *proc ResizeMem(bx,ax,cx)
-	//arg ds.bx	pointer to GH.T
-	//arg ax	segment
-	//arg cx	size(para)
+    //arg ds.bx pointer to GH.T
+    //arg ax	segment
+    //arg cx	size(para)
 endproc
 
 *proc GetMemTest(bx,ax,cx)
@@ -326,108 +326,108 @@ endproc
 
 
 *proc ReadBWDbuf(bx)
-	//バッファ入力
-	endproc
+    //バッファ入力
+    endproc
 
 *proc InitReadBWD(bx,ax,cx)
-	endproc
+    endproc
 
 *proc ResetReadBWD(bx)
   //Seek後にReadB(W,D)を使うばあい実行
-	endproc
+    endproc
 
 *proc ReadB(bx)
-	//1 バイト整数入力
-	//out al
-	endproc
+    //1 バイト整数入力
+    //out al
+    endproc
 
 *proc ReadW(bx)
-	//2 バイト整数入力
-	//out ax
-	endproc
+    //2 バイト整数入力
+    //out ax
+    endproc
 
 *proc ReadD(bx)
-	//4 バイト整数入力
-	//out dx.ax
-	endproc
+    //4 バイト整数入力
+    //out dx.ax
+    endproc
 
 
 *proc WrtBuf(bx)
-	//出力バッファの初期化
-	endproc
+    //出力バッファの初期化
+    endproc
 
 *proc InitWrtBWD(bx,ax,cx)
 endproc
 
 *proc WrtB (bx, al)
-	//1 バイト整数出力
-	endproc
+    //1 バイト整数出力
+    endproc
 
 *proc WrtW (bx, ax)
-	//2 バイト整数出力
-	endproc
+    //2 バイト整数出力
+    endproc
 
 *proc WrtD (bx, dx.ax)
-	//4 バイト整数出力
-	endproc
+    //4 バイト整数出力
+    endproc
 *proc WrtS (bx, dx.ax)
-	endproc
+    endproc
 
 *proc FlushBuf(bx)
-	endproc
+    endproc
 
-///////////	GH.T変数初期化のための変数＆手続き	////////////
+/////////// GH.T変数初期化のための変数＆手続き	////////////
 
 *proc SetHisLin(bx,ax)
-//	ヒストリ行数を設定
-	endproc
+//  ヒストリ行数を設定
+    endproc
 
 *proc Df_FtimeMode(flg:w);cdecl
-	endproc
+    endproc
 
 *proc Df_RdX8mode(flg:w);cdecl
-	endproc
+    endproc
 
 *proc Df_WrtX8mode(flg:w);cdecl
-	//flg=1:出力が横８ドット間隔になるように指定
-	endproc
+    //flg=1:出力が横８ドット間隔になるように指定
+    endproc
 
 *proc Df_SetExPln(pln:w);cdecl
-	endproc
+    endproc
 
 *proc Df_SetGvSeg(bsg:w, rsg:w, gsg:w, esg:w);cdecl
-	endproc
+    endproc
 
 *proc Df_RdBuf(addr:d, siz:w);cdecl
-	//入力バッファのアドレス＆サイズ
-	endproc
+    //入力バッファのアドレス＆サイズ
+    endproc
 
 *proc Df_WrtBuf(addr:d, siz:w);cdecl
-	//出力バッファのアドレス＆サイズ
-	endproc
+    //出力バッファのアドレス＆サイズ
+    endproc
 
 *proc Df_FtimeFname(adr:d);cdecl
-	endproc
+    endproc
 
 *proc Df_ForcePlnW(pln:w);cdecl
-	endproc
+    endproc
 
 
 *proc Df_Mag256Bug(bug:w);cdecl
-	endproc
+    endproc
 
 @if 0
 *proc Df_OverWrite(mode:w);cdecl
-	//出力オープンで同名があったとき, 0:上書き, 1:確認
-	endproc
+    //出力オープンで同名があったとき, 0:上書き, 1:確認
+    endproc
 
 *proc Df_PalLowNbl (lowNbl:w);cdecl
-  	//98ﾊﾟﾚｯﾄは4bitsなので8bitsに拡張するときに用いる下位ﾆﾌﾞﾙを設定
-	//lowNbl の上位バイトが０以外なら、GH.T[].palLowNblを変更不可能とする
-  	endproc
+    //98ﾊﾟﾚｯﾄは4bitsなので8bitsに拡張するときに用いる下位ﾆﾌﾞﾙを設定
+    //lowNbl の上位バイトが０以外なら、GH.T[].palLowNblを変更不可能とする
+    endproc
 
 *proc Df_NotCnv256(flg:w);cdecl
-	endproc
+    endproc
 
 @fi
 

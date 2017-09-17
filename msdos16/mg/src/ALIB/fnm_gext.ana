@@ -1,28 +1,28 @@
 submodule Fname
 
 *proc GetExtAddr(si)
-//	arg	si	パス名
-//	out si  Extへのポインタ
-//	in  ds
+//  arg si  パス名
+//  out si  Extへのポインタ
+//  in	ds
 begin
-	save ax,bx
-	rep.inc
-	rep.load al,si
-	if (al == '.')
-		rep.load al,si
-		if (al == '.')
-			++si
-		fi
-	fi
-	--si
-	bx = 0
-	loop 
-		rep.load al,si
-		if (al == '.')
-			bx = si
-		fi
-	endloop (al)
-	si = bx
-	return
+    save ax,bx
+    rep.inc
+    rep.load al,si
+    if (al == '.')
+    	rep.load al,si
+    	if (al == '.')
+    	    ++si
+    	fi
+    fi
+    --si
+    bx = 0
+    loop
+    	rep.load al,si
+    	if (al == '.')
+    	    bx = si
+    	fi
+    endloop (al)
+    si = bx
+    return
 endproc
 endmodule

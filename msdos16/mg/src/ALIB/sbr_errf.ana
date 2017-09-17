@@ -1,15 +1,15 @@
 submodule Subr
-	import Dos
-	import Pri
+    import Dos
+    import Pri
 
 *proc ErrFile(dx,ax)
 begin
-	ds = bx = %var
-	bx = ax
-	Pri.S "'"
-	Pri.S dx
-	Pri.S bx
-	Subr.PriExit "\N"
+    ds = bx = %var
+    bx = ax
+    Pri.S "'"
+    Pri.S dx
+    Pri.S bx
+    Subr.PriExit "\N"
 endproc
 
 endmodule

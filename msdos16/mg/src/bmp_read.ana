@@ -1,15 +1,15 @@
 submodule Bmp
 
-	import GH
-	import Subr
-	import Dos
-	import Lfn
-	import Str
-	import Std
-	import Pri
-	import Deb
+    import GH
+    import Subr
+    import Dos
+    import Lfn
+    import Str
+    import Std
+    import Pri
+    import Deb
 
-@define	GHT()	GH.T[ds:0]
+@define GHT()	GH.T[ds:0]
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,245 +17,245 @@ submodule Bmp
 
 *proc InitR(ght:d);cdecl
 enter
-	save ax,ds,bx
-	ds.bx = ght
-	//GHT.rdX8flg = 1
-	GHT.fmtR = GH.BMP
-	return
+    save ax,ds,bx
+    ds.bx = ght
+    //GHT.rdX8flg = 1
+    GHT.fmtR = GH.BMP
+    return
 endproc
 
 @if 0
 cvar dfltRGB:b() = data
-  b 0x00,0x00,0x00	/*黒*/
-  b 0x80,0x00,0x00	/*暗赤*/
-  b 0x00,0x80,0x00	/*暗緑*/
-  b 0x80,0x80,0x00	/*暗黄*/
-  b 0x00,0x00,0x80	/*暗青*/
-  b 0x80,0x00,0x80	/*暗紫*/
-  b 0x00,0x80,0x80	/*暗水*/
-  b 0x80,0x80,0x80	/*暗白(灰)*/
-  b 0xC0,0xC0,0xC0	/*薄白*/
-  b 0xFF,0x00,0x00	/*赤*/
-  b 0x00,0xFF,0x00	/*緑*/
-  b 0xFF,0xFF,0x00	/*黄*/
-  b 0x00,0x00,0xFF	/*青*/
-  b 0xF0,0x00,0xFF	/*紫*/
-  b 0x00,0xFF,0xFF	/*水*/
-  b 0xFF,0xFF,0xFF	/*白*/
+  b 0x00,0x00,0x00  /*黒*/
+  b 0x80,0x00,0x00  /*暗赤*/
+  b 0x00,0x80,0x00  /*暗緑*/
+  b 0x80,0x80,0x00  /*暗黄*/
+  b 0x00,0x00,0x80  /*暗青*/
+  b 0x80,0x00,0x80  /*暗紫*/
+  b 0x00,0x80,0x80  /*暗水*/
+  b 0x80,0x80,0x80  /*暗白(灰)*/
+  b 0xC0,0xC0,0xC0  /*薄白*/
+  b 0xFF,0x00,0x00  /*赤*/
+  b 0x00,0xFF,0x00  /*緑*/
+  b 0xFF,0xFF,0x00  /*黄*/
+  b 0x00,0x00,0xFF  /*青*/
+  b 0xF0,0x00,0xFF  /*紫*/
+  b 0x00,0xFF,0xFF  /*水*/
+  b 0xFF,0xFF,0xFF  /*白*/
 enddata
 @fi
 
 *proc Open(GHTptr:d, fileName:d);cdecl
-//	Bmpファイルをオープンしてヘッダを読み込み、ファイル・ポインタをピクセル
-//	データの先頭にして復帰する
+//  Bmpファイルをオープンしてヘッダを読み込み、ファイル・ポインタをピクセル
+//  データの先頭にして復帰する
 //  out ax  0:成功  以外:エラー
 enter
-	save bx,cx,dx,si,di,ds,es
-	cvar fmt:b() = "BMP"
-	const HDRSZS = Std.PARASIZE(sizeof(Bmp.HDR))
-	local macBinOfs:w
+    save bx,cx,dx,si,di,ds,es
+    cvar fmt:b() = "BMP"
+    const HDRSZS = Std.PARASIZE(sizeof(Bmp.HDR))
+    local macBinOfs:w
 
-	ds.bx = GHTptr
+    ds.bx = GHTptr
 
-	macBinOfs = 0
+    macBinOfs = 0
 
-	GH.GetMem bx, HDRSZS, HDRSZS
-	es = ax
-	GH.Open bx, fileName
-	GH.Read bx, ww(es,0), sizeof(Bmp.HDR)
+    GH.GetMem bx, HDRSZS, HDRSZS
+    es = ax
+    GH.Open bx, fileName
+    GH.Read bx, ww(es,0), sizeof(Bmp.HDR)
 
-	if (Bmp.HDR[es:0].id != 'B' + 'M'*0x100)
-	  @if 1
-		di = 128 - sizeof(Bmp.HDR)
-		loop
-			GH.Read bx, ww(es,0), 1
-		endloop(--di)
-		GH.Read bx, ww(es,0), sizeof(Bmp.HDR)
-		if (Bmp.HDR[es:0].id != 'B' + 'M'*0x100)
-			Pri.Fmt "BMPのヘッダでない\N"
-			go.w ERR
-		fi
-		macBinOfs = 128
-	  @else
-		Pri.Fmt "BMPのヘッダでない\N"
-		go.w ERR
-	  @fi
-	fi
-	if (Bmp.HDR[es:0].infoHdrSiz.l != 40)
-		Pri.Fmt "対応していないヘッダですの\N"
-		go.w ERR
-	fi
-	if (Bmp.HDR[es:0].arcMode.l != 0)
-		Pri.Fmt "Bmpの圧縮画像には未対応\N"
-		go.w ERR
-	fi
+    if (Bmp.HDR[es:0].id != 'B' + 'M'*0x100)
+      @if 1
+    	di = 128 - sizeof(Bmp.HDR)
+    	loop
+    	    GH.Read bx, ww(es,0), 1
+    	endloop(--di)
+    	GH.Read bx, ww(es,0), sizeof(Bmp.HDR)
+    	if (Bmp.HDR[es:0].id != 'B' + 'M'*0x100)
+    	    Pri.Fmt "BMPのヘッダでない\N"
+    	    go.w ERR
+    	fi
+    	macBinOfs = 128
+      @else
+    	Pri.Fmt "BMPのヘッダでない\N"
+    	go.w ERR
+      @fi
+    fi
+    if (Bmp.HDR[es:0].infoHdrSiz.l != 40)
+    	Pri.Fmt "対応していないヘッダですの\N"
+    	go.w ERR
+    fi
+    if (Bmp.HDR[es:0].arcMode.l != 0)
+    	Pri.Fmt "Bmpの圧縮画像には未対応\N"
+    	go.w ERR
+    fi
 
-	// ヘッダの値をコピー
-	GHT.rdFmtName = cx.ax = ww(cs,&fmt)
-	//GHT.fmtR = GH.BMP
-	d[bx + %GH.T.macName] = cx.ax = 'B'+'M'*0x100+'P'*0x10000+' '*0x1000000
-	GHT.sizeX = ax = Bmp.HDR[es:0].sizeX.l
-	--ax
-	GHT.endX = ax
-	GHT.startX = 0
+    // ヘッダの値をコピー
+    GHT.rdFmtName = cx.ax = ww(cs,&fmt)
+    //GHT.fmtR = GH.BMP
+    d[bx + %GH.T.macName] = cx.ax = 'B'+'M'*0x100+'P'*0x10000+' '*0x1000000
+    GHT.sizeX = ax = Bmp.HDR[es:0].sizeX.l
+    --ax
+    GHT.endX = ax
+    GHT.startX = 0
 
-	GHT.sizeY = ax = Bmp.HDR[es:0].sizeY.l
-	GHT.bmpRline = ax
-	--ax
-	GHT.endY = ax
-	GHT.startY = 0
+    GHT.sizeY = ax = Bmp.HDR[es:0].sizeY.l
+    GHT.bmpRline = ax
+    --ax
+    GHT.endY = ax
+    GHT.startY = 0
 
-	GHT.bmpXdpm = cx.ax = Bmp.HDR[es:0].dotX1m
-	GHT.bmpYdpm = di.si = Bmp.HDR[es:0].dotY1m
-	if (di || si == 0 || cx || ax == 0)
+    GHT.bmpXdpm = cx.ax = Bmp.HDR[es:0].dotX1m
+    GHT.bmpYdpm = di.si = Bmp.HDR[es:0].dotY1m
+    if (di || si == 0 || cx || ax == 0)
   J1:
-		GHT.asp1 = 0
-		GHT.asp2 = 0
-	else
-	  	GH.Resol2Asp cx.ax, di.si
-		GHT.asp1 = al
-		GHT.asp2 = ah
-	fi
+    	GHT.asp1 = 0
+    	GHT.asp2 = 0
+    else
+    	GH.Resol2Asp cx.ax, di.si
+    	GHT.asp1 = al
+    	GHT.asp2 = ah
+    fi
 
-	//色
-	cl = Bmp.HDR[es:0].picBit.l
-	if (cl <= 4)
-		cl = 4
-	elsif (cl <= 8)
-		cl = 8
-	else
-		cl = 24
-		//Pri.Fmt "BMP:16色,256色以外の画像は未サポート\N"
-		go.w ERR
-	fi
-	GHT.pln = cl
+    //色
+    cl = Bmp.HDR[es:0].picBit.l
+    if (cl <= 4)
+    	cl = 4
+    elsif (cl <= 8)
+    	cl = 8
+    else
+    	cl = 24
+    	//Pri.Fmt "BMP:16色,256色以外の画像は未サポート\N"
+    	go.w ERR
+    fi
+    GHT.pln = cl
 
-	ax = 0x01
-	ax <<= cl
-	GHT.col = ax
-	//dx = Bmp.HDR[es:0].palSiz.l	//パレットの数
-	ax <<= 2
-	cx = ax
+    ax = 0x01
+    ax <<= cl
+    GHT.col = ax
+    //dx = Bmp.HDR[es:0].palSiz.l   //パレットの数
+    ax <<= 2
+    cx = ax
 
-	di.ax = Bmp.HDR[es:0].pdataOfs
-	di.ax += ww(0,macBinOfs)
-	GHT.bmpRpdataOfs = di.ax
+    di.ax = Bmp.HDR[es:0].pdataOfs
+    di.ax += ww(0,macBinOfs)
+    GHT.bmpRpdataOfs = di.ax
 
-	//ヘッダ読込みに使ったメモリを解放
-	GH.FreeMem bx, es
+    //ヘッダ読込みに使ったメモリを解放
+    GH.FreeMem bx, es
 
 
-	//パレット・バッファ確保
-	GH.GetPalBuf bx
-
-  @if 0
-	if (dx)
-  @fi
-		if (GHT.pln <= 8)
-			//パレットの読み込み
-			Std.ParaSize cx,ax
-			ax = cx
-			GH.GetMem bx,ax,cx
-			si = ax
-			dx = 0
-			cx <<= 4
-			GH.Read bx, ax.dx, cx
-
-			ax = 0x01
-			cl = GHT.pln
-			ax <<= cl
-			cx = ax
-			es.di = GHT.rgbPal
-			push ds,si
-				ds = si
-				si = dx
-				loop
-					rep.load.w ax,si
-					dl = al
-					rep.load   al,si
-					++si
-					rep.set.w  di,ax
-					al = dl
-					rep.set    di,al
-				endloop (--cx)
-			pop ds,ax
-			GH.FreeMem bx, ax
-		fi
-  @if 0
-	elsif (GHT.pln == 4)
-		es.di = GHT.rgbPal
-		push ds
-			ds = cs
-			rep.cpy.w di,&dfltRGB,24
-		pop ds
-	fi
-  @fi
-
-	//get buffer
-	GH.InitPDB ds.bx
-
-	// 作業バッファ準備
-	dx = ax = GHT.sizeX
-	if (GHT.pln == 4)
-		++ax
-		ax >>= 1
-		dx = ax
-	fi
-	ax += 3
-	ax >>= 2
-	ax <<= 2
-	GHT.bmpRBfSizeXo = ax
-	cx = ax
-	ax -= dx
-	GHT.bmpRBfRstDotX = ax
-	dx.ax = 0xFFFF
-	div dx.ax, cx
-	//Pri.Fmt "BMP_R:sizeX=%d sizeY=%d rst=%d\N",GHT.bmpRBfSizeXo,GHT.bmpRBfLine,GHT.bmpRBfRstDotX
-	if (ax == 0)
-		Pri.Fmt "横幅が広すぎてバッファが確保できない\N"
-		ax = 1
-		go.w RET
-	fi
-	if (ax < GHT.blkLin)
-		Pri.Fmt "PRGERR:BMP入力でうまくメモリを確保できない\N"
-		ax = 1
-		go.w RET
-	fi
-	if (ax > GHT.blkLin)
-		ax = GHT.blkLin
-	fi
-	GHT.bmpRBfLine = ax
-
-	// 作業バッファ確保
-	dx.ax = ax * GHT.bmpRBfSizeXo
-	ax += 15
-	ax >>= 4
-	GH.GetMem bx,ax,ax
-	GHT.bmpRBfSeg = ax
-
+    //パレット・バッファ確保
+    GH.GetPalBuf bx
 
   @if 0
-	// ファイル・ポインタをピクセル・データの位置にする
-	//GH.SeekR bx, GHT.bmpRpdataOfs
+    if (dx)
+  @fi
+    	if (GHT.pln <= 8)
+    	    //パレットの読み込み
+    	    Std.ParaSize cx,ax
+    	    ax = cx
+    	    GH.GetMem bx,ax,cx
+    	    si = ax
+    	    dx = 0
+    	    cx <<= 4
+    	    GH.Read bx, ax.dx, cx
+
+    	    ax = 0x01
+    	    cl = GHT.pln
+    	    ax <<= cl
+    	    cx = ax
+    	    es.di = GHT.rgbPal
+    	    push ds,si
+    	    	ds = si
+    	    	si = dx
+    	    	loop
+    	    	    rep.load.w ax,si
+    	    	    dl = al
+    	    	    rep.load   al,si
+    	    	    ++si
+    	    	    rep.set.w  di,ax
+    	    	    al = dl
+    	    	    rep.set    di,al
+    	    	endloop (--cx)
+    	    pop ds,ax
+    	    GH.FreeMem bx, ax
+    	fi
+  @if 0
+    elsif (GHT.pln == 4)
+    	es.di = GHT.rgbPal
+    	push ds
+    	    ds = cs
+    	    rep.cpy.w di,&dfltRGB,24
+    	pop ds
+    fi
   @fi
 
-	ax = 0
+    //get buffer
+    GH.InitPDB ds.bx
+
+    // 作業バッファ準備
+    dx = ax = GHT.sizeX
+    if (GHT.pln == 4)
+    	++ax
+    	ax >>= 1
+    	dx = ax
+    fi
+    ax += 3
+    ax >>= 2
+    ax <<= 2
+    GHT.bmpRBfSizeXo = ax
+    cx = ax
+    ax -= dx
+    GHT.bmpRBfRstDotX = ax
+    dx.ax = 0xFFFF
+    div dx.ax, cx
+    //Pri.Fmt "BMP_R:sizeX=%d sizeY=%d rst=%d\N",GHT.bmpRBfSizeXo,GHT.bmpRBfLine,GHT.bmpRBfRstDotX
+    if (ax == 0)
+    	Pri.Fmt "横幅が広すぎてバッファが確保できない\N"
+    	ax = 1
+    	go.w RET
+    fi
+    if (ax < GHT.blkLin)
+    	Pri.Fmt "PRGERR:BMP入力でうまくメモリを確保できない\N"
+    	ax = 1
+    	go.w RET
+    fi
+    if (ax > GHT.blkLin)
+    	ax = GHT.blkLin
+    fi
+    GHT.bmpRBfLine = ax
+
+    // 作業バッファ確保
+    dx.ax = ax * GHT.bmpRBfSizeXo
+    ax += 15
+    ax >>= 4
+    GH.GetMem bx,ax,ax
+    GHT.bmpRBfSeg = ax
+
+
+  @if 0
+    // ファイル・ポインタをピクセル・データの位置にする
+    //GH.SeekR bx, GHT.bmpRpdataOfs
+  @fi
+
+    ax = 0
   RET:
-	return
+    return
 
   ERR:
-  	ax = 1
-  	go RET
+    ax = 1
+    go RET
 
 endproc
 
 
 *proc CloseR(GHTptr:d);cdecl
 enter
-	save bx,ds,ax
-	ds.bx = GHTptr
-	Subr.Close GHT.rdHdl
-	return
+    save bx,ds,ax
+    ds.bx = GHTptr
+    Subr.Close GHT.rdHdl
+    return
 endproc
 
 
@@ -264,64 +264,64 @@ endproc
 ///////////////////////////////////////////////////////////////////////////////
 
 *proc ReadPDB(GHTptr:d, lineCnt0:w);cdecl
-//	ピクセル・データをバッファに入力
+//  ピクセル・データをバッファに入力
 enter
-	save pusha,es,ds
-	local lineCnt:w
+    save pusha,es,ds
+    local lineCnt:w
 
-	rep.inc
-	ds.bx = GHTptr
-	Deb.Chk;if (==);Pri.Fmt "Bmp.ReadPDB %d\N",lineCnt;fi
-	lineCnt = ax = lineCnt0
+    rep.inc
+    ds.bx = GHTptr
+    Deb.Chk;if (==);Pri.Fmt "Bmp.ReadPDB %d\N",lineCnt;fi
+    lineCnt = ax = lineCnt0
 
-	block	SEEK_POS
-		ax = GHT.bmpRline 
-		ax -= lineCnt
-		GHT.bmpRline = ax
-		dx.ax = ax * GHT.bmpRBfSizeXo
-		dx.ax += GHT.bmpRpdataOfs
-		GH.SeekR bx, dx.ax
-	endblock
+    block   SEEK_POS
+    	ax = GHT.bmpRline
+    	ax -= lineCnt
+    	GHT.bmpRline = ax
+    	dx.ax = ax * GHT.bmpRBfSizeXo
+    	dx.ax += GHT.bmpRpdataOfs
+    	GH.SeekR bx, dx.ax
+    endblock
 
-	go.w (lineCnt == 0) RET
+    go.w (lineCnt == 0) RET
 
-	dx.ax = GHT.bmpRBfSizeXo * lineCnt
-	cx = ax
-	GH.Read bx, ww(GHT.bmpRBfSeg,0), cx
+    dx.ax = GHT.bmpRBfSizeXo * lineCnt
+    cx = ax
+    GH.Read bx, ww(GHT.bmpRBfSeg,0), cx
 
-	si = 0
-	loop
-		--lineCnt
-		dx.ax = lineCnt * GHT.sizeX		//GHT.sizeXo
-		ax += GHT.hisSiz				//GHT.hisSizO
-		di = ax
+    si = 0
+    loop
+    	--lineCnt
+    	dx.ax = lineCnt * GHT.sizeX 	//GHT.sizeXo
+    	ax += GHT.hisSiz    	    	//GHT.hisSizO
+    	di = ax
 
-		cx = GHT.sizeX
-		if (GHT.pln == 4)
-			++cx
-			cx >>= 1
-			loop
-				es = GHT.bmpRBfSeg
-				al = b[es:si]; ++si
-				ah = al
-				al >>= 4
-				ah &= 0x0f
-				es = GHT.pdbSeg
-				rep.set.w di,ax
-			endloop (--cx)
-		else	//(GHT.pln == 8)
-			loop
-				es = GHT.bmpRBfSeg
-				al = b[es:si]; ++si
-				es = GHT.pdbSeg
-				rep.set.b di,al
-			endloop (--cx)
-		fi
-		si += GHT.bmpRBfRstDotX
-	endloop (lineCnt)
+    	cx = GHT.sizeX
+    	if (GHT.pln == 4)
+    	    ++cx
+    	    cx >>= 1
+    	    loop
+    	    	es = GHT.bmpRBfSeg
+    	    	al = b[es:si]; ++si
+    	    	ah = al
+    	    	al >>= 4
+    	    	ah &= 0x0f
+    	    	es = GHT.pdbSeg
+    	    	rep.set.w di,ax
+    	    endloop (--cx)
+    	else	//(GHT.pln == 8)
+    	    loop
+    	    	es = GHT.bmpRBfSeg
+    	    	al = b[es:si]; ++si
+    	    	es = GHT.pdbSeg
+    	    	rep.set.b di,al
+    	    endloop (--cx)
+    	fi
+    	si += GHT.bmpRBfRstDotX
+    endloop (lineCnt)
 
   RET:
-	return
+    return
 endproc
 
 

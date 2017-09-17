@@ -1,22 +1,22 @@
 module Djp
-	c_name "Djp","_",1
+    c_name "Djp","_",1
 
-	import GH
-	import Subr
-	import Str
-	import Pri
-	import Std
-	import Dos
-	import Lfn
-	import Deb
+    import GH
+    import Subr
+    import Str
+    import Pri
+    import Std
+    import Dos
+    import Lfn
+    import Deb
 
-@define	GHT()	GH.T[ds:0]
+@define GHT()	GH.T[ds:0]
 
 *struct HDR
-	id:b(6)
-	xsz:w
-	ysz:w
-	bits:w
+    id:b(6)
+    xsz:w
+    ysz:w
+    bits:w
 endstruct
 
 cvar pln4flg:w=0
@@ -24,284 +24,284 @@ cvar pln4flg:w=0
 
 *proc Df_SetPln4()
 begin
-	pln4flg = 1
-	return
+    pln4flg = 1
+    return
 endproc
 
 *proc Df_SetPlnAuto()
 begin
-	pln4flg = -1
-	return
+    pln4flg = -1
+    return
 endproc
 
 //*proc Df_SetPln24()
 //begin
-//	wrt24flg = 1
-//	return
+//  wrt24flg = 1
+//  return
 //endproc
 
 
 *proc InitW(GHTptr:d);cdecl
 enter
-	save ax,ds,bx
-	ds.bx = GHTptr
-	GHT.fmtW = GH.DJP
-	return
+    save ax,ds,bx
+    ds.bx = GHTptr
+    GHT.fmtW = GH.DJP
+    return
 endproc
 
 *proc InitR(GHTptr:d);cdecl
 enter
-	save ax,ds,bx
-	ds.bx = GHTptr
-	GHT.fmtR = GH.DJP
-	return
+    save ax,ds,bx
+    ds.bx = GHTptr
+    GHT.fmtR = GH.DJP
+    return
 endproc
 
 *proc Create(GHTptr:d,fileName:d);cdecl
   //DJPヘッダを出力
   //out ax  0:成功  以外:エラー
 enter
-	save pusha,es,ds
-	cvar hdr:HDR = data
-		b	"DJ505J"
-		w	0
-		w	0
-		w	0
-	enddata
-	local	tmp:b(256*3-48)
+    save pusha,es,ds
+    cvar hdr:HDR = data
+    	b   "DJ505J"
+    	w   0
+    	w   0
+    	w   0
+    enddata
+    local   tmp:b(256*3-48)
 
-	ds.bx = GHTptr
-	hdr.xsz = ax = GHT.sizeX
-	hdr.ysz = ax = GHT.sizeY
-	hdr.bits= 0
+    ds.bx = GHTptr
+    hdr.xsz = ax = GHT.sizeX
+    hdr.ysz = ax = GHT.sizeY
+    hdr.bits= 0
 
-	// フルカラー出力の時
-	if (GHT.wrt24flg)
-		hdr.bits = 24
-		GH.InitWrtBWD bx, 0x800, 0xF000	// バッファ確保
-	fi
+    // フルカラー出力の時
+    if (GHT.wrt24flg)
+    	hdr.bits = 24
+    	GH.InitWrtBWD bx, 0x800, 0xF000 // バッファ確保
+    fi
 
-	//ファイルを作成
-	GH.Create bx,fileName
-	go (ax) RET
-	GH.Write bx, ww(cs,%hdr), 12
+    //ファイルを作成
+    GH.Create bx,fileName
+    go (ax) RET
+    GH.Write bx, ww(cs,%hdr), 12
 
-	//パレットを出力
-	if (GHT.wrt24flg == 0)
-		ax.dx = GHT.rgbPal
-		if (GHT.plnW == 4)
-			GH.Write bx, ax.dx, 48
-			es.di = ww(ss, &tmp)
-			rep.set di, 0, 256*3-48
-			GH.Write bx, ww(ss,&tmp), 3*256-48
-		else
-			GH.Write bx, ax.dx, 3*256
-		fi
-	fi
-	ax = 0
+    //パレットを出力
+    if (GHT.wrt24flg == 0)
+    	ax.dx = GHT.rgbPal
+    	if (GHT.plnW == 4)
+    	    GH.Write bx, ax.dx, 48
+    	    es.di = ww(ss, &tmp)
+    	    rep.set di, 0, 256*3-48
+    	    GH.Write bx, ww(ss,&tmp), 3*256-48
+    	else
+    	    GH.Write bx, ax.dx, 3*256
+    	fi
+    fi
+    ax = 0
   RET:
-	return
+    return
 endproc
 
 *proc Open(GHTptr:d, fileName:d);cdecl
-//	Djpファイルをオープンしてヘッダを読み込む
+//  Djpファイルをオープンしてヘッダを読み込む
 //  out ax  0:成功  以外:エラー
 enter
-	save pusha,ds,es
-	cvar hdr:w(16)
-	cvar fmt:b()="DJP"
-	
-	ds.bx = GHTptr
+    save pusha,ds,es
+    cvar hdr:w(16)
+    cvar fmt:b()="DJP"
 
-	GH.Open bx, fileName
-	GH.Read bx, ww(cs,%hdr), 12
+    ds.bx = GHTptr
 
-	if (hdr(0)!='D'+'J'*0x100|| hdr(1)!='5'+'0'*0x100|| hdr(2)!='5'+'J'*0x100)
-		// ﾏｯｸ･ﾊﾞｲﾅﾘ対策
-		di = 128-12
-		loop
-			GH.Read bx, ww(cs,%hdr), 1
-		endloop(--di)
-		GH.Read bx, ww(cs,%hdr), 12
-		if (hdr(0)!='D'+'J'*0x100|| hdr(1)!='5'+'0'*0x100|| hdr(2)!='5'+'J'*0x100)
-			Pri.Fmt "DJPのヘッダでないかも\N"
-			go.w ERR
-		fi
-	fi
+    GH.Open bx, fileName
+    GH.Read bx, ww(cs,%hdr), 12
 
-	GHT.rdFmtName = cx.ax = ww(cs,&fmt)
-	d[bx + %GH.T.macName] = cx.ax = 'D'+'J'*0x100+'P'*0x10000+' '*0x1000000
-	GHT.startX = dx = 0
-	GHT.sizeX = ax = hdr(3)
-	--ax
-	GHT.endX = ax
+    if (hdr(0)!='D'+'J'*0x100|| hdr(1)!='5'+'0'*0x100|| hdr(2)!='5'+'J'*0x100)
+    	// ﾏｯｸ･ﾊﾞｲﾅﾘ対策
+    	di = 128-12
+    	loop
+    	    GH.Read bx, ww(cs,%hdr), 1
+    	endloop(--di)
+    	GH.Read bx, ww(cs,%hdr), 12
+    	if (hdr(0)!='D'+'J'*0x100|| hdr(1)!='5'+'0'*0x100|| hdr(2)!='5'+'J'*0x100)
+    	    Pri.Fmt "DJPのヘッダでないかも\N"
+    	    go.w ERR
+    	fi
+    fi
 
-	GHT.startY = ax = 0
-	GHT.sizeY = ax = hdr(4)
-	--ax
-	GHT.endY = ax
+    GHT.rdFmtName = cx.ax = ww(cs,&fmt)
+    d[bx + %GH.T.macName] = cx.ax = 'D'+'J'*0x100+'P'*0x10000+' '*0x1000000
+    GHT.startX = dx = 0
+    GHT.sizeX = ax = hdr(3)
+    --ax
+    GHT.endX = ax
 
-	// アスペクト比
-	al = 0
-	GHT.asp1 = al
-	GHT.asp2 = al
-	
-	//透明色
-	GHT.bakCol = ax = 0
-	//色
-	ch = 0
-	GHT.pln = cl = 8
-	GHT.col = 256
-	if (pln4flg .>. 0)
-		GHT.pln = cl = 4
-		GHT.col = 16
-	fi
+    GHT.startY = ax = 0
+    GHT.sizeY = ax = hdr(4)
+    --ax
+    GHT.endY = ax
 
-	if (hdr(5) > 8)
-		Pri.Fmt "フルカラー画像には対応していません\n"
-		Dos.Exit(1)
-	fi
-	
-	//パレット・バッファ確保
-	GH.GetPalBuf bx
-	ax = hdr(5)
-	if (al != 0)
-		es.di = GHT.rgbPal
-		ax = 0
-		loop
-			rep.set di,al
-			rep.set di,al
-			rep.set di,al
-			++ax
-		endloop (ah == 0)
-	else
-		ax.dx = GHT.rgbPal
-		GH.Read bx, ax.dx, 256*3
-	endif
-	
+    // アスペクト比
+    al = 0
+    GHT.asp1 = al
+    GHT.asp2 = al
+
+    //透明色
+    GHT.bakCol = ax = 0
+    //色
+    ch = 0
+    GHT.pln = cl = 8
+    GHT.col = 256
+    if (pln4flg .>. 0)
+    	GHT.pln = cl = 4
+    	GHT.col = 16
+    fi
+
+    if (hdr(5) > 8)
+    	Pri.Fmt "フルカラー画像には対応していません\n"
+    	Dos.Exit(1)
+    fi
+
+    //パレット・バッファ確保
+    GH.GetPalBuf bx
+    ax = hdr(5)
+    if (al != 0)
+    	es.di = GHT.rgbPal
+    	ax = 0
+    	loop
+    	    rep.set di,al
+    	    rep.set di,al
+    	    rep.set di,al
+    	    ++ax
+    	endloop (ah == 0)
+    else
+    	ax.dx = GHT.rgbPal
+    	GH.Read bx, ax.dx, 256*3
+    endif
+
   @if 10
-	if (GHT.pln == 8 && pln4flg == -1)
-		es.si = GHT.rgbPal
-		si += 16*3
-		cx = (256-16)*3/2
-		ax = 0
-		loop
-			ax += w[es:si]
-			si += 2
-		endloop(--cx)
-		if (ax == 0)
-			GHT.pln = 4
-			GHT.col = 16
-		fi
-	fi
+    if (GHT.pln == 8 && pln4flg == -1)
+    	es.si = GHT.rgbPal
+    	si += 16*3
+    	cx = (256-16)*3/2
+    	ax = 0
+    	loop
+    	    ax += w[es:si]
+    	    si += 2
+    	endloop(--cx)
+    	if (ax == 0)
+    	    GHT.pln = 4
+    	    GHT.col = 16
+    	fi
+    fi
   @fi
-	
-	//
-	GH.InitPDB ds.bx
 
-	ax = 0
+    //
+    GH.InitPDB ds.bx
+
+    ax = 0
   RET:
-	return
+    return
   ERR:
-  	ax = 1
-  	go RET
+    ax = 1
+    go RET
 
 endproc
 
 
 *proc CloseW(GHTptr:d);cdecl
 enter
-	save ax,bx,ds
-	ds.bx = GHTptr
-	if (GHT.wrt24flg)
-		GH.FlushBuf bx
-	fi
-	GH.CloseW	ds.bx
-	return
+    save ax,bx,ds
+    ds.bx = GHTptr
+    if (GHT.wrt24flg)
+    	GH.FlushBuf bx
+    fi
+    GH.CloseW	ds.bx
+    return
 endproc
 
 *proc CloseR(GHTptr:d);cdecl
 enter
-	save	ds,bx
-	ds.bx = GHTptr
-	GH.CloseR	bx
-	return
+    save    ds,bx
+    ds.bx = GHTptr
+    GH.CloseR	bx
+    return
 endproc
 
 *proc ReadPDB(GHTptr:d, lineCnt:w);cdecl
-//	ピクセル・データをバッファに入力
+//  ピクセル・データをバッファに入力
 enter
-	save pusha,ds,es
-	local xsize:w
+    save pusha,ds,es
+    local xsize:w
 
-	ds.bx = GHTptr
-	ax = GHT.sizeX
-	dx.ax = lineCnt * ax
-	cx = ax
+    ds.bx = GHTptr
+    ax = GHT.sizeX
+    dx.ax = lineCnt * ax
+    cx = ax
   Deb.Chk
   if (==)
-  	Pri.Fmt "Djp.ReadPDB:%lx %d*%d=%u\N",ds.bx, lineCnt, GHT.sizeX, cx
+    Pri.Fmt "Djp.ReadPDB:%lx %d*%d=%u\N",ds.bx, lineCnt, GHT.sizeX, cx
   fi
-	dx = GHT.hisSiz
-	es = ax = GHT.pdbSeg
-	GH.Read bx, ax.dx, cx
-	return
+    dx = GHT.hisSiz
+    es = ax = GHT.pdbSeg
+    GH.Read bx, ax.dx, cx
+    return
 endproc
 
 
 @if 0
 *proc WritePDB(GHTptr:d,lineCnt:w);cdecl
-//	ピクセル・データをバッファに出力
+//  ピクセル・データをバッファに出力
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	ds.bx = GHTptr
-	dx.ax = lineCnt * GHT.sizeX
-	cx = ax
-	dx = GHT.hisSiz
-	es = GHT.pdbSeg
-	GH.Write bx, es.dx, cx
-	return
+    ds.bx = GHTptr
+    dx.ax = lineCnt * GHT.sizeX
+    cx = ax
+    dx = GHT.hisSiz
+    es = GHT.pdbSeg
+    GH.Write bx, es.dx, cx
+    return
 endproc
 
 @else
 
 *proc WritePDB(GHTptr:d,lineCnt:w);cdecl
-//	ピクセル・データをバッファに出力
+//  ピクセル・データをバッファに出力
 enter
-	save pusha,es,ds
+    save pusha,es,ds
 
-	ds.bx = GHTptr
-	dx.ax = lineCnt * GHT.sizeX
-	cx = ax
-	if (GHT.wrt24flg == 0)
-		dx = GHT.hisSiz
-		es = GHT.pdbSeg
-		GH.Write bx, es.dx, cx
-	else
-		si = GHT.hisSiz
-		es.dx = GHT.rgbPal
-		ds = GHT.pdbSeg
-		loop
-			rep.load al,si
-			ah = 0
-			//bx = ax * 3 + GHT.rgbPal.l
-			di = ax
-			ax += ax
-			di += ax
-			di += dx
-			push ds
-				ds = GHTptr.h
-				al = b[es:di];++di
-				GH.WrtB bx,al
-				al = b[es:di];++di
-				GH.WrtB bx,al
-				al = b[es:di];++di
-				GH.WrtB bx,al
-			pop  ds
-		endloop (--cx)
-	fi
-	return
+    ds.bx = GHTptr
+    dx.ax = lineCnt * GHT.sizeX
+    cx = ax
+    if (GHT.wrt24flg == 0)
+    	dx = GHT.hisSiz
+    	es = GHT.pdbSeg
+    	GH.Write bx, es.dx, cx
+    else
+    	si = GHT.hisSiz
+    	es.dx = GHT.rgbPal
+    	ds = GHT.pdbSeg
+    	loop
+    	    rep.load al,si
+    	    ah = 0
+    	    //bx = ax * 3 + GHT.rgbPal.l
+    	    di = ax
+    	    ax += ax
+    	    di += ax
+    	    di += dx
+    	    push ds
+    	    	ds = GHTptr.h
+    	    	al = b[es:di];++di
+    	    	GH.WrtB bx,al
+    	    	al = b[es:di];++di
+    	    	GH.WrtB bx,al
+    	    	al = b[es:di];++di
+    	    	GH.WrtB bx,al
+    	    pop  ds
+    	endloop (--cx)
+    fi
+    return
 endproc
 
 @fi

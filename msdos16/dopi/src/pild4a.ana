@@ -1,320 +1,320 @@
 module PILD4A
-	model SMALL
-	c_name "PiLd","_",1
-	//  in  ds = %var
-	//@set P86 = 1
+    model SMALL
+    c_name "PiLd","_",1
+    //	in  ds = %var
+    //@set P86 = 1
 
-	import RdDt:"READDATA"
-	import Pi
-	import Dbg
-	import Std
+    import RdDt:"READDATA"
+    import Pi
+    import Dbg
+    import Std
   @if defined(DEBUG)
     import Pri
   @fi
 
 *proc Load4a();cdecl
-	// Piファイルよりデータを読み込んで PiLd_wkBuf に展開
+    // Piファイルよりデータを読み込んで PiLd_wkBuf に展開
 enter
-	save bx,cx,dx,si,di,es,sav_ds:ds
-	local xsiz:w, exitFlg:b, wkCnt:d
+    save bx,cx,dx,si,di,es,sav_ds:ds
+    local xsiz:w, exitFlg:b, wkCnt:d
 
-	rep.inc
-	
-	dx.ax = Pi.sizX * Pi.sizY
-	dx.ax >>= 1
-	wkCnt = dx.ax
+    rep.inc
 
-	ax = Pi.sizX
-	ax >>= 1
-	xsiz = ax
+    dx.ax = Pi.sizX * Pi.sizY
+    dx.ax >>= 1
+    wkCnt = dx.ax
 
-	dx.ax = Pi.wkBuf
-	ax += Pi.sizX
-	bx = ax
-	bx >>= 4
-	dx += bx
-	ax &= 0x0f
-	Pi.wkBuf2 = dx.ax
+    ax = Pi.sizX
+    ax >>= 1
+    xsiz = ax
 
-	ax = Pi.sizX 	//ax = sizX * 2 / 2
-	ax >>= 4
-	++ax
-	di = 0x1000
-	di -= ax
-	Pi.wkNxtOfs.h = di
-	ax <<= 4
-	Pi.wkNxtOfs.l = ax
+    dx.ax = Pi.wkBuf
+    ax += Pi.sizX
+    bx = ax
+    bx >>= 4
+    dx += bx
+    ax &= 0x0f
+    Pi.wkBuf2 = dx.ax
 
-	RdDt.RdBitInit (bh,dx)
-	ax = 0
-	Pi.ReadColor ax, bh, dx	//in ax 左側の色  result ax
-	cl = al
-	Pi.ReadColor ax, bh, dx
-	cl <<= 4
-	al |= cl
-	es = Pi.wkBuf.h
-	di = 0
-	cx = Pi.sizX 	// cx = xsiz*2
-	rep.set di,al,cx
+    ax = Pi.sizX    //ax = sizX * 2 / 2
+    ax >>= 4
+    ++ax
+    di = 0x1000
+    di -= ax
+    Pi.wkNxtOfs.h = di
+    ax <<= 4
+    Pi.wkNxtOfs.l = ax
+
+    RdDt.RdBitInit (bh,dx)
+    ax = 0
+    Pi.ReadColor ax, bh, dx //in ax 左側の色  result ax
+    cl = al
+    Pi.ReadColor ax, bh, dx
+    cl <<= 4
+    al |= cl
+    es = Pi.wkBuf.h
+    di = 0
+    cx = Pi.sizX    // cx = xsiz*2
+    rep.set di,al,cx
   @if defined(DEBUG)
-	  pusha
-	  push ds
-		  ds = dx = %var
-		  dx = ax
-		  Pri.S "Lc";Pri.Hex2 dl;Pri.Cr
-	  pop  ds
-	  popa
+      pusha
+      push ds
+    	  ds = dx = %var
+    	  dx = ax
+    	  Pri.S "Lc";Pri.Hex2 dl;Pri.Cr
+      pop  ds
+      popa
   @fi
-	exitFlg = 0
-	bl = -1
-	block LLL
-		//al = '1';intr 0x29
-	    exit.w (exitFlg)	// not -DDEBUG -> exit (exitFlg)
-		//al = '2';intr 0x29
-		block RDPOS	//RdDt.RdPos  //result ax
-			ax = 0
-		 @if 1
-			RdDt.RdBit(bh,dx); rcl ax
-			RdDt.RdBit(bh,dx); rcl ax
-		 @else
-		 	if (bh > 2)
-		 		bh -= 2
-		 		|dx <<= 1
-		 		|rcl ax
-		 		|dx <<= 1
-		 		|rcl ax
-		 	else
-				RdDt.RdBit(bh,dx); rcl ax
-				RdDt.RdBit(bh,dx); rcl ax
-		 	fi
-		 @fi
-			if (al == 3)
-				RdDt.RdBit(bh,dx)
-				adc al,0
-			fi
-		endblock
-		if (al == bl)
-			bl = -1
-			loop
-				//al = 'a';intr 0x29
-				al = b[es:di - 1]
-				al &= 0x0f
-			@if defined(DEBUG)
-				pusha
-				push ds
-					ds = dx = %var
-					dx = ax
-					Pri.S "Lc";Pri.Hex2 dl;Pri.Cr
-				pop  ds
-				popa
-			@fi
-				Pi.ReadColor ax, bh, dx	//result ax
-				cl = al
-				Pi.ReadColor ax, bh, dx	//result ax
-				cl <<= 4
-				al |= cl
-				//push ax;al = 'b';intr 0x29;pop ax
-				rep.set di,al
-			@if defined(DEBUG)
-				pusha
-				push ds
-					ds = dx = %var
-					dx = ax
-					Pri.Chr '.';Pri.Hex2 dl;Pri.Cr
-				pop  ds
-				popa
-			@fi
-				//al = 'c';intr 0x29
-				cx.ax = wkCnt
-				cx.ax -= 1
-				wkCnt = cx.ax
-				exit.w (ax == 0 && cx == 0) LLL
-				if (di == 0)
-					Pi.WkNxt es.di,ax
-				fi
-				//al = 'd';intr 0x29
-				RdDt.RdBit(bh,dx) //result cf
-			endloop (cf)
-			//al = 'e';intr 0x29
-			next.w
-		fi
-		bl = al
-		si = 0
-		si -= di		//si : diからendPtr(ｾｸﾞﾒﾝﾄ境界)までのﾊﾞｲﾄ数
-		//al = '3';intr 0x29
-		RdDt.RdLen bh,dx  //result ax.cx	use bh,dx
+    exitFlg = 0
+    bl = -1
+    block LLL
+    	//al = '1';intr 0x29
+    	exit.w (exitFlg)    // not -DDEBUG -> exit (exitFlg)
+    	//al = '2';intr 0x29
+    	block RDPOS //RdDt.RdPos  //result ax
+    	    ax = 0
+    	 @if 1
+    	    RdDt.RdBit(bh,dx); rcl ax
+    	    RdDt.RdBit(bh,dx); rcl ax
+    	 @else
+    	    if (bh > 2)
+    	    	bh -= 2
+    	    	|dx <<= 1
+    	    	|rcl ax
+    	    	|dx <<= 1
+    	    	|rcl ax
+    	    else
+    	    	RdDt.RdBit(bh,dx); rcl ax
+    	    	RdDt.RdBit(bh,dx); rcl ax
+    	    fi
+    	 @fi
+    	    if (al == 3)
+    	    	RdDt.RdBit(bh,dx)
+    	    	adc al,0
+    	    fi
+    	endblock
+    	if (al == bl)
+    	    bl = -1
+    	    loop
+    	    	//al = 'a';intr 0x29
+    	    	al = b[es:di - 1]
+    	    	al &= 0x0f
+    	    @if defined(DEBUG)
+    	    	pusha
+    	    	push ds
+    	    	    ds = dx = %var
+    	    	    dx = ax
+    	    	    Pri.S "Lc";Pri.Hex2 dl;Pri.Cr
+    	    	pop  ds
+    	    	popa
+    	    @fi
+    	    	Pi.ReadColor ax, bh, dx //result ax
+    	    	cl = al
+    	    	Pi.ReadColor ax, bh, dx //result ax
+    	    	cl <<= 4
+    	    	al |= cl
+    	    	//push ax;al = 'b';intr 0x29;pop ax
+    	    	rep.set di,al
+    	    @if defined(DEBUG)
+    	    	pusha
+    	    	push ds
+    	    	    ds = dx = %var
+    	    	    dx = ax
+    	    	    Pri.Chr '.';Pri.Hex2 dl;Pri.Cr
+    	    	pop  ds
+    	    	popa
+    	    @fi
+    	    	//al = 'c';intr 0x29
+    	    	cx.ax = wkCnt
+    	    	cx.ax -= 1
+    	    	wkCnt = cx.ax
+    	    	exit.w (ax == 0 && cx == 0) LLL
+    	    	if (di == 0)
+    	    	    Pi.WkNxt es.di,ax
+    	    	fi
+    	    	//al = 'd';intr 0x29
+    	    	RdDt.RdBit(bh,dx) //result cf
+    	    endloop (cf)
+    	    //al = 'e';intr 0x29
+    	    next.w
+    	fi
+    	bl = al
+    	si = 0
+    	si -= di    	//si : diからendPtr(ｾｸﾞﾒﾝﾄ境界)までのﾊﾞｲﾄ数
+    	//al = '3';intr 0x29
+    	RdDt.RdLen bh,dx  //result ax.cx    use bh,dx
 @if defined (DEBUG)
-	pusha
-	push ds
-		ds = dx = %var
-		dx = ax
-		bh = 0
-		Pri.S "@";Pri.Word bx;Pri.S " ";Pri.DWord dx.cx;Pri.Cr
-	pop  ds
-	popa
+    pusha
+    push ds
+    	ds = dx = %var
+    	dx = ax
+    	bh = 0
+    	Pri.S "@";Pri.Word bx;Pri.S " ";Pri.DWord dx.cx;Pri.Cr
+    pop  ds
+    popa
 @fi
-		if (ax > wkCnt.h || (ax == wkCnt.h && cx >= wkCnt.l))
-			ax.cx = wkCnt
-			exitFlg = 1
-		fi
-		| wkCnt.l -= cx
-		sbc wkCnt.h, ax
+    	if (ax > wkCnt.h || (ax == wkCnt.h && cx >= wkCnt.l))
+    	    ax.cx = wkCnt
+    	    exitFlg = 1
+    	fi
+    	| wkCnt.l -= cx
+    	sbc wkCnt.h, ax
 
-		if (ax || cx >= si)
-			gosub SUB2
-			next.w
-		fi
-		//al = 'A';intr 0x29
-		if (bl == 0)
-			ah = al = b[es:di-1]
-			al >>= 4
-			ah &= 0x0f
-			if (al != ah)
-				ax = w[es:di-2]
-				if ((cx >>= 1) .cf. 1)
-					rep.set di,al
-					al <=> ah
-				fi
-				if (cx)
-					rep.set.w di,ax,cx
-				fi
-				next.w
-			fi
-		  @if 0
-			ah = al = b[es:di - 1]
-			if ((cx >>= 1) .cf. 1)
-				rep.set di,al
-			fi
-			rep.set.w di,ax,cx
-		  @else
-			al = b[es:di - 1]
-		    rep.set di,al,cx
-		  @fi
-			next.w
-		elsif (bl <= 2)
-			ax = xsiz
-			if (bl == 2)
-				ax <<= 1
-			fi
-			ds = si = es
-			si = di
-			si -= ax
-		  @if 0
-			if ((cx >>= 1) .cf. 1)
-				rep.cpy di,si
-			fi
-			rep.cpy.w di,si,cx
-		  @else
-		  	rep.cpy di,si,cx
-		  @fi
-			ds = sav_ds
-			next.w
-		else
-			ax = xsiz
-			if (bl == 4)
-				++ax
-			fi
-			ds = si = es
-			si = di
-			si -= ax
-			loop
-				ax = w[si]
-				++si
-				al <<= 4
-				ah >>= 4
-				al |= ah
-				rep.set di,al
-			endloop (--cx)
-			ds = sav_ds
-		fi
-		next.w
-	endblock
+    	if (ax || cx >= si)
+    	    gosub SUB2
+    	    next.w
+    	fi
+    	//al = 'A';intr 0x29
+    	if (bl == 0)
+    	    ah = al = b[es:di-1]
+    	    al >>= 4
+    	    ah &= 0x0f
+    	    if (al != ah)
+    	    	ax = w[es:di-2]
+    	    	if ((cx >>= 1) .cf. 1)
+    	    	    rep.set di,al
+    	    	    al <=> ah
+    	    	fi
+    	    	if (cx)
+    	    	    rep.set.w di,ax,cx
+    	    	fi
+    	    	next.w
+    	    fi
+    	  @if 0
+    	    ah = al = b[es:di - 1]
+    	    if ((cx >>= 1) .cf. 1)
+    	    	rep.set di,al
+    	    fi
+    	    rep.set.w di,ax,cx
+    	  @else
+    	    al = b[es:di - 1]
+    	    rep.set di,al,cx
+    	  @fi
+    	    next.w
+    	elsif (bl <= 2)
+    	    ax = xsiz
+    	    if (bl == 2)
+    	    	ax <<= 1
+    	    fi
+    	    ds = si = es
+    	    si = di
+    	    si -= ax
+    	  @if 0
+    	    if ((cx >>= 1) .cf. 1)
+    	    	rep.cpy di,si
+    	    fi
+    	    rep.cpy.w di,si,cx
+    	  @else
+    	    rep.cpy di,si,cx
+    	  @fi
+    	    ds = sav_ds
+    	    next.w
+    	else
+    	    ax = xsiz
+    	    if (bl == 4)
+    	    	++ax
+    	    fi
+    	    ds = si = es
+    	    si = di
+    	    si -= ax
+    	    loop
+    	    	ax = w[si]
+    	    	++si
+    	    	al <<= 4
+    	    	ah >>= 4
+    	    	al |= ah
+    	    	rep.set di,al
+    	    endloop (--cx)
+    	    ds = sav_ds
+    	fi
+    	next.w
+    endblock
     ax = 0
  RTS:
-	return
+    return
 
 SUB2:
   @if 1
-	if (Dbg.gChkPiLd4a)
-  		push ax
-  		al = 'B';intr 0x29
-  		al = '0';al+=bl;intr 0x29
+    if (Dbg.gChkPiLd4a)
+    	push ax
+    	al = 'B';intr 0x29
+    	al = '0';al+=bl;intr 0x29
     	al = ' ';intr 0x29
-  		pop  ax
-		Dbg.PutWord(ax)
-		Dbg.PutWord(cx)
-  	fi
+    	pop  ax
+    	Dbg.PutWord(ax)
+    	Dbg.PutWord(cx)
+    fi
   @fi
-	if (bl <= 2)
-		push bx,dx
-		push ax
-		dx = xsiz
-		|bl - 1
-		if (<)
-			ah = al = b[es:di-1]
-			ah >>= 4
-			al &= 0x0f
-			dx = 1
-			if (ah != al)
-				++dx
-			fi
-		elsif (>)
-			dx <<= 1
-		fi
-		pop bx
-		ds = si = es
-		si = di
-		si -= dx
-		++bx
-		loop
-			loop
-				rep.cpy di,si
-				if (di == 0)
-					ds = sav_ds
-					Pi.WkNxt es.di,ax
-					ds = si = es
-					si = di
-					si -= dx
-				fi
-			endloop (--cx)
-		endloop(--bx)
-		ds = sav_ds
-		pop bx,dx
-		ret
-	else
-		push bx,dx
-		dx = ax
-		if (bl == 3)
-			bx = xsiz
-		else
-			bx = xsiz
-			++bx
-		fi
-		ds = si = es
-		si = di
-		si -= bx
-		++dx
-		loop
-			loop
-				rep.load.w ax,si
-				--si
-				al <<= 4
-				ah >>= 4
-				al |= ah
-				rep.set di,al
-				if (di == 0)
-					ds = sav_ds
-					Pi.WkNxt es.di,ax
-					ds = si = es
-					si = di
-					si -= bx
-				fi
-			endloop (--cx)
-		endloop (--dx)
-		ds = sav_ds
-		pop bx,dx
-		ret
-	fi
+    if (bl <= 2)
+    	push bx,dx
+    	push ax
+    	dx = xsiz
+    	|bl - 1
+    	if (<)
+    	    ah = al = b[es:di-1]
+    	    ah >>= 4
+    	    al &= 0x0f
+    	    dx = 1
+    	    if (ah != al)
+    	    	++dx
+    	    fi
+    	elsif (>)
+    	    dx <<= 1
+    	fi
+    	pop bx
+    	ds = si = es
+    	si = di
+    	si -= dx
+    	++bx
+    	loop
+    	    loop
+    	    	rep.cpy di,si
+    	    	if (di == 0)
+    	    	    ds = sav_ds
+    	    	    Pi.WkNxt es.di,ax
+    	    	    ds = si = es
+    	    	    si = di
+    	    	    si -= dx
+    	    	fi
+    	    endloop (--cx)
+    	endloop(--bx)
+    	ds = sav_ds
+    	pop bx,dx
+    	ret
+    else
+    	push bx,dx
+    	dx = ax
+    	if (bl == 3)
+    	    bx = xsiz
+    	else
+    	    bx = xsiz
+    	    ++bx
+    	fi
+    	ds = si = es
+    	si = di
+    	si -= bx
+    	++dx
+    	loop
+    	    loop
+    	    	rep.load.w ax,si
+    	    	--si
+    	    	al <<= 4
+    	    	ah >>= 4
+    	    	al |= ah
+    	    	rep.set di,al
+    	    	if (di == 0)
+    	    	    ds = sav_ds
+    	    	    Pi.WkNxt es.di,ax
+    	    	    ds = si = es
+    	    	    si = di
+    	    	    si -= bx
+    	    	fi
+    	    endloop (--cx)
+    	endloop (--dx)
+    	ds = sav_ds
+    	pop bx,dx
+    	ret
+    fi
 //end SUB2
 
 endproc
