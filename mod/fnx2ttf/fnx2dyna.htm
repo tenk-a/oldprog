@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<title>fnx2dyna</title>
+<meta http-equiv="Content-Type" content="text/html; charset=x-sjis">
+<link rel="stylesheet" type="text/css" href="base.css">
+<style><!--
+body{line-height : 175%; color : #666666; backgroud-color : #f0f0f0; margin : 1em 3em 2em 2em;}
+h1,h2,h4,h5,h6{font-weight : bold; line-height : 300%;}
+p,pre,blockquote,ul,ol,li,dd,dt{font-style : normal; font-variant : normal; font-weight : normal; font-size: 1em;}
+dt{color : #444444; font-weight : bold; line-height : 280%;}
+.date{font-weight : lighter; font-style : italic; color : #cacaca;text-align : right;}
+.upd{color: #bf8844; font-size:72%;}
+.warn{color: #FF6644;}
+--></style>
+<body>
+
+
+<h2>fnx2dyna v0.52</h2>
+
+<p>
+
+
+<p>
+<h3>使い方</h3>
+<p>
+まず、Lin YawJen氏作の中国語圏用TrueTypeFont作成ツール群<br>
+<blockquote>
+ <a href="ftp://ftp.ifcss.org/pub/software/fonts/utils/">cb2tt</a>
+</blockquote>
+と、松田氏が日本向けに改造されたパッケージ
+<blockquote>
+<a href="http://itohws03.ee.noda.sut.ac.jp/~matsuda/cb2ttj/">cb2ttj</a>
+</blockquote>
+と、それを補完する<br>
+<blockquote>
+ <!-- href="http://www.geocities.com/Tokyo/Garden/6798/cb2ttj98.html" -->
+ <strong>cb2ttj98</strong>
+</blockquote>
+からなる、TTF ファイル生成環境をそれらの説明をみて、用意してください。
+<br>
+（cb2ttj98の頁はリンクの様です... まあ cb2ttj の分でなんとかなるはず)
+<p>
+その準備ができたところに、このパッケージの
+<blockquote>
+<ul>
+<li>fnx2dyna.exe
+<li>fnx2ttf.bat
+<li>(batch.exe)
+</ul>
+</blockquote>
+をまぜて、fnx2ttf.bat の最初の環境変数の設定のところを
+変換したいフォントに合わせて書き換えてください。
+<p>
+運がよければ(?)、TTFファイルができます。
+ただし、半角カナ・フォントには未対応です。
+
+<p><br>
+fnx2dyna.exe, batch.exe の使い方については、
+それぞれのヘルプを表示してみてください。<br>
+（単にfnx2dyna&lt;リターン&gt; とかでok)<br>
+<p><br>
+fnx2dynaの -m1 の有無による生成の違いは<br>
+<a href="inochi1.png">inochi1.png</a> (通常)<br>
+<a href="inochi2.png">inochi2.png</a> (-m1付生成)<br>
+です。
+<p><br>
+
+
+<h3>履歴</h3>
+<p>
+<dl>
+<dt>2001-10
+<dd>初版
+<dt>2002-1
+<dd>己が作った版のbatch.exeがバグっていたために、記号フォントの生成が
+失敗していた模様。それが直ったらちゃんと生成できた。
+（ただし元より半角カナ未対応）
+<dt>2007-5
+<dd>ドットが右端に接するとき、接した横に連なったドットが欠落してしまうという大バグがあったのを修正。<br>
+半角フォントの生成がおかしかったのを修正.
+<br>
+(前回から5年も経ってる...今頃になってすみませんm(_ _)m)
+
+</dl>
+<br><br>
+<h3>配布条件等</h3>
+
+<p>
+　まず、必ず、cb2ttj,cb2ttj98 のページで使い方や事情に目を
+通してください。<br>
+<p>
+　また、現在のところ、tenk*のWEBページの<br>
+<blockquote>
+「fontx2形式のフォントを TTF にしたい」
+</blockquote>
+のサンプル素材なので、万が一、それをみずにこれを
+入手したならば、そのページくらいは、目を通して
+やってください。
+<p>
+一応、フリーソフトです。
+<p>
+ソースの引用/流用とかについては、改造や改良部分とかの著作権やら
+特許やらの権利で他者の利用や(同様の)改変の自由を制限する
+ような真似をせんかぎりは、仕事や著作物に使うのでもokです。
+もちろん自己責任で（あなたの著作物になるわけではないし、
+己が作ったときの参照や流用の権利を把握してるわけでないので）。
+
+<p>
+配布ファイル中の実行ファイルは Borland社の bcc32 v5.5 でコン
+パイルしてあります。
+<p>
+
+
+
+<address><a href="mailto:tenka@6809.net">tenk* (tenka@6809.net)</a></address><br>
+<a href="http://www.6809.net/tenk/">http://www.6809.net/tenk/</a>
+
+</body>
+<html>

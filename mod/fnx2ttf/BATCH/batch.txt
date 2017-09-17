@@ -1,0 +1,7 @@
+Usage> BATCH [-opts] batchfile [start [end]]
+startからendまで、batchfile の 内容を繰り返し１つのbatchtmp.batを
+生成して実行. このとき %1 をその値に置き換える.
+  -n      batchtmp.bat を生成するだけ
+  -bNAME  batchtmp.bat を NAME にする
+
+
